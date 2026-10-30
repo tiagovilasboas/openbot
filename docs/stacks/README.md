@@ -1,16 +1,16 @@
 # Stack candidates
 
-Status: **proposals, not decisions**. Validate choices against a working mobile chat and integration flow.
+Status: **initial packages and toolchain wired; mobile fit remains unvalidated**. The repository pins Next.js and Ionic React, but no application screen exists yet. Validate the UI choices against the mobile chat and integration flow before treating them as final.
 
-| Area | Candidate | Reason / open question |
-| --- | --- | --- |
-| Mobile interface | React and TypeScript PWA | One web interface for phone and desktop; validate installation and network access on target devices. |
-| Mobile UI | Ionic React | Mobile-oriented components and PWA support; compare with shadcn/ui for visual flexibility. |
-| Server | Node.js and TypeScript | Shared language across UI and agent; validate tool and provider SDK support. |
-| Storage | SQLite | Small local deployment; decide how to protect credentials separately. |
-| Local model | Liquid LFM3-1.7B | Candidate for the first experiment; measure Portuguese, latency and tool calling. |
-| External models | Provider adapters | Start by evaluating Anthropic and a free cloud provider through optional 9Router; support compatible endpoints as validated. |
-| Tools | MCP client and direct API adapters | Start with GitHub and calendar read access. |
+| Area             | Candidate                          | Reason / open question                                                                                                       |
+| ---------------- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Mobile interface | React and TypeScript PWA           | One web interface for phone and desktop; validate installation and network access on target devices.                         |
+| Mobile UI        | Ionic React                        | Mobile-oriented components and PWA support; compare with shadcn/ui for visual flexibility.                                   |
+| Server           | Node.js and TypeScript             | Shared language across UI and agent; validate tool and provider SDK support.                                                 |
+| Storage          | SQLite                             | Small local deployment; decide how to protect credentials separately.                                                        |
+| Local model      | Liquid LFM3-1.7B                   | Candidate for the first experiment; measure Portuguese, latency and tool calling.                                            |
+| External models  | Provider adapters                  | Start by evaluating Anthropic and a free cloud provider through optional 9Router; support compatible endpoints as validated. |
+| Tools            | MCP client and direct API adapters | Start with GitHub and calendar read access.                                                                                  |
 
 ## UI candidates
 

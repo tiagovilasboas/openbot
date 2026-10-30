@@ -2,7 +2,7 @@
 
 Open Bot is in the planning stage. These principles guide implementation decisions.
 
-The [delivery gate contract](delivery-gates.md) defines the planned Husky, lint, project typecheck, tests and CI requirements for the application.
+The [delivery gate contract](delivery-gates.md) documents the versioned Husky hooks, quality checks and CI gate for the application.
 
 - **Screaming Architecture:** organize code around product capabilities and domains. Keep related behavior together.
 - **Clean Code:** favor clear names, focused functions, explicit contracts, and understandable errors.
