@@ -14,6 +14,17 @@ Uma pessoa abre o Open Bot no celular, pareia com o servidor no seu computador, 
 - As chaves e tokens permanecem protegidos no servidor. Uma skill é uma instrução, não permissão nem treinamento. O executor valida cada chamada de ferramenta.
 - O MVP de integrações é somente leitura. Ações externas de escrita exigem uma etapa posterior de aprovação explícita.
 - A interface e os cenários de avaliação incluem português brasileiro e inglês. Modelos e provedores só são declarados suportados após verificação.
+- A interface terá apenas tema escuro. A direção visual é inspirada nas cores e na simplicidade do Grok Bot, com identidade própria; cores exatas serão definidas e verificadas no protótipo.
+
+## Direção de UI e UX
+
+O chat é a entrada principal após o pareamento. Mostra o modelo ativo, progresso compreensível, respostas com fontes e erros parciais. Histórico, conexões e ajustes ficam acessíveis sem transformar conceitos como MCP em barreiras para o usuário. A primeira entrada orienta pareamento, modelo, nome e idioma do bot e conexões opcionais.
+
+Para acelerar, avaliar **Ionic React** para componentes mobile, **assistant-ui** para primitivas de conversa e **Ionicons** para ícones, com tokens próprios. As [Apple Human Interface Guidelines](https://developer.apple.com/design/human-interface-guidelines/) orientam hierarquia, acessibilidade e experiência no iPhone; validar também os comportamentos esperados no Android. Next.js + Ionic e a convivência com assistant-ui dependem da spike. Se a integração acrescentar complexidade, avaliar um chat próprio pequeno.
+
+Explorar fundo escuro `#181818`, superfícies `#252525` e um destaque inicial `#6B6EEA`. São candidatos, não cores oficiais do Grok Bot nem decisões finais. Verificar contraste, estados, leitura e acessibilidade antes de adotá-los. Criar identidade e símbolo próprios; não copiar a marca ou ativos do Grok Bot.
+
+Primeiros fluxos a prototipar: chat vazio e em uso; pareamento; escolha do modelo e chave; conexões e permissões; resumo diário com fontes e falha parcial. Verificar teclado, rolagem, foco, leitor de tela, tamanho do texto, áreas seguras e movimento reduzido nos dispositivos disponíveis.
 
 ## Etapa 0 — fundação e decisões
 
@@ -31,6 +42,7 @@ Uma pessoa abre o Open Bot no celular, pareia com o servidor no seu computador, 
 | 1.2 | Modelo local e Anthropic | 5 | 0.1 | Executar os mesmos casos em português e inglês com cada caminho; registrar versões, respostas, falhas, latência e custo quando disponível. |
 | 1.3 | Ferramenta simulada e 9Router | 5 | 1.2 | Verificar chamada, argumentos, recusa e erros com ferramenta fictícia; comparar rota direta e 9Router sem troca silenciosa de provedor. |
 | 1.4 | Decisão de stack e avaliação | 2 | 1.1, 1.2, 1.3 | Publicar resultados reais, amostra, limitações e decisão para UI, servidor, modelos e roteador. Sem evidência, manter item em aberto. |
+| 1.5 | Protótipo de UI escura | 3 | 1.1 | Prototipar os cinco fluxos, avaliar Ionic + assistant-ui, contraste e experiência mobile; registrar aparelhos, falhas e decisão de componentes. |
 
 As frentes 1.1 e 1.2 podem avançar em paralelo. A ferramenta e a comparação dependem dos caminhos de modelo. O protocolo detalhado está em [spike](../spikes/mobile-agent.md).
 
@@ -69,6 +81,7 @@ GitHub e calendário podem avançar em paralelo após contrato de ferramentas e 
 - Pedir resumo em português e inglês, obter fontes e entender falhas parciais. Nenhuma alteração externa ocorre no fluxo.
 - Avaliar ferramentas com argumentos inválidos, permissão negada e conteúdo externo adversarial; registrar resultados e limites da amostra.
 - Documentar instalação, configuração, custos de API e acesso móvel; executar checks reais locais e de CI adequados ao código criado.
+- Verificar o tema escuro, acessibilidade, teclado e áreas seguras nas plataformas disponíveis, sem alegar cobertura de dispositivos não testados.
 
 ## Depois do MVP
 

@@ -6,6 +6,8 @@ Status: planning. This is a proposal, not a release schedule. Each increment is 
 
 The MVP targets one person using a phone paired with a server on their computer. They can choose a local Liquid endpoint or Anthropic API, connect GitHub and calendar for read access, and request a sourced daily briefing. The product is not implemented yet.
 
+The mobile UI is dark-only, with its own identity inspired by Grok Bot. Evaluate Ionic React, assistant-ui primitives and Ionicons in a prototype; Apple design guidance informs the experience while Android behavior is also checked. Candidate colors and accessibility must be validated on real screens.
+
 1. **Foundation:** maintain repository guidance, verify Codex and Claude Code skill discovery, and align proposed stack documentation.
 2. **Feasibility:** evaluate Next.js and Ionic on mobile, secure local access, local and cloud models, mock tool calls and optional 9Router. Record results before selecting the stack.
 3. **Onboarding and chat:** local HTTPS, device pairing and revocation, conversations, model configuration, language and setup.
