@@ -1,12 +1,12 @@
 # Spike: mobile agent and provider boundary
 
-Status: **first runnable UI and tool-flow prototype completed (2026-10-29); full feasibility experiment remains open**. Next.js 16.4.3, React 19.3.1 and Ionic React 9.0.10 build together. A desktop Chrome run exercised the bilingual dark chat, message send and fictional `list_events` result. This does not validate mobile devices, PWA installation, model compatibility, latency, or provider behavior.
+Status: **HeroUI React prototype builds and preserves the bilingual mock chat; full feasibility experiment remains open**. On 2026-10-30 the UI kit decision changed from Ionic to HeroUI React v3.2.7. A production build emits `/` and `/manifest.webmanifest`; this does not validate mobile devices, PWA installation, model compatibility, latency, or provider behavior.
 
-The Ionic chat is loaded client-side to avoid mismatched Web Component markup during React hydration. A static HTML welcome/composer shell is server-rendered first; it shares copy with the interactive UI but repeats some presentation markup. Interactive controls appear after the Ionic bundle loads. The build emits a web manifest only: there is no service worker/offline behavior, trusted HTTPS setup, or device installation test. This is a workable desktop prototype with a first-paint tradeoff, not proof that a full Next/Ionic app is the best production stack.
+The original Ionic prototype and its hydration tradeoff are historical evidence from 2026-10-29. The current screen uses public HeroUI React components with the official stylesheet and Tailwind CSS 4; the HeroUI Pro chat template is not copied. The build emits a web manifest only: there is no service worker/offline behavior, trusted HTTPS setup, or device installation test. Do not treat the desktop prototype as proof of mobile support.
 
 ## Decision
 
-Determine whether a single Next.js Node application with Ionic React can deliver an installable mobile chat and a reliable tool-use flow with local Liquid, Anthropic, or a free cloud provider through optional 9Router. The router itself does not supply models; no provider is assumed to be available or unlimited.
+Determine whether a single Next.js Node application with HeroUI React can deliver an installable mobile chat and a reliable tool-use flow with local Liquid, Anthropic, or a free cloud provider through optional 9Router. The router itself does not supply models; no provider is assumed to be available or unlimited.
 
 ## Setup and controls
 
@@ -14,7 +14,7 @@ Record exact OS/device/browser, dependency and model versions, quantization, con
 
 ## Experiments
 
-1. Build a disposable Next.js + Ionic screen with streaming chat, one navigation transition and a PWA manifest. On an iPhone and Android browser, check installation, safe areas, soft keyboard, scrolling, focus, reconnect and text contrast. Record actual devices; do not claim platform coverage for an untested device.
+1. Validate the existing Next.js + HeroUI screen on an iPhone and Android browser. Check installation, safe areas, soft keyboard, scrolling, focus, reconnect and text contrast. Record actual devices; do not claim platform coverage for an untested device.
 2. Define one read-only mock tool, `list_events`, and a tool policy. Test plain answers, tool invocation, valid arguments, tool failure, timeout and denied action. Confirm the executor, not the model, enforces access.
 3. Execute the same prompts with Liquid directly and Anthropic directly. Record successful tool calls, factual correctness against fixture, latency to first output and completion, token usage if available, retries and cost when applicable.
 4. Repeat the same compatible cases through 9Router, documenting exact version, endpoint and provider configuration. Check streamed text, tool calls and errors are preserved. Confirm unavailable routes fail visibly and do not fall back to a different provider without explicit configuration and user consent.
@@ -31,7 +31,7 @@ Record exact OS/device/browser, dependency and model versions, quantization, con
 
 ## References
 
-- [Ionic React overview](https://ionicframework.com/docs/react/overview): React tooling and components; validate Next.js routing and rendering in our own prototype.
+- [HeroUI React quick start](https://heroui.com/en/docs/react/getting-started/quick-start): React 19, Tailwind CSS 4, and official style package requirements.
 - [Next.js route handlers](https://nextjs.org/docs/app/getting-started/route-handlers).
 - [MCP architecture](https://modelcontextprotocol.io/docs/learn/architecture) and [security practices](https://modelcontextprotocol.io/specification/2025-06-18/basic/security_best_practices).
 - [9Router repository](https://github.com/decolua/9router): optional self-hosted gateway; version and configuration must be recorded during the experiment.

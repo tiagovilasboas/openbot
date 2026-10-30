@@ -1,8 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
-import "@astryxdesign/core/reset.css";
-import "@astryxdesign/core/astryx.css";
-import "@astryxdesign/theme-neutral/theme.css";
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Open Bot",
@@ -23,7 +21,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="pt-BR" data-theme="dark" data-astryx-theme="neutral">
+    <html lang="pt-BR" data-theme="dark">
       <body>{children}</body>
     </html>
   );
