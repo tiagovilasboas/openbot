@@ -12,6 +12,8 @@ These conventions apply to human and automated contributions.
 
 ## Branches and pull requests
 
+- Open a PR for a small, coherent delivery of value, not for every file, commit or conversation turn. Group related adjustments and documentation into the same delivery; update an existing PR when they belong to its scope.
+- Before opening a PR, state the outcome and acceptance criteria. Split genuinely independent deliveries or changes that are too large to review safely; avoid both artificial fragmentation and unrelated batches.
 - Use descriptive branch names, for example `docs/git-conventions` or `feat/calendar-read`.
 - Keep pull requests focused and describe the change, checks performed, and remaining limitations.
 - Run the checks documented in [CONTRIBUTING.md](../CONTRIBUTING.md). Do not bypass hooks to make a failing check appear successful.
