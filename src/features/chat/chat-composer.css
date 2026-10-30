@@ -1,17 +1,65 @@
-.xds-chat-composer {
+.astryx-chat-composer {
   width: min(100%, 820px);
   margin-inline: auto;
-  padding: 12px 20px calc(10px + env(safe-area-inset-bottom));
+  padding: 8px 20px calc(10px + env(safe-area-inset-bottom));
+  border: 0;
+  background: transparent;
 }
-.xds-chat-composer [contenteditable="true"] {
-  color: var(--openbot-text);
+.composer-heading,
+.composer-key-hint {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
-.xds-chat-composer button {
+.composer-heading {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--openbot-muted);
+  font-size: 12px;
+}
+.composer-heading-mark {
   color: var(--openbot-accent);
+  font-size: 17px;
+  font-weight: 700;
+}
+.composer-key-hint {
+  color: var(--openbot-muted);
+  font-size: 10px;
+  white-space: nowrap;
+}
+.astryx-chat-composer .astryx-chat-composer-input {
+  min-height: 54px;
+}
+.astryx-chat-composer [contenteditable="true"] {
+  color: var(--openbot-text);
+  font-family: inherit;
+  font-size: 15px;
+  line-height: 1.5;
+}
+.astryx-chat-composer .astryx-chat-send-button {
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  transition:
+    background-color 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease;
+}
+.astryx-chat-composer .astryx-chat-send-button:not(:disabled) {
+  background: var(--openbot-accent);
+  color: #fff;
+  box-shadow: 0 4px 12px rgb(77 148 255 / 22%);
+}
+.astryx-chat-composer .astryx-chat-send-button:not(:disabled):hover {
+  background: #3986f2;
+  transform: translateY(-1px);
 }
 @media (max-width: 480px) {
-  .xds-chat-composer {
+  .astryx-chat-composer {
     padding-right: 14px;
     padding-left: 14px;
+  }
+  .composer-key-hint {
+    display: none;
   }
 }

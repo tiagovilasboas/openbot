@@ -66,9 +66,7 @@ export function ChatExperience() {
 
   const emptyState = (
     <section className="welcome-state">
-      <div className="welcome-icon">
-        <Icon icon="wrench" size="lg" />
-      </div>
+      <div className="welcome-path">{content.newSession}</div>
       <h1>
         {language === "pt"
           ? "O que você precisa resolver?"
@@ -99,7 +97,20 @@ export function ChatExperience() {
       onSubmit={(value) => void sendMessage(value)}
       isDisabled={busy}
       placeholder={content.placeholder}
+      density="spacious"
       elevation="none"
+      className="openbot-composer"
+      headerActions={
+        <span className="composer-heading">
+          <span className="composer-heading-mark" aria-hidden="true">
+            ›
+          </span>
+          {content.composerLabel}
+        </span>
+      }
+      headerContext={
+        <span className="composer-key-hint">{content.composerHint}</span>
+      }
     />
   );
 
@@ -112,7 +123,9 @@ export function ChatExperience() {
         <header className="chat-header">
           <Link className="brand-lockup" href="/" aria-label={content.title}>
             <span className="brand-mark">
-              <Icon icon="wrench" size="md" />
+              <span className="terminal-mark" aria-hidden="true">
+                &gt;_
+              </span>
             </span>
             <span>
               <strong className="brand-name">{content.title}</strong>
@@ -158,10 +171,16 @@ export function ChatExperience() {
                     key={message.id}
                     sender={message.role}
                     name={
-                      message.role === "assistant" ? content.title : undefined
+                      message.role === "assistant" ? content.title : content.you
                     }
+                    className={`openbot-message openbot-message-${message.role}`}
                   >
-                    <ChatMessageBubble>{message.text}</ChatMessageBubble>
+                    <ChatMessageBubble
+                      className="openbot-message-bubble"
+                      variant="ghost"
+                    >
+                      {message.text}
+                    </ChatMessageBubble>
                     {message.events && (
                       <ChatToolCalls
                         label={chatCopy[message.language].tool}

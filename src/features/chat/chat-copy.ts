@@ -1,7 +1,11 @@
 export const chatCopy = {
   pt: {
-    title: "Open Bot",
+    title: "OpenBot",
     subtitle: "Seu assistente, do seu jeito",
+    you: "Você",
+    newSession: "nova sessão",
+    composerLabel: "mensagem para o OpenBot",
+    composerHint: "Enter envia · Shift+Enter quebra linha",
     demo: "Protótipo · dados fictícios",
     intro:
       "Oi! Sou o Open Bot. Esta tela é uma demonstração: ainda não há um modelo conectado. Peça uma agenda de exemplo para experimentar uma ferramenta simulada.",
@@ -14,8 +18,12 @@ export const chatCopy = {
     working: "Consultando a agenda de demonstração…",
   },
   en: {
-    title: "Open Bot",
+    title: "OpenBot",
     subtitle: "Your assistant, your way",
+    you: "You",
+    newSession: "new session",
+    composerLabel: "message to OpenBot",
+    composerHint: "Enter sends · Shift+Enter new line",
     demo: "Prototype · fictional data",
     intro:
       "Hi! I’m Open Bot. This screen is a demo: no model is connected yet. Ask for a sample calendar to try a simulated tool.",
