@@ -6,7 +6,7 @@
 
 O Open Bot nasceu de uma dor conhecida: o Grok Bot ficou caro demais para um brasileiro duro que queria um agente pessoal. A ideia é construir algo acessível, aberto a contribuições e flexível para usar um modelo local ou uma chave de API do provedor escolhido. O Open Bot é um projeto independente e não tem vínculo com o Grok Bot.
 
-**Status: planejamento.** Ainda não há aplicativo funcionando. As funcionalidades abaixo são objetivos a validar, não recursos já disponíveis.
+**Status: protótipo inicial.** Uma spike local de chat funciona no Chrome desktop com uma ferramenta de agenda simulada e dados fictícios. Ainda não há modelo/provedor, conexão real com calendário ou GitHub, nem fluxo de credenciais. A instalação e o comportamento em iOS/Android não foram testados; o manifesto atual não inclui service worker nem configura acesso seguro pelo celular.
 
 ## A primeira experiência útil
 

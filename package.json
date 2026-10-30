@@ -3,17 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=22.6.0"
   },
   "scripts": {
     "dev": "next dev",
     "build": "node scripts/check-build.mjs",
     "start": "next start",
     "lint": "eslint .",
-    "format:check": "prettier --check \"scripts/**/*.mjs\" \"*.{json,mjs,ts}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\" \"scripts/**/*.mjs\" \"*.{json,mjs,ts}\"",
     "typecheck": "node scripts/check-typecheck.mjs",
     "docs:check": "node scripts/check-docs.mjs",
-    "test": "node --test scripts/check-docs.test.mjs",
+    "test": "node --experimental-strip-types --test scripts/check-docs.test.mjs src/features/chat/respond-to-message.test.ts",
     "check": "npm run docs:check && npm run format:check && npm run lint && npm run typecheck && npm test && npm run build",
     "prepare": "husky"
   },

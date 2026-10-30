@@ -1,0 +1,103 @@
+.composer-footer {
+  flex: 0 0 auto;
+  border-top: 1px solid #27282e;
+  background: #101114;
+}
+
+.composer-wrap {
+  width: min(100%, 800px);
+  margin: 0 auto;
+  padding: 13px 20px calc(8px + env(safe-area-inset-bottom));
+}
+
+.composer {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 7px 8px 7px 15px;
+  border: 1px solid #36373e;
+  border-radius: 22px;
+  background: #191a1f;
+  transition: border-color 140ms ease;
+}
+
+.composer:focus-within {
+  border-color: #666b91;
+}
+
+.message-input {
+  --background: transparent;
+  --color: var(--openbot-text);
+  --placeholder-color: #858690;
+  --padding-start: 0;
+  --padding-end: 0;
+  --padding-top: 11px;
+  --padding-bottom: 10px;
+  min-height: 44px;
+  max-height: 140px;
+  font-size: 14px;
+}
+
+.message-input::part(native) {
+  min-height: 22px;
+  border: 0;
+  background: transparent;
+  outline: none;
+  resize: none;
+}
+
+.composer-placeholder {
+  display: flex;
+  flex: 1;
+  min-height: 44px;
+  align-items: center;
+  padding: 11px 0 10px;
+  color: #858690;
+  font-size: 14px;
+}
+
+.loading-send-button {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 50%;
+  background: #e7e8eb;
+  color: #15161a;
+  font-size: 21px;
+  font-weight: 700;
+  opacity: 0.42;
+}
+
+.send-button {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  margin: 0;
+  --background: #e7e8eb;
+  --background-hover: #ffffff;
+  --color: #15161a;
+  --border-radius: 50%;
+  --padding-start: 0;
+  --padding-end: 0;
+  font-size: 21px;
+  font-weight: 700;
+}
+
+.send-button[disabled] {
+  opacity: 0.42;
+}
+
+.composer-caption {
+  margin: 9px 0 0;
+  color: #777882;
+  font-size: 10px;
+  text-align: center;
+}
+
+@media (max-width: 480px) {
+  .composer-wrap {
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+}
