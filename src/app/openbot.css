@@ -3,16 +3,19 @@
 }
 
 :root[data-astryx-theme="neutral"] {
-  --color-background-body: #101114;
-  --color-background-surface: #191a1f;
-  --color-background-card: #191a1f;
-  --color-background-muted: #202127;
-  --color-text-primary: #f3f3f5;
-  --color-text-secondary: #9b9ca5;
-  --color-text-accent: #aab3ff;
-  --color-accent: #aab3ff;
-  --color-border: #2a2b31;
-  --color-border-emphasized: #41434e;
+  --color-background-body: #0b0d10;
+  --color-background-surface: #12161b;
+  --color-background-card: #12161b;
+  --color-background-muted: #191e24;
+  --color-background-popover: #151a20;
+  --color-text-primary: #f2f5f8;
+  --color-text-secondary: #929ba6;
+  --color-text-accent: #4d94ff;
+  --color-accent: #4d94ff;
+  --color-border: #29313a;
+  --color-border-emphasized: #3b4855;
+  --radius-chat: 16px;
+  --radius-container: 8px;
   --openbot-background: var(--color-background-body);
   --openbot-surface: var(--color-background-surface);
   --openbot-surface-raised: var(--color-background-muted);
@@ -45,6 +48,49 @@ body {
   height: 100dvh;
   min-height: 0;
   background: var(--openbot-background);
+}
+.terminal-mark,
+.welcome-path,
+.brand-name,
+.brand-subtitle,
+.demo-status,
+.openbot-message [data-chat-name] {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.terminal-mark {
+  color: var(--openbot-accent);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.12em;
+}
+.welcome-path {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  color: var(--openbot-muted);
+  font-size: 12px;
+}
+.welcome-path::before {
+  color: var(--openbot-accent);
+  content: ">";
+}
+.openbot-message [data-chat-name] {
+  color: var(--openbot-muted);
+  font-size: 11px;
+  letter-spacing: 0.01em;
+  text-transform: lowercase;
+}
+.openbot-message-bubble {
+  border-radius: 4px !important;
+  font-family: inherit;
+}
+.openbot-message-assistant .openbot-message-bubble {
+  border-inline-start: 2px solid var(--openbot-line);
+}
+.openbot-message-user .openbot-message-bubble {
+  border-inline-start: 2px solid var(--openbot-accent);
+  background: var(--openbot-surface) !important;
 }
 .chat-content {
   min-height: 0;

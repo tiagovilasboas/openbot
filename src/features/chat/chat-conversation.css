@@ -2,35 +2,24 @@
   width: min(100%, 760px);
   margin: auto;
   padding: 48px 20px;
-  text-align: center;
-}
-.welcome-icon {
-  display: grid;
-  width: 54px;
-  height: 54px;
-  margin: 0 auto 20px;
-  place-items: center;
-  border: 1px solid #41434e;
-  border-radius: 18px;
-  background: #22242d;
-  color: var(--openbot-accent);
+  text-align: left;
 }
 .welcome-state h1 {
   margin: 0;
-  font-size: clamp(28px, 6vw, 40px);
-  font-weight: 650;
-  letter-spacing: -0.04em;
+  font-size: clamp(24px, 4vw, 32px);
+  font-weight: 600;
+  letter-spacing: -0.03em;
 }
 .welcome-copy {
   max-width: 520px;
-  margin: 14px auto 26px;
+  margin: 12px 0 22px;
   color: var(--openbot-muted);
   line-height: 1.6;
 }
 .suggestions {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 10px;
 }
 .suggestions button {
@@ -39,8 +28,8 @@
   align-items: center;
   gap: 9px;
   padding: 0 15px;
-  border: 1px solid #36373e;
-  border-radius: 14px;
+  border: 1px solid var(--openbot-line);
+  border-radius: 6px;
   background: var(--openbot-surface);
   color: var(--openbot-text);
   font: inherit;
@@ -49,7 +38,7 @@
   cursor: pointer;
 }
 .suggestions button:hover {
-  border-color: #666b91;
+  border-color: var(--openbot-accent);
   background: var(--openbot-surface-raised);
 }
 .event-list {
@@ -62,10 +51,13 @@
 .event-list li {
   display: flex;
   gap: 14px;
+  padding-block: 8px;
+  border-block-start: 1px solid var(--openbot-line);
 }
 .event-list time {
   color: var(--openbot-accent);
   font-variant-numeric: tabular-nums;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 .event-list span,
 .event-list small {
@@ -100,9 +92,6 @@
   }
   .chat-empty .welcome-state {
     padding: 10px 14px;
-  }
-  .chat-empty .welcome-icon {
-    display: none;
   }
   .chat-empty .welcome-state h1 {
     font-size: clamp(23px, 7vw, 27px);
