@@ -1,6 +1,11 @@
 "use client";
 
 import {
+  AppShell,
+  Badge,
+  Button,
+  Card,
+  Center,
   ChatComposer,
   ChatLayout,
   ChatMessage,
@@ -8,16 +13,21 @@ import {
   ChatMessageList,
   ChatToolCalls,
   Icon,
-  Layout,
-  LayoutContent,
+  List,
+  ListItem,
+  SegmentedControl,
+  SegmentedControlItem,
+  Stack,
+  Text,
   Theme,
+  TopNav,
+  TopNavHeading,
 } from "@astryxdesign/core";
 import { neutralTheme } from "@astryxdesign/theme-neutral/built";
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import type { CalendarEvent } from "@/features/calendar/list-example-events";
 import { chatCopy } from "./chat-copy";
 import { respondToMessage, type ChatLanguage } from "./respond-to-message";
-import type { CalendarEvent } from "@/features/calendar/list-example-events";
 
 type Message = {
   id: number;
@@ -65,31 +75,50 @@ export function ChatExperience() {
   }
 
   const emptyState = (
-    <section className="welcome-state">
-      <div className="welcome-path">{content.newSession}</div>
-      <h1>
-        {language === "pt"
-          ? "O que você precisa resolver?"
-          : "What can I help you with?"}
-      </h1>
-      <p className="welcome-copy">{content.intro}</p>
-      <div
-        className="suggestions"
-        aria-label={
-          language === "pt" ? "Sugestões de mensagem" : "Suggested messages"
-        }
-      >
-        <button type="button" onClick={() => void sendMessage(content.prompt)}>
-          <Icon icon="calendar" size="sm" />
-          {content.prompt}
-        </button>
-        <button type="button" onClick={() => void sendMessage(content.sample)}>
-          <Icon icon="info" size="sm" />
-          {content.sample}
-        </button>
-      </div>
-    </section>
+    <Center width="100%" height="100%" padding={2}>
+      <Stack gap={2} width="100%" maxWidth={720} hAlign="start">
+        <Badge
+          label={content.demo}
+          variant="info"
+          icon={<Icon icon="info" size="sm" />}
+        />
+        <Text as="h1" type="display-3">
+          {language === "pt"
+            ? "O que você quer resolver?"
+            : "What would you like to get done?"}
+        </Text>
+        <Text as="p" type="supporting" color="secondary">
+          {content.intro}
+        </Text>
+        <Card variant="default" padding={3} width="100%">
+          <Stack gap={2}>
+            <Text as="h2" type="label">
+              {content.tryThis}
+            </Text>
+            <Stack gap={1}>
+              <Button
+                label={content.prompt}
+                variant="secondary"
+                size="lg"
+                width="100%"
+                icon={<Icon icon="calendar" size="sm" />}
+                onClick={() => void sendMessage(content.prompt)}
+              />
+              <Button
+                label={content.sample}
+                variant="secondary"
+                size="lg"
+                width="100%"
+                icon={<Icon icon="info" size="sm" />}
+                onClick={() => void sendMessage(content.sample)}
+              />
+            </Stack>
+          </Stack>
+        </Card>
+      </Stack>
+    </Center>
   );
+
   const composer = (
     <ChatComposer
       value={draft}
@@ -97,123 +126,108 @@ export function ChatExperience() {
       onSubmit={(value) => void sendMessage(value)}
       isDisabled={busy}
       placeholder={content.placeholder}
-      density="spacious"
-      elevation="none"
-      className="openbot-composer"
-      headerActions={
-        <span className="composer-heading">
-          <span className="composer-heading-mark" aria-hidden="true">
-            ›
-          </span>
-          {content.composerLabel}
-        </span>
-      }
-      headerContext={
-        <span className="composer-key-hint">{content.composerHint}</span>
-      }
+      density="compact"
+      elevation="low"
+      headerActions={<Text type="code">{content.composerLabel}</Text>}
+      headerContext={<Text type="supporting">{content.composerHint}</Text>}
     />
   );
 
+  const navigationLabel = language === "pt" ? "Idioma" : "Language";
+
   return (
     <Theme theme={neutralTheme} mode="dark">
-      <Layout
-        className={`openbot-page${messages.length === 0 ? " chat-empty" : ""}`}
+      <AppShell
         height="fill"
-      >
-        <header className="chat-header">
-          <Link className="brand-lockup" href="/" aria-label={content.title}>
-            <span className="brand-mark">
-              <span className="terminal-mark" aria-hidden="true">
-                &gt;_
-              </span>
-            </span>
-            <span>
-              <strong className="brand-name">{content.title}</strong>
-              <small className="brand-subtitle">{content.subtitle}</small>
-            </span>
-          </Link>
-          <div className="header-actions">
-            <span className="demo-status">
-              <span className="status-dot" />
-              {content.demo}
-            </span>
-            <div
-              className="language-switch"
-              role="group"
-              aria-label={language === "pt" ? "Idioma" : "Language"}
-            >
-              {(["pt", "en"] as const).map((option) => (
-                <button
-                  key={option}
-                  type="button"
-                  aria-pressed={language === option}
-                  onClick={() => setLanguage(option)}
-                >
-                  {option.toUpperCase()}
-                </button>
-              ))}
-            </div>
-          </div>
-        </header>
-        <LayoutContent className="chat-content">
-          <ChatLayout
-            className={
-              messages.length === 0 ? "chat-landing-layout" : undefined
+        variant="wash"
+        contentPadding={0}
+        mobileNav={false}
+        topNav={
+          <TopNav
+            label={
+              language === "pt" ? "Navegação principal" : "Main navigation"
             }
-            density="balanced"
-            emptyState={messages.length === 0 ? emptyState : undefined}
-            composer={composer}
-          >
-            {messages.length > 0 && (
-              <ChatMessageList align="bottom" isStreaming={busy}>
-                {messages.map((message) => (
-                  <ChatMessage
-                    key={message.id}
-                    sender={message.role}
-                    name={
-                      message.role === "assistant" ? content.title : content.you
-                    }
-                    className={`openbot-message openbot-message-${message.role}`}
-                  >
-                    <ChatMessageBubble
-                      className="openbot-message-bubble"
-                      variant="ghost"
+            heading={
+              <TopNavHeading
+                heading={content.title}
+                headingHref="/"
+                logo={<Text type="code">&gt;_</Text>}
+                subheading={content.subtitle}
+              />
+            }
+            endContent={
+              <SegmentedControl
+                label={navigationLabel}
+                value={language}
+                size="lg"
+                onChange={(value) => {
+                  if (value === "pt" || value === "en") setLanguage(value);
+                }}
+              >
+                <SegmentedControlItem value="pt" label="PT" />
+                <SegmentedControlItem value="en" label="EN" />
+              </SegmentedControl>
+            }
+          />
+        }
+      >
+        <Center width="100%" height="100%" padding={2}>
+          <Stack direction="vertical" width="100%" height="100%" maxWidth={720}>
+            <ChatLayout
+              density="compact"
+              emptyState={messages.length === 0 ? emptyState : undefined}
+              composer={composer}
+            >
+              {messages.length > 0 && (
+                <ChatMessageList align="bottom" isStreaming={busy}>
+                  {messages.map((message) => (
+                    <ChatMessage
+                      key={message.id}
+                      sender={message.role}
+                      name={
+                        message.role === "assistant"
+                          ? content.title
+                          : content.you
+                      }
                     >
-                      {message.text}
-                    </ChatMessageBubble>
-                    {message.events && (
-                      <ChatToolCalls
-                        label={chatCopy[message.language].tool}
-                        calls={[
-                          {
-                            name: "list_events",
-                            status: "complete",
-                            target: chatCopy[message.language].source,
-                            duration: "300ms",
-                            resultDetail: (
-                              <ul className="event-list">
-                                {message.events.map((event) => (
-                                  <li key={event.id}>
-                                    <time>{event.time}</time>
-                                    <span>
-                                      <strong>{event.title}</strong>
-                                      <small>{event.detail}</small>
-                                    </span>
-                                  </li>
-                                ))}
-                              </ul>
-                            ),
-                          },
-                        ]}
-                      />
-                    )}
-                  </ChatMessage>
-                ))}
-              </ChatMessageList>
-            )}
-          </ChatLayout>
-        </LayoutContent>
-      </Layout>
+                      <ChatMessageBubble variant="ghost">
+                        {message.text}
+                      </ChatMessageBubble>
+                      {message.events && (
+                        <ChatToolCalls
+                          label={chatCopy[message.language].tool}
+                          calls={[
+                            {
+                              name: "list_events",
+                              status: "complete",
+                              target: chatCopy[message.language].source,
+                              duration: "300ms",
+                              resultDetail: (
+                                <List density="compact" hasDividers>
+                                  {message.events.map((event) => (
+                                    <ListItem
+                                      key={event.id}
+                                      label={event.title}
+                                      description={event.detail}
+                                      startContent={
+                                        <Text type="code">{event.time}</Text>
+                                      }
+                                    />
+                                  ))}
+                                </List>
+                              ),
+                            },
+                          ]}
+                        />
+                      )}
+                    </ChatMessage>
+                  ))}
+                </ChatMessageList>
+              )}
+            </ChatLayout>
+          </Stack>
+        </Center>
+      </AppShell>
     </Theme>
   );
 }

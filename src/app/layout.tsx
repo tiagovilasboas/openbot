@@ -3,10 +3,6 @@ import type { ReactNode } from "react";
 import "@astryxdesign/core/reset.css";
 import "@astryxdesign/core/astryx.css";
 import "@astryxdesign/theme-neutral/theme.css";
-import "./openbot.css";
-import "../features/chat/chat-chrome.css";
-import "../features/chat/chat-conversation.css";
-import "../features/chat/chat-composer.css";
 
 export const metadata: Metadata = {
   title: "Open Bot",
