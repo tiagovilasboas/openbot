@@ -4,9 +4,9 @@
 
 ## Objetivo do MVP
 
-Uma pessoa abre o Open Bot no celular, pareia com o servidor no seu computador, escolhe um modelo local ou uma API, conecta GitHub e calendário para leitura e pede um resumo diário com fontes. O bot informa falhas parciais e não executa alterações externas nesse fluxo.
+O primeiro marco atende desenvolvedores: abrir no celular, parear com o computador, escolher um modelo validado e consultar issues e PRs de um repositório autorizado com fontes. O contrato, limites, portas de decisão e aceite estão em [primeiro marco para devs](developer-first.md). Calendário e resumo diário ampliam o MVP após esse aceite.
 
-Para entregar valor cedo, o primeiro corte é chat mobile autenticado com um modelo escolhido e a opção gratuita validada. O segundo acrescenta leitura do GitHub e resposta com fontes; calendário completa o MVP. Interfaces pequenas para modelos e ferramentas permitem crescer sem exigir múltiplos agentes, RAG ou serviços separados.
+Um caminho de modelo aprovado basta para o primeiro marco; a opção gratuita só é oferecida quando validada e não bloqueia a entrega com outro caminho aprovado. Interfaces pequenas para modelos e ferramentas permitem crescer sem exigir múltiplos agentes, RAG ou serviços separados.
 
 ## Premissas
 
@@ -45,10 +45,10 @@ Primeiros fluxos a prototipar: chat vazio e em uso; pareamento; escolha do model
 | 1.1 | PWA Next.js + Ionic e acesso móvel | 5 | 0.1 | Registrar instalação, navegação, teclado, áreas seguras e acesso HTTPS no iPhone; testar Android se disponível e declarar lacunas. |
 | 1.2 | Modelo local e Anthropic | 5 | 0.1 | Executar os mesmos casos em português e inglês com cada caminho; registrar versões, respostas, falhas, latência e custo quando disponível. |
 | 1.3 | Ferramenta simulada e 9Router | 5 | 1.2 | Comparar Liquid, Anthropic e ao menos um provedor gratuito acessado pelo 9Router nos mesmos casos; verificar streaming, ferramentas, limites, cadastro, termos, privacidade e erros. Registrar disponibilidade real e não simular sucesso quando indisponível. |
-| 1.4 | Decisão de stack e avaliação | 2 | 1.1, 1.2, 1.3 | Publicar resultados reais, amostra, limitações e decisão para UI, servidor, modelos e roteador. Sem evidência, manter item em aberto. |
+| 1.4 | Decisão de stack e avaliação | 2 | 1.1, 1.2, 1.5 | Publicar resultados reais, amostra, limitações e decisão para UI, servidor, modelos e roteador. Sem evidência, manter item em aberto. |
 | 1.5 | Protótipo de UI escura | 3 | 1.1 | Prototipar os cinco fluxos, avaliar Ionic + assistant-ui, contraste e experiência mobile; registrar aparelhos, falhas e decisão de componentes. |
 
-As frentes 1.1 e 1.2 podem avançar em paralelo. A ferramenta e a comparação dependem dos caminhos de modelo. O protocolo detalhado está em [spike](../spikes/mobile-agent.md).
+As frentes 1.1 e 1.2 podem avançar em paralelo. A comparação opcional 1.3 não bloqueia 1.4 se houver outro modelo aprovado. A decisão de UI considera o protótipo 1.5. A ferramenta e a comparação dependem dos caminhos de modelo. O protocolo detalhado está em [spike](../spikes/mobile-agent.md).
 
 ## Etapa 2 — entrada e conversa
 
@@ -64,7 +64,7 @@ As frentes 1.1 e 1.2 podem avançar em paralelo. A ferramenta e a comparação d
 
 Após a autenticação, conversa, configuração de modelo e gestão de dispositivos podem avançar em paralelo com contratos estáveis. A implementação deve definir proteção de origem, sessão, expiração e armazenamento seguro antes de expor o serviço.
 
-## Etapa 3 — ferramentas e resumo diário
+## Etapa 3 — GitHub para devs e expansão pessoal
 
 | Ordem | Entrega | Pontos | Depende de | Critério de aceite |
 | --- | --- | ---: | --- | --- |
@@ -72,11 +72,12 @@ Após a autenticação, conversa, configuração de modelo e gestão de disposit
 | 3.2 | Carregamento de skills | 3 | 3.1 | Selecionar skill permitida sob demanda; tratar conteúdo externo como não confiável e nunca executar scripts automaticamente. |
 | 3.3 | Cliente MCP | 5 | 3.1 | Conectar servidor aprovado, expor somente ferramentas permitidas e tratar desconexão e encerramento. |
 | 3.4 | Conexão GitHub | 5 | 3.1, 2.2 | Autorizar leitura, consultar issues ou PRs permitidos, mostrar fontes e permitir desconexão. |
-| 3.5 | Conexão calendário | 5 | 3.1, 2.2 | Autorizar leitura, consultar eventos por período e fuso, tratar token expirado e permitir desconexão. |
+| 3.5 | Conexão calendário | 5 | 3.8 | Autorizar leitura, consultar eventos por período e fuso, tratar token expirado e permitir desconexão. |
 | 3.6 | Resumo diário | 3 | 3.2, 3.4, 3.5 | Responder com fontes, datas e falhas parciais; não inventar dados nem executar escritas. |
-| 3.7 | Configurações de conexões | 3 | 3.4, 3.5 | Mostrar provedor, escopos e estado; permitir reconectar ou revogar acesso. |
+| 3.7 | Configurações de conexões | 3 | 3.4 | Mostrar escopos e estado do GitHub; permitir reconectar ou revogar acesso. Estender ao calendário em 3.5. |
+| 3.8 | Aceite e piloto para devs | 3 | 3.4, 3.7 | Concluir os cenários, instalação externa e critérios do primeiro marco; registrar lacunas antes de expandir. |
 
-GitHub e calendário podem avançar em paralelo após contrato de ferramentas e autenticação. A escolha entre MCP e API direta é feita por integração; não depende de expor todo catálogo de ferramentas ao modelo.
+O calendário começa após o aceite do marco para devs. O cliente MCP é necessário apenas se a integração escolhida o utilizar; API direta aprovada pode atender o primeiro marco. A escolha entre MCP e API direta é feita por integração; não depende de expor todo catálogo de ferramentas ao modelo.
 
 ## Aceite do MVP
 

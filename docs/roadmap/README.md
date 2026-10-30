@@ -4,7 +4,7 @@
 
 Status: planning. This is a proposal, not a release schedule. Each increment is limited to five story points, independently reviewable and subject to real verification. The Portuguese roadmap contains the full dependencies and acceptance criteria.
 
-The MVP targets one person using a phone paired with a server on their computer. They can choose a local Liquid endpoint, Anthropic API, or a validated free cloud route via optional 9Router, connect GitHub and calendar for read access, and request a sourced daily briefing. The product is not implemented yet.
+The first milestone targets developers using a phone paired with a server on their computer: chat and read-only issues/PRs for one authorized GitHub repository. See the [developer-first delivery contract](developer-first.md) in Portuguese for operational limits, decision gates, acceptance targets and pilot requirements. Calendar and daily briefing follow acceptance of this milestone. The wider MVP targets one person using their own server. They can choose a local Liquid endpoint, Anthropic API, or a validated free cloud route via optional 9Router, connect GitHub and calendar for read access, and request a sourced daily briefing. The product is not implemented yet.
 
 The mobile UI is dark-only, with its own identity inspired by Grok Bot. Evaluate Ionic React, assistant-ui primitives and Ionicons in a prototype; Apple design guidance informs the experience while Android behavior is also checked. Candidate colors and accessibility must be validated on real screens.
 

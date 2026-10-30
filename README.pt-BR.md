@@ -10,7 +10,7 @@ O Open Bot nasceu de uma dor conhecida: o Grok Bot ficou caro demais para um bra
 
 ## A primeira experiência útil
 
-Perguntar pelo celular: “O que tenho no calendário hoje e quais issues do GitHub precisam da minha atenção?” O Open Bot usaria conexões autorizadas e uma skill reutilizável para preparar um resumo com referências às fontes.
+O primeiro marco atende desenvolvedores: pedir pelo celular um resumo com fontes das issues e PRs de um repositório autorizado. Calendário e resumo diário vêm após a validação desse fluxo. Consulte o [roadmap](docs/roadmap/roadmap.pt-BR.md) e o [plano de entrega para devs](docs/roadmap/developer-first.md).
 
 O MVP proposto é um PWA para celular conectado a um servidor no computador. A intenção é oferecer:
 
