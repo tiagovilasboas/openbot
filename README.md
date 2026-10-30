@@ -1,25 +1,31 @@
 # Open Bot
 
-Open Bot is a planned open-source personal AI agent designed for mobile use and local-first operation. Connect a local model or bring your own provider credentials, then use the agent to work with your tools and reusable skills.
+**An open-source personal AI agent, designed for your phone and your choice of model.**
 
-**Status: planning.** The application and integrations have not been implemented yet.
+[Português](README.pt-BR.md) · [Architecture](docs/architecture/README.md) · [Stack candidates](docs/stacks/README.md) · [Contributing](CONTRIBUTING.md)
 
-## First milestone
+Open Bot started with a familiar pain: Grok Bot was too expensive for a broke Brazilian who wanted a personal agent. The idea is to build something accessible, open to contributions, and flexible enough to use a local model or an API key from a provider of your choice. Open Bot is an independent project and is not affiliated with Grok Bot.
 
-The proposed MVP is a mobile-friendly PWA connected to a server running on a personal computer. The first useful workflow is a daily briefing based on calendar events and GitHub issues.
+**Status: planning.** There is no working application yet. The features below are goals to validate, not promises of existing functionality.
 
-- Chat with a locally hosted Liquid AI model, with the option to configure external model providers.
-- Load reusable `SKILL.md` instructions when relevant.
-- Connect to approved MCP servers and service APIs, beginning with read access to GitHub and calendar data.
-- Keep credentials on the server and require explicit approval for actions that change external data.
+## The first useful experience
 
-Provider compatibility, tool calling, model quality in Portuguese, authentication, and mobile access are still to be evaluated.
+Ask from your phone: “What is on my calendar today, and which GitHub issues need my attention?” Open Bot would use approved connections and a reusable skill to prepare a briefing, with references to its sources.
 
-## Architecture direction
+The proposed MVP is a mobile-friendly PWA connected to a server on your computer. It aims to support:
 
-The mobile interface communicates with an agent server, which selects a model and controls access to tools. Skills provide instructions; they do not grant permissions. The project draws on the patterns and role boundaries documented in [grok-bot-architecture](https://github.com/tiagovilasboas/grok-bot-architecture).
+- A locally hosted Liquid model or an external provider such as Anthropic, selected by the user.
+- Reusable `SKILL.md` instructions and approved tools through MCP or direct APIs.
+- Read access to GitHub and calendar data first; explicit approval before external changes.
+- English and Brazilian Portuguese interfaces and documentation.
 
-React, TypeScript, a PWA, and SQLite are initial candidates, subject to validation during implementation.
+Provider compatibility, tool calling, Portuguese quality, mobile access and the proposed stack still need practical validation. An optional model router such as 9Router is a candidate, not a requirement. Local models need an inference server; cloud providers may charge for API usage.
+
+## Design direction
+
+The app will keep product behavior separate from provider and integration details. Skills provide instructions; they do not grant access. The project draws on [grok-bot-architecture](https://github.com/tiagovilasboas/grok-bot-architecture) for reusable roles, boundaries and approval patterns.
+
+Read the [architecture principles](docs/architecture/README.md) and [stack candidates](docs/stacks/README.md). Ideas, questions and contributions are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 

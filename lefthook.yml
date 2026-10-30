@@ -1,0 +1,8 @@
+pre-commit:
+  commands:
+    docs:
+      run: node scripts/check-docs.mjs
+pre-push:
+  commands:
+    check:
+      run: node scripts/check-docs.mjs
