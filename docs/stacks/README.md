@@ -1,25 +1,33 @@
 # Stack candidates
 
-Status: **initial result: Next.js 16.4.3, React 19.3.1 and Ionic React 9.0.10 build together and run the first dark, bilingual chat/tool demo in desktop Chrome; mobile fit remains unvalidated**. Stack choices stay provisional until target-device and integration checks are complete.
+Status: **the first chat screen uses Astryx 0.7.4 with its Neutral theme in dark mode.** Astryx is MIT-licensed and currently beta. Apple Human Interface Guidelines guide hierarchy, accessibility, safe areas and platform behavior. This is an initial implementation choice, not device validation.
 
 ## Initial spike result
 
 - The production build emits `/` and `/manifest.webmanifest` successfully.
-- Ionic React Web Components are loaded client-side to avoid mismatched markup during React hydration. A static HTML welcome/composer shell renders first and shares copy with the interactive UI, with a small amount of repeated presentation markup. Interactivity starts after the Ionic bundle loads.
+- Astryx supplies the chat composer, message list, message bubbles, tool-call display, layout, theme tokens and icons. The project adapts the official AI Chat Landing and AI Chat Conversation patterns, keeping the product focused on a bilingual local mock and calendar tool.
 - This is desktop evidence only. There is no service worker/offline behavior, trusted HTTPS pairing, installation test, iOS/Android test, real model/provider, or latency result.
 
 | Area             | Candidate                          | Reason / open question                                                                                                       |
 | ---------------- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | Mobile interface | React and TypeScript PWA           | One web interface for phone and desktop; validate installation and network access on target devices.                         |
-| Mobile UI        | Ionic React                        | Mobile-oriented components and PWA support; compare with shadcn/ui for visual flexibility.                                   |
+| Mobile UI        | Astryx 0.7.4                       | MIT React design system and chat templates; beta status means upgrades and mobile behavior need review.                      |
 | Server           | Node.js and TypeScript             | Shared language across UI and agent; validate tool and provider SDK support.                                                 |
 | Storage          | SQLite                             | Small local deployment; decide how to protect credentials separately.                                                        |
 | Local model      | Liquid LFM3-1.7B                   | Candidate for the first experiment; measure Portuguese, latency and tool calling.                                            |
 | External models  | Provider adapters                  | Start by evaluating Anthropic and a free cloud provider through optional 9Router; support compatible endpoints as validated. |
 | Tools            | MCP client and direct API adapters | Start with GitHub and calendar read access.                                                                                  |
 
-## UI candidates
+## UI kit decision
 
+- **Selected for the MVP:** Astryx 0.7.4, using the Neutral theme forced to dark mode and Open Bot accent tokens. Neutral preserves a restrained sans-serif interface; Gothic's distressed display face would reduce fit for a utility chat surface.
+- **License and maturity:** Astryx core and Neutral theme are MIT; the project is beta. Pin versions and verify generated HTML, keyboard behavior and mobile layout when upgrading.
+- **Design guidance:** Apple Human Interface Guidelines inform hierarchy, touch targets, safe areas and accessibility. They are not a UI component kit.
+- **Not selected:** Ionic React, shadcn/ui and Material UI would add a redundant component kit to the current MVP.
+
+## Other UI candidates
+
+- **Astryx:** React components and chat-specific patterns with an MIT license; beta maturity is the main trade-off.
 - **Ionic React:** mobile navigation and components out of the box; stronger framework conventions.
 - **shadcn/ui:** customizable React components; mobile interaction and layout require more product design work.
 - **Material UI:** comprehensive React components and Material styling; adapting its visual identity takes effort.

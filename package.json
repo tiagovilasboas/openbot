@@ -18,8 +18,9 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@ionic/core": "9.0.10",
-    "@ionic/react": "9.0.10",
+    "@astryxdesign/core": "0.7.4",
+    "@astryxdesign/theme-neutral": "0.7.4",
+    "@stylexjs/stylex": "0.19.1",
     "next": "16.4.3",
     "react": "19.3.1",
     "react-dom": "19.3.1"
