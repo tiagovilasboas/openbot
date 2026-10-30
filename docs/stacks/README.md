@@ -20,8 +20,9 @@ Status: **the first chat screen uses Astryx 0.7.4 with its Neutral theme in dark
 
 ## UI kit decision
 
-- **Selected for the MVP:** Astryx 0.7.4, using the Neutral theme forced to dark mode and Open Bot accent tokens. Neutral preserves a restrained sans-serif interface; Gothic's distressed display face would reduce fit for a utility chat surface.
+- **Selected for the MVP:** Astryx 0.7.4 with the Neutral theme forced to dark mode. The app composes Astryx components and theme tokens without application-authored CSS; Neutral keeps a restrained sans-serif interface suited to a utility chat surface.
 - **License and maturity:** Astryx core and Neutral theme are MIT; the project is beta. Pin versions and verify generated HTML, keyboard behavior and mobile layout when upgrading.
+- **Mobile touch target:** Astryx 0.7.4's largest built-in `Button` is 36 px high; `SegmentedControl` rendered 28 px high at 320 × 659. Neither reaches Apple's 44 pt target. The product avoids authored CSS overrides, so track an upstream larger size or a core control that supplies one.
 - **Design guidance:** Apple Human Interface Guidelines inform hierarchy, touch targets, safe areas and accessibility. They are not a UI component kit.
 - **Not selected:** Ionic React, shadcn/ui and Material UI would add a redundant component kit to the current MVP.
 
