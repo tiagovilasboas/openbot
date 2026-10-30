@@ -62,14 +62,18 @@ as evaluation fixtures.
 
 - [`openbot-delivery`](../../skills/openbot-delivery/SKILL.md) guides contributors
   working on this repository. It is not a product runtime feature.
+- [`openbot-mobile`](../../skills/openbot-mobile/SKILL.md) covers the proposed mobile PWA and interface.
+- [`openbot-models`](../../skills/openbot-models/SKILL.md) covers local and cloud model adapters and evaluation.
+- [`openbot-integrations`](../../skills/openbot-integrations/SKILL.md) covers MCP, API connections and permissions.
+- [`openbot-data`](../../skills/openbot-data/SKILL.md) covers persistence and the data lifecycle.
 - [`daily-briefing`](../../skills/daily-briefing/SKILL.md) is a proposed example
   product recipe. It cannot execute until Open Bot has a skill loader and tools.
 
 ## Codex and Claude Code
 
 `AGENTS.md` is the shared project instruction source for Codex. `CLAUDE.md`
-imports it for Claude Code. The contributor skill is canonical under `skills/`;
-project discovery paths `.agents/skills/` and `.claude/skills/` link to it.
+imports it for Claude Code. Contributor skills are canonical under `skills/`;
+project discovery paths `.agents/skills/` and `.claude/skills/` link to them.
 These links require a checkout that supports symbolic links. Discovery in both
 products and their versions has not yet been verified in a live session. The
 product example `daily-briefing` is not installed as a development skill.
