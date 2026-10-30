@@ -1,18 +1,25 @@
 :root {
   color-scheme: dark;
-  --openbot-background: #101114;
-  --openbot-surface: #191a1f;
-  --openbot-surface-raised: #202127;
-  --openbot-text: #f3f3f5;
-  --openbot-muted: #9b9ca5;
-  --openbot-accent: #aab3ff;
-  --openbot-line: #2a2b31;
-  --ion-background-color: var(--openbot-background);
-  --ion-background-color-rgb: 16, 17, 20;
-  --ion-text-color: var(--openbot-text);
-  --ion-text-color-rgb: 243, 243, 245;
-  --ion-color-primary: var(--openbot-accent);
-  --ion-color-primary-contrast: #101114;
+}
+
+:root[data-astryx-theme="neutral"] {
+  --color-background-body: #101114;
+  --color-background-surface: #191a1f;
+  --color-background-card: #191a1f;
+  --color-background-muted: #202127;
+  --color-text-primary: #f3f3f5;
+  --color-text-secondary: #9b9ca5;
+  --color-text-accent: #aab3ff;
+  --color-accent: #aab3ff;
+  --color-border: #2a2b31;
+  --color-border-emphasized: #41434e;
+  --openbot-background: var(--color-background-body);
+  --openbot-surface: var(--color-background-surface);
+  --openbot-surface-raised: var(--color-background-muted);
+  --openbot-text: var(--color-text-primary);
+  --openbot-muted: var(--color-text-secondary);
+  --openbot-accent: var(--color-accent);
+  --openbot-line: var(--color-border);
   background: var(--openbot-background);
   color: var(--openbot-text);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -23,32 +30,31 @@
 * {
   box-sizing: border-box;
 }
-
 html,
 body {
   width: 100%;
-  min-width: 320px;
   min-height: 100%;
   margin: 0;
   background: var(--openbot-background);
   color: var(--openbot-text);
 }
-
 body {
   min-height: 100dvh;
 }
-
-ion-app,
 .openbot-page {
+  height: 100dvh;
+  min-height: 0;
   background: var(--openbot-background);
 }
-
-.openbot-page {
-  display: flex;
-  min-height: 100dvh;
-  flex-direction: column;
+.chat-content {
+  min-height: 0;
 }
-
+button:focus-visible,
+a:focus-visible,
+[contenteditable="true"]:focus-visible {
+  outline: 2px solid var(--openbot-accent);
+  outline-offset: 3px;
+}
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
