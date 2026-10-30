@@ -65,4 +65,13 @@ as evaluation fixtures.
 - [`daily-briefing`](../../skills/daily-briefing/SKILL.md) is a proposed example
   product recipe. It cannot execute until Open Bot has a skill loader and tools.
 
+## Codex and Claude Code
+
+`AGENTS.md` is the shared project instruction source for Codex. `CLAUDE.md`
+imports it for Claude Code. The contributor skill is canonical under `skills/`;
+project discovery paths `.agents/skills/` and `.claude/skills/` link to it.
+These links require a checkout that supports symbolic links. Discovery in both
+products and their versions has not yet been verified in a live session. The
+product example `daily-briefing` is not installed as a development skill.
+
 Source: [Harness engineering for coding agents](https://martinfowler.com/articles/harness-engineering.html).
