@@ -29,4 +29,8 @@ Read the [architecture principles](docs/architecture/README.md) and [stack candi
 
 ## License
 
-[MIT](LICENSE)
+Open Bot is open source from the start, under the [MIT license](LICENSE).
+
+## Support the project
+
+Open Bot is maintained by Tiago Vilas Boas. If you want to support its development, [sponsor on GitHub](https://github.com/sponsors/tiagovilasboas). Sponsorship is optional; contributions, feedback and bug reports are also welcome.
