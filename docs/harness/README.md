@@ -23,6 +23,8 @@ For recurring failures, identify the failed guide or sensor and update that loop
 
 ### Delivery gate plan
 
+See the [delivery gate contract](../architecture/delivery-gates.md) for the agreed application requirements and staged-versus-project check boundaries.
+
 The initial Lefthook and CI gate checks that core documents exist and are not empty.
 It does not check formatting, staged-only changes, architecture, links or product behaviour.
 For the planned JavaScript/TypeScript stack, introduce versioned Husky hooks and
