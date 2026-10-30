@@ -1,0 +1,30 @@
+export const chatCopy = {
+  pt: {
+    title: "Open Bot",
+    subtitle: "Seu assistente, do seu jeito",
+    demo: "Protótipo · dados fictícios",
+    intro:
+      "Oi! Sou o Open Bot. Esta tela é uma demonstração: ainda não há um modelo conectado. Peça uma agenda de exemplo para experimentar uma ferramenta simulada.",
+    prompt: "Mostre eventos de exemplo",
+    sample: "Como funciona?",
+    placeholder: "Escreva uma mensagem...",
+    send: "Enviar mensagem",
+    tool: "Ferramenta simulada · list_events",
+    source: "Agenda de demonstração · sem data real",
+    working: "Consultando a agenda de demonstração…",
+  },
+  en: {
+    title: "Open Bot",
+    subtitle: "Your assistant, your way",
+    demo: "Prototype · fictional data",
+    intro:
+      "Hi! I’m Open Bot. This screen is a demo: no model is connected yet. Ask for a sample calendar to try a simulated tool.",
+    prompt: "Show demo events",
+    sample: "How does this work?",
+    placeholder: "Write a message...",
+    send: "Send message",
+    tool: "Simulated tool · list_events",
+    source: "Demo calendar · no real date",
+    working: "Checking the demo calendar…",
+  },
+} as const;

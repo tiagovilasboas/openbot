@@ -1,6 +1,8 @@
 # Spike: mobile agent and provider boundary
 
-Status: **planned; no experiment has been run**. This is a time-boxed feasibility experiment, not production implementation or a performance claim.
+Status: **first runnable UI and tool-flow prototype completed (2026-10-29); full feasibility experiment remains open**. Next.js 16.4.3, React 19.3.1 and Ionic React 9.0.10 build together. A desktop Chrome run exercised the bilingual dark chat, message send and fictional `list_events` result. This does not validate mobile devices, PWA installation, model compatibility, latency, or provider behavior.
+
+The Ionic chat is loaded client-side to avoid mismatched Web Component markup during React hydration. A static HTML welcome/composer shell is server-rendered first; it shares copy with the interactive UI but repeats some presentation markup. Interactive controls appear after the Ionic bundle loads. The build emits a web manifest only: there is no service worker/offline behavior, trusted HTTPS setup, or device installation test. This is a workable desktop prototype with a first-paint tradeoff, not proof that a full Next/Ionic app is the best production stack.
 
 ## Decision
 

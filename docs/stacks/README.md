@@ -1,6 +1,12 @@
 # Stack candidates
 
-Status: **initial packages and toolchain wired; mobile fit remains unvalidated**. The repository pins Next.js and Ionic React, but no application screen exists yet. Validate the UI choices against the mobile chat and integration flow before treating them as final.
+Status: **initial result: Next.js 16.4.3, React 19.3.1 and Ionic React 9.0.10 build together and run the first dark, bilingual chat/tool demo in desktop Chrome; mobile fit remains unvalidated**. Stack choices stay provisional until target-device and integration checks are complete.
+
+## Initial spike result
+
+- The production build emits `/` and `/manifest.webmanifest` successfully.
+- Ionic React Web Components are loaded client-side to avoid mismatched markup during React hydration. A static HTML welcome/composer shell renders first and shares copy with the interactive UI, with a small amount of repeated presentation markup. Interactivity starts after the Ionic bundle loads.
+- This is desktop evidence only. There is no service worker/offline behavior, trusted HTTPS pairing, installation test, iOS/Android test, real model/provider, or latency result.
 
 | Area             | Candidate                          | Reason / open question                                                                                                       |
 | ---------------- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
