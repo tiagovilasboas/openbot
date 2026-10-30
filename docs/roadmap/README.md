@@ -1,29 +1,17 @@
 # Roadmap
 
-This is a proposal, not a release schedule. Each increment should be usable or independently verifiable, reviewed in a small PR, and merged only after required checks pass. Estimates use Fibonacci story points for uncertainty and effort, not time.
+[Roadmap detalhado em português](roadmap.pt-BR.md)
 
-| Order | Increment | Points | Depends on | Acceptance |
-| --- | --- | ---: | --- | --- |
-| 1 | Repository guidance and delivery gate | 3 | None | Public project guidance, versioned hooks and CI agree on a documented check. |
-| 2 | Mobile and provider feasibility spike | 5 | 1 | Record actual results for iPhone/Android, Next.js + Ionic, local inference and an external provider; document a decision and limitations. |
-| 3 | Chat and conversation persistence | 5 | 2 | A user can start and resume a conversation, see streamed output and recover from provider failure. |
-| 4 | Model configuration | 5 | 2 | Select a local endpoint or a supported cloud provider; keep credentials server-side and show which model receives a request. |
-| 5 | Skills and bounded tool execution | 5 | 3, 4 | Load a selected skill on demand; validate tool requests and prevent skills from granting permissions. |
-| 6 | GitHub read integration | 3 | 5 | Connect an account, list permitted issues or PRs and show source references. |
-| 7 | Calendar read integration | 5 | 5 | Connect an account, list events in a requested period and handle expired authorization. |
-| 8 | Daily briefing | 3 | 6, 7 | Summarize calendar and GitHub results with references and visible partial failures. |
-| 9 | Confirmed external writes | 5 | 5, relevant connector | Show the exact proposed action, execute only after approval and record the outcome. |
+Status: planning. This is a proposal, not a release schedule. Each increment is limited to five story points, independently reviewable and subject to real verification. The Portuguese roadmap contains the full dependencies and acceptance criteria.
 
-GitHub and calendar integration can proceed in parallel after the tool boundary is stable. Voice, autonomous schedules, background execution, native app stores, multi-agent teams and a mandatory hosted gateway are later candidates. Split any increment further if it exceeds five points or cannot be reviewed and merged independently.
+The MVP targets one person using a phone paired with a server on their computer. They can choose a local Liquid endpoint or Anthropic API, connect GitHub and calendar for read access, and request a sourced daily briefing. The product is not implemented yet.
 
-## Evaluation before expansion
+The mobile UI is dark-only, with its own identity inspired by Grok Bot. Evaluate Ionic React, assistant-ui primitives and Ionicons in a prototype; Apple design guidance informs the experience while Android behavior is also checked. Candidate colors and accessibility must be validated on real screens.
 
-Start with a small, versioned set of real, consented scenarios in Portuguese and English: chat, skill selection, tool choice, malformed arguments, denied permissions and partial connector failures. Compare Liquid local and each supported cloud provider under the same conditions. Record accepted outcomes, failures, latency, token usage where available, retries and human corrections. Define a baseline and acceptance threshold before asserting that a model, router or cost change improves the experience. No baseline has been collected yet.
+1. **Foundation:** maintain repository guidance, verify Codex and Claude Code skill discovery, and align proposed stack documentation.
+2. **Feasibility:** evaluate Next.js and Ionic on mobile, secure local access, local and cloud models, mock tool calls and optional 9Router. Record results before selecting the stack.
+3. **Onboarding and chat:** local HTTPS, device pairing and revocation, conversations, model configuration, language and setup.
+4. **Tools and briefing:** bounded tool execution, skill loading, MCP, read-only GitHub and calendar connections, and a briefing with sources and partial errors.
+5. **After MVP:** confirmed writes, voice, remote access, schedules, multiple users and additional providers, subject to separate decisions.
 
-## Open decisions
-
-- Next.js and Ionic compatibility, mobile PWA behavior and local network connectivity.
-- Which inference server supports the selected Liquid model and required tool calls.
-- OAuth setup, credential storage and recovery for each connector.
-- Whether optional 9Router provides enough value for its additional process and operational cost.
-- Exact mobile visual identity and accessibility targets.
+A local conversation must never silently switch to a cloud provider. Skills do not grant permissions. Store credentials server-side, define their lifecycle, and verify authentication and tool policies. Evaluate Portuguese and English cases on comparable settings; no quality or cost baseline exists yet. See [the spike plan](../spikes/mobile-agent.md) and [MVP architecture](../architecture/mvp.md).
