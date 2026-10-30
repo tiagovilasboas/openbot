@@ -10,7 +10,7 @@ Open Bot started with a familiar pain: Grok Bot was too expensive for a broke Br
 
 ## The first useful experience
 
-Ask from your phone: “What is on my calendar today, and which GitHub issues need my attention?” Open Bot would use approved connections and a reusable skill to prepare a briefing, with references to its sources.
+The first milestone serves developers: ask from your phone for a sourced summary of issues and PRs in an authorized repository. Calendar and a daily briefing follow once this workflow is validated. See the [roadmap](docs/roadmap/README.md) and [developer-first delivery plan](docs/roadmap/developer-first.md).
 
 The proposed MVP is a mobile-friendly PWA connected to a server on your computer. It aims to support:
 
