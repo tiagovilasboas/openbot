@@ -9,7 +9,7 @@ Status: **proposals, not decisions**. Validate choices against a working mobile 
 | Server | Node.js and TypeScript | Shared language across UI and agent; validate tool and provider SDK support. |
 | Storage | SQLite | Small local deployment; decide how to protect credentials separately. |
 | Local model | Liquid LFM3-1.7B | Candidate for the first experiment; measure Portuguese, latency and tool calling. |
-| External models | Provider adapters | Start with OpenAI and compatible endpoints; validate each provider's tool calling. |
+| External models | Provider adapters | Start by evaluating Anthropic and a free cloud provider through optional 9Router; support compatible endpoints as validated. |
 | Tools | MCP client and direct API adapters | Start with GitHub and calendar read access. |
 
 ## UI candidates

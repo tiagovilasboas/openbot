@@ -4,7 +4,7 @@
 
 Status: planning. This is a proposal, not a release schedule. Each increment is limited to five story points, independently reviewable and subject to real verification. The Portuguese roadmap contains the full dependencies and acceptance criteria.
 
-The MVP targets one person using a phone paired with a server on their computer. They can choose a local Liquid endpoint or Anthropic API, connect GitHub and calendar for read access, and request a sourced daily briefing. The product is not implemented yet.
+The MVP targets one person using a phone paired with a server on their computer. They can choose a local Liquid endpoint, Anthropic API, or a validated free cloud route via optional 9Router, connect GitHub and calendar for read access, and request a sourced daily briefing. The product is not implemented yet.
 
 The mobile UI is dark-only, with its own identity inspired by Grok Bot. Evaluate Ionic React, assistant-ui primitives and Ionicons in a prototype; Apple design guidance informs the experience while Android behavior is also checked. Candidate colors and accessibility must be validated on real screens.
 
@@ -14,4 +14,4 @@ The mobile UI is dark-only, with its own identity inspired by Grok Bot. Evaluate
 4. **Tools and briefing:** bounded tool execution, skill loading, MCP, read-only GitHub and calendar connections, and a briefing with sources and partial errors.
 5. **After MVP:** confirmed writes, voice, remote access, schedules, multiple users and additional providers, subject to separate decisions.
 
-A local conversation must never silently switch to a cloud provider. Skills do not grant permissions. Store credentials server-side, define their lifecycle, and verify authentication and tool policies. Evaluate Portuguese and English cases on comparable settings; no quality or cost baseline exists yet. See [the spike plan](../spikes/mobile-agent.md) and [MVP architecture](../architecture/mvp.md).
+When nothing is configured, offer a validated free cloud route with explicit activation, provider and data disclosure, account requirements and limits. 9Router is a router, not a model provider; no shared key or unlimited availability is assumed. Automatic fallback to cloud or paid services requires explicit configuration and consent. Skills do not grant permissions. Store credentials server-side, define their lifecycle, and verify authentication and tool policies. Evaluate Portuguese and English cases on comparable settings; no quality or cost baseline exists yet. See [the spike plan](../spikes/mobile-agent.md) and [MVP architecture](../architecture/mvp.md).
