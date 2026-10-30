@@ -4,7 +4,7 @@ Status: **planned; no experiment has been run**. This is a time-boxed feasibilit
 
 ## Decision
 
-Determine whether a single Next.js Node application with Ionic React can deliver an installable mobile chat and a reliable tool-use flow with either a local Liquid model or Anthropic. Assess 9Router as an optional integration, not a prerequisite.
+Determine whether a single Next.js Node application with Ionic React can deliver an installable mobile chat and a reliable tool-use flow with local Liquid, Anthropic, or a free cloud provider through optional 9Router. The router itself does not supply models; no provider is assumed to be available or unlimited.
 
 ## Setup and controls
 
@@ -17,6 +17,7 @@ Record exact OS/device/browser, dependency and model versions, quantization, con
 3. Execute the same prompts with Liquid directly and Anthropic directly. Record successful tool calls, factual correctness against fixture, latency to first output and completion, token usage if available, retries and cost when applicable.
 4. Repeat the same compatible cases through 9Router, documenting exact version, endpoint and provider configuration. Check streamed text, tool calls and errors are preserved. Confirm unavailable routes fail visibly and do not fall back to a different provider without explicit configuration and user consent.
 5. Restart the server during a request and reconnect the client. Record whether the conversation can resume, what is lost, and cleanup of any MCP process. Check credentials do not appear in client payloads or logs.
+6. Evaluate at least one free route through 9Router against the same cases. Record current provider terms, eligibility, account or key requirements, rate limits, data policy and provider/model identity. Test no configuration, activation, quota exhaustion and outage. Offer cloud only after explicit selection; do not bundle a shared key or bypass provider restrictions.
 
 ## Proposed acceptance
 

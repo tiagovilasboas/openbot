@@ -6,11 +6,15 @@
 
 Uma pessoa abre o Open Bot no celular, pareia com o servidor no seu computador, escolhe um modelo local ou uma API, conecta GitHub e calendário para leitura e pede um resumo diário com fontes. O bot informa falhas parciais e não executa alterações externas nesse fluxo.
 
+Para entregar valor cedo, o primeiro corte é chat mobile autenticado com um modelo escolhido e a opção gratuita validada. O segundo acrescenta leitura do GitHub e resposta com fontes; calendário completa o MVP. Interfaces pequenas para modelos e ferramentas permitem crescer sem exigir múltiplos agentes, RAG ou serviços separados.
+
 ## Premissas
 
 - Uma pessoa e seus dispositivos; servidor próprio em funcionamento. O celular precisa alcançar o servidor por conexão autenticada e HTTPS confiável.
 - PWA, Next.js, Ionic, SQLite e Liquid são candidatos a validar na spike. Anthropic por API é o primeiro provedor externo proposto; 9Router é opcional.
 - O usuário escolhe o modelo e enxerga o destino dos dados. Não há troca silenciosa para nuvem. Um modelo local precisa de um processo de inferência acessível.
+- Sem modelo configurado, oferecer modelo gratuito na nuvem via 9Router, se houver provedor compatível disponível. Informar destino, política de dados, conta ou chave necessária e limites antes de ativar. A opção exige escolha explícita; não pressupõe gratuidade ilimitada nem serviço disponível.
+- O 9Router é um processo opcional de roteamento, não um fornecedor de modelos. Não distribuir uma chave compartilhada. Um fallback posterior de local para nuvem ou de gratuito para pago exige configuração e consentimento explícitos, com o destino visível.
 - As chaves e tokens permanecem protegidos no servidor. Uma skill é uma instrução, não permissão nem treinamento. O executor valida cada chamada de ferramenta.
 - O MVP de integrações é somente leitura. Ações externas de escrita exigem uma etapa posterior de aprovação explícita.
 - A interface e os cenários de avaliação incluem português brasileiro e inglês. Modelos e provedores só são declarados suportados após verificação.
@@ -40,7 +44,7 @@ Primeiros fluxos a prototipar: chat vazio e em uso; pareamento; escolha do model
 | --- | --- | ---: | --- | --- |
 | 1.1 | PWA Next.js + Ionic e acesso móvel | 5 | 0.1 | Registrar instalação, navegação, teclado, áreas seguras e acesso HTTPS no iPhone; testar Android se disponível e declarar lacunas. |
 | 1.2 | Modelo local e Anthropic | 5 | 0.1 | Executar os mesmos casos em português e inglês com cada caminho; registrar versões, respostas, falhas, latência e custo quando disponível. |
-| 1.3 | Ferramenta simulada e 9Router | 5 | 1.2 | Verificar chamada, argumentos, recusa e erros com ferramenta fictícia; comparar rota direta e 9Router sem troca silenciosa de provedor. |
+| 1.3 | Ferramenta simulada e 9Router | 5 | 1.2 | Comparar Liquid, Anthropic e ao menos um provedor gratuito acessado pelo 9Router nos mesmos casos; verificar streaming, ferramentas, limites, cadastro, termos, privacidade e erros. Registrar disponibilidade real e não simular sucesso quando indisponível. |
 | 1.4 | Decisão de stack e avaliação | 2 | 1.1, 1.2, 1.3 | Publicar resultados reais, amostra, limitações e decisão para UI, servidor, modelos e roteador. Sem evidência, manter item em aberto. |
 | 1.5 | Protótipo de UI escura | 3 | 1.1 | Prototipar os cinco fluxos, avaliar Ionic + assistant-ui, contraste e experiência mobile; registrar aparelhos, falhas e decisão de componentes. |
 
@@ -54,8 +58,9 @@ As frentes 1.1 e 1.2 podem avançar em paralelo. A ferramenta e a comparação d
 | 2.2 | Pareamento e sessão | 5 | 2.1 | Código temporário de uso único conecta dispositivo; expiração, tentativa inválida e acesso sem sessão são recusados. |
 | 2.3 | Gerenciar dispositivos | 3 | 2.2 | Listar e revogar sessões; dispositivo revogado perde acesso e consegue iniciar novo pareamento. |
 | 2.4 | Conversa e histórico | 5 | 1.4, 2.2 | Criar e retomar conversa; respostas em fluxo e falhas de rede ficam visíveis. |
-| 2.5 | Configurar modelo | 5 | 1.4, 2.2 | Escolher endpoint local ou Anthropic, testar conexão e identificar destino; guardar credenciais no servidor e permitir removê-las. |
-| 2.6 | Boas-vindas e idioma | 3 | 2.2, 2.5 | Orientar pareamento, escolha de modelo, nome e idioma; oferecer conectar serviços depois. |
+| 2.5 | Configurar modelo | 5 | 1.4, 2.2 | Escolher endpoint local, Anthropic ou rota gratuita validada; testar conexão, identificar destino, guardar credenciais no servidor e permitir removê-las. |
+| 2.6 | Boas-vindas e idioma | 3 | 2.2, 2.5 | Orientar pareamento, escolha de modelo, nome e idioma; sem modelo configurado, oferecer rota gratuita validada com informação e ativação explícita; permitir conectar serviços depois. |
+| 2.7 | Falhas e fallback de modelo | 3 | 2.5 | Mostrar indisponibilidade ou limite; permitir escolher outra rota. Fallback automático só após configuração e consentimento explícitos para o destino e eventual cobrança. |
 
 Após a autenticação, conversa, configuração de modelo e gestão de dispositivos podem avançar em paralelo com contratos estáveis. A implementação deve definir proteção de origem, sessão, expiração e armazenamento seguro antes de expor o serviço.
 
@@ -76,7 +81,8 @@ GitHub e calendário podem avançar em paralelo após contrato de ferramentas e 
 ## Aceite do MVP
 
 - Parear um celular, reiniciar e retomar a conversa; negar sessão expirada ou revogada.
-- Escolher Liquid local ou Anthropic e indicar claramente o provedor ativo; não enviar dados à nuvem sem escolha do usuário.
+- Escolher Liquid local, Anthropic ou rota gratuita validada e indicar claramente o provedor ativo; não enviar dados à nuvem sem escolha do usuário. Se a rota gratuita exigir conta ou chave, explicar como configurá-la.
+- Sem provedor gratuito disponível, informar o problema e oferecer configuração local ou API. Não incluir chave compartilhada nem prometer disponibilidade ou gratuidade ilimitada.
 - Conectar e desconectar GitHub e calendário com escopos de leitura; não expor credenciais no navegador ou nos logs.
 - Pedir resumo em português e inglês, obter fontes e entender falhas parciais. Nenhuma alteração externa ocorre no fluxo.
 - Avaliar ferramentas com argumentos inválidos, permissão negada e conteúdo externo adversarial; registrar resultados e limites da amostra.
@@ -96,6 +102,6 @@ GitHub e calendário podem avançar em paralelo após contrato de ferramentas e 
 
 ## Métricas e decisões em aberto
 
-Medir na mesma suíte: tarefas aceitas, falhas críticas, correções humanas, latência, tokens e custo. Registrar versão, configuração, hardware e amostra; não afirmar melhora ou paridade sem baseline comparável. Nenhum baseline existe ainda.
+Medir na mesma suíte: tarefas aceitas, falhas críticas, correções humanas, latência, tokens, tentativas e custo por tarefa aceita. Registrar versão, configuração, hardware e amostra; não afirmar melhora ou paridade sem baseline comparável. Nenhum baseline existe ainda.
 
 Decisões abertas incluem armazenamento de segredos, registro e escopos OAuth, certificado e pareamento, descoberta de skills pelos dois agentes, compatibilidade Next.js/Ionic e suporte do runtime ao modelo Liquid. Não há cronograma de release definido.
