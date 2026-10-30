@@ -4,6 +4,7 @@ import {
   AppShell,
   Badge,
   Button,
+  ButtonGroup,
   Card,
   Center,
   ChatComposer,
@@ -15,8 +16,6 @@ import {
   Icon,
   List,
   ListItem,
-  SegmentedControl,
-  SegmentedControlItem,
   Stack,
   Text,
   Theme,
@@ -82,7 +81,7 @@ export function ChatExperience() {
           variant="info"
           icon={<Icon icon="info" size="sm" />}
         />
-        <Text as="h1" type="display-3">
+        <Text as="h1" type="display-2">
           {language === "pt"
             ? "O que você quer resolver?"
             : "What would you like to get done?"}
@@ -95,24 +94,22 @@ export function ChatExperience() {
             <Text as="h2" type="label">
               {content.tryThis}
             </Text>
-            <Stack gap={1}>
-              <Button
+            <List density="balanced" hasDividers edge="flush">
+              <ListItem
                 label={content.prompt}
-                variant="secondary"
-                size="lg"
-                width="100%"
-                icon={<Icon icon="calendar" size="sm" />}
+                description={content.promptDetail}
+                startContent={<Icon icon="calendar" size="sm" />}
+                endContent={<Icon icon="chevronRight" size="sm" />}
                 onClick={() => void sendMessage(content.prompt)}
               />
-              <Button
+              <ListItem
                 label={content.sample}
-                variant="secondary"
-                size="lg"
-                width="100%"
-                icon={<Icon icon="info" size="sm" />}
+                description={content.sampleDetail}
+                startContent={<Icon icon="info" size="sm" />}
+                endContent={<Icon icon="chevronRight" size="sm" />}
                 onClick={() => void sendMessage(content.sample)}
               />
-            </Stack>
+            </List>
           </Stack>
         </Card>
       </Stack>
@@ -126,7 +123,7 @@ export function ChatExperience() {
       onSubmit={(value) => void sendMessage(value)}
       isDisabled={busy}
       placeholder={content.placeholder}
-      density="compact"
+      density="balanced"
       elevation="low"
       headerActions={<Text type="code">{content.composerLabel}</Text>}
       headerContext={<Text type="supporting">{content.composerHint}</Text>}
@@ -156,25 +153,26 @@ export function ChatExperience() {
               />
             }
             endContent={
-              <SegmentedControl
-                label={navigationLabel}
-                value={language}
-                size="lg"
-                onChange={(value) => {
-                  if (value === "pt" || value === "en") setLanguage(value);
-                }}
-              >
-                <SegmentedControlItem value="pt" label="PT" />
-                <SegmentedControlItem value="en" label="EN" />
-              </SegmentedControl>
+              <ButtonGroup label={navigationLabel} size="lg">
+                {(["pt", "en"] as const).map((option) => (
+                  <Button
+                    key={option}
+                    label={option.toUpperCase()}
+                    aria-pressed={language === option}
+                    variant={language === option ? "secondary" : "ghost"}
+                    size="lg"
+                    onClick={() => setLanguage(option)}
+                  />
+                ))}
+              </ButtonGroup>
             }
           />
         }
       >
-        <Center width="100%" height="100%" padding={2}>
+        <Center width="100%" height="100%">
           <Stack direction="vertical" width="100%" height="100%" maxWidth={720}>
             <ChatLayout
-              density="compact"
+              density="balanced"
               emptyState={messages.length === 0 ? emptyState : undefined}
               composer={composer}
             >
