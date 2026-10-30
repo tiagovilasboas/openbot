@@ -10,6 +10,8 @@ Open Bot is in the planning stage. Questions, documentation improvements and sma
 4. Avoid committing credentials, private data or unrelated changes.
 5. Open a pull request with context and evidence for reviewers.
 
+Write commit messages in English; see [Git conventions](docs/git-conventions.md).
+
 English and Brazilian Portuguese contributions are welcome. When changing shared product claims, check whether the other language needs a corresponding update.
 
 Install the versioned hooks with `npx --yes lefthook@1.11.4 install`. Run the shared local and CI gate with `node scripts/check-docs.mjs`. It checks only that core documents are present and non-empty; it does not validate application behavior or security.
@@ -23,6 +25,8 @@ O Open Bot está em planejamento. Perguntas, melhorias na documentação e propo
 3. Inclua as verificações relevantes e indique hipóteses ou limitações. Não apresente recursos planejados como implementados.
 4. Não inclua credenciais, dados privados ou mudanças sem relação com a proposta.
 5. Abra um pull request com contexto e evidências para a revisão.
+
+Escreva mensagens de commit em inglês; consulte as [convenções de Git](docs/git-conventions.md).
 
 Contribuições em português brasileiro e inglês são bem-vindas. Ao alterar afirmações sobre o produto, confira se a outra versão também precisa ser atualizada.
 
