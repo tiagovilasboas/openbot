@@ -12,13 +12,13 @@ O marco inclui pareamento, chat com histórico, seleção de um modelo validado,
 
 ## Portas de decisão da spike
 
-| Hipótese | Evidência para decidir | Saída |
-| --- | --- | --- |
-| Next.js + Ionic | Navegação, teclado, áreas seguras, streaming e reconexão no protótipo escuro | Manter se o fluxo funcionar sem disputa de roteadores; caso contrário, registrar alternativa de UI e comparar o mesmo fluxo antes de adotar. |
-| assistant-ui | Integração com Ionic e modelo sem duplicar estado ou quebrar rolagem | Adotar se reduzir implementação; caso contrário, chat próprio pequeno. |
-| Modelo e runtime | Suíte fixa de chat e ferramentas em PT/EN, incluindo erros | Aprovar cada caminho individualmente; falha de um candidato não impede usar outro aprovado. |
-| 9Router e gratuito | Provedor permitido e disponível, requisitos, limites, política de dados, streaming e ferramentas | Oferecer somente rota validada com ativação explícita; indisponibilidade deixa a opção desabilitada com explicação. |
-| Acesso móvel | Instalação por pessoa externa, HTTPS e pareamento | Aprovar a receita reproduzível ou registrar impedimento antes de abrir o piloto. |
+| Hipótese               | Evidência para decidir                                                                           | Saída                                                                                                                                  |
+| ---------------------- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Next.js + HeroUI React | Interface responsiva, teclado, áreas seguras, streaming e reconexão                              | HeroUI foi escolhido para o protótipo web; validar PWA e dispositivos antes de declarar suporte mobile.                                |
+| Chat UI                | Componentes públicos de HeroUI e estado de conversa                                              | Usar componentes existentes sem copiar templates HeroUI Pro; introduzir outra biblioteca somente com evidência de redução de trabalho. |
+| Modelo e runtime       | Suíte fixa de chat e ferramentas em PT/EN, incluindo erros                                       | Aprovar cada caminho individualmente; falha de um candidato não impede usar outro aprovado.                                            |
+| 9Router e gratuito     | Provedor permitido e disponível, requisitos, limites, política de dados, streaming e ferramentas | Oferecer somente rota validada com ativação explícita; indisponibilidade deixa a opção desabilitada com explicação.                    |
+| Acesso móvel           | Instalação por pessoa externa, HTTPS e pareamento                                                | Aprovar a receita reproduzível ou registrar impedimento antes de abrir o piloto.                                                       |
 
 ## Contrato mínimo do agente
 
@@ -32,14 +32,14 @@ Exemplo: pedido de issues no repositório selecionado → leitura autorizada →
 
 ## Limites operacionais iniciais
 
-| Limite | Proposta inicial e comportamento |
-| --- | --- |
-| Trabalho concorrente | Uma tarefa ativa por conversa; nova solicitação permite cancelar ou aguardar. |
-| Loop do agente | Até 4 chamadas de modelo e 6 chamadas de ferramenta por tarefa; ao atingir limite, devolver resultado parcial e explicar. |
-| Tempo | 120 segundos por tarefa e até 30 segundos por ferramenta, limitados pelo prazo restante; cancelamento impede novas chamadas. |
-| Retentativa | Até uma para leitura com erro transitório, respeitando prazo e limites; nunca repetir permissão negada ou argumentos inválidos automaticamente. |
-| Contexto | Orçamento explícito por adapter, reservando saída; reduzir resultados e histórico de forma visível quando necessário. O valor depende do runtime validado. |
-| Consumo | Registrar chamadas, duração e tokens quando disponíveis; custo estimado somente com preço e uso conhecidos. Não apresentar ausência de medição como custo zero. |
+| Limite               | Proposta inicial e comportamento                                                                                                                                |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Trabalho concorrente | Uma tarefa ativa por conversa; nova solicitação permite cancelar ou aguardar.                                                                                   |
+| Loop do agente       | Até 4 chamadas de modelo e 6 chamadas de ferramenta por tarefa; ao atingir limite, devolver resultado parcial e explicar.                                       |
+| Tempo                | 120 segundos por tarefa e até 30 segundos por ferramenta, limitados pelo prazo restante; cancelamento impede novas chamadas.                                    |
+| Retentativa          | Até uma para leitura com erro transitório, respeitando prazo e limites; nunca repetir permissão negada ou argumentos inválidos automaticamente.                 |
+| Contexto             | Orçamento explícito por adapter, reservando saída; reduzir resultados e histórico de forma visível quando necessário. O valor depende do runtime validado.      |
+| Consumo              | Registrar chamadas, duração e tokens quando disponíveis; custo estimado somente com preço e uso conhecidos. Não apresentar ausência de medição como custo zero. |
 
 Verificar estes limites com testes determinísticos do executor. Qualidade e fidelidade das respostas exigem revisão dos cenários e evidência. Cancelar localmente pode não interromper trabalho já aceito pelo provedor; informar limitações e medir chamadas adicionais.
 

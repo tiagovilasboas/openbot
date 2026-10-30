@@ -1,17 +1,17 @@
 # Stack candidates
 
-Status: **the first chat screen uses Astryx 0.7.4 with its Neutral theme in dark mode.** Astryx is MIT-licensed and currently beta. Apple Human Interface Guidelines guide hierarchy, accessibility, safe areas and platform behavior. This is an initial implementation choice, not device validation.
+Status: **the first chat screen uses HeroUI React v3.2.7 with its default dark theme.** HeroUI React and styles are Apache-2.0; Tailwind CSS and its PostCSS plugin are MIT. Apple Human Interface Guidelines guide hierarchy, accessibility, safe areas and platform behavior. This is an initial implementation choice, not device validation.
 
 ## Initial spike result
 
-- The production build emits `/` and `/manifest.webmanifest` successfully.
-- Astryx supplies the chat composer, message list, message bubbles, tool-call display, layout, theme tokens and icons. The project adapts the official AI Chat Landing and AI Chat Conversation patterns, keeping the product focused on a bilingual local mock and calendar tool.
-- This is desktop evidence only. There is no service worker/offline behavior, trusted HTTPS pairing, installation test, iOS/Android test, real model/provider, or latency result.
+- HeroUI React supplies accessible controls, cards, inputs, badges and icons. The application composes these public components into a bilingual mobile-first chat with a local mock calendar tool.
+- The app keeps the Next.js manifest. This does not include a service worker or offline behavior. Installation, trusted HTTPS pairing, iOS/Android testing, a real model/provider and latency remain unverified.
+- HeroUI's Chat starter template is a Pro template; Open Bot does not copy it. The chat screen uses public HeroUI components and an application-owned composition.
 
 | Area             | Candidate                          | Reason / open question                                                                                                       |
 | ---------------- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | Mobile interface | React and TypeScript PWA           | One web interface for phone and desktop; validate installation and network access on target devices.                         |
-| Mobile UI        | Astryx 0.7.4                       | MIT React design system and chat templates; beta status means upgrades and mobile behavior need review.                      |
+| Mobile UI        | HeroUI React 3.2.7                 | Apache-2.0 React component library built on React Aria; use public components and keep the official style imports intact.    |
 | Server           | Node.js and TypeScript             | Shared language across UI and agent; validate tool and provider SDK support.                                                 |
 | Storage          | SQLite                             | Small local deployment; decide how to protect credentials separately.                                                        |
 | Local model      | Liquid LFM3-1.7B                   | Candidate for the first experiment; measure Portuguese, latency and tool calling.                                            |
@@ -20,15 +20,15 @@ Status: **the first chat screen uses Astryx 0.7.4 with its Neutral theme in dark
 
 ## UI kit decision
 
-- **Selected for the MVP:** Astryx 0.7.4 with the Neutral theme forced to dark mode. The app composes Astryx components and theme tokens without application-authored CSS; Neutral keeps a restrained sans-serif interface suited to a utility chat surface.
-- **License and maturity:** Astryx core and Neutral theme are MIT; the project is beta. Pin versions and verify generated HTML, keyboard behavior and mobile layout when upgrading.
-- **Mobile touch target:** Astryx 0.7.4's largest built-in `Button` is 36 px high; `SegmentedControl` rendered 28 px high at 320 × 659. Neither reaches Apple's 44 pt target. The product avoids authored CSS overrides, so track an upstream larger size or a core control that supplies one.
+- **Selected for the MVP:** HeroUI React v3.2.7, dark-only, with its official style package and Tailwind CSS 4 setup. `globals.css` contains only the official imports; the app adds no CSS declarations or inline styles. Tailwind utilities compose layout and responsive behavior.
+- **License:** `@heroui/react` and `@heroui/styles` package metadata declare Apache-2.0; Tailwind CSS and `@tailwindcss/postcss` declare MIT. Keep the licenses with redistributed assets or code.
+- **Starter templates:** the official Chat template is a Pro offering; the app uses public components rather than copying premium template code.
 - **Design guidance:** Apple Human Interface Guidelines inform hierarchy, touch targets, safe areas and accessibility. They are not a UI component kit.
-- **Not selected:** Ionic React, shadcn/ui and Material UI would add a redundant component kit to the current MVP.
+- **Not selected:** Ionic React, Astryx, shadcn/ui and Material UI would add a redundant component kit to the current MVP.
 
 ## Other UI candidates
 
-- **Astryx:** React components and chat-specific patterns with an MIT license; beta maturity is the main trade-off.
+- **Astryx:** React components and chat-specific patterns; not selected after choosing HeroUI.
 - **Ionic React:** mobile navigation and components out of the box; stronger framework conventions.
 - **shadcn/ui:** customizable React components; mobile interaction and layout require more product design work.
 - **Material UI:** comprehensive React components and Material styling; adapting its visual identity takes effort.
