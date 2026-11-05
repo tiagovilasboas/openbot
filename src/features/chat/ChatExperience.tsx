@@ -30,6 +30,7 @@ export function ChatExperience() {
   const [busy, setBusy] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const nextId = useRef(1);
+  const conversationIdRef = useRef(0);
   const content = chatCopy[language];
 
   useEffect(() => {
@@ -39,6 +40,7 @@ export function ChatExperience() {
   async function sendMessage(value = draft) {
     const text = value.trim();
     if (!text || busy) return;
+    const conversationId = conversationIdRef.current;
     setMessages((current) => [
       ...current,
       { id: nextId.current++, role: "user", language, text },
@@ -48,6 +50,7 @@ export function ChatExperience() {
     const reply = respondToMessage(text, language);
     if (reply.kind === "calendar")
       await new Promise((resolve) => setTimeout(resolve, 300));
+    if (conversationIdRef.current !== conversationId) return;
     setMessages((current) => [
       ...current,
       {
@@ -62,8 +65,10 @@ export function ChatExperience() {
   }
 
   function startNewChat() {
+    conversationIdRef.current += 1;
     setMessages([]);
     setDraft("");
+    setBusy(false);
   }
 
   return (
