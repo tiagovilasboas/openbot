@@ -8,31 +8,30 @@ judgment and evidence.
 
 ## Development harness
 
-| Concern and axis | Guide | Sensor | Status |
-| --- | --- | --- | --- |
-| Domain boundaries; architecture fitness | Architecture principles and delivery skill; inferential | Review changed imports and responsibilities; inferential. Add dependency checks when real boundaries exist; computational | Guides present; sensors proposed |
-| Changes and maintainability | Small independent increments and focused files; inferential | Format, lint, typecheck, and targeted tests in local hooks and CI; computational | Proposed |
-| Product behaviour | Explicit acceptance criteria and failure cases; inferential | Unit, integration and mobile browser checks at the appropriate boundary; computational, plus evidence-based review; inferential | Proposed |
-| Agent security and behaviour | Scope tools and require user approval for external writes; inferential | Permission, approval and prompt-injection regression cases; computational where deterministic, supplemented by adversarial review; inferential | Proposed |
-| Model quality and behaviour | Define task set and acceptance rubric before selecting providers; inferential | Run the same cases on each model and record success, failures, latency, tokens and manual correction; computational collection and inferential scoring | Proposed; no baseline or comparison exists |
+| Concern and axis                        | Guide                                                                         | Sensor                                                                                                                                                 | Status                                     |
+| --------------------------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------ |
+| Domain boundaries; architecture fitness | Architecture principles and delivery skill; inferential                       | Review changed imports and responsibilities; inferential. Add dependency checks when real boundaries exist; computational                              | Guides present; sensors proposed           |
+| Changes and maintainability             | Small independent increments and focused files; inferential                   | Format, lint, typecheck, and targeted tests in local hooks and CI; computational                                                                       | Implemented in repository gates            |
+| Product behaviour                       | Explicit acceptance criteria and failure cases; inferential                   | Unit, integration and mobile browser checks at the appropriate boundary; computational, plus evidence-based review; inferential                        | Proposed                                   |
+| Agent security and behaviour            | Scope tools and require user approval for external writes; inferential        | Permission, approval and prompt-injection regression cases; computational where deterministic, supplemented by adversarial review; inferential         | Proposed                                   |
+| Model quality and behaviour             | Define task set and acceptance rubric before selecting providers; inferential | Run the same cases on each model and record success, failures, latency, tokens and manual correction; computational collection and inferential scoring | Proposed; no baseline or comparison exists |
 
 The outer harness should place fast checks in pre-commit, the complete relevant
 gate in pre-push and CI, and operational signals in the running product. If a
 sensor is absent, record the gap; an instruction alone does not enforce it.
 For recurring failures, identify the failed guide or sensor and update that loop.
 
-### Delivery gate plan
+### Delivery gates
 
 See the [delivery gate contract](../architecture/delivery-gates.md) for the agreed application requirements and staged-versus-project check boundaries.
 
-The initial Lefthook and CI gate checks that core documents exist and are not empty.
-It does not check formatting, staged-only changes, architecture, links or product behaviour.
-For the planned JavaScript/TypeScript stack, introduce versioned Husky hooks and
-lint-staged with pinned dependencies: pre-commit checks staged files; pre-push
-runs the same complete check command as CI, including relevant tests and build.
-Document one install command for contributors. CI independently repeats that
-command. Add actual format, lint, typecheck and test commands when the stack and
-application exist; a documentation-only gate does not prove application quality.
+The repository uses versioned **Husky** hooks and **lint-staged** with pinned dependencies, matching the GitHub Actions CI workflow:
+
+- `pre-commit` runs formatting and linting on staged files via `lint-staged`.
+- `pre-push` runs the complete shared gate (`npm run check`): document validation, formatting check, linting, TypeScript check (`tsc --noEmit`), current automated tests, and the Next.js production build (`next build`).
+- Pull request CI independently runs the same complete check command from a clean dependency install.
+
+Contributors install dependencies and hooks with `npm ci`. Because application source code exists in `src/`, typecheck and production build run actively in both local and CI gates. Current tests cover document verification and prototype chat/simulated tool response behavior; real model adapters, external integrations, and server-side security controls will require dedicated tests as they are added.
 
 ## Product agent boundaries
 
