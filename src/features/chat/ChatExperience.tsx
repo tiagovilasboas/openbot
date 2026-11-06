@@ -4,6 +4,7 @@ import { Button, Card, Chip, IconPlus } from "@heroui/react";
 import { useEffect, useRef, useState } from "react";
 import type { CalendarEvent } from "@/features/calendar/list-example-events";
 import { chatCopy } from "./chat-copy";
+import { requestModelReply } from "./request-model-reply";
 import { respondToMessage, type ChatLanguage } from "./respond-to-message";
 import { ChatComposer } from "./ChatComposer";
 import { ChatEmptyState } from "./ChatEmptyState";
@@ -35,15 +36,29 @@ export function ChatExperience() {
     const text = value.trim();
     if (!text || busy) return;
     const conversationId = conversationIdRef.current;
+    const history = [...messages, { role: "user" as const, text }].map(
+      ({ role, text }) => ({ role, text }),
+    );
     setMessages((current) => [
       ...current,
       { id: nextId.current++, role: "user", language, text },
     ]);
     setDraft("");
     setBusy(true);
-    const reply = respondToMessage(text, language);
-    if (reply.kind === "calendar")
+    const demo = respondToMessage(text, language);
+    let reply: { text: string; events?: CalendarEvent[] };
+    if (demo.kind === "calendar") {
       await new Promise((resolve) => setTimeout(resolve, 300));
+      reply = { text: demo.text, events: demo.events };
+    } else {
+      const outcome = await requestModelReply(language, history);
+      reply =
+        outcome.kind === "text"
+          ? { text: outcome.text }
+          : outcome.kind === "unavailable"
+            ? { text: demo.text }
+            : { text: content.modelError };
+    }
     if (conversationIdRef.current !== conversationId) return;
     setMessages((current) => [
       ...current,
@@ -52,7 +67,7 @@ export function ChatExperience() {
         role: "assistant",
         language,
         text: reply.text,
-        ...(reply.kind === "calendar" ? { events: reply.events } : {}),
+        ...(reply.events ? { events: reply.events } : {}),
       },
     ]);
     setBusy(false);
