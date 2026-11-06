@@ -19,7 +19,9 @@ export const chatCopy = {
     mainNavLabel: "Navegação principal",
     languageLabel: "Idioma",
     newChat: "Nova conversa",
-    emptyHeading: "O que você quer resolver?",
+    emptyHeading: "Como posso ajudar você hoje?",
+    emptySubheading:
+      "Consulte repositórios do GitHub, veja sua agenda ou explore modelos de IA.",
     tryThisDescription: "Escolha uma ação para testar a demonstração.",
     conversationLabel: "Conversa",
     thinking: "Pensando...",
@@ -99,7 +101,9 @@ export const chatCopy = {
     mainNavLabel: "Main navigation",
     languageLabel: "Language",
     newChat: "New chat",
-    emptyHeading: "What would you like to get done?",
+    emptyHeading: "How can I help you today?",
+    emptySubheading:
+      "Query GitHub repositories, check your schedule, or explore AI models.",
     tryThisDescription: "Choose an action to try the demo.",
     conversationLabel: "Conversation",
     thinking: "Thinking...",

@@ -1,45 +1,34 @@
 "use client";
 
-import { Button, Card, Chip, IconPlus } from "@heroui/react";
 import { useEffect, useRef, useState } from "react";
-import type { CalendarEvent } from "@/features/calendar/list-example-events";
-import { detectGitHubRequest } from "@/features/github/detect-github-request";
-import { GitHubItemsCard } from "@/features/github/GitHubItemsCard";
-import type { GitHubItem, GitHubRepoRef } from "@/features/github/github-types";
-import { listRepositoryItems } from "@/features/github/list-repository-items";
-import { useGitHubToken } from "@/features/github/use-github-token";
-import { formatModelBadge } from "@/features/model/model-config";
-import { SettingsModal } from "@/features/model/SettingsModal";
+import type { CalendarEvent } from "@/features/calendar/list-example-events.ts";
+import { detectGitHubRequest } from "@/features/github/detect-github-request.ts";
+import type {
+  GitHubItem,
+  GitHubRepoRef,
+} from "@/features/github/github-types.ts";
+import { listRepositoryItems } from "@/features/github/list-repository-items.ts";
+import { useGitHubToken } from "@/features/github/use-github-token.ts";
+import { formatModelBadge } from "@/features/model/model-config.ts";
+import { SettingsModal } from "@/features/model/SettingsModal.tsx";
 import {
   fetchActiveServerModel,
   type ActiveServerModelOutcome,
-} from "@/features/model/test-model-connection";
-import { useModelConfig } from "@/features/model/use-model-config";
-import { chatCopy } from "./chat-copy";
-import { requestModelReply } from "./request-model-reply";
-import { respondToMessage, type ChatLanguage } from "./respond-to-message";
-import { ChatComposer } from "./ChatComposer";
-import { ChatEmptyState } from "./ChatEmptyState";
-import { ChatHeader } from "./ChatHeader";
-import { ChatToolResult } from "./ChatToolResult";
-
-type Message = {
-  id: number;
-  language: ChatLanguage;
-  role: "assistant" | "user";
-  text: string;
-  events?: CalendarEvent[];
-  github?: {
-    repo: GitHubRepoRef;
-    items: GitHubItem[];
-  };
-};
+} from "@/features/model/test-model-connection.ts";
+import { useModelConfig } from "@/features/model/use-model-config.ts";
+import { chatCopy } from "./chat-copy.ts";
+import { ChatComposer } from "./ChatComposer.tsx";
+import { ChatEmptyState } from "./ChatEmptyState.tsx";
+import { ChatHeader } from "./ChatHeader.tsx";
+import { ChatMessageItem, type MessageData } from "./ChatMessageItem.tsx";
+import { requestModelReply } from "./request-model-reply.ts";
+import { respondToMessage, type ChatLanguage } from "./respond-to-message.ts";
 
 export function ChatExperience() {
   const [language, setLanguage] = useState<ChatLanguage>("pt");
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<MessageData[]>([]);
   const modelConfig = useModelConfig();
   const gitHubToken = useGitHubToken();
   const [serverModel, setServerModel] =
@@ -48,6 +37,7 @@ export function ChatExperience() {
 
   const nextId = useRef(1);
   const conversationIdRef = useRef(0);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const content = chatCopy[language];
 
   useEffect(() => {
@@ -59,6 +49,12 @@ export function ChatExperience() {
       setServerModel(server);
     });
   }, []);
+
+  useEffect(() => {
+    if (messages.length > 0) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages, busy]);
 
   const isConfigured = Boolean(modelConfig || serverModel?.configured);
   const activeModelLabel = modelConfig
@@ -166,112 +162,69 @@ export function ChatExperience() {
   }
 
   return (
-    <main className="dark flex min-h-dvh w-full min-w-0 flex-col bg-background text-foreground">
+    <main className="dark flex h-dvh max-h-dvh w-full min-w-0 flex-col bg-black text-zinc-100 font-sans selection:bg-zinc-800 selection:text-white">
       <ChatHeader
         language={language}
         onLanguageChange={setLanguage}
         activeModelLabel={activeModelLabel}
         isConfigured={isConfigured}
         onOpenSettings={() => setIsSettingsOpen(true)}
+        hasMessages={messages.length > 0}
+        onNewChat={startNewChat}
       />
 
-      <div className="mx-auto flex w-full min-w-0 max-w-5xl flex-1 flex-col px-4 sm:px-6">
-        <div className="flex min-w-0 items-center justify-between gap-3 py-4">
-          {!isConfigured ? (
-            <Chip
-              color="warning"
-              variant="soft"
-              className="max-w-full lg:hidden"
-            >
-              {content.demo}
-            </Chip>
-          ) : (
-            <div />
-          )}
-          <Button
-            variant="tertiary"
-            size="lg"
-            onPress={startNewChat}
-            aria-label={content.newChat}
-            className="hidden sm:inline-flex"
-          >
-            <IconPlus aria-hidden="true" />
-            {content.newChat}
-          </Button>
-          <Button
-            variant="tertiary"
-            size="lg"
-            isIconOnly
-            onPress={startNewChat}
-            aria-label={content.newChat}
-            className="sm:hidden"
-          >
-            <IconPlus aria-hidden="true" />
-          </Button>
-        </div>
-
-        {messages.length === 0 ? (
-          <ChatEmptyState
-            language={language}
-            onSelectPrompt={(prompt) => void sendMessage(prompt)}
-          />
-        ) : (
-          <section
-            aria-label={content.conversationLabel}
-            aria-live="polite"
-            className="flex flex-1 flex-col gap-6 py-6"
-          >
-            {messages.map((message) => (
-              <article
-                key={message.id}
-                className={`flex w-full ${message.role === "user" ? "justify-end" : "justify-start"}`}
-              >
-                <Card
-                  variant={message.role === "user" ? "secondary" : "default"}
-                  className="w-fit max-w-[min(90%,42rem)]"
-                >
-                  <Card.Header className="pb-0">
-                    <Card.Title className="text-xs text-muted">
-                      {message.role === "assistant"
-                        ? chatCopy[message.language].title
-                        : chatCopy[message.language].you}
-                    </Card.Title>
-                  </Card.Header>
-                  <Card.Content className="whitespace-pre-wrap text-sm">
-                    {message.text}
-                    {message.events && (
-                      <ChatToolResult
-                        events={message.events}
-                        language={message.language}
-                      />
-                    )}
-                    {message.github && (
-                      <GitHubItemsCard
-                        repo={message.github.repo}
-                        items={message.github.items}
-                        language={message.language}
-                      />
-                    )}
-                  </Card.Content>
-                </Card>
-              </article>
-            ))}
-            {busy && (
-              <p className="text-sm text-muted" role="status">
-                {content.thinking}
-              </p>
-            )}
-          </section>
-        )}
-
-        <ChatComposer
+      {messages.length === 0 ? (
+        <ChatEmptyState
           language={language}
           draft={draft}
           busy={busy}
           onDraftChange={setDraft}
           onSend={() => void sendMessage()}
+          onSelectPrompt={(prompt) => void sendMessage(prompt)}
         />
-      </div>
+      ) : (
+        <div className="flex flex-1 flex-col overflow-y-auto">
+          <section
+            aria-label={content.conversationLabel}
+            aria-live="polite"
+            className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-4 py-6 sm:px-6"
+          >
+            {messages.map((message) => (
+              <ChatMessageItem key={message.id} message={message} />
+            ))}
+            {busy && (
+              <div
+                className="flex w-full items-center gap-3 animate-pulse pt-2"
+                role="status"
+              >
+                <div
+                  aria-hidden="true"
+                  className="flex size-7 shrink-0 items-center justify-center rounded-xl bg-zinc-900 border border-white/10 text-zinc-400 font-mono text-xs font-semibold"
+                >
+                  &gt;_
+                </div>
+                <span className="text-xs text-zinc-400 font-medium">
+                  {content.thinking}
+                </span>
+              </div>
+            )}
+            <div ref={messagesEndRef} className="h-4" />
+          </section>
+
+          <div className="sticky bottom-0 z-20 w-full bg-gradient-to-t from-black via-black/95 to-transparent pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] px-4">
+            <div className="mx-auto w-full max-w-3xl">
+              <ChatComposer
+                mode="docked"
+                language={language}
+                draft={draft}
+                busy={busy}
+                onDraftChange={setDraft}
+                onSend={() => void sendMessage()}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       <SettingsModal
         isOpen={isSettingsOpen}

@@ -14,7 +14,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#101114",
+  themeColor: "#000000",
   colorScheme: "dark",
 };
 
@@ -22,8 +22,8 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="pt-BR" data-theme="dark">
-      <body>
+    <html lang="pt-BR" data-theme="dark" className="dark bg-black">
+      <body className="bg-black text-zinc-100 antialiased">
         <RegisterServiceWorker />
         {children}
       </body>

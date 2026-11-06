@@ -68,13 +68,13 @@ export function GitHubItemsCard({
   const prsCount = items.filter((item) => item.isPullRequest).length;
 
   return (
-    <div className="mt-4 flex flex-col gap-3">
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-separator pb-2">
+    <div className="rounded-xl border border-white/10 bg-zinc-900/60 p-3 sm:p-4 backdrop-blur-sm flex flex-col gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/5 pb-2.5">
         <a
           href={repoUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-1.5 text-sm font-semibold text-accent transition-colors hover:underline"
+          className="flex items-center gap-1.5 text-sm font-semibold text-white transition-colors hover:text-zinc-300 hover:underline"
         >
           <span>
             {repo.owner}/{repo.repo}
@@ -89,16 +89,16 @@ export function GitHubItemsCard({
         </div>
       </div>
 
-      <p className="text-xs text-muted">{content.githubSource}</p>
+      <p className="text-[11px] text-zinc-500">{content.githubSource}</p>
 
       {items.length === 0 ? (
-        <p className="py-2 text-xs text-muted">{content.githubNoItems}</p>
+        <p className="py-2 text-xs text-zinc-400">{content.githubNoItems}</p>
       ) : (
-        <div className="flex flex-col gap-2.5">
+        <div className="flex flex-col gap-2">
           {items.slice(0, 15).map((item) => (
             <article
               key={item.id}
-              className="flex items-start gap-2.5 rounded-lg border border-separator/60 bg-surface/50 p-2.5 transition-colors hover:border-separator"
+              className="flex items-start gap-2.5 rounded-lg border border-white/8 bg-black/40 p-2.5 transition-colors hover:border-white/20"
             >
               <div className="mt-0.5 shrink-0">
                 {item.isPullRequest ? <PRIcon /> : <IssueIcon />}
@@ -109,15 +109,15 @@ export function GitHubItemsCard({
                     href={item.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="truncate text-xs font-medium text-foreground transition-colors hover:text-accent hover:underline"
+                    className="truncate text-xs font-medium text-zinc-200 transition-colors hover:text-white hover:underline"
                   >
-                    <span className="font-semibold text-muted">
+                    <span className="font-semibold text-zinc-500">
                       #{item.number}
                     </span>{" "}
                     {item.title}
                   </a>
                 </div>
-                <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-muted">
+                <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-zinc-400">
                   <span>@{item.author}</span>
                   {item.commentsCount > 0 && (
                     <span>💬 {item.commentsCount}</span>
@@ -125,7 +125,7 @@ export function GitHubItemsCard({
                   {item.labels.map((label) => (
                     <span
                       key={label}
-                      className="rounded bg-surface px-1.5 py-0.5 text-[10px] text-foreground/80 border border-separator"
+                      className="rounded border border-white/10 bg-zinc-800/60 px-1.5 py-0.5 text-[10px] text-zinc-300"
                     >
                       {label}
                     </span>
@@ -137,12 +137,12 @@ export function GitHubItemsCard({
         </div>
       )}
 
-      <div className="border-t border-separator pt-2 text-right">
+      <div className="border-t border-white/5 pt-2 text-right">
         <a
           href={`${repoUrl}/issues`}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-xs text-muted transition-colors hover:text-foreground"
+          className="inline-flex items-center gap-1 text-xs text-zinc-400 transition-colors hover:text-zinc-200"
         >
           <span>{content.githubViewOnGitHub}</span>
           <ExternalIcon />
