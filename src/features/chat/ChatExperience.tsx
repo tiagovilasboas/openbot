@@ -3,13 +3,18 @@
 import { Button, Card, Chip, IconPlus } from "@heroui/react";
 import { useEffect, useRef, useState } from "react";
 import type { CalendarEvent } from "@/features/calendar/list-example-events";
+import { detectGitHubRequest } from "@/features/github/detect-github-request";
+import { GitHubItemsCard } from "@/features/github/GitHubItemsCard";
+import type { GitHubItem, GitHubRepoRef } from "@/features/github/github-types";
+import { listRepositoryItems } from "@/features/github/list-repository-items";
+import { useGitHubToken } from "@/features/github/use-github-token";
 import { formatModelBadge } from "@/features/model/model-config";
-import { useModelConfig } from "@/features/model/use-model-config";
 import { SettingsModal } from "@/features/model/SettingsModal";
 import {
   fetchActiveServerModel,
   type ActiveServerModelOutcome,
 } from "@/features/model/test-model-connection";
+import { useModelConfig } from "@/features/model/use-model-config";
 import { chatCopy } from "./chat-copy";
 import { requestModelReply } from "./request-model-reply";
 import { respondToMessage, type ChatLanguage } from "./respond-to-message";
@@ -24,6 +29,10 @@ type Message = {
   role: "assistant" | "user";
   text: string;
   events?: CalendarEvent[];
+  github?: {
+    repo: GitHubRepoRef;
+    items: GitHubItem[];
+  };
 };
 
 export function ChatExperience() {
@@ -32,6 +41,7 @@ export function ChatExperience() {
   const [busy, setBusy] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const modelConfig = useModelConfig();
+  const gitHubToken = useGitHubToken();
   const [serverModel, setServerModel] =
     useState<ActiveServerModelOutcome | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -70,25 +80,69 @@ export function ChatExperience() {
     ]);
     setDraft("");
     setBusy(true);
-    const demo = respondToMessage(text, language);
-    let reply: { text: string; events?: CalendarEvent[] };
-    if (demo.kind === "calendar") {
-      await new Promise((resolve) => setTimeout(resolve, 300));
-      reply = { text: demo.text, events: demo.events };
+
+    const detected = detectGitHubRequest(text);
+    let reply: {
+      text: string;
+      events?: CalendarEvent[];
+      github?: { repo: GitHubRepoRef; items: GitHubItem[] };
+    };
+
+    if (detected.isGitHubRequest) {
+      const result = await listRepositoryItems(detected.repo, gitHubToken);
+      if (result.ok) {
+        let items = result.items;
+        if (detected.itemType === "prs") {
+          items = items.filter((item) => item.isPullRequest);
+        } else if (detected.itemType === "issues") {
+          items = items.filter((item) => !item.isPullRequest);
+        }
+        const labelKind =
+          detected.itemType === "prs"
+            ? content.githubPRs
+            : detected.itemType === "issues"
+              ? content.githubIssues
+              : content.githubOpenItems;
+        const summaryText =
+          language === "pt"
+            ? `Encontrei ${items.length} ${labelKind} em ${detected.repo.owner}/${detected.repo.repo}:`
+            : `Found ${items.length} ${labelKind} in ${detected.repo.owner}/${detected.repo.repo}:`;
+        reply = {
+          text: summaryText,
+          github: { repo: detected.repo, items },
+        };
+      } else {
+        const errorText =
+          result.error === "repo_not_found"
+            ? content.githubRepoNotFound
+            : result.error === "rate_limited"
+              ? content.githubRateLimited
+              : result.error === "unauthorized"
+                ? content.githubUnauthorized
+                : content.githubNetworkError;
+        reply = { text: errorText };
+      }
     } else {
-      const outcome = await requestModelReply(
-        language,
-        history,
-        fetch,
-        modelConfig,
-      );
-      reply =
-        outcome.kind === "text"
-          ? { text: outcome.text }
-          : outcome.kind === "unavailable"
-            ? { text: demo.text }
-            : { text: content.modelError };
+      const demo = respondToMessage(text, language);
+      if (demo.kind === "calendar") {
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        reply = { text: demo.text, events: demo.events };
+      } else {
+        const outcome = await requestModelReply(
+          language,
+          history,
+          fetch,
+          modelConfig,
+        );
+        reply =
+          outcome.kind === "text"
+            ? { text: outcome.text }
+            : outcome.kind === "unavailable"
+              ? { text: demo.text }
+              : { text: content.modelError };
+      }
     }
+
     if (conversationIdRef.current !== conversationId) return;
     setMessages((current) => [
       ...current,
@@ -98,6 +152,7 @@ export function ChatExperience() {
         language,
         text: reply.text,
         ...(reply.events ? { events: reply.events } : {}),
+        ...(reply.github ? { github: reply.github } : {}),
       },
     ]);
     setBusy(false);
@@ -187,6 +242,13 @@ export function ChatExperience() {
                     {message.events && (
                       <ChatToolResult
                         events={message.events}
+                        language={message.language}
+                      />
+                    )}
+                    {message.github && (
+                      <GitHubItemsCard
+                        repo={message.github.repo}
+                        items={message.github.items}
                         language={message.language}
                       />
                     )}

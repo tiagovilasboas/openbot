@@ -37,6 +37,33 @@ export function ChatEmptyState({
             variant="tertiary"
             fullWidth
             className="justify-between"
+            onPress={() =>
+              onSelectPrompt(
+                language === "pt"
+                  ? "issues de tiagovilasboas/openbot"
+                  : "issues of tiagovilasboas/openbot",
+              )
+            }
+          >
+            <span className="flex min-w-0 items-center gap-3 text-left">
+              <span aria-hidden="true" className="text-base font-semibold">
+                &lt;/&gt;
+              </span>
+              <span className="min-w-0">
+                <span className="block truncate">
+                  {content.gitHubSamplePrompt}
+                </span>
+                <span className="block truncate text-xs text-muted">
+                  {content.gitHubSampleDetail}
+                </span>
+              </span>
+            </span>
+            <IconChevronRight aria-hidden="true" />
+          </Button>
+          <Button
+            variant="tertiary"
+            fullWidth
+            className="justify-between"
             onPress={() => onSelectPrompt(content.prompt)}
           >
             <span className="flex min-w-0 items-center gap-3 text-left">
