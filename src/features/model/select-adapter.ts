@@ -1,7 +1,8 @@
 import { createAnthropicAdapter } from "./anthropic-adapter.ts";
 import { createLocalAdapter } from "./local-adapter.ts";
 import { createRouterAdapter } from "./router-adapter.ts";
-import type { ModelAdapter } from "./model-adapter.ts";
+import type { FetchLike, ModelAdapter } from "./model-adapter.ts";
+import type { ClientModelConfig } from "./model-config.ts";
 
 type Env = Record<string, string | undefined>;
 
@@ -11,18 +12,52 @@ function present(value: string | undefined): string | null {
 }
 
 /**
- * Picks the provider explicitly configured on the server.
- * Priority:
- * 1. Local direct endpoint (Ollama-compatible)
- * 2. Model router endpoint (OmniRoute / 9Router / OpenRouter OpenAI-compatible)
- * 3. Anthropic direct API
- * Returns null when nothing is configured; there is no silent default.
+ * Picks the adapter:
+ * - If customConfig is provided by the client, creates the requested provider adapter.
+ * - Otherwise falls back to server env configuration in priority order:
+ *   1. Local direct endpoint (Ollama-compatible)
+ *   2. Model router endpoint (OmniRoute / 9Router / OpenRouter OpenAI-compatible)
+ *   3. Anthropic direct API
+ * Returns null when nothing is configured.
  */
-export function selectAdapter(env: Env): ModelAdapter | null {
+export function selectAdapter(
+  env: Env,
+  customConfig?: ClientModelConfig | null,
+  fetchImpl?: FetchLike,
+): ModelAdapter | null {
+  if (customConfig) {
+    if (customConfig.provider === "local") {
+      return createLocalAdapter({
+        baseUrl: customConfig.baseUrl,
+        model: customConfig.model,
+        fetchImpl,
+      });
+    }
+    if (customConfig.provider === "router") {
+      return createRouterAdapter({
+        baseUrl: customConfig.baseUrl,
+        model: customConfig.model,
+        apiKey: customConfig.apiKey,
+        fetchImpl,
+      });
+    }
+    if (customConfig.provider === "anthropic") {
+      return createAnthropicAdapter({
+        apiKey: customConfig.apiKey,
+        model: customConfig.model,
+        fetchImpl,
+      });
+    }
+  }
+
   const localUrl = present(env.LOCAL_MODEL_URL);
   const localModel = present(env.LOCAL_MODEL_NAME);
   if (localUrl && localModel) {
-    return createLocalAdapter({ baseUrl: localUrl, model: localModel });
+    return createLocalAdapter({
+      baseUrl: localUrl,
+      model: localModel,
+      fetchImpl,
+    });
   }
 
   const routerUrl = present(env.ROUTER_URL);
@@ -33,13 +68,18 @@ export function selectAdapter(env: Env): ModelAdapter | null {
       baseUrl: routerUrl,
       model: routerModel,
       apiKey: routerApiKey,
+      fetchImpl,
     });
   }
 
   const apiKey = present(env.ANTHROPIC_API_KEY);
   const anthropicModel = present(env.ANTHROPIC_MODEL);
   if (apiKey && anthropicModel) {
-    return createAnthropicAdapter({ apiKey, model: anthropicModel });
+    return createAnthropicAdapter({
+      apiKey,
+      model: anthropicModel,
+      fetchImpl,
+    });
   }
 
   return null;

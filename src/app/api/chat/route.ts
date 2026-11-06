@@ -10,7 +10,7 @@ export async function POST(request: Request) {
     return Response.json({ error: "invalid_request" }, { status: 400 });
   }
 
-  const adapter = selectAdapter(process.env);
+  const adapter = selectAdapter(process.env, parsed.request.config);
   if (!adapter) {
     return Response.json({ error: "no_provider_configured" }, { status: 503 });
   }

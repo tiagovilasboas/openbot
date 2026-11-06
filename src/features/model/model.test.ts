@@ -38,6 +38,26 @@ test("parser accepts a valid request and rejects malformed ones", () => {
     }).ok,
     false,
   );
+  assert.equal(
+    parseChatRequest({
+      ...request,
+      config: {
+        provider: "local",
+        baseUrl: "http://localhost:11434",
+        model: "llama3",
+      },
+    }).ok,
+    true,
+  );
+  assert.equal(
+    parseChatRequest({
+      ...request,
+      config: {
+        provider: "invalid-provider",
+      },
+    }).ok,
+    false,
+  );
 });
 
 test("selectAdapter returns null without explicit configuration", () => {
@@ -71,6 +91,17 @@ test("selectAdapter honors configuration priorities: local > router > anthropic"
     ANTHROPIC_MODEL: "c",
   });
   assert.equal(anthropicWin?.provider, "anthropic");
+
+  const customOverride = selectAdapter(
+    { LOCAL_MODEL_URL: "http://localhost:11434", LOCAL_MODEL_NAME: "m" },
+    {
+      provider: "router",
+      baseUrl: "http://localhost:3000/v1",
+      model: "custom-router-model",
+    },
+  );
+  assert.equal(customOverride?.provider, "router");
+  assert.equal(customOverride?.model, "custom-router-model");
 });
 
 test("local adapter returns the reply text", async () => {

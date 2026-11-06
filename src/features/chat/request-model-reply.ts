@@ -1,3 +1,4 @@
+import type { ClientModelConfig } from "../model/model-config.ts";
 import type { ChatLanguage } from "./respond-to-message.ts";
 
 export type HistoryMessage = { role: "assistant" | "user"; text: string };
@@ -14,13 +15,18 @@ export async function requestModelReply(
   language: ChatLanguage,
   messages: HistoryMessage[],
   fetchImpl: typeof fetch = fetch,
+  config?: ClientModelConfig | null,
 ): Promise<ModelReplyOutcome> {
   let response: Response;
   try {
     response = await fetchImpl("/api/chat", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ language, messages }),
+      body: JSON.stringify({
+        language,
+        messages,
+        ...(config ? { config } : {}),
+      }),
     });
   } catch {
     return { kind: "error" };

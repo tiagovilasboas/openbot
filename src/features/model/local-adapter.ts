@@ -12,6 +12,7 @@ export function createLocalAdapter(config: LocalAdapterConfig): ModelAdapter {
 
   return {
     provider: "local",
+    model: config.model,
     async generateReply(request: ModelRequest) {
       let response: Response;
       try {

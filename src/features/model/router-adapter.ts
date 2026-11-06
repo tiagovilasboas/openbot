@@ -16,6 +16,7 @@ export function createRouterAdapter(config: RouterAdapterConfig): ModelAdapter {
 
   return {
     provider: "router",
+    model: config.model,
     async generateReply(request: ModelRequest) {
       const headers: Record<string, string> = {
         "content-type": "application/json",

@@ -16,6 +16,7 @@ export function createAnthropicAdapter(
 
   return {
     provider: "anthropic",
+    model: config.model,
     async generateReply(request: ModelRequest) {
       let response: Response;
       try {
