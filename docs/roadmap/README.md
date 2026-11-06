@@ -2,7 +2,7 @@
 
 [Roadmap detalhado em português](roadmap.pt-BR.md)
 
-Status: planning. This is a proposal, not a release schedule. Each increment is limited to five story points, independently reviewable and subject to real verification. The Portuguese roadmap contains the full dependencies and acceptance criteria.
+Status: in progress. The repository foundation (Milestone 0) and the initial mobile chat UI prototype with HeroUI React and simulated calendar tool (Milestones 1.1 partial and 1.5) are integrated into `main`. Upcoming work focuses on model integration (Milestone 1.2) and offline mobile PWA capabilities. Each increment is limited to five story points, independently reviewable and subject to real verification. The Portuguese roadmap contains the full dependencies and acceptance criteria.
 
 The first milestone targets developers using a phone paired with a server on their computer: chat and read-only issues/PRs for one authorized GitHub repository. See the [developer-first delivery contract](developer-first.md) in Portuguese for operational limits, decision gates, acceptance targets and pilot requirements. Calendar and daily briefing follow acceptance of this milestone. The wider MVP targets one person using their own server. They can choose a local Liquid endpoint, Anthropic API, or a validated free cloud route via optional 9Router, connect GitHub and calendar for read access, and request a sourced daily briefing. The product is not implemented yet.
 
