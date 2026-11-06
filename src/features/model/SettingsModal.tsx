@@ -5,12 +5,18 @@ import { useState } from "react";
 import { chatCopy } from "@/features/chat/chat-copy";
 import type { ChatLanguage } from "@/features/chat/respond-to-message";
 import {
+  clearStoredGitHubToken,
+  loadStoredGitHubToken,
+  saveStoredGitHubToken,
+} from "@/features/github/github-config";
+import {
   clearStoredModelConfig,
   saveStoredModelConfig,
   validateClientModelConfig,
   type ClientModelConfig,
   type ModelProviderType,
 } from "./model-config";
+import { SettingsGitHubSection } from "./SettingsGitHubSection";
 import { SettingsProviderFields } from "./SettingsProviderFields";
 import { testModelConnection } from "./test-model-connection";
 
@@ -73,6 +79,10 @@ function SettingsForm({
       : "claude-3-5-sonnet-20241022",
   );
 
+  const [gitHubToken, setGitHubToken] = useState(
+    () => loadStoredGitHubToken() ?? "",
+  );
+
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<{
     ok: boolean;
@@ -127,12 +137,18 @@ function SettingsForm({
       return;
     }
     saveStoredModelConfig(candidate);
+    if (gitHubToken.trim()) {
+      saveStoredGitHubToken(gitHubToken.trim());
+    } else {
+      clearStoredGitHubToken();
+    }
     onSave?.(candidate);
     onClose();
   }
 
   function handleReset() {
     clearStoredModelConfig();
+    clearStoredGitHubToken();
     onReset?.();
     onClose();
   }
@@ -219,9 +235,9 @@ function SettingsForm({
           setAnthropicModel={setAnthropicModel}
         />
 
-        <div className="pt-2">
+        <div className="pt-1">
           <Button
-            size="md"
+            size="sm"
             variant="secondary"
             className="w-full"
             isDisabled={isTesting}
@@ -243,6 +259,12 @@ function SettingsForm({
             </div>
           )}
         </div>
+
+        <SettingsGitHubSection
+          language={language}
+          token={gitHubToken}
+          onTokenChange={setGitHubToken}
+        />
       </Modal.Body>
 
       <Modal.Footer className="flex flex-col-reverse gap-2 border-t border-separator pt-4 sm:flex-row sm:justify-between">
