@@ -24,6 +24,7 @@ export const chatCopy = {
     conversationLabel: "Conversa",
     thinking: "Pensando...",
     sendMessageLabel: "Enviar mensagem",
+    modelError: "Não consegui falar com o modelo configurado. Tente novamente.",
   },
   en: {
     title: "OpenBot",
@@ -50,5 +51,6 @@ export const chatCopy = {
     conversationLabel: "Conversation",
     thinking: "Thinking...",
     sendMessageLabel: "Send message",
+    modelError: "I could not reach the configured model. Please try again.",
   },
 } as const;
