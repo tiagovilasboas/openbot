@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -19,8 +19,10 @@ test("documentation checker accepts the repository's required documents", () => 
   assert.match(result.stdout, /Required project documents exist/);
 });
 
-test("documentation checker fails when required documents are missing", () => {
-  const emptyDirectory = mkdtempSync(join(tmpdir(), "openbot-doc-check-"));
+test("documentation checker fails when required documents are missing in an empty directory", () => {
+  const emptyDirectory = mkdtempSync(
+    join(tmpdir(), "openbot-doc-check-empty-"),
+  );
   try {
     const result = spawnSync(process.execPath, [checker], {
       cwd: emptyDirectory,
@@ -31,5 +33,41 @@ test("documentation checker fails when required documents are missing", () => {
     assert.match(result.stderr, /README\.md/);
   } finally {
     rmSync(emptyDirectory, { recursive: true, force: true });
+  }
+});
+
+test("documentation checker fails when required documents are missing in an incomplete directory", () => {
+  const incompleteDirectory = mkdtempSync(
+    join(tmpdir(), "openbot-doc-check-incomplete-"),
+  );
+  try {
+    writeFileSync(join(incompleteDirectory, "README.md"), "# Open Bot\n");
+    const result = spawnSync(process.execPath, [checker], {
+      cwd: incompleteDirectory,
+      encoding: "utf8",
+    });
+
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /README\.pt-BR\.md/);
+  } finally {
+    rmSync(incompleteDirectory, { recursive: true, force: true });
+  }
+});
+
+test("documentation checker fails when a required document is empty", () => {
+  const emptyFileDirectory = mkdtempSync(
+    join(tmpdir(), "openbot-doc-check-empty-file-"),
+  );
+  try {
+    writeFileSync(join(emptyFileDirectory, "README.md"), "   \n");
+    const result = spawnSync(process.execPath, [checker], {
+      cwd: emptyFileDirectory,
+      encoding: "utf8",
+    });
+
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /README\.md: empty file/);
+  } finally {
+    rmSync(emptyFileDirectory, { recursive: true, force: true });
   }
 });

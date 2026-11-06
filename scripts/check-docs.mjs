@@ -2,9 +2,17 @@ import { readFileSync } from "node:fs";
 
 const files = [
   "README.md",
+  "README.pt-BR.md",
   "LICENSE",
+  "CONTRIBUTING.md",
+  "AGENTS.md",
+  ".env.example",
   "docs/architecture/README.md",
+  "docs/architecture/delivery-gates.md",
   "docs/stacks/README.md",
+  "docs/roadmap/README.md",
+  "docs/harness/README.md",
+  "docs/git-conventions.md",
 ];
 let failed = false;
 for (const file of files) {
