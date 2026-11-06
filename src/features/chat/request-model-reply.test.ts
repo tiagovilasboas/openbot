@@ -57,4 +57,16 @@ test("sends language and history to the server route", async () => {
   };
   await requestModelReply("en", history, spy);
   assert.deepEqual(body, { language: "en", messages: history });
+
+  const customConfig = {
+    provider: "local" as const,
+    baseUrl: "http://localhost:11434",
+    model: "llama3",
+  };
+  await requestModelReply("pt", history, spy, customConfig);
+  assert.deepEqual(body, {
+    language: "pt",
+    messages: history,
+    config: customConfig,
+  });
 });

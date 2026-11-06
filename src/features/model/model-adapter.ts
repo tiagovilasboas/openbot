@@ -1,3 +1,5 @@
+import type { ClientModelConfig } from "./model-config.ts";
+
 export type ModelLanguage = "pt" | "en";
 
 export type ModelMessage = {
@@ -8,6 +10,7 @@ export type ModelMessage = {
 export type ModelRequest = {
   language: ModelLanguage;
   messages: ModelMessage[];
+  config?: ClientModelConfig;
 };
 
 export type ModelErrorCode =
@@ -22,6 +25,7 @@ export type ModelResult =
 
 export type ModelAdapter = {
   provider: string;
+  model?: string;
   generateReply(request: ModelRequest): Promise<ModelResult>;
 };
 

@@ -3,6 +3,13 @@
 import { Button, Card, Chip, IconPlus } from "@heroui/react";
 import { useEffect, useRef, useState } from "react";
 import type { CalendarEvent } from "@/features/calendar/list-example-events";
+import { formatModelBadge } from "@/features/model/model-config";
+import { useModelConfig } from "@/features/model/use-model-config";
+import { SettingsModal } from "@/features/model/SettingsModal";
+import {
+  fetchActiveServerModel,
+  type ActiveServerModelOutcome,
+} from "@/features/model/test-model-connection";
 import { chatCopy } from "./chat-copy";
 import { requestModelReply } from "./request-model-reply";
 import { respondToMessage, type ChatLanguage } from "./respond-to-message";
@@ -24,6 +31,11 @@ export function ChatExperience() {
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
+  const modelConfig = useModelConfig();
+  const [serverModel, setServerModel] =
+    useState<ActiveServerModelOutcome | null>(null);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
   const nextId = useRef(1);
   const conversationIdRef = useRef(0);
   const content = chatCopy[language];
@@ -31,6 +43,19 @@ export function ChatExperience() {
   useEffect(() => {
     document.documentElement.lang = language === "pt" ? "pt-BR" : "en";
   }, [language]);
+
+  useEffect(() => {
+    void fetchActiveServerModel().then((server) => {
+      setServerModel(server);
+    });
+  }, []);
+
+  const isConfigured = Boolean(modelConfig || serverModel?.configured);
+  const activeModelLabel = modelConfig
+    ? formatModelBadge(modelConfig, false, language)
+    : serverModel?.configured
+      ? formatModelBadge(serverModel, false, language)
+      : formatModelBadge(null, true, language);
 
   async function sendMessage(value = draft) {
     const text = value.trim();
@@ -51,7 +76,12 @@ export function ChatExperience() {
       await new Promise((resolve) => setTimeout(resolve, 300));
       reply = { text: demo.text, events: demo.events };
     } else {
-      const outcome = await requestModelReply(language, history);
+      const outcome = await requestModelReply(
+        language,
+        history,
+        fetch,
+        modelConfig,
+      );
       reply =
         outcome.kind === "text"
           ? { text: outcome.text }
@@ -82,13 +112,27 @@ export function ChatExperience() {
 
   return (
     <main className="dark flex min-h-dvh w-full min-w-0 flex-col bg-background text-foreground">
-      <ChatHeader language={language} onLanguageChange={setLanguage} />
+      <ChatHeader
+        language={language}
+        onLanguageChange={setLanguage}
+        activeModelLabel={activeModelLabel}
+        isConfigured={isConfigured}
+        onOpenSettings={() => setIsSettingsOpen(true)}
+      />
 
       <div className="mx-auto flex w-full min-w-0 max-w-5xl flex-1 flex-col px-4 sm:px-6">
         <div className="flex min-w-0 items-center justify-between gap-3 py-4">
-          <Chip color="warning" variant="soft" className="max-w-full lg:hidden">
-            {content.demo}
-          </Chip>
+          {!isConfigured ? (
+            <Chip
+              color="warning"
+              variant="soft"
+              className="max-w-full lg:hidden"
+            >
+              {content.demo}
+            </Chip>
+          ) : (
+            <div />
+          )}
           <Button
             variant="tertiary"
             size="lg"
@@ -166,6 +210,13 @@ export function ChatExperience() {
           onSend={() => void sendMessage()}
         />
       </div>
+
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        language={language}
+        currentConfig={modelConfig}
+        onClose={() => setIsSettingsOpen(false)}
+      />
     </main>
   );
 }
