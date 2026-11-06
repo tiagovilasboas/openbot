@@ -3,6 +3,7 @@ import test from "node:test";
 import { createAnthropicAdapter } from "./anthropic-adapter.ts";
 import { createLocalAdapter } from "./local-adapter.ts";
 import { parseChatRequest } from "./parse-chat-request.ts";
+import { createRouterAdapter } from "./router-adapter.ts";
 import { selectAdapter } from "./select-adapter.ts";
 
 const request = {
@@ -43,16 +44,33 @@ test("selectAdapter returns null without explicit configuration", () => {
   assert.equal(selectAdapter({}), null);
   assert.equal(selectAdapter({ ANTHROPIC_API_KEY: "k" }), null);
   assert.equal(selectAdapter({ LOCAL_MODEL_URL: "http://x" }), null);
+  assert.equal(selectAdapter({ ROUTER_URL: "http://x" }), null);
 });
 
-test("selectAdapter prefers local over cloud when both are configured", () => {
-  const adapter = selectAdapter({
+test("selectAdapter honors configuration priorities: local > router > anthropic", () => {
+  const localWin = selectAdapter({
     LOCAL_MODEL_URL: "http://localhost:11434",
     LOCAL_MODEL_NAME: "m",
+    ROUTER_URL: "http://localhost:3000/v1",
+    ROUTER_MODEL: "rm",
     ANTHROPIC_API_KEY: "k",
     ANTHROPIC_MODEL: "c",
   });
-  assert.equal(adapter?.provider, "local");
+  assert.equal(localWin?.provider, "local");
+
+  const routerWin = selectAdapter({
+    ROUTER_URL: "http://localhost:3000/v1",
+    ROUTER_MODEL: "rm",
+    ANTHROPIC_API_KEY: "k",
+    ANTHROPIC_MODEL: "c",
+  });
+  assert.equal(routerWin?.provider, "router");
+
+  const anthropicWin = selectAdapter({
+    ANTHROPIC_API_KEY: "k",
+    ANTHROPIC_MODEL: "c",
+  });
+  assert.equal(anthropicWin?.provider, "anthropic");
 });
 
 test("local adapter returns the reply text", async () => {
@@ -66,6 +84,58 @@ test("local adapter returns the reply text", async () => {
     provider: "local",
     text: "olá",
   });
+});
+
+test("router adapter parses OpenAI-compatible choices payload", async () => {
+  let seenUrl: string | undefined;
+  let seenHeaders: HeadersInit | undefined;
+  const adapter = createRouterAdapter({
+    baseUrl: "https://openrouter.ai/api/v1",
+    model: "meta-llama/llama-3.3-70b-instruct:free",
+    apiKey: "router-key",
+    fetchImpl: async (url, init) => {
+      seenUrl = String(url);
+      seenHeaders = init?.headers;
+      return new Response(
+        JSON.stringify({
+          choices: [{ message: { content: "resposta do router" } }],
+        }),
+        { headers: { "content-type": "application/json" } },
+      );
+    },
+  });
+
+  const result = await adapter.generateReply(request);
+  assert.deepEqual(result, {
+    ok: true,
+    provider: "router",
+    text: "resposta do router",
+  });
+  assert.equal(seenUrl, "https://openrouter.ai/api/v1/chat/completions");
+  assert.equal(
+    (seenHeaders as Record<string, string>).authorization,
+    "Bearer router-key",
+  );
+});
+
+test("router adapter normalizes baseUrl already containing /chat/completions", async () => {
+  let seenUrl: string | undefined;
+  const adapter = createRouterAdapter({
+    baseUrl: "http://localhost:8000/v1/chat/completions/",
+    model: "m",
+    fetchImpl: async (url) => {
+      seenUrl = String(url);
+      return new Response(
+        JSON.stringify({
+          choices: [{ message: { content: "ok" } }],
+        }),
+      );
+    },
+  });
+
+  const result = await adapter.generateReply(request);
+  assert.equal(result.ok && result.text, "ok");
+  assert.equal(seenUrl, "http://localhost:8000/v1/chat/completions");
 });
 
 test("adapters map failures to typed errors", async () => {
@@ -101,6 +171,17 @@ test("adapters map failures to typed errors", async () => {
   const invalidResult = await invalid.generateReply(request);
   assert.equal(
     invalidResult.ok === false && invalidResult.code,
+    "invalid_provider_response",
+  );
+
+  const routerInvalid = createRouterAdapter({
+    baseUrl: "http://x",
+    model: "m",
+    fetchImpl: jsonFetch({ choices: [] }),
+  });
+  const routerResult = await routerInvalid.generateReply(request);
+  assert.equal(
+    routerResult.ok === false && routerResult.code,
     "invalid_provider_response",
   );
 });
