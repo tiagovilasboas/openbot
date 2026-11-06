@@ -18,9 +18,9 @@ export function ModelStatusBadge({
       size="sm"
       variant="soft"
       color={isConfigured ? "success" : "warning"}
-      className={`max-w-48 truncate sm:max-w-xs ${
+      className={`max-w-44 truncate sm:max-w-xs border border-white/10 bg-zinc-900/60 text-zinc-300 ${
         onPress
-          ? "cursor-pointer transition-opacity hover:opacity-80 active:opacity-60"
+          ? "cursor-pointer transition-all hover:border-white/25 hover:bg-zinc-800 hover:text-white active:scale-95"
           : ""
       }`}
       onClick={onPress}
@@ -41,11 +41,13 @@ export function ModelStatusBadge({
       <span className="flex items-center gap-1.5 truncate">
         <span
           className={`inline-block size-1.5 shrink-0 rounded-full ${
-            isConfigured ? "bg-success" : "bg-warning"
+            isConfigured ? "bg-emerald-400" : "bg-amber-400"
           }`}
           aria-hidden="true"
         />
-        <span className="truncate text-xs font-medium">{label}</span>
+        <span className="truncate text-[11px] sm:text-xs font-medium">
+          {label}
+        </span>
       </span>
     </Chip>
   );
