@@ -80,6 +80,8 @@ export const chatCopy = {
     githubViewOnGitHub: "Ver no GitHub",
     gitHubSamplePrompt: "Issues do OpenBot",
     gitHubSampleDetail: "Consulta issues e PRs reais de tiagovilasboas/openbot",
+    summarySamplePrompt: "Briefing de hoje",
+    summarySampleDetail: "Resumo consolidado de issues, PRs e agenda",
   },
   en: {
     title: "OpenBot",
@@ -160,5 +162,7 @@ export const chatCopy = {
     gitHubSamplePrompt: "OpenBot Issues",
     gitHubSampleDetail:
       "Queries real issues and PRs from tiagovilasboas/openbot",
+    summarySamplePrompt: "Today's Briefing",
+    summarySampleDetail: "Consolidated summary of issues, PRs, and schedule",
   },
 } as const;
