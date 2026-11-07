@@ -23,6 +23,8 @@ import { ChatHeader } from "./ChatHeader.tsx";
 import { ChatMessageItem, type MessageData } from "./ChatMessageItem.tsx";
 import { requestModelReply } from "./request-model-reply.ts";
 import { respondToMessage, type ChatLanguage } from "./respond-to-message.ts";
+import { detectSummaryRequest } from "@/features/summary/detect-summary-request.ts";
+import { executeSummary } from "@/features/summary/execute-summary.ts";
 
 export function ChatExperience() {
   const [language, setLanguage] = useState<ChatLanguage>("pt");
@@ -77,65 +79,81 @@ export function ChatExperience() {
     setDraft("");
     setBusy(true);
 
-    const detected = detectGitHubRequest(text);
+    const summaryDetected = detectSummaryRequest(text);
     let reply: {
       text: string;
       events?: CalendarEvent[];
       github?: { repo: GitHubRepoRef; items: GitHubItem[] };
     };
 
-    if (detected.isGitHubRequest) {
-      const result = await listRepositoryItems(detected.repo, gitHubToken);
-      if (result.ok) {
-        let items = result.items;
-        if (detected.itemType === "prs") {
-          items = items.filter((item) => item.isPullRequest);
-        } else if (detected.itemType === "issues") {
-          items = items.filter((item) => !item.isPullRequest);
-        }
-        const labelKind =
-          detected.itemType === "prs"
-            ? content.githubPRs
-            : detected.itemType === "issues"
-              ? content.githubIssues
-              : content.githubOpenItems;
-        const summaryText =
-          language === "pt"
-            ? `Encontrei ${items.length} ${labelKind} em ${detected.repo.owner}/${detected.repo.repo}:`
-            : `Found ${items.length} ${labelKind} in ${detected.repo.owner}/${detected.repo.repo}:`;
-        reply = {
-          text: summaryText,
-          github: { repo: detected.repo, items },
-        };
-      } else {
-        const errorText =
-          result.error === "repo_not_found"
-            ? content.githubRepoNotFound
-            : result.error === "rate_limited"
-              ? content.githubRateLimited
-              : result.error === "unauthorized"
-                ? content.githubUnauthorized
-                : content.githubNetworkError;
-        reply = { text: errorText };
-      }
+    if (summaryDetected.isSummary) {
+      const outcome = await executeSummary(
+        summaryDetected,
+        language,
+        text,
+        gitHubToken,
+        modelConfig,
+      );
+      reply = {
+        text: outcome.text,
+        events: outcome.events,
+        github: outcome.github,
+      };
     } else {
-      const demo = respondToMessage(text, language);
-      if (demo.kind === "calendar") {
-        await new Promise((resolve) => setTimeout(resolve, 300));
-        reply = { text: demo.text, events: demo.events };
+      const detected = detectGitHubRequest(text);
+      if (detected.isGitHubRequest) {
+        const result = await listRepositoryItems(detected.repo, gitHubToken);
+        if (result.ok) {
+          let items = result.items;
+          if (detected.itemType === "prs") {
+            items = items.filter((item) => item.isPullRequest);
+          } else if (detected.itemType === "issues") {
+            items = items.filter((item) => !item.isPullRequest);
+          }
+          const labelKind =
+            detected.itemType === "prs"
+              ? content.githubPRs
+              : detected.itemType === "issues"
+                ? content.githubIssues
+                : content.githubOpenItems;
+          const summaryText =
+            language === "pt"
+              ? `Encontrei ${items.length} ${labelKind} em ${detected.repo.owner}/${detected.repo.repo}:`
+              : `Found ${items.length} ${labelKind} in ${detected.repo.owner}/${detected.repo.repo}:`;
+          reply = {
+            text: summaryText,
+            github: { repo: detected.repo, items },
+          };
+        } else {
+          const errorText =
+            result.error === "repo_not_found"
+              ? content.githubRepoNotFound
+              : result.error === "rate_limited"
+                ? content.githubRateLimited
+                : result.error === "unauthorized"
+                  ? content.githubUnauthorized
+                  : content.githubNetworkError;
+          reply = { text: errorText };
+        }
       } else {
-        const outcome = await requestModelReply(
-          language,
-          history,
-          fetch,
-          modelConfig,
-        );
-        reply =
-          outcome.kind === "text"
-            ? { text: outcome.text }
-            : outcome.kind === "unavailable"
-              ? { text: demo.text }
-              : { text: content.modelError };
+        const demo = respondToMessage(text, language);
+        if (demo.kind === "calendar") {
+          await new Promise((resolve) => setTimeout(resolve, 300));
+          reply = { text: demo.text, events: demo.events };
+        } else {
+          const outcome = await requestModelReply(
+            language,
+            history,
+            fetch,
+            modelConfig,
+          );
+          reply =
+            outcome.kind === "text"
+              ? { text: outcome.text }
+              : outcome.kind === "unavailable"
+                ? { text: demo.text }
+                : { text: content.modelError };
+        }
       }
     }
 

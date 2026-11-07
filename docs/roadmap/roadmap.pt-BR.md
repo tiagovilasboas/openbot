@@ -1,6 +1,6 @@
 # Roadmap do Open Bot
 
-**Status: em andamento.** A fundação do repositório (Etapa 0), o protótipo inicial de interface mobile com HeroUI React (Etapas 1.1 parcial e 1.5), a infraestrutura de Service Worker do PWA (Etapa 1.1 parcial), a interface de configuração de modelo com indicador de status na UI (Etapa 2.5) e a integração de leitura de repositórios/issues/PRs do GitHub com fontes (Etapa 3.4) estão integrados ou em andamento. As próximas entregas focam na validação de instalação móvel real (Etapa 1.1) e conector de modelo real (Etapa 1.2). Pontos representam complexidade e incerteza, não horas. Divida qualquer item que deixe de ser independente ou ultrapasse 5 pontos. Cada entrega deve ter critérios verificáveis e um PR próprio.
+**Status: em andamento.** A fundação do repositório (Etapa 0), o protótipo inicial de interface mobile com HeroUI React (Etapas 1.1 parcial e 1.5), a infraestrutura de Service Worker do PWA (Etapa 1.1 parcial), a interface de configuração de modelo com indicador de status na UI (Etapa 2.5), a integração de leitura de repositórios/issues/PRs do GitHub com fontes (Etapa 3.4) e o resumo diário com síntese factual e tratamento de falhas parciais (Etapa 3.6) estão integrados ou em andamento. As próximas entregas focam na validação de instalação móvel real (Etapa 1.1) e conector de modelo real (Etapa 1.2). Pontos representam complexidade e incerteza, não horas. Divida qualquer item que deixe de ser independente ou ultrapasse 5 pontos. Cada entrega deve ter critérios verificáveis e um PR próprio.
 
 ## Objetivo do MVP
 

@@ -59,6 +59,19 @@ export function ChatEmptyState({
           type="button"
           onClick={() =>
             onSelectPrompt(
+              language === "pt" ? "Briefing de hoje" : "Today's briefing",
+            )
+          }
+          className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-zinc-900/70 px-3.5 py-1.5 text-xs text-zinc-300 backdrop-blur-sm transition-all hover:border-white/25 hover:bg-zinc-800 hover:text-white active:scale-95"
+        >
+          <span className="text-amber-400">☀️</span>
+          <span>{content.summarySamplePrompt}</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() =>
+            onSelectPrompt(
               language === "pt"
                 ? "issues de tiagovilasboas/openbot"
                 : "issues of tiagovilasboas/openbot",
@@ -77,7 +90,7 @@ export function ChatEmptyState({
           onClick={() => onSelectPrompt(content.prompt)}
           className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-zinc-900/70 px-3.5 py-1.5 text-xs text-zinc-300 backdrop-blur-sm transition-all hover:border-white/25 hover:bg-zinc-800 hover:text-white active:scale-95"
         >
-          <span className="text-amber-400">📅</span>
+          <span className="text-emerald-400">📅</span>
           <span>{content.prompt}</span>
         </button>
 
