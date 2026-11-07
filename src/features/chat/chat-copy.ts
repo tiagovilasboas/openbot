@@ -105,6 +105,16 @@ export const chatCopy = {
     yourBots: "Seus Bots",
     createBot: "Criar novo bot",
     editBotAria: "Editar",
+    presetsLabel: "Presets Rápidos",
+    presetOpenRouter: "🚀 OpenRouter (Free Tier)",
+    presetOpenRouterHint:
+      "Obtenha uma chave gratuita em openrouter.ai e use modelos :free sem custo.",
+    preset9Router: "🏠 9Router / OmniRoute Local",
+    presetOllama: "🦙 Ollama Local",
+    freeModelsLabel: "Modelos Gratuitos Populares",
+    connectAiPrompt:
+      "Conectar IA (Modelos gratuitos disponíveis via OpenRouter ou local)",
+    connectAiAction: "Configurar →",
   },
   en: {
     title: "OpenBot",
@@ -210,5 +220,15 @@ export const chatCopy = {
     yourBots: "Your Bots",
     createBot: "Create new bot",
     editBotAria: "Edit",
+    presetsLabel: "Quick Presets",
+    presetOpenRouter: "🚀 OpenRouter (Free Tier)",
+    presetOpenRouterHint:
+      "Get a free API key at openrouter.ai and use :free models at no cost.",
+    preset9Router: "🏠 9Router / OmniRoute Local",
+    presetOllama: "🦙 Ollama Local",
+    freeModelsLabel: "Popular Free Models",
+    connectAiPrompt:
+      "Connect AI (Free models available via OpenRouter or local)",
+    connectAiAction: "Configure →",
   },
 } as const;

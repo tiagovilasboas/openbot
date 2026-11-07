@@ -133,3 +133,31 @@ test("formatModelBadge formats label for providers and demo mode", () => {
   assert.equal(formatModelBadge(null, true, "en"), "Demo Mode");
   assert.equal(formatModelBadge(null, false, "pt"), "Modo Demo");
 });
+
+test("validates all OpenRouter free tier models and presets", () => {
+  const models = [
+    "meta-llama/llama-3.3-70b-instruct:free",
+    "deepseek/deepseek-r1:free",
+    "google/gemini-2.0-flash-exp:free",
+    "qwen/qwen-2.5-coder-32b-instruct:free",
+  ];
+
+  for (const model of models) {
+    const config = validateClientModelConfig({
+      provider: "router",
+      baseUrl: "https://openrouter.ai/api/v1",
+      model,
+      apiKey: "sk-or-v1-fakekey",
+    });
+    assert.ok(config);
+    assert.equal(config.model, model);
+  }
+
+  const ollama = validateClientModelConfig({
+    provider: "local",
+    baseUrl: "http://localhost:11434",
+    model: "llama3.2",
+  });
+  assert.ok(ollama);
+  assert.equal(ollama.model, "llama3.2");
+});
