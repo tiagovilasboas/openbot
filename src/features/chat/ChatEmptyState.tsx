@@ -7,12 +7,14 @@ import { chatCopy } from "./chat-copy.ts";
 import { ChatComposer } from "./ChatComposer.tsx";
 import type { ChatLanguage } from "./respond-to-message.ts";
 
-interface ChatEmptyStateProps {
+export interface ChatEmptyStateProps {
   language: ChatLanguage;
   draft: string;
   busy: boolean;
   skills?: SkillDefinition[];
   activeBot?: BotProfile;
+  isConfigured?: boolean;
+  onOpenSettings?: () => void;
   onDraftChange: (value: string) => void;
   onSend: () => void;
   onSelectPrompt: (prompt: string) => void;
@@ -24,6 +26,8 @@ export function ChatEmptyState({
   busy,
   skills,
   activeBot,
+  isConfigured,
+  onOpenSettings,
   onDraftChange,
   onSend,
   onSelectPrompt,
@@ -33,7 +37,7 @@ export function ChatEmptyState({
   return (
     <section className="flex flex-1 flex-col items-center justify-center px-4 py-8 sm:py-16 w-full max-w-2xl mx-auto my-auto animate-in fade-in duration-300">
       {/* Minimalist Logo & Greeting */}
-      <div className="mb-6 sm:mb-8 flex flex-col items-center text-center gap-2.5">
+      <div className="mb-4 sm:mb-6 flex flex-col items-center text-center gap-2.5">
         {activeBot ? (
           <div className="transition-transform hover:scale-105">
             <BotAvatar
@@ -67,6 +71,21 @@ export function ChatEmptyState({
             : content.emptySubheading}
         </p>
       </div>
+
+      {/* Demo Mode Connect AI Banner */}
+      {!isConfigured && onOpenSettings && (
+        <button
+          type="button"
+          onClick={onOpenSettings}
+          className="mb-5 inline-flex items-center gap-2 rounded-2xl border border-cyan-500/30 bg-cyan-950/40 px-3.5 py-1.5 text-xs text-cyan-200 transition-all hover:bg-cyan-900/50 hover:border-cyan-400 active:scale-95 shadow-sm"
+        >
+          <span className="text-amber-400 font-bold">⚡</span>
+          <span>{content.connectAiPrompt}</span>
+          <span className="text-[10px] text-cyan-400 underline font-medium ml-1">
+            {content.connectAiAction}
+          </span>
+        </button>
+      )}
 
       {/* Centralized Hero Composer */}
       <div className="w-full mb-4 sm:mb-5">

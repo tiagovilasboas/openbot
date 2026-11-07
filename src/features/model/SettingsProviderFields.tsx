@@ -1,8 +1,9 @@
 "use client";
 
 import { Input, Label } from "@heroui/react";
-import type { chatCopy } from "@/features/chat/chat-copy";
-import type { ModelProviderType } from "./model-config";
+import type { chatCopy } from "@/features/chat/chat-copy.ts";
+import type { ModelProviderType } from "./model-config.ts";
+import { SettingsModelPresets } from "./SettingsModelPresets.tsx";
 
 interface SettingsProviderFieldsProps {
   provider: ModelProviderType;
@@ -44,6 +45,21 @@ export function SettingsProviderFields({
   if (provider === "router") {
     return (
       <div className="flex flex-col gap-3">
+        <SettingsModelPresets
+          provider="router"
+          content={content}
+          routerUrl={routerUrl}
+          routerModel={routerModel}
+          localUrl={localUrl}
+          localModel={localModel}
+          onSelectRouterPreset={(url, model) => {
+            setRouterUrl(url);
+            setRouterModel(model);
+          }}
+          onSelectRouterModel={(model) => setRouterModel(model)}
+          onSelectLocalPreset={() => {}}
+        />
+
         <div>
           <Label className="mb-1 block text-xs font-medium">
             {content.routerUrlLabel}
@@ -85,6 +101,21 @@ export function SettingsProviderFields({
   if (provider === "local") {
     return (
       <div className="flex flex-col gap-3">
+        <SettingsModelPresets
+          provider="local"
+          content={content}
+          routerUrl={routerUrl}
+          routerModel={routerModel}
+          localUrl={localUrl}
+          localModel={localModel}
+          onSelectRouterPreset={() => {}}
+          onSelectRouterModel={() => {}}
+          onSelectLocalPreset={(url, model) => {
+            setLocalUrl(url);
+            setLocalModel(model);
+          }}
+        />
+
         <div>
           <Label className="mb-1 block text-xs font-medium">
             {content.localUrlLabel}

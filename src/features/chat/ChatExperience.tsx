@@ -180,6 +180,8 @@ export function ChatExperience() {
             busy={busy}
             skills={activeBotSkills}
             activeBot={activeBot}
+            isConfigured={isConfigured}
+            onOpenSettings={() => setIsSettingsOpen(true)}
             onDraftChange={setDraft}
             onSend={() => void sendMessage()}
             onSelectPrompt={(prompt) => void sendMessage(prompt)}
