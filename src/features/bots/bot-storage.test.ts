@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { findMentionedBot } from "../chat/find-mentioned-bot.ts";
 import {
   createBotProfile,
   deleteBotFromList,
@@ -105,4 +106,34 @@ test("active bot ID persistence works", () => {
   assert.equal(loadActiveBotId(storage), DEFAULT_BOT.id);
   saveActiveBotId("bot_xyz", storage);
   assert.equal(loadActiveBotId(storage), "bot_xyz");
+});
+
+test("findMentionedBot correctly resolves @bot mentions", () => {
+  const chief = DEFAULT_BOT;
+  const reviewer = {
+    ...createBotProfile({ name: "Code Reviewer" }),
+    id: "bot_reviewer",
+  };
+  const bots = [chief, reviewer];
+
+  // Match by exact or normalized name
+  assert.equal(
+    findMentionedBot("@CodeReviewer revise isso", bots)?.id,
+    reviewer.id,
+  );
+  assert.equal(
+    findMentionedBot("@code-reviewer faça o review", bots)?.id,
+    reviewer.id,
+  );
+  assert.equal(
+    findMentionedBot("Olá @ChiefofStaff pode me ajudar?", bots)?.id,
+    chief.id,
+  );
+
+  // Match by id
+  assert.equal(findMentionedBot("@bot_reviewer olá", bots)?.id, reviewer.id);
+
+  // Return null when bot is not found or no mention is present
+  assert.equal(findMentionedBot("@desconhecido faça isso", bots), null);
+  assert.equal(findMentionedBot("apenas uma mensagem comum", bots), null);
 });

@@ -11,6 +11,7 @@ import type { SkillDefinition } from "@/features/skills/skill-types.ts";
 import { detectSummaryRequest } from "@/features/summary/detect-summary-request.ts";
 import { executeSummary } from "@/features/summary/execute-summary.ts";
 import { chatCopy } from "./chat-copy.ts";
+import { findMentionedBot } from "./find-mentioned-bot.ts";
 import { requestModelReply } from "./request-model-reply.ts";
 import { respondToMessage, type ChatLanguage } from "./respond-to-message.ts";
 
@@ -19,19 +20,6 @@ export interface ChatReplyOutcome {
   delegatedBot?: BotProfile;
   events?: CalendarEvent[];
   github?: { repo: GitHubRepoRef; items: GitHubItem[] };
-}
-
-function findMentionedBot(text: string, bots: BotProfile[]): BotProfile | null {
-  const match = text.match(/@([a-zA-Z0-9_-]+)/);
-  if (!match) return null;
-  const target = match[1]?.toLowerCase().replace(/[\s-_]+/g, "");
-  return (
-    bots.find((b) => {
-      const cleanName = b.name.toLowerCase().replace(/[\s-_]+/g, "");
-      const cleanId = b.id.toLowerCase().replace(/[\s-_]+/g, "");
-      return cleanName === target || cleanId === target;
-    }) ?? null
-  );
 }
 
 export async function executeChatMessage({

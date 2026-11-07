@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, ButtonGroup, Chip, Label, Modal } from "@heroui/react";
+import { Button, Chip, Modal } from "@heroui/react";
 import { useState } from "react";
 import { chatCopy } from "@/features/chat/chat-copy.ts";
 import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
@@ -18,6 +18,7 @@ import {
 } from "./model-config.ts";
 import { SettingsGitHubSection } from "./SettingsGitHubSection.tsx";
 import { SettingsProviderFields } from "./SettingsProviderFields.tsx";
+import { SettingsProviderSelector } from "./SettingsProviderSelector.tsx";
 import { testModelConnection } from "./test-model-connection.ts";
 
 export interface SettingsFormProps {
@@ -70,6 +71,12 @@ export function SettingsForm({
       : "claude-3-5-sonnet-20241022",
   );
 
+  const [sandboxModel, setSandboxModel] = useState(
+    currentConfig?.provider === "sandbox"
+      ? currentConfig.model
+      : "chief-sim-v1",
+  );
+
   const [gitHubToken, setGitHubToken] = useState(
     () => loadStoredGitHubToken() ?? "",
   );
@@ -101,6 +108,12 @@ export function SettingsForm({
         provider: "anthropic",
         apiKey: anthropicKey,
         model: anthropicModel,
+      });
+    }
+    if (provider === "sandbox") {
+      return validateClientModelConfig({
+        provider: "sandbox",
+        model: sandboxModel,
       });
     }
     return null;
@@ -159,53 +172,14 @@ export function SettingsForm({
       </Modal.Header>
 
       <Modal.Body className="flex flex-col gap-4 py-4">
-        <div>
-          <Label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-muted">
-            {content.provider}
-          </Label>
-          <ButtonGroup aria-label={content.provider} className="w-full">
-            <Button
-              size="md"
-              className="flex-1"
-              variant={provider === "router" ? "primary" : "secondary"}
-              onPress={() => {
-                setProvider("router");
-                setTestResult(null);
-              }}
-            >
-              {content.providerRouter}
-            </Button>
-            <Button
-              size="md"
-              className="flex-1"
-              variant={provider === "local" ? "primary" : "secondary"}
-              onPress={() => {
-                setProvider("local");
-                setTestResult(null);
-              }}
-            >
-              {content.providerLocal}
-            </Button>
-            <Button
-              size="md"
-              className="flex-1"
-              variant={provider === "anthropic" ? "primary" : "secondary"}
-              onPress={() => {
-                setProvider("anthropic");
-                setTestResult(null);
-              }}
-            >
-              {content.providerAnthropic}
-            </Button>
-          </ButtonGroup>
-          <p className="mt-1.5 text-xs text-muted">
-            {provider === "router"
-              ? content.providerRouterHint
-              : provider === "local"
-                ? content.providerLocalHint
-                : content.providerAnthropicHint}
-          </p>
-        </div>
+        <SettingsProviderSelector
+          provider={provider}
+          content={content}
+          onSelectProvider={(next) => {
+            setProvider(next);
+            setTestResult(null);
+          }}
+        />
 
         <SettingsProviderFields
           provider={provider}
@@ -224,6 +198,13 @@ export function SettingsForm({
           setAnthropicKey={setAnthropicKey}
           anthropicModel={anthropicModel}
           setAnthropicModel={setAnthropicModel}
+          sandboxModel={sandboxModel}
+          setSandboxModel={setSandboxModel}
+          onSelectSandboxPreset={() => {
+            setProvider("sandbox");
+            setSandboxModel("chief-sim-v1");
+            setTestResult(null);
+          }}
         />
 
         <div className="pt-1">
