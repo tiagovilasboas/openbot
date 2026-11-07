@@ -1,0 +1,94 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import {
+  createBotProfile,
+  deleteBotFromList,
+  loadActiveBotId,
+  loadBotsFromStorage,
+  sanitizeBotProfile,
+  saveActiveBotId,
+  saveBotsToStorage,
+  updateBotInList,
+} from "./bot-storage.ts";
+import { DEFAULT_BOT } from "./bot-types.ts";
+
+function createMockStorage(): Storage {
+  const store = new Map<string, string>();
+  return {
+    length: 0,
+    clear: () => store.clear(),
+    getItem: (key: string) => store.get(key) ?? null,
+    key: () => null,
+    removeItem: (key: string) => {
+      store.delete(key);
+    },
+    setItem: (key: string, value: string) => {
+      store.set(key, value);
+    },
+  };
+}
+
+test("loadBotsFromStorage returns default bot on empty storage", () => {
+  const storage = createMockStorage();
+  const bots = loadBotsFromStorage(storage);
+  assert.equal(bots.length, 1);
+  assert.equal(bots[0]?.name, DEFAULT_BOT.name);
+  assert.equal(bots[0]?.avatarShape, "hex");
+});
+
+test("sanitizeBotProfile validates fields and falls back to safe defaults", () => {
+  const valid = sanitizeBotProfile({
+    id: "bot_123",
+    name: "Eng Bot",
+    avatarShape: "gem",
+    avatarColor: "violet",
+    skills: ["github"],
+  });
+  assert.ok(valid);
+  assert.equal(valid.name, "Eng Bot");
+  assert.equal(valid.avatarShape, "gem");
+  assert.equal(valid.avatarColor, "violet");
+  assert.deepEqual(valid.skills, ["github"]);
+
+  const invalid = sanitizeBotProfile({ id: "", name: "" });
+  assert.equal(invalid, null);
+});
+
+test("createBotProfile generates unique bot profile", () => {
+  const bot = createBotProfile({
+    name: "Research Bot",
+    description: "Pesquisa na web e GitHub",
+    avatarShape: "cloud",
+    avatarColor: "blue",
+  });
+  assert.ok(bot.id.startsWith("bot_"));
+  assert.equal(bot.name, "Research Bot");
+  assert.equal(bot.avatarShape, "cloud");
+  assert.equal(bot.avatarColor, "blue");
+});
+
+test("updateBotInList and deleteBotFromList maintain integrity", () => {
+  const b1 = DEFAULT_BOT;
+  const b2 = createBotProfile({ name: "Second Bot" });
+  let list = [b1, b2];
+
+  const updatedB2 = { ...b2, name: "Second Bot Updated" };
+  list = updateBotInList(list, updatedB2);
+  assert.equal(list.find((b) => b.id === b2.id)?.name, "Second Bot Updated");
+
+  // Deleting one bot
+  const delResult = deleteBotFromList(list, b2.id);
+  assert.equal(delResult.bots.length, 1);
+  assert.equal(delResult.newActiveId, b1.id);
+
+  // Attempting to delete last remaining bot is prevented
+  const delLast = deleteBotFromList(delResult.bots, b1.id);
+  assert.equal(delLast.bots.length, 1);
+});
+
+test("active bot ID persistence works", () => {
+  const storage = createMockStorage();
+  assert.equal(loadActiveBotId(storage), DEFAULT_BOT.id);
+  saveActiveBotId("bot_xyz", storage);
+  assert.equal(loadActiveBotId(storage), "bot_xyz");
+});

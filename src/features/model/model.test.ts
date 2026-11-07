@@ -58,6 +58,15 @@ test("parser accepts a valid request and rejects malformed ones", () => {
     }).ok,
     false,
   );
+
+  const withPrompt = parseChatRequest({
+    ...request,
+    systemPrompt: "You are OpenBot",
+  });
+  assert.equal(withPrompt.ok, true);
+  if (withPrompt.ok) {
+    assert.equal(withPrompt.request.systemPrompt, "You are OpenBot");
+  }
 });
 
 test("selectAdapter returns null without explicit configuration", () => {

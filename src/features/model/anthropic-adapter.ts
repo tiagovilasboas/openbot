@@ -30,6 +30,7 @@ export function createAnthropicAdapter(
           body: JSON.stringify({
             model: config.model,
             max_tokens: config.maxTokens ?? 1024,
+            ...(request.systemPrompt ? { system: request.systemPrompt } : {}),
             messages: request.messages.map((message) => ({
               role: message.role,
               content: message.text,

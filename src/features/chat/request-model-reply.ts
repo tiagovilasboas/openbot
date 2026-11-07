@@ -16,6 +16,7 @@ export async function requestModelReply(
   messages: HistoryMessage[],
   fetchImpl: typeof fetch = fetch,
   config?: ClientModelConfig | null,
+  systemPrompt?: string,
 ): Promise<ModelReplyOutcome> {
   let response: Response;
   try {
@@ -26,6 +27,7 @@ export async function requestModelReply(
         language,
         messages,
         ...(config ? { config } : {}),
+        ...(systemPrompt ? { systemPrompt } : {}),
       }),
     });
   } catch {

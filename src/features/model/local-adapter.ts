@@ -22,10 +22,15 @@ export function createLocalAdapter(config: LocalAdapterConfig): ModelAdapter {
           body: JSON.stringify({
             model: config.model,
             stream: false,
-            messages: request.messages.map((message) => ({
-              role: message.role,
-              content: message.text,
-            })),
+            messages: [
+              ...(request.systemPrompt
+                ? [{ role: "system", content: request.systemPrompt }]
+                : []),
+              ...request.messages.map((message) => ({
+                role: message.role,
+                content: message.text,
+              })),
+            ],
           }),
         });
       } catch {
