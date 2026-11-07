@@ -102,3 +102,25 @@ test("fetchActiveServerModel returns active provider details or unconfigured", a
     model: undefined,
   });
 });
+
+test("testModelConnection reports success for sandbox provider", async () => {
+  const spyFetch: typeof fetch = async () =>
+    new Response(
+      JSON.stringify({ ok: true, provider: "sandbox", model: "chief-sim-v1" }),
+      { status: 200, headers: { "content-type": "application/json" } },
+    );
+
+  const result = await testModelConnection(
+    {
+      provider: "sandbox",
+      model: "chief-sim-v1",
+    },
+    spyFetch,
+  );
+
+  assert.deepEqual(result, {
+    ok: true,
+    provider: "sandbox",
+    model: "chief-sim-v1",
+  });
+});

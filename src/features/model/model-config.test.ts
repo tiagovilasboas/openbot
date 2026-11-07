@@ -161,3 +161,39 @@ test("validates all OpenRouter free tier models and presets", () => {
   assert.ok(ollama);
   assert.equal(ollama.model, "llama3.2");
 });
+
+test("validates sandbox configuration and formats badge correctly", () => {
+  const sandbox = validateClientModelConfig({
+    provider: "sandbox",
+    model: "chief-sim-v1",
+  });
+  assert.deepEqual(sandbox, {
+    provider: "sandbox",
+    model: "chief-sim-v1",
+  });
+
+  const defaultSandbox = validateClientModelConfig({
+    provider: "sandbox",
+  });
+  assert.deepEqual(defaultSandbox, {
+    provider: "sandbox",
+    model: "chief-sim-v1",
+  });
+
+  assert.equal(
+    formatModelBadge(
+      { provider: "sandbox", model: "chief-sim-v1" },
+      false,
+      "pt",
+    ),
+    "Simulador: chief-sim-v1",
+  );
+  assert.equal(
+    formatModelBadge(
+      { provider: "sandbox", model: "chief-sim-v1" },
+      false,
+      "en",
+    ),
+    "Sandbox: chief-sim-v1",
+  );
+});

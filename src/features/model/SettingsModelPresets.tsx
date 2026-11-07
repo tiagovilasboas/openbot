@@ -32,6 +32,7 @@ export interface SettingsModelPresetsProps {
   onSelectRouterPreset: (url: string, model: string) => void;
   onSelectRouterModel: (model: string) => void;
   onSelectLocalPreset: (url: string, model: string) => void;
+  onSelectSandboxPreset?: () => void;
 }
 
 export function SettingsModelPresets({
@@ -44,6 +45,7 @@ export function SettingsModelPresets({
   onSelectRouterPreset,
   onSelectRouterModel,
   onSelectLocalPreset,
+  onSelectSandboxPreset,
 }: SettingsModelPresetsProps) {
   if (provider === "router") {
     const isOpenRouter = routerUrl.includes("openrouter.ai");
@@ -88,6 +90,16 @@ export function SettingsModelPresets({
           >
             {content.preset9Router}
           </button>
+
+          {onSelectSandboxPreset && (
+            <button
+              type="button"
+              onClick={onSelectSandboxPreset}
+              className="px-3 py-1.5 rounded-xl text-xs font-semibold border border-purple-500/30 bg-purple-950/40 text-purple-300 hover:bg-purple-900/60 hover:text-white transition-all active:scale-95"
+            >
+              {content.presetSandbox}
+            </button>
+          )}
         </div>
 
         {/* OpenRouter Free Models & Hint */}
@@ -156,7 +168,30 @@ export function SettingsModelPresets({
           >
             {content.presetOllama}
           </button>
+
+          {onSelectSandboxPreset && (
+            <button
+              type="button"
+              onClick={onSelectSandboxPreset}
+              className="px-3 py-1.5 rounded-xl text-xs font-semibold border border-purple-500/30 bg-purple-950/40 text-purple-300 hover:bg-purple-900/60 hover:text-white transition-all active:scale-95"
+            >
+              {content.presetSandbox}
+            </button>
+          )}
         </div>
+      </div>
+    );
+  }
+
+  if (provider === "sandbox") {
+    return (
+      <div className="flex flex-col gap-2 p-3 rounded-2xl bg-purple-950/30 border border-purple-500/30 animate-in fade-in duration-150">
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-purple-300">
+          {content.presetSandbox}
+        </span>
+        <p className="text-xs text-zinc-300 leading-relaxed">
+          {content.sandboxExplanation}
+        </p>
       </div>
     );
   }

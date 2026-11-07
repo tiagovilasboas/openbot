@@ -12,6 +12,7 @@ export interface ChatEmptyStateProps {
   draft: string;
   busy: boolean;
   skills?: SkillDefinition[];
+  bots?: BotProfile[];
   activeBot?: BotProfile;
   isConfigured?: boolean;
   onOpenSettings?: () => void;
@@ -25,6 +26,7 @@ export function ChatEmptyState({
   draft,
   busy,
   skills,
+  bots,
   activeBot,
   isConfigured,
   onOpenSettings,
@@ -95,6 +97,7 @@ export function ChatEmptyState({
           draft={draft}
           busy={busy}
           skills={skills}
+          bots={bots}
           onDraftChange={onDraftChange}
           onSend={onSend}
         />

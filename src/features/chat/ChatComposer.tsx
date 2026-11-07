@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import type { BotProfile } from "@/features/bots/bot-types.ts";
 import type { SkillDefinition } from "@/features/skills/skill-types.ts";
+import { BotMentionPalette } from "./BotMentionPalette.tsx";
 import { chatCopy } from "./chat-copy.ts";
 import { CommandPalette } from "./CommandPalette.tsx";
 import type { ChatLanguage } from "./respond-to-message.ts";
@@ -12,6 +14,7 @@ interface ChatComposerProps {
   busy: boolean;
   mode?: "hero" | "docked";
   skills?: SkillDefinition[];
+  bots?: BotProfile[];
   onDraftChange: (value: string) => void;
   onSend: () => void;
 }
@@ -39,6 +42,7 @@ export function ChatComposer({
   busy,
   mode = "docked",
   skills = [],
+  bots = [],
   onDraftChange,
   onSend,
 }: ChatComposerProps) {
@@ -46,8 +50,12 @@ export function ChatComposer({
   const isHero = mode === "hero";
   const canSend = Boolean(draft.trim()) && !busy;
   const [showPaletteManual, setShowPaletteManual] = useState(false);
+  const [showBotPaletteManual, setShowBotPaletteManual] = useState(false);
 
   const isSlashActive = draft.startsWith("/") || showPaletteManual;
+  const mentionMatch = draft.match(/(?:^|\s)@([a-zA-Z0-9_-]*)$/);
+  const isAtActive = Boolean(mentionMatch) || showBotPaletteManual;
+  const mentionQuery = mentionMatch ? (mentionMatch[1] ?? "") : "";
 
   function handleSelectSkill(skill: SkillDefinition) {
     setShowPaletteManual(false);
@@ -63,6 +71,17 @@ export function ChatComposer({
       onDraftChange("Issues de tiagovilasboas/openbot");
     } else {
       onDraftChange(`${skill.command} `);
+    }
+  }
+
+  function handleSelectBot(bot: BotProfile) {
+    setShowBotPaletteManual(false);
+    if (mentionMatch) {
+      const atIndex = draft.lastIndexOf("@");
+      const prefix = draft.slice(0, atIndex);
+      onDraftChange(`${prefix}@${bot.name} `);
+    } else {
+      onDraftChange(draft ? `${draft.trim()} @${bot.name} ` : `@${bot.name} `);
     }
   }
 
@@ -82,6 +101,16 @@ export function ChatComposer({
           skills={skills}
           onSelect={handleSelectSkill}
           onClose={() => setShowPaletteManual(false)}
+        />
+      )}
+
+      {isAtActive && bots.length > 0 && (
+        <BotMentionPalette
+          query={mentionQuery}
+          bots={bots}
+          language={language}
+          onSelect={handleSelectBot}
+          onClose={() => setShowBotPaletteManual(false)}
         />
       )}
 
@@ -112,11 +141,12 @@ export function ChatComposer({
         />
 
         <div className="flex items-center justify-between gap-2 pt-0.5">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <button
               type="button"
               aria-label="Abrir catálogo de skills (/)"
               onClick={() => {
+                setShowBotPaletteManual(false);
                 if (!draft.startsWith("/")) {
                   onDraftChange("/");
                 }
@@ -125,6 +155,17 @@ export function ChatComposer({
               className="flex size-6 sm:size-7 items-center justify-center rounded-lg border border-white/10 bg-zinc-800/80 text-zinc-400 hover:text-cyan-400 hover:border-cyan-500/40 transition-colors font-mono text-xs font-semibold"
             >
               /
+            </button>
+            <button
+              type="button"
+              aria-label={content.mentionButtonAria}
+              onClick={() => {
+                setShowPaletteManual(false);
+                setShowBotPaletteManual((v) => !v);
+              }}
+              className="flex size-6 sm:size-7 items-center justify-center rounded-lg border border-white/10 bg-zinc-800/80 text-zinc-400 hover:text-purple-400 hover:border-purple-500/40 transition-colors font-mono text-xs font-semibold"
+            >
+              @
             </button>
             <p className="text-[11px] text-zinc-500 select-none pl-1 hidden sm:block">
               {content.composerHint}

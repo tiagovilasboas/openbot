@@ -120,6 +120,8 @@ export function ChatExperience() {
         language,
         text: reply.text,
         delegatedBot: reply.delegatedBot,
+        isDemo: !isConfigured,
+        modelBadge: isConfigured ? activeModelLabel : undefined,
         ...(reply.events ? { events: reply.events } : {}),
         ...(reply.github ? { github: reply.github } : {}),
       },
@@ -179,6 +181,7 @@ export function ChatExperience() {
             draft={draft}
             busy={busy}
             skills={activeBotSkills}
+            bots={bots}
             activeBot={activeBot}
             isConfigured={isConfigured}
             onOpenSettings={() => setIsSettingsOpen(true)}
@@ -199,6 +202,7 @@ export function ChatExperience() {
                     key={message.id}
                     message={message}
                     activeBot={activeBot}
+                    onOpenSettings={() => setIsSettingsOpen(true)}
                   />
                 ))}
                 {busy && (
@@ -232,6 +236,7 @@ export function ChatExperience() {
                   draft={draft}
                   busy={busy}
                   skills={activeBotSkills}
+                  bots={bots}
                   onDraftChange={setDraft}
                   onSend={() => void sendMessage()}
                 />
