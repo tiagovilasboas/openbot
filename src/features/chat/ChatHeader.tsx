@@ -1,6 +1,8 @@
 "use client";
 
 import { Button, ButtonGroup } from "@heroui/react";
+import { BotAvatar } from "@/features/bots/BotAvatar.tsx";
+import type { BotProfile } from "@/features/bots/bot-types.ts";
 import { ModelStatusBadge } from "@/features/model/ModelStatusBadge.tsx";
 import { chatCopy } from "./chat-copy.ts";
 import type { ChatLanguage } from "./respond-to-message.ts";
@@ -13,6 +15,9 @@ interface ChatHeaderProps {
   onOpenSettings: () => void;
   hasMessages?: boolean;
   onNewChat?: () => void;
+  activeBot?: BotProfile;
+  onOpenMobileSidebar?: () => void;
+  onOpenBotEdit?: () => void;
 }
 
 function GearIcon({ className }: { className?: string }) {
@@ -58,28 +63,55 @@ export function ChatHeader({
   onOpenSettings,
   hasMessages,
   onNewChat,
+  activeBot,
+  onOpenMobileSidebar,
+  onOpenBotEdit,
 }: ChatHeaderProps) {
   const content = chatCopy[language];
 
   return (
     <header className="sticky top-0 z-30 flex min-h-14 items-center justify-between gap-2 border-b border-white/5 bg-black/80 px-3 backdrop-blur-xl sm:gap-3 sm:px-6">
       <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+        {onOpenMobileSidebar && (
+          <button
+            type="button"
+            aria-label="Menu"
+            onClick={onOpenMobileSidebar}
+            className="flex size-8 shrink-0 md:hidden items-center justify-center rounded-xl bg-zinc-900 border border-white/10 text-white font-mono text-xs font-bold shadow-sm"
+          >
+            ☰
+          </button>
+        )}
         <div
-          aria-hidden="true"
-          className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-zinc-900 border border-white/10 text-white font-mono text-xs font-bold shadow-sm"
+          role={onOpenBotEdit ? "button" : undefined}
+          onClick={onOpenBotEdit}
+          className={`flex min-w-0 items-center gap-2 rounded-xl py-0.5 px-1 transition-all ${
+            onOpenBotEdit ? "cursor-pointer hover:bg-zinc-900/60" : ""
+          }`}
         >
-          &gt;_
-        </div>
-        <div className="flex min-w-0 flex-1 items-center gap-1.5 sm:gap-2.5">
+          {activeBot ? (
+            <BotAvatar
+              shape={activeBot.avatarShape}
+              color={activeBot.avatarColor}
+              size={26}
+            />
+          ) : (
+            <div
+              aria-hidden="true"
+              className="flex size-7 shrink-0 items-center justify-center rounded-xl bg-zinc-900 border border-white/10 text-white font-mono text-xs font-bold shadow-sm"
+            >
+              &gt;_
+            </div>
+          )}
           <h1 className="shrink-0 text-sm sm:text-base font-semibold tracking-tight text-white">
-            {content.title}
+            {activeBot ? activeBot.name : content.title}
           </h1>
-          <ModelStatusBadge
-            label={activeModelLabel}
-            isConfigured={isConfigured}
-            onPress={onOpenSettings}
-          />
         </div>
+        <ModelStatusBadge
+          label={activeModelLabel}
+          isConfigured={isConfigured}
+          onPress={onOpenSettings}
+        />
       </div>
 
       <nav

@@ -69,4 +69,18 @@ test("sends language and history to the server route", async () => {
     messages: history,
     config: customConfig,
   });
+
+  await requestModelReply(
+    "pt",
+    history,
+    spy,
+    customConfig,
+    "System Instructions",
+  );
+  assert.deepEqual(body, {
+    language: "pt",
+    messages: history,
+    config: customConfig,
+    systemPrompt: "System Instructions",
+  });
 });

@@ -1,5 +1,7 @@
 "use client";
 
+import { BotAvatar } from "@/features/bots/BotAvatar.tsx";
+import type { BotProfile } from "@/features/bots/bot-types.ts";
 import type { CalendarEvent } from "@/features/calendar/list-example-events.ts";
 import { GitHubItemsCard } from "@/features/github/GitHubItemsCard.tsx";
 import type {
@@ -16,6 +18,7 @@ export interface MessageData {
   language: ChatLanguage;
   role: "assistant" | "user";
   text: string;
+  delegatedBot?: BotProfile;
   events?: CalendarEvent[];
   github?: {
     repo: GitHubRepoRef;
@@ -25,9 +28,10 @@ export interface MessageData {
 
 interface ChatMessageItemProps {
   message: MessageData;
+  activeBot?: BotProfile;
 }
 
-export function ChatMessageItem({ message }: ChatMessageItemProps) {
+export function ChatMessageItem({ message, activeBot }: ChatMessageItemProps) {
   if (message.role === "user") {
     return (
       <article className="flex w-full justify-end animate-in fade-in slide-in-from-bottom-2 duration-150">
@@ -38,18 +42,40 @@ export function ChatMessageItem({ message }: ChatMessageItemProps) {
     );
   }
 
+  const displayingBot = message.delegatedBot || activeBot;
+
   return (
     <article className="flex w-full items-start gap-3 animate-in fade-in slide-in-from-bottom-2 duration-150">
-      <div
-        aria-hidden="true"
-        className="flex size-7 shrink-0 items-center justify-center rounded-xl bg-zinc-900 border border-white/10 text-zinc-300 font-mono text-xs font-semibold shadow-sm mt-0.5 select-none"
-      >
-        &gt;_
-      </div>
+      {displayingBot ? (
+        <div className="mt-0.5 shrink-0">
+          <BotAvatar
+            shape={displayingBot.avatarShape}
+            color={displayingBot.avatarColor}
+            size={28}
+          />
+        </div>
+      ) : (
+        <div
+          aria-hidden="true"
+          className="flex size-7 shrink-0 items-center justify-center rounded-xl bg-zinc-900 border border-white/10 text-zinc-300 font-mono text-xs font-semibold shadow-sm mt-0.5 select-none"
+        >
+          &gt;_
+        </div>
+      )}
 
       <div className="flex min-w-0 flex-1 flex-col gap-2">
         <div className="flex items-center gap-2 text-xs font-medium text-zinc-400">
-          <span>{chatCopy[message.language].title}</span>
+          <span>{displayingBot?.name || chatCopy[message.language].title}</span>
+          {displayingBot?.title && (
+            <span className="text-[11px] text-zinc-500">
+              · {displayingBot.title}
+            </span>
+          )}
+          {message.delegatedBot && (
+            <span className="font-mono text-[10px] text-cyan-400 bg-cyan-950/60 border border-cyan-800/40 px-1.5 py-0.5 rounded-md">
+              via @{message.delegatedBot.name}
+            </span>
+          )}
         </div>
 
         <FormattedMessage content={message.text} />

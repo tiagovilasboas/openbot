@@ -20,7 +20,10 @@ function isMessage(value: unknown): value is ModelMessage {
 
 export function parseChatRequest(payload: unknown): ParsedChatRequest {
   if (typeof payload !== "object" || payload === null) return { ok: false };
-  const { language, messages, config } = payload as Record<string, unknown>;
+  const { language, messages, config, systemPrompt } = payload as Record<
+    string,
+    unknown
+  >;
   if (language !== "pt" && language !== "en") return { ok: false };
   if (!Array.isArray(messages)) return { ok: false };
   if (messages.length === 0 || messages.length > maxMessages) {
@@ -36,12 +39,18 @@ export function parseChatRequest(payload: unknown): ParsedChatRequest {
     validatedConfig = parsed;
   }
 
+  const validSystemPrompt =
+    typeof systemPrompt === "string" && systemPrompt.trim()
+      ? systemPrompt.trim().slice(0, maxTextLength)
+      : undefined;
+
   return {
     ok: true,
     request: {
       language,
       messages,
       ...(validatedConfig ? { config: validatedConfig } : {}),
+      ...(validSystemPrompt ? { systemPrompt: validSystemPrompt } : {}),
     },
   };
 }

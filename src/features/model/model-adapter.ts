@@ -11,6 +11,7 @@ export type ModelRequest = {
   language: ModelLanguage;
   messages: ModelMessage[];
   config?: ClientModelConfig;
+  systemPrompt?: string;
 };
 
 export type ModelErrorCode =

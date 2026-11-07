@@ -1,5 +1,8 @@
 "use client";
 
+import { BotAvatar } from "@/features/bots/BotAvatar.tsx";
+import type { BotProfile } from "@/features/bots/bot-types.ts";
+import type { SkillDefinition } from "@/features/skills/skill-types.ts";
 import { chatCopy } from "./chat-copy.ts";
 import { ChatComposer } from "./ChatComposer.tsx";
 import type { ChatLanguage } from "./respond-to-message.ts";
@@ -8,6 +11,8 @@ interface ChatEmptyStateProps {
   language: ChatLanguage;
   draft: string;
   busy: boolean;
+  skills?: SkillDefinition[];
+  activeBot?: BotProfile;
   onDraftChange: (value: string) => void;
   onSend: () => void;
   onSelectPrompt: (prompt: string) => void;
@@ -17,6 +22,8 @@ export function ChatEmptyState({
   language,
   draft,
   busy,
+  skills,
+  activeBot,
   onDraftChange,
   onSend,
   onSelectPrompt,
@@ -27,17 +34,31 @@ export function ChatEmptyState({
     <section className="flex flex-1 flex-col items-center justify-center px-4 py-8 sm:py-16 w-full max-w-2xl mx-auto my-auto animate-in fade-in duration-300">
       {/* Minimalist Logo & Greeting */}
       <div className="mb-6 sm:mb-8 flex flex-col items-center text-center gap-2.5">
-        <div
-          aria-hidden="true"
-          className="flex size-12 sm:size-14 items-center justify-center rounded-2xl bg-zinc-900 border border-white/10 shadow-xl shadow-black/80 text-white font-mono text-lg font-bold transition-transform hover:scale-105"
-        >
-          &gt;_
-        </div>
+        {activeBot ? (
+          <div className="transition-transform hover:scale-105">
+            <BotAvatar
+              shape={activeBot.avatarShape}
+              color={activeBot.avatarColor}
+              size={56}
+            />
+          </div>
+        ) : (
+          <div
+            aria-hidden="true"
+            className="flex size-12 sm:size-14 items-center justify-center rounded-2xl bg-zinc-900 border border-white/10 shadow-xl shadow-black/80 text-white font-mono text-lg font-bold transition-transform hover:scale-105"
+          >
+            &gt;_
+          </div>
+        )}
         <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-white">
-          {content.emptyHeading}
+          {activeBot
+            ? language === "pt"
+              ? `Como o ${activeBot.name} pode ajudar você hoje?`
+              : `How can ${activeBot.name} help you today?`
+            : content.emptyHeading}
         </h2>
         <p className="max-w-md text-xs sm:text-sm text-zinc-400">
-          {content.emptySubheading}
+          {activeBot?.title ? activeBot.title : content.emptySubheading}
         </p>
       </div>
 
@@ -48,6 +69,7 @@ export function ChatEmptyState({
           language={language}
           draft={draft}
           busy={busy}
+          skills={skills}
           onDraftChange={onDraftChange}
           onSend={onSend}
         />
