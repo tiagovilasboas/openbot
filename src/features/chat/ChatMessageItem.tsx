@@ -66,9 +66,15 @@ export function ChatMessageItem({ message, activeBot }: ChatMessageItemProps) {
       <div className="flex min-w-0 flex-1 flex-col gap-2">
         <div className="flex items-center gap-2 text-xs font-medium text-zinc-400">
           <span>{displayingBot?.name || chatCopy[message.language].title}</span>
-          {displayingBot?.title && (
+          {displayingBot && (
             <span className="text-[11px] text-zinc-500">
-              · {displayingBot.title}
+              ·{" "}
+              {displayingBot.id === "chief-of-staff" ||
+              displayingBot.id === "default"
+                ? message.language === "pt"
+                  ? "Manager & Orquestrador"
+                  : "Manager & Orchestrator"
+                : displayingBot.title}
             </span>
           )}
           {message.delegatedBot && (

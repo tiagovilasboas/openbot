@@ -58,7 +58,13 @@ export function ChatEmptyState({
             : content.emptyHeading}
         </h2>
         <p className="max-w-md text-xs sm:text-sm text-zinc-400">
-          {activeBot?.title ? activeBot.title : content.emptySubheading}
+          {activeBot
+            ? activeBot.id === "chief-of-staff" || activeBot.id === "default"
+              ? language === "pt"
+                ? "Manager & Orquestrador"
+                : "Manager & Orchestrator"
+              : activeBot.title || content.emptySubheading
+            : content.emptySubheading}
         </p>
       </div>
 

@@ -57,12 +57,12 @@ export const AVATAR_COLORS: readonly AvatarColor[] = [
 ] as const;
 
 export const DEFAULT_BOT: BotProfile = {
-  id: "default",
-  name: "OpenBot",
-  title: "Assistente Geral",
+  id: "chief-of-staff",
+  name: "Chief of Staff",
+  title: "Manager & Orquestrador",
   description:
-    "Você é o OpenBot, um assistente rápido, conciso e prestativo com suporte a ferramentas do GitHub e Agenda.",
-  avatarShape: "hex",
+    "Você é o Chief of Staff, o coordenador geral da equipe de bots. Seu papel é planejar, sintetizar informações de repositórios/calendário e coordenar/delegar tarefas para bots especialistas quando necessário.",
+  avatarShape: "shield",
   avatarColor: "cyan",
   skills: ["github", "calendar", "summary"],
   createdAt: "2026-01-01T00:00:00.000Z",

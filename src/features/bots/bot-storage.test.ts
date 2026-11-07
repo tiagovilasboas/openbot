@@ -33,7 +33,21 @@ test("loadBotsFromStorage returns default bot on empty storage", () => {
   const bots = loadBotsFromStorage(storage);
   assert.equal(bots.length, 1);
   assert.equal(bots[0]?.name, DEFAULT_BOT.name);
-  assert.equal(bots[0]?.avatarShape, "hex");
+  assert.equal(bots[0]?.avatarShape, "shield");
+});
+
+test("sanitizeBotProfile upgrades legacy OpenBot default to Chief of Staff", () => {
+  const legacy = sanitizeBotProfile({
+    id: "default",
+    name: "OpenBot",
+    title: "Assistente Geral",
+    avatarShape: "hex",
+  });
+  assert.ok(legacy);
+  assert.equal(legacy.id, "chief-of-staff");
+  assert.equal(legacy.name, "Chief of Staff");
+  assert.equal(legacy.title, "Manager & Orquestrador");
+  assert.equal(legacy.avatarShape, "shield");
 });
 
 test("sanitizeBotProfile validates fields and falls back to safe defaults", () => {

@@ -31,9 +31,31 @@ export function sanitizeBotProfile(raw: unknown): BotProfile | null {
   if (typeof obj.id !== "string" || !obj.id.trim()) return null;
   if (typeof obj.name !== "string" || !obj.name.trim()) return null;
 
+  const rawId = obj.id.trim();
+  const rawName = obj.name.trim();
+
+  // Canonical upgrade for legacy default bot
+  const isLegacyDefault =
+    rawId === "default" ||
+    (rawId === "chief-of-staff" && rawName === "OpenBot") ||
+    rawName === "OpenBot";
+
+  const id = isLegacyDefault ? DEFAULT_BOT.id : rawId;
+  const name = isLegacyDefault ? DEFAULT_BOT.name : rawName;
+  const title = isLegacyDefault
+    ? DEFAULT_BOT.title
+    : typeof obj.title === "string"
+      ? obj.title.trim()
+      : undefined;
+
   const shape: AvatarShape = isValidShape(obj.avatarShape)
-    ? obj.avatarShape
-    : "hex";
+    ? isLegacyDefault && obj.avatarShape === "hex"
+      ? DEFAULT_BOT.avatarShape
+      : obj.avatarShape
+    : isLegacyDefault
+      ? DEFAULT_BOT.avatarShape
+      : "hex";
+
   const color: AvatarColor = isValidColor(obj.avatarColor)
     ? obj.avatarColor
     : "cyan";
@@ -45,11 +67,13 @@ export function sanitizeBotProfile(raw: unknown): BotProfile | null {
     : ["github", "calendar", "summary"];
 
   return {
-    id: obj.id.trim(),
-    name: obj.name.trim(),
-    title: typeof obj.title === "string" ? obj.title.trim() : undefined,
+    id,
+    name,
+    title,
     description:
-      typeof obj.description === "string" && obj.description.trim()
+      typeof obj.description === "string" &&
+      obj.description.trim() &&
+      !obj.description.includes("Você é o OpenBot, um assistente rápido")
         ? obj.description.trim()
         : DEFAULT_BOT.description,
     avatarShape: shape,
@@ -152,10 +176,12 @@ export function loadActiveBotId(storage?: Storage): string {
       (typeof window !== "undefined" ? window.localStorage : undefined);
     if (!s) return DEFAULT_BOT.id;
     const raw = s.getItem(ACTIVE_BOT_STORAGE_KEY);
-    if (isDefaultStorage && raw === cachedActiveIdRaw) return cachedActiveId;
-    const result = raw || DEFAULT_BOT.id;
+    const normalized = raw === "default" ? DEFAULT_BOT.id : raw;
+    if (isDefaultStorage && normalized === cachedActiveIdRaw)
+      return cachedActiveId;
+    const result = normalized || DEFAULT_BOT.id;
     if (isDefaultStorage) {
-      cachedActiveIdRaw = raw;
+      cachedActiveIdRaw = normalized;
       cachedActiveId = result;
     }
     return result;

@@ -3,14 +3,12 @@
 import { Button } from "@heroui/react";
 import { BotAvatar } from "@/features/bots/BotAvatar.tsx";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
-import type { SkillDefinition } from "@/features/skills/skill-types.ts";
 import type { ChatLanguage } from "./respond-to-message.ts";
 
-interface ChatSidebarProps {
+export interface ChatSidebarProps {
   language: ChatLanguage;
   bots: BotProfile[];
   activeBotId: string;
-  skills: SkillDefinition[];
   isMobileOpen: boolean;
   isDesktopCollapsed: boolean;
   onToggleDesktopCollapse: () => void;
@@ -18,7 +16,6 @@ interface ChatSidebarProps {
   onSelectBot: (botId: string) => void;
   onCreateBot: () => void;
   onEditBot: (bot: BotProfile) => void;
-  onOpenSkills: () => void;
   onOpenSettings: () => void;
 }
 
@@ -57,23 +54,19 @@ function SidebarContent({
   language,
   bots,
   activeBotId,
-  skills,
   isCollapsed,
   onSelectBot,
   onCreateBot,
   onEditBot,
-  onOpenSkills,
   onOpenSettings,
 }: {
   language: ChatLanguage;
   bots: BotProfile[];
   activeBotId: string;
-  skills: SkillDefinition[];
   isCollapsed: boolean;
   onSelectBot: (id: string) => void;
   onCreateBot: () => void;
   onEditBot: (bot: BotProfile) => void;
-  onOpenSkills: () => void;
   onOpenSettings: () => void;
 }) {
   const isPt = language === "pt";
@@ -102,6 +95,13 @@ function SidebarContent({
           <div className="flex flex-col gap-1">
             {bots.map((b) => {
               const isActive = b.id === activeBotId;
+              const displayTitle =
+                b.id === "chief-of-staff" || b.id === "default"
+                  ? isPt
+                    ? "Manager & Orquestrador"
+                    : "Manager & Orchestrator"
+                  : b.title;
+
               return (
                 <div
                   key={b.id}
@@ -122,9 +122,9 @@ function SidebarContent({
                       <p className="truncate text-sm font-semibold leading-tight">
                         {b.name}
                       </p>
-                      {b.title && (
+                      {displayTitle && (
                         <p className="truncate text-[11px] text-zinc-400 leading-tight mt-0.5">
-                          {b.title}
+                          {displayTitle}
                         </p>
                       )}
                     </div>
@@ -147,40 +147,6 @@ function SidebarContent({
               );
             })}
           </div>
-        </div>
-
-        {/* Skills Section */}
-        <div>
-          <div className="px-2 pb-2">
-            {!isCollapsed && (
-              <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
-                Skills ({skills.length})
-              </span>
-            )}
-          </div>
-          <button
-            type="button"
-            onClick={onOpenSkills}
-            className={`flex w-full items-center gap-2.5 rounded-2xl p-2 text-left border border-white/5 bg-zinc-900/40 text-zinc-300 hover:bg-zinc-800 hover:border-white/15 transition-all ${
-              isCollapsed ? "justify-center" : ""
-            }`}
-          >
-            <span className="flex size-7 items-center justify-center rounded-xl bg-cyan-950/70 border border-cyan-800/40 font-mono text-xs font-bold text-cyan-400">
-              /
-            </span>
-            {!isCollapsed && (
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold text-white">
-                  {isPt ? "Gerenciar Skills" : "Manage Skills"}
-                </p>
-                <p className="text-[10px] text-zinc-400 truncate">
-                  {isPt
-                    ? "Comandos e prompts modulares"
-                    : "Commands & modular prompts"}
-                </p>
-              </div>
-            )}
-          </button>
         </div>
       </div>
 
@@ -229,7 +195,7 @@ export function ChatSidebar(props: ChatSidebarProps) {
                 &gt;_
               </span>
               <span className="font-bold tracking-tight text-white text-sm">
-                OpenBot Dots
+                OpenBot
               </span>
             </div>
           )}
@@ -262,7 +228,7 @@ export function ChatSidebar(props: ChatSidebarProps) {
                   &gt;_
                 </span>
                 <span className="font-bold tracking-tight text-white text-sm">
-                  OpenBot Dots
+                  OpenBot
                 </span>
               </div>
               <button

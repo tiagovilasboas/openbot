@@ -13,7 +13,6 @@ import {
   type ActiveServerModelOutcome,
 } from "@/features/model/test-model-connection.ts";
 import { useModelConfig } from "@/features/model/use-model-config.ts";
-import { SkillsModal } from "@/features/skills/SkillsModal.tsx";
 import { useSkills } from "@/features/skills/use-skills.ts";
 import { chatCopy } from "./chat-copy.ts";
 import { ChatComposer } from "./ChatComposer.tsx";
@@ -53,7 +52,6 @@ export function ChatExperience() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isSkillsModalOpen, setIsSkillsModalOpen] = useState(false);
   const [botToEdit, setBotToEdit] = useState<BotProfile | null>(null);
   const [isBotModalOpen, setIsBotModalOpen] = useState(false);
 
@@ -142,7 +140,6 @@ export function ChatExperience() {
         language={language}
         bots={bots}
         activeBotId={activeBotId}
-        skills={allSkills}
         isMobileOpen={isMobileSidebarOpen}
         isDesktopCollapsed={isDesktopCollapsed}
         onToggleDesktopCollapse={() => setIsDesktopCollapsed((v) => !v)}
@@ -156,7 +153,6 @@ export function ChatExperience() {
           setBotToEdit(b);
           setIsBotModalOpen(true);
         }}
-        onOpenSkills={() => setIsSkillsModalOpen(true)}
         onOpenSettings={() => setIsSettingsOpen(true)}
       />
 
@@ -247,7 +243,10 @@ export function ChatExperience() {
         isOpen={isSettingsOpen}
         language={language}
         currentConfig={modelConfig}
+        skills={allSkills}
         onClose={() => setIsSettingsOpen(false)}
+        onAddSkill={(input) => addCustomSkill(input)}
+        onRemoveSkill={(id) => removeCustomSkill(id)}
       />
 
       <BotEditModal
@@ -268,15 +267,6 @@ export function ChatExperience() {
           }
         }}
         onDelete={(id) => removeBot(id)}
-      />
-
-      <SkillsModal
-        isOpen={isSkillsModalOpen}
-        language={language}
-        skills={allSkills}
-        onClose={() => setIsSkillsModalOpen(false)}
-        onAddSkill={(input) => addCustomSkill(input)}
-        onRemoveSkill={(id) => removeCustomSkill(id)}
       />
     </div>
   );
