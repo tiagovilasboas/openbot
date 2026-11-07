@@ -13,7 +13,7 @@
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\" \"scripts/**/*.mjs\" \"*.{json,mjs,ts}\"",
     "typecheck": "node scripts/check-typecheck.mjs",
     "docs:check": "node scripts/check-docs.mjs",
-    "test": "node --experimental-strip-types --test scripts/check-docs.test.mjs src/features/chat/respond-to-message.test.ts src/features/model/model.test.ts src/features/chat/request-model-reply.test.ts src/features/model/model-config.test.ts src/features/model/test-model-connection.test.ts src/features/github/github.test.ts src/features/summary/summary.test.ts src/features/pwa/service-worker.test.ts",
+    "test": "node --experimental-strip-types --test scripts/check-docs.test.mjs src/features/chat/respond-to-message.test.ts src/features/chat/formatted-message.test.ts src/features/model/model.test.ts src/features/chat/request-model-reply.test.ts src/features/model/model-config.test.ts src/features/model/test-model-connection.test.ts src/features/github/github.test.ts src/features/summary/summary.test.ts src/features/pwa/service-worker.test.ts",
     "check": "npm run docs:check && npm run format:check && npm run lint && npm run typecheck && npm test && npm run build",
     "prepare": "husky"
   },

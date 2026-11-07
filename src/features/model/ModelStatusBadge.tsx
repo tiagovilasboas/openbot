@@ -18,7 +18,7 @@ export function ModelStatusBadge({
       size="sm"
       variant="soft"
       color={isConfigured ? "success" : "warning"}
-      className={`max-w-44 truncate sm:max-w-xs border border-white/10 bg-zinc-900/60 text-zinc-300 ${
+      className={`max-w-[70px] xs:max-w-[110px] sm:max-w-xs truncate border border-white/10 bg-zinc-900/60 text-zinc-300 px-1.5 sm:px-2.5 ${
         onPress
           ? "cursor-pointer transition-all hover:border-white/25 hover:bg-zinc-800 hover:text-white active:scale-95"
           : ""

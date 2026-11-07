@@ -212,18 +212,21 @@ export function ChatExperience() {
             ))}
             {busy && (
               <div
-                className="flex w-full items-center gap-3 animate-pulse pt-2"
+                className="flex w-full items-center gap-3 pt-2 animate-in fade-in duration-200"
                 role="status"
               >
                 <div
                   aria-hidden="true"
-                  className="flex size-7 shrink-0 items-center justify-center rounded-xl bg-zinc-900 border border-white/10 text-zinc-400 font-mono text-xs font-semibold"
+                  className="flex size-7 shrink-0 items-center justify-center rounded-xl bg-zinc-900 border border-white/10 text-zinc-400 font-mono text-xs font-semibold shadow-sm animate-pulse"
                 >
                   &gt;_
                 </div>
-                <span className="text-xs text-zinc-400 font-medium">
-                  {content.thinking}
-                </span>
+                <div className="flex items-center gap-1.5 rounded-full border border-white/10 bg-zinc-900/60 px-3 py-1.5 shadow-sm">
+                  <span className="size-1.5 rounded-full bg-zinc-400 animate-bounce [animation-delay:-0.3s]" />
+                  <span className="size-1.5 rounded-full bg-zinc-400 animate-bounce [animation-delay:-0.15s]" />
+                  <span className="size-1.5 rounded-full bg-zinc-400 animate-bounce" />
+                  <span className="sr-only">{content.thinking}</span>
+                </div>
               </div>
             )}
             <div ref={messagesEndRef} className="h-4" />

@@ -8,6 +8,7 @@ import type {
 } from "@/features/github/github-types.ts";
 import { chatCopy } from "./chat-copy.ts";
 import { ChatToolResult } from "./ChatToolResult.tsx";
+import { FormattedMessage } from "./FormattedMessage.tsx";
 import type { ChatLanguage } from "./respond-to-message.ts";
 
 export interface MessageData {
@@ -30,7 +31,7 @@ export function ChatMessageItem({ message }: ChatMessageItemProps) {
   if (message.role === "user") {
     return (
       <article className="flex w-full justify-end animate-in fade-in slide-in-from-bottom-2 duration-150">
-        <div className="max-w-[85%] sm:max-w-[75%] rounded-2xl rounded-br-xs bg-zinc-800 text-zinc-100 px-4 py-2.5 text-sm sm:text-base leading-relaxed shadow-sm">
+        <div className="max-w-[85%] sm:max-w-[75%] rounded-2xl rounded-br-sm bg-zinc-800 text-zinc-100 px-4 py-2.5 text-sm sm:text-base leading-relaxed shadow-sm">
           <p className="whitespace-pre-wrap break-words">{message.text}</p>
         </div>
       </article>
@@ -51,9 +52,7 @@ export function ChatMessageItem({ message }: ChatMessageItemProps) {
           <span>{chatCopy[message.language].title}</span>
         </div>
 
-        <div className="text-sm sm:text-base text-zinc-200 leading-relaxed whitespace-pre-wrap break-words">
-          {message.text}
-        </div>
+        <FormattedMessage content={message.text} />
 
         {message.events && (
           <div className="mt-2 w-full">
