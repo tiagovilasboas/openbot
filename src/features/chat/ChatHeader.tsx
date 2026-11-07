@@ -62,16 +62,16 @@ export function ChatHeader({
   const content = chatCopy[language];
 
   return (
-    <header className="sticky top-0 z-30 flex min-h-14 items-center justify-between gap-3 border-b border-white/5 bg-black/80 px-4 backdrop-blur-xl sm:px-6">
-      <div className="flex min-w-0 items-center gap-3">
+    <header className="sticky top-0 z-30 flex min-h-14 items-center justify-between gap-2 border-b border-white/5 bg-black/80 px-3 backdrop-blur-xl sm:gap-3 sm:px-6">
+      <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
         <div
           aria-hidden="true"
           className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-zinc-900 border border-white/10 text-white font-mono text-xs font-bold shadow-sm"
         >
           &gt;_
         </div>
-        <div className="flex min-w-0 items-center gap-2.5">
-          <h1 className="truncate text-sm sm:text-base font-semibold tracking-tight text-white">
+        <div className="flex min-w-0 flex-1 items-center gap-1.5 sm:gap-2.5">
+          <h1 className="shrink-0 text-sm sm:text-base font-semibold tracking-tight text-white">
             {content.title}
           </h1>
           <ModelStatusBadge
@@ -84,7 +84,7 @@ export function ChatHeader({
 
       <nav
         aria-label={content.mainNavLabel}
-        className="flex shrink-0 items-center gap-2"
+        className="flex shrink-0 items-center gap-1 sm:gap-2"
       >
         {hasMessages && onNewChat && (
           <Button
@@ -92,7 +92,7 @@ export function ChatHeader({
             variant="secondary"
             aria-label={content.newChat}
             onPress={onNewChat}
-            className="gap-1 border border-white/10 bg-zinc-900/70 text-zinc-300 hover:border-white/20 hover:bg-zinc-800 hover:text-white"
+            className="gap-1 border border-white/10 bg-zinc-900/70 text-zinc-300 hover:border-white/20 hover:bg-zinc-800 hover:text-white px-2 sm:px-3"
           >
             <PlusIcon />
             <span className="hidden sm:inline">{content.newChat}</span>
@@ -104,7 +104,7 @@ export function ChatHeader({
           variant="secondary"
           aria-label={content.settings}
           onPress={onOpenSettings}
-          className="gap-1.5 border border-white/10 bg-zinc-900/70 text-zinc-300 hover:border-white/20 hover:bg-zinc-800 hover:text-white"
+          className="gap-1.5 border border-white/10 bg-zinc-900/70 text-zinc-300 hover:border-white/20 hover:bg-zinc-800 hover:text-white px-2 sm:px-3"
         >
           <GearIcon />
           <span className="hidden sm:inline">{content.settings}</span>
@@ -112,7 +112,7 @@ export function ChatHeader({
 
         <ButtonGroup
           aria-label={content.languageLabel}
-          className="scale-90 sm:scale-100"
+          className="scale-90 sm:scale-100 origin-right"
         >
           {(["pt", "en"] as const).map((option) => (
             <Button

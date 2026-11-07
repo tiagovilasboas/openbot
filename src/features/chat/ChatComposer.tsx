@@ -58,7 +58,7 @@ export function ChatComposer({
       >
         <textarea
           aria-label={content.composerLabel}
-          className={`w-full flex-1 resize-none border-0 bg-transparent text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:ring-0 leading-relaxed ${
+          className={`w-full flex-1 resize-none border-0 bg-transparent text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:ring-0 leading-relaxed [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
             isHero
               ? "min-h-[56px] text-base sm:text-lg"
               : "min-h-[38px] text-sm sm:text-base"
@@ -87,7 +87,7 @@ export function ChatComposer({
             type="submit"
             disabled={!canSend}
             aria-label={content.sendMessageLabel}
-            className={`flex items-center justify-center rounded-full bg-white text-black font-semibold transition-all duration-150 active:scale-95 disabled:opacity-20 disabled:pointer-events-none ${
+            className={`flex items-center justify-center rounded-full bg-white text-black font-semibold transition-all duration-150 active:scale-95 hover:bg-zinc-200 disabled:opacity-20 disabled:pointer-events-none ${
               isHero ? "size-9 sm:size-10" : "size-8 sm:size-9"
             }`}
           >
