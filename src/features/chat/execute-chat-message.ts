@@ -24,14 +24,13 @@ export interface ChatReplyOutcome {
 function findMentionedBot(text: string, bots: BotProfile[]): BotProfile | null {
   const match = text.match(/@([a-zA-Z0-9_-]+)/);
   if (!match) return null;
-  const target = match[1]?.toLowerCase();
+  const target = match[1]?.toLowerCase().replace(/[\s-_]+/g, "");
   return (
-    bots.find(
-      (b) =>
-        b.name.toLowerCase().replace(/\s+/g, "-") === target ||
-        b.name.toLowerCase() === target ||
-        b.id.toLowerCase() === target,
-    ) ?? null
+    bots.find((b) => {
+      const cleanName = b.name.toLowerCase().replace(/[\s-_]+/g, "");
+      const cleanId = b.id.toLowerCase().replace(/[\s-_]+/g, "");
+      return cleanName === target || cleanId === target;
+    }) ?? null
   );
 }
 
@@ -64,6 +63,13 @@ export async function executeChatMessage({
   const delegatedBot =
     mentionedBot && mentionedBot.id !== activeBot.id ? mentionedBot : undefined;
 
+  const baseDescription =
+    (executingBot.id === "chief-of-staff" || executingBot.id === "default") &&
+    !isPt &&
+    executingBot.description.includes("Você é o Chief of Staff")
+      ? "You are the Chief of Staff, the general coordinator of the bot team. Your role is to plan, synthesize repository/calendar information, and coordinate/delegate tasks to specialist bots when needed."
+      : executingBot.description;
+
   // Build system prompt from executing bot + enabled custom skills
   const enabledCustomSkills = allSkills.filter(
     (s) => !s.isBuiltin && executingBot.skills.includes(s.id),
@@ -72,8 +78,8 @@ export async function executeChatMessage({
     .map((s) => `[Skill ${s.name} (${s.command})]: ${s.instructions}`)
     .join("\n");
   const fullSystemPrompt = skillSnippets
-    ? `${executingBot.description}\n\nSkills Habilitadas:\n${skillSnippets}`
-    : executingBot.description;
+    ? `${baseDescription}\n\n${isPt ? "Skills Habilitadas:" : "Enabled Skills:"}\n${skillSnippets}`
+    : baseDescription;
 
   // 1. Summary Detection
   const summaryDetected = detectSummaryRequest(text);
