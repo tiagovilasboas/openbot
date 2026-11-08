@@ -172,10 +172,6 @@ export function BotAvatar({
           strokeWidth="3"
         />
       )}
-
-      {/* Sleek inner monogram dot / aperture */}
-      <circle cx="50" cy="50" r="6" fill="#000000" opacity="0.3" />
-      <circle cx="50" cy="50" r="3" fill="#ffffff" opacity="0.8" />
     </svg>
   );
 }
