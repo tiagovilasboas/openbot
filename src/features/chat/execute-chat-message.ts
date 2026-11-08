@@ -21,6 +21,7 @@ export interface ChatReplyOutcome {
   text: string;
   delegatedBot?: BotProfile;
   github?: { repo: GitHubRepoRef; items: GitHubItem[] };
+  failover?: { fromModel: string; toModel: string; reason: string };
 }
 
 export async function executeChatMessage({
@@ -59,7 +60,10 @@ export async function executeChatMessage({
       ? "You are the Chief of Staff, the general coordinator of the bot team. Your role is to plan, synthesize repository/calendar information, and coordinate/delegate tasks to specialist bots when needed."
       : executingBot.description;
 
-  // Build system prompt from executing bot + enabled skills
+  // Build system prompt from executing bot + workspace context + enabled skills
+  const workspaceSnippet = executingBot.workspaceContext
+    ? `\n\n${isPt ? "Contexto de Workspace:" : "Workspace Context:"}\n${executingBot.workspaceContext}`
+    : "";
   const enabledSkills = allSkills.filter((s) =>
     executingBot.skills.includes(s.id),
   );
@@ -67,8 +71,8 @@ export async function executeChatMessage({
     .map((s) => `[Skill ${s.name} (${s.command})]: ${s.instructions}`)
     .join("\n");
   const fullSystemPrompt = skillSnippets
-    ? `${baseDescription}\n\n${isPt ? "Skills Habilitadas:" : "Enabled Skills:"}\n${skillSnippets}`
-    : baseDescription;
+    ? `${baseDescription}${workspaceSnippet}\n\n${isPt ? "Skills Habilitadas:" : "Enabled Skills:"}\n${skillSnippets}`
+    : `${baseDescription}${workspaceSnippet}`;
 
   // 1. Summary Detection
   const summaryDetected = detectSummaryRequest(text);
@@ -133,7 +137,11 @@ export async function executeChatMessage({
     fullSystemPrompt,
   );
   if (outcome.kind === "text") {
-    return { text: outcome.text, delegatedBot };
+    return {
+      text: outcome.text,
+      delegatedBot,
+      ...(outcome.failover ? { failover: outcome.failover } : {}),
+    };
   }
   if (outcome.kind === "unavailable") {
     return { text: getUnconfiguredModelMessage(language), delegatedBot };

@@ -25,6 +25,7 @@ export interface BotProfile {
   name: string;
   title?: string;
   description: string;
+  workspaceContext?: string;
   avatarShape: AvatarShape;
   avatarColor: AvatarColor;
   skills: string[];

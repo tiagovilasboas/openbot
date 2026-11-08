@@ -6,6 +6,9 @@ import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
 import type { SkillDefinition } from "@/features/skills/skill-types.ts";
 import { BotAvatar } from "./BotAvatar.tsx";
 import { BotAvatarPickers } from "./BotAvatarPickers.tsx";
+import { BotSkillsSelector } from "./BotSkillsSelector.tsx";
+import { BotTemplatePicker } from "./BotTemplatePicker.tsx";
+import type { BotTemplate } from "./bot-templates.ts";
 import type { AvatarColor, AvatarShape, BotProfile } from "./bot-types.ts";
 
 interface BotEditModalProps {
@@ -44,6 +47,9 @@ function BotEditForm({
   const [name, setName] = useState(bot?.name || "");
   const [title, setTitle] = useState(bot?.title || "");
   const [description, setDescription] = useState(bot?.description || "");
+  const [workspaceContext, setWorkspaceContext] = useState(
+    bot?.workspaceContext || "",
+  );
   const [avatarShape, setAvatarShape] = useState<AvatarShape>(
     bot?.avatarShape || "hex",
   );
@@ -53,6 +59,17 @@ function BotEditForm({
   const [selectedSkills, setSelectedSkills] = useState<string[]>(
     bot?.skills || [],
   );
+
+  function handleSelectTemplate(tmpl: BotTemplate) {
+    setName(tmpl.name);
+    setTitle(tmpl.title);
+    setDescription(tmpl.description);
+    if (tmpl.workspaceContext) {
+      setWorkspaceContext(tmpl.workspaceContext);
+    }
+    setAvatarShape(tmpl.avatarShape);
+    setAvatarColor(tmpl.avatarColor);
+  }
 
   function handleSave() {
     if (!name.trim()) return;
@@ -69,6 +86,7 @@ function BotEditForm({
         (isPt
           ? "Você é um assistente conciso e prestativo."
           : "You are a concise, helpful assistant."),
+      workspaceContext: workspaceContext.trim() || undefined,
       avatarShape,
       avatarColor,
       skills: selectedSkills,
@@ -104,8 +122,8 @@ function BotEditForm({
             </Modal.Heading>
             <p className="text-xs text-zinc-400">
               {isPt
-                ? "Personalize o avatar geométrico, prompt e skills do seu bot."
-                : "Customize geometric avatar, instructions and skills."}
+                ? "Personalize o avatar geométrico, workspace e prompt do bot."
+                : "Customize geometric avatar, workspace and instructions."}
             </p>
           </div>
         </div>
@@ -113,6 +131,13 @@ function BotEditForm({
       </Modal.Header>
 
       <Modal.Body className="flex flex-col gap-5 py-5">
+        {!isEditing && (
+          <BotTemplatePicker
+            language={language}
+            onSelectTemplate={handleSelectTemplate}
+          />
+        )}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-zinc-400">
@@ -168,56 +193,30 @@ function BotEditForm({
         </div>
 
         <div>
-          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-400">
+          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-zinc-400">
             {isPt
-              ? "Skills Habilitadas neste Bot"
-              : "Skills Enabled on this Bot"}
+              ? "Contexto de Workspace / Projeto"
+              : "Workspace / Project Context"}
           </label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {allSkills.length === 0 ? (
-              <p className="text-xs text-zinc-500 italic col-span-1 sm:col-span-2 py-3 text-center border border-dashed border-white/10 rounded-xl">
-                {isPt
-                  ? "Nenhuma skill cadastrada ainda. Crie suas skills em Configurações > Skills."
-                  : "No skills configured yet. Create your skills in Settings > Skills."}
-              </p>
-            ) : (
-              allSkills.map((skill) => {
-                const isSelected = selectedSkills.includes(skill.id);
-                return (
-                  <button
-                    key={skill.id}
-                    type="button"
-                    onClick={() => toggleSkill(skill.id)}
-                    className={`flex items-start gap-2.5 p-2.5 rounded-xl border text-left transition-all ${
-                      isSelected
-                        ? "border-emerald-500/40 bg-emerald-500/10 text-white"
-                        : "border-white/5 bg-zinc-900/40 text-zinc-400 hover:border-white/15"
-                    }`}
-                  >
-                    <span
-                      className={`size-3 rounded-full mt-1 shrink-0 ${
-                        isSelected
-                          ? "bg-emerald-400 shadow-sm"
-                          : "border border-zinc-600"
-                      }`}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-semibold text-white">
-                        {skill.name}
-                      </p>
-                      <p className="text-[11px] text-zinc-400 truncate">
-                        {skill.description}
-                      </p>
-                      <span className="font-mono text-[10px] text-zinc-500">
-                        {skill.command}
-                      </span>
-                    </div>
-                  </button>
-                );
-              })
-            )}
-          </div>
+          <textarea
+            rows={2}
+            placeholder={
+              isPt
+                ? "Diretrizes de repositório, caminhos ou escopo específico deste agente..."
+                : "Repository guidelines, paths or project scope..."
+            }
+            value={workspaceContext}
+            onChange={(e) => setWorkspaceContext(e.target.value)}
+            className="w-full rounded-xl border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-white/30 resize-none leading-relaxed"
+          />
         </div>
+
+        <BotSkillsSelector
+          allSkills={allSkills}
+          selectedSkills={selectedSkills}
+          isPt={isPt}
+          onToggleSkill={toggleSkill}
+        />
       </Modal.Body>
 
       <Modal.Footer className="flex items-center justify-between border-t border-white/10 pt-4">

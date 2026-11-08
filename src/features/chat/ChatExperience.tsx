@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { LockScreen } from "@/features/auth/LockScreen.tsx";
 import { useLocalAuth } from "@/features/auth/use-local-auth.ts";
-import { BotAvatar } from "@/features/bots/BotAvatar.tsx";
 import { BotEditModal } from "@/features/bots/BotEditModal.tsx";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
 import { useBots } from "@/features/bots/use-bots.ts";
@@ -16,21 +15,22 @@ import {
 } from "@/features/model/test-model-connection.ts";
 import { useModelConfig } from "@/features/model/use-model-config.ts";
 import { useSkills } from "@/features/skills/use-skills.ts";
-import { chatCopy } from "./chat-copy.ts";
-import { ChatComposer } from "./ChatComposer.tsx";
 import { ChatEmptyState } from "./ChatEmptyState.tsx";
 import { ChatHeader } from "./ChatHeader.tsx";
-import { ChatMessageItem, type MessageData } from "./ChatMessageItem.tsx";
+import type { MessageData } from "./ChatMessageItem.tsx";
 import { ChatSidebar } from "./ChatSidebar.tsx";
+import { ConversationView } from "./ConversationView.tsx";
 import { executeChatMessage } from "./execute-chat-message.ts";
 import type { ChatLanguage } from "./respond-to-message.ts";
 import { useBotMessages } from "./use-bot-messages.ts";
+import { useMessageQueue } from "./use-message-queue.ts";
 
 export function ChatExperience() {
   const [language, setLanguage] = useState<ChatLanguage>("pt");
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const auth = useLocalAuth();
+  const { queueCount, enqueue, dequeue, clearQueue } = useMessageQueue();
 
   // Dots / Grok Bot systems
   const {
@@ -65,7 +65,6 @@ export function ChatExperience() {
 
   const conversationIdRef = useRef(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const content = chatCopy[language];
 
   useEffect(() => {
     document.documentElement.lang = language === "pt" ? "pt-BR" : "en";
@@ -88,21 +87,19 @@ export function ChatExperience() {
       ? formatModelBadge(serverModel, false, language)
       : formatModelBadge(null, false, language);
 
-  async function sendMessage(value = draft) {
-    const text = value.trim();
-    if (!text || busy) return;
-    const conversationId = conversationIdRef.current;
-    const history = [...messages, { role: "user" as const, text }];
-    const updatedMessages: MessageData[] = [
-      ...messages,
-      { id: getNextId(), role: "user", language, text },
-    ];
-    persistMessages(updatedMessages);
-    setDraft("");
+  async function processTurn(
+    turnText: string,
+    currentHistory: MessageData[],
+    conversationId: number,
+  ) {
     setBusy(true);
+    const history = currentHistory.map((m) => ({
+      role: m.role,
+      text: m.text,
+    }));
 
     const reply = await executeChatMessage({
-      text,
+      text: turnText,
       language,
       history,
       activeBot,
@@ -112,9 +109,13 @@ export function ChatExperience() {
       modelConfig,
     });
 
-    if (conversationIdRef.current !== conversationId) return;
-    persistMessages([
-      ...updatedMessages,
+    if (conversationIdRef.current !== conversationId) {
+      setBusy(false);
+      return;
+    }
+
+    const updatedWithAssistant: MessageData[] = [
+      ...currentHistory,
       {
         id: getNextId(),
         role: "assistant",
@@ -123,13 +124,42 @@ export function ChatExperience() {
         delegatedBot: reply.delegatedBot,
         modelBadge: isConfigured ? activeModelLabel : undefined,
         ...(reply.github ? { github: reply.github } : {}),
+        ...(reply.failover ? { failover: reply.failover } : {}),
       },
-    ]);
+    ];
+    persistMessages(updatedWithAssistant);
     setBusy(false);
+
+    // If another message was queued in the meantime, process it sequentially
+    const nextQueued = dequeue();
+    if (nextQueued && nextQueued.conversationId === conversationIdRef.current) {
+      void processTurn(nextQueued.text, updatedWithAssistant, conversationId);
+    }
+  }
+
+  function sendMessage(value = draft) {
+    const text = value.trim();
+    if (!text) return;
+    const conversationId = conversationIdRef.current;
+    const userMsgId = getNextId();
+    const updatedMessages: MessageData[] = [
+      ...messages,
+      { id: userMsgId, role: "user", language, text },
+    ];
+    persistMessages(updatedMessages);
+    setDraft("");
+
+    if (busy) {
+      enqueue({ id: userMsgId, text, conversationId });
+      return;
+    }
+
+    void processTurn(text, updatedMessages, conversationId);
   }
 
   function startNewChat() {
     conversationIdRef.current += 1;
+    clearQueue();
     clearMessages();
     setDraft("");
     setBusy(false);
@@ -153,7 +183,10 @@ export function ChatExperience() {
         onLock={auth.lock}
         onToggleDesktopCollapse={() => setIsDesktopCollapsed((v) => !v)}
         onCloseMobile={() => setIsMobileSidebarOpen(false)}
-        onSelectBot={setActiveBotId}
+        onSelectBot={(id) => {
+          clearQueue();
+          setActiveBotId(id);
+        }}
         onCreateBot={() => {
           setBotToEdit(null);
           setIsBotModalOpen(true);
@@ -197,59 +230,20 @@ export function ChatExperience() {
             onSelectPrompt={(prompt) => void sendMessage(prompt)}
           />
         ) : (
-          <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
-            <div className="flex-1 overflow-y-auto min-h-0 px-4 py-4 sm:px-6">
-              <section
-                aria-label={content.conversationLabel}
-                aria-live="polite"
-                className="flex w-full flex-col gap-5"
-              >
-                {messages.map((message) => (
-                  <ChatMessageItem
-                    key={message.id}
-                    message={message}
-                    activeBot={activeBot}
-                    onOpenSettings={() => setIsSettingsOpen(true)}
-                  />
-                ))}
-                {busy && (
-                  <div
-                    className="flex w-full items-center gap-3 pt-1 animate-in fade-in duration-200"
-                    role="status"
-                  >
-                    <BotAvatar
-                      shape={activeBot.avatarShape}
-                      color={activeBot.avatarColor}
-                      size={28}
-                      className="animate-pulse"
-                    />
-                    <div className="flex items-center gap-1.5 rounded-full border border-white/10 bg-zinc-900/60 px-3 py-1.5 shadow-sm">
-                      <span className="size-1.5 rounded-full bg-zinc-400 animate-bounce [animation-delay:-0.3s]" />
-                      <span className="size-1.5 rounded-full bg-zinc-400 animate-bounce [animation-delay:-0.15s]" />
-                      <span className="size-1.5 rounded-full bg-zinc-400 animate-bounce" />
-                      <span className="sr-only">{content.thinking}</span>
-                    </div>
-                  </div>
-                )}
-                <div ref={messagesEndRef} className="h-2" />
-              </section>
-            </div>
-
-            <footer className="shrink-0 border-t border-white/5 bg-black/90 p-3 sm:px-6 backdrop-blur-xl">
-              <div className="w-full">
-                <ChatComposer
-                  mode="docked"
-                  language={language}
-                  draft={draft}
-                  busy={busy}
-                  skills={activeBotSkills}
-                  bots={bots}
-                  onDraftChange={setDraft}
-                  onSend={() => void sendMessage()}
-                />
-              </div>
-            </footer>
-          </div>
+          <ConversationView
+            language={language}
+            messages={messages}
+            activeBot={activeBot}
+            busy={busy}
+            draft={draft}
+            queueCount={queueCount}
+            activeBotSkills={activeBotSkills}
+            bots={bots}
+            messagesEndRef={messagesEndRef}
+            onDraftChange={setDraft}
+            onSend={() => void sendMessage()}
+            onOpenSettings={() => setIsSettingsOpen(true)}
+          />
         )}
       </main>
 

@@ -76,6 +76,10 @@ export function sanitizeBotProfile(raw: unknown): BotProfile | null {
       !obj.description.includes("Você é o OpenBot, um assistente rápido")
         ? obj.description.trim()
         : DEFAULT_BOT.description,
+    workspaceContext:
+      typeof obj.workspaceContext === "string" && obj.workspaceContext.trim()
+        ? obj.workspaceContext.trim()
+        : undefined,
     avatarShape: shape,
     avatarColor: color,
     skills,

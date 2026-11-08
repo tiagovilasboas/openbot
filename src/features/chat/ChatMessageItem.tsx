@@ -22,6 +22,11 @@ export interface MessageData {
     items: GitHubItem[];
   };
   modelBadge?: string;
+  failover?: {
+    fromModel: string;
+    toModel: string;
+    reason: string;
+  };
 }
 
 interface ChatMessageItemProps {
@@ -96,6 +101,17 @@ export function ChatMessageItem({
               items={message.github.items}
               language={message.language}
             />
+          </div>
+        )}
+
+        {message.failover && (
+          <div className="mt-1 flex items-center gap-1.5 text-[11px] text-amber-400/90 bg-amber-950/40 border border-amber-800/40 px-2 py-1 rounded-md">
+            <span className="size-1.5 rounded-full bg-amber-400 animate-pulse" />
+            <span>
+              {message.language === "pt"
+                ? `Failover automático: ${message.failover.fromModel} → ${message.failover.toModel}`
+                : `Automatic failover: ${message.failover.fromModel} → ${message.failover.toModel}`}
+            </span>
           </div>
         )}
 

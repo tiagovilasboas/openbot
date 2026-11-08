@@ -12,6 +12,7 @@ interface ChatComposerProps {
   language: ChatLanguage;
   draft: string;
   busy: boolean;
+  queueCount?: number;
   mode?: "hero" | "docked";
   skills?: SkillDefinition[];
   bots?: BotProfile[];
@@ -40,6 +41,7 @@ export function ChatComposer({
   language,
   draft,
   busy,
+  queueCount = 0,
   mode = "docked",
   skills = [],
   bots = [],
@@ -48,7 +50,7 @@ export function ChatComposer({
 }: ChatComposerProps) {
   const content = chatCopy[language];
   const isHero = mode === "hero";
-  const canSend = Boolean(draft.trim()) && !busy;
+  const canSend = Boolean(draft.trim());
   const [showPaletteManual, setShowPaletteManual] = useState(false);
   const [showBotPaletteManual, setShowBotPaletteManual] = useState(false);
 
@@ -158,6 +160,12 @@ export function ChatComposer({
             <p className="text-[11px] text-zinc-500 select-none pl-1 hidden sm:block">
               {content.composerHint}
             </p>
+            {queueCount > 0 && (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-950/40 px-2 py-0.5 font-mono text-[10px] text-amber-300">
+                <span className="size-1.5 rounded-full bg-amber-400 animate-pulse" />
+                {queueCount} {language === "pt" ? "na fila" : "queued"}
+              </span>
+            )}
           </div>
 
           <button
