@@ -12,30 +12,12 @@ interface ChatHeaderProps {
   onLanguageChange: (language: ChatLanguage) => void;
   activeModelLabel: string;
   isConfigured: boolean;
-  onOpenSettings: () => void;
+  onOpenSettings?: () => void;
   hasMessages?: boolean;
   onNewChat?: () => void;
   activeBot?: BotProfile;
   onOpenMobileSidebar?: () => void;
   onOpenBotEdit?: () => void;
-}
-
-function GearIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      aria-hidden="true"
-      className={className ?? "size-4"}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      viewBox="0 0 24 24"
-    >
-      <circle cx="12" cy="12" r="3" />
-      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-    </svg>
-  );
 }
 
 function PlusIcon({ className }: { className?: string }) {
@@ -130,17 +112,6 @@ export function ChatHeader({
             <span className="hidden sm:inline">{content.newChat}</span>
           </Button>
         )}
-
-        <Button
-          size="sm"
-          variant="secondary"
-          aria-label={content.settings}
-          onPress={onOpenSettings}
-          className="gap-1.5 border border-white/10 bg-zinc-900/70 text-zinc-300 hover:border-white/20 hover:bg-zinc-800 hover:text-white px-2 sm:px-3"
-        >
-          <GearIcon />
-          <span className="hidden sm:inline">{content.settings}</span>
-        </Button>
 
         <ButtonGroup
           aria-label={content.languageLabel}
