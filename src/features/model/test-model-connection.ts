@@ -2,7 +2,7 @@ import type { ClientModelConfig } from "./model-config.ts";
 
 export type TestConnectionOutcome =
   | { ok: true; provider: string; model?: string }
-  | { ok: false; error: string; provider?: string };
+  | { ok: false; error: string; provider?: string; detail?: string };
 
 export type ActiveServerModelOutcome = {
   configured: boolean;
@@ -36,10 +36,12 @@ export async function testModelConnection(
       };
     }
 
+    const detail = (payload as { detail?: string } | null)?.detail;
     return {
       ok: false,
       error: payload?.error ?? "connection_failed",
       provider: payload?.provider ?? config.provider,
+      ...(detail ? { detail } : {}),
     };
   } catch {
     return { ok: false, error: "network_error" };

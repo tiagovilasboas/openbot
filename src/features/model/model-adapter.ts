@@ -22,7 +22,12 @@ export type ModelErrorCode =
 
 export type ModelResult =
   | { ok: true; provider: string; text: string }
-  | { ok: false; code: ModelErrorCode; provider: string | null };
+  | {
+      ok: false;
+      code: ModelErrorCode;
+      provider: string | null;
+      detail?: string;
+    };
 
 export type ModelAdapter = {
   provider: string;
