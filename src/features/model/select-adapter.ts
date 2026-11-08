@@ -1,7 +1,6 @@
 import { createAnthropicAdapter } from "./anthropic-adapter.ts";
 import { createLocalAdapter } from "./local-adapter.ts";
 import { createRouterAdapter } from "./router-adapter.ts";
-import { createSandboxAdapter } from "./sandbox-adapter.ts";
 import type { FetchLike, ModelAdapter } from "./model-adapter.ts";
 import type { ClientModelConfig } from "./model-config.ts";
 
@@ -48,9 +47,6 @@ export function selectAdapter(
         model: customConfig.model,
         fetchImpl,
       });
-    }
-    if (customConfig.provider === "sandbox") {
-      return createSandboxAdapter(customConfig.model);
     }
   }
 

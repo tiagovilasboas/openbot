@@ -71,12 +71,6 @@ export function SettingsForm({
       : "claude-3-5-sonnet-20241022",
   );
 
-  const [sandboxModel, setSandboxModel] = useState(
-    currentConfig?.provider === "sandbox"
-      ? currentConfig.model
-      : "chief-sim-v1",
-  );
-
   const [gitHubToken, setGitHubToken] = useState(
     () => loadStoredGitHubToken() ?? "",
   );
@@ -109,12 +103,6 @@ export function SettingsForm({
         provider: "anthropic",
         apiKey: anthropicKey,
         model: anthropicModel,
-      });
-    }
-    if (provider === "sandbox") {
-      return validateClientModelConfig({
-        provider: "sandbox",
-        model: sandboxModel,
       });
     }
     return null;
@@ -201,13 +189,6 @@ export function SettingsForm({
           setAnthropicKey={setAnthropicKey}
           anthropicModel={anthropicModel}
           setAnthropicModel={setAnthropicModel}
-          sandboxModel={sandboxModel}
-          setSandboxModel={setSandboxModel}
-          onSelectSandboxPreset={() => {
-            setProvider("sandbox");
-            setSandboxModel("chief-sim-v1");
-            setTestResult(null);
-          }}
         />
 
         <div className="pt-1">

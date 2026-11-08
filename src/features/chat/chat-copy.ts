@@ -115,13 +115,6 @@ export const chatCopy = {
     connectAiPrompt:
       "Conectar IA (Modelos gratuitos disponíveis via OpenRouter ou local)",
     connectAiAction: "Configurar →",
-    providerSandbox: "🧪 Sandbox",
-    providerSandboxHint:
-      "Simulador offline de alta fidelidade do Chief of Staff. Responde sem necessidade de chave ou servidor externo.",
-    presetSandbox: "🧪 Sandbox / Simulador Local",
-    sandboxModelLabel: "Modelo do Simulador",
-    sandboxExplanation:
-      "Simulador de IA de alta fidelidade ativo. Não requer conexões externas nem chaves.",
     mentionPaletteLabel: "Bots Disponíveis",
     mentionPaletteEmpty: "Nenhum bot encontrado.",
     mentionButtonAria: "Mencionar bot (@)",
@@ -243,13 +236,6 @@ export const chatCopy = {
     connectAiPrompt:
       "Connect AI (Free models available via OpenRouter or local)",
     connectAiAction: "Configure →",
-    providerSandbox: "🧪 Sandbox",
-    providerSandboxHint:
-      "High-fidelity offline Chief of Staff simulator. Responds without requiring any API keys or external servers.",
-    presetSandbox: "🧪 Sandbox / Local Simulator",
-    sandboxModelLabel: "Simulator Model",
-    sandboxExplanation:
-      "High-fidelity AI simulator active. No external connections or keys required.",
     mentionPaletteLabel: "Available Bots",
     mentionPaletteEmpty: "No matching bots found.",
     mentionButtonAria: "Mention bot (@)",

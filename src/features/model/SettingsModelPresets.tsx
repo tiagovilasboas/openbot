@@ -1,26 +1,48 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import type { chatCopy } from "@/features/chat/chat-copy.ts";
 import type { ModelProviderType } from "./model-config.ts";
 
-export const OPENROUTER_FREE_MODELS = [
+export interface FreeModelEntry {
+  id: string;
+  name: string;
+  contextLength?: number;
+}
+
+export const FALLBACK_OPENROUTER_FREE_MODELS: FreeModelEntry[] = [
+  { id: "openrouter/free", name: "Auto Free Router", contextLength: 262144 },
   {
-    id: "meta-llama/llama-3.3-70b-instruct:free",
-    label: "Llama 3.3 70B",
+    id: "nvidia/nemotron-3.5-super-vl:free",
+    name: "NVIDIA Nemotron 3.5 Super VL",
+    contextLength: 1000000,
   },
   {
-    id: "deepseek/deepseek-r1:free",
-    label: "DeepSeek R1",
+    id: "nvidia/nemotron-3-ultra-550b-a55b:free",
+    name: "NVIDIA Nemotron 3 Ultra",
+    contextLength: 1000000,
   },
   {
-    id: "google/gemini-2.0-flash-exp:free",
-    label: "Gemini 2.0 Flash",
+    id: "nvidia/nemotron-3.5-lightning:free",
+    name: "NVIDIA Nemotron 3.5 Lightning",
+    contextLength: 1000000,
   },
   {
-    id: "qwen/qwen-2.5-coder-32b-instruct:free",
-    label: "Qwen 2.5 Coder 32B",
+    id: "google/gemma-4-31b-it:free",
+    name: "Google Gemma 4 31B",
+    contextLength: 262144,
   },
-] as const;
+  {
+    id: "cohere/north-mini-code:free",
+    name: "Cohere North Mini Code",
+    contextLength: 256000,
+  },
+  {
+    id: "liquid/lfm-3-1.7b:free",
+    name: "LiquidAI LFM3 1.7B",
+    contextLength: 262144,
+  },
+];
 
 export interface SettingsModelPresetsProps {
   provider: ModelProviderType;
@@ -32,7 +54,13 @@ export interface SettingsModelPresetsProps {
   onSelectRouterPreset: (url: string, model: string) => void;
   onSelectRouterModel: (model: string) => void;
   onSelectLocalPreset: (url: string, model: string) => void;
-  onSelectSandboxPreset?: () => void;
+}
+
+function formatContext(tokens?: number): string {
+  if (!tokens) return "";
+  if (tokens >= 1_000_000) return `${Math.round(tokens / 1_000_000)}M`;
+  if (tokens >= 1_000) return `${Math.round(tokens / 1_000)}k`;
+  return `${tokens}`;
 }
 
 export function SettingsModelPresets({
@@ -45,8 +73,40 @@ export function SettingsModelPresets({
   onSelectRouterPreset,
   onSelectRouterModel,
   onSelectLocalPreset,
-  onSelectSandboxPreset,
 }: SettingsModelPresetsProps) {
+  const [liveFreeModels, setLiveFreeModels] = useState<FreeModelEntry[]>(
+    FALLBACK_OPENROUTER_FREE_MODELS,
+  );
+  const [hasLoadedLive, setHasLoadedLive] = useState(false);
+
+  useEffect(() => {
+    if (provider !== "router" || !routerUrl.includes("openrouter.ai")) return;
+
+    let isMounted = true;
+    fetch("/api/model/free")
+      .then((r) => r.json())
+      .then((data: { ok?: boolean; models?: FreeModelEntry[] }) => {
+        if (
+          isMounted &&
+          data?.ok &&
+          Array.isArray(data.models) &&
+          data.models.length > 0
+        ) {
+          setLiveFreeModels(data.models);
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (isMounted) setHasLoadedLive(true);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [provider, routerUrl]);
+
+  const isLoadingLive = !hasLoadedLive;
+
   if (provider === "router") {
     const isOpenRouter = routerUrl.includes("openrouter.ai");
     const is9Router =
@@ -65,7 +125,7 @@ export function SettingsModelPresets({
             onClick={() =>
               onSelectRouterPreset(
                 "https://openrouter.ai/api/v1",
-                "meta-llama/llama-3.3-70b-instruct:free",
+                "openrouter/free",
               )
             }
             className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all active:scale-95 ${
@@ -90,19 +150,9 @@ export function SettingsModelPresets({
           >
             {content.preset9Router}
           </button>
-
-          {onSelectSandboxPreset && (
-            <button
-              type="button"
-              onClick={onSelectSandboxPreset}
-              className="px-3 py-1.5 rounded-xl text-xs font-semibold border border-purple-500/30 bg-purple-950/40 text-purple-300 hover:bg-purple-900/60 hover:text-white transition-all active:scale-95"
-            >
-              {content.presetSandbox}
-            </button>
-          )}
         </div>
 
-        {/* OpenRouter Free Models & Hint */}
+        {/* OpenRouter Live Free Models & Hint */}
         {isOpenRouter && (
           <div className="flex flex-col gap-2 pt-1 border-t border-white/5 mt-1 animate-in fade-in duration-200">
             <p className="text-[11px] text-zinc-400 leading-relaxed">
@@ -117,24 +167,48 @@ export function SettingsModelPresets({
               </a>
             </p>
 
-            <span className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider">
-              {content.freeModelsLabel}
-            </span>
-            <div className="flex flex-wrap gap-1.5">
-              {OPENROUTER_FREE_MODELS.map((item) => {
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-medium text-emerald-400/90 uppercase tracking-wider flex items-center gap-1.5">
+                <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                {isLoadingLive
+                  ? "Atualizando modelos free..."
+                  : `${liveFreeModels.length} Modelos Free em Tempo Real`}
+              </span>
+              <a
+                href="https://openrouter.ai/models?variant=free"
+                target="_blank"
+                rel="noreferrer"
+                className="text-[10px] text-zinc-400 hover:text-cyan-300 underline"
+              >
+                openrouter.ai/models ↗
+              </a>
+            </div>
+
+            <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto pr-0.5">
+              {liveFreeModels.map((item) => {
                 const isSelected = routerModel === item.id;
+                const cleanName = item.name
+                  .replace(/ \(free\)/i, "")
+                  .replace(/:free$/i, "");
+                const ctx = formatContext(item.contextLength);
+
                 return (
                   <button
                     key={item.id}
                     type="button"
                     onClick={() => onSelectRouterModel(item.id)}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-mono transition-all active:scale-95 ${
+                    className={`px-2.5 py-1 rounded-lg text-[11px] transition-all active:scale-95 text-left ${
                       isSelected
                         ? "bg-cyan-900/60 border border-cyan-400 text-cyan-200 font-semibold shadow-sm"
                         : "bg-zinc-800/60 border border-white/5 text-zinc-300 hover:bg-zinc-700 hover:text-white"
                     }`}
                   >
-                    {item.label}
+                    <span>{cleanName}</span>
+                    {ctx && (
+                      <span className="ml-1 text-[10px] opacity-60">
+                        · {ctx}
+                      </span>
+                    )}
                   </button>
                 );
               })}
@@ -168,30 +242,7 @@ export function SettingsModelPresets({
           >
             {content.presetOllama}
           </button>
-
-          {onSelectSandboxPreset && (
-            <button
-              type="button"
-              onClick={onSelectSandboxPreset}
-              className="px-3 py-1.5 rounded-xl text-xs font-semibold border border-purple-500/30 bg-purple-950/40 text-purple-300 hover:bg-purple-900/60 hover:text-white transition-all active:scale-95"
-            >
-              {content.presetSandbox}
-            </button>
-          )}
         </div>
-      </div>
-    );
-  }
-
-  if (provider === "sandbox") {
-    return (
-      <div className="flex flex-col gap-2 p-3 rounded-2xl bg-purple-950/30 border border-purple-500/30 animate-in fade-in duration-150">
-        <span className="text-[11px] font-semibold uppercase tracking-wider text-purple-300">
-          {content.presetSandbox}
-        </span>
-        <p className="text-xs text-zinc-300 leading-relaxed">
-          {content.sandboxExplanation}
-        </p>
       </div>
     );
   }

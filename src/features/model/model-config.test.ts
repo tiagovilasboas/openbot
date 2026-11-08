@@ -136,10 +136,10 @@ test("formatModelBadge formats label for providers and demo mode", () => {
 
 test("validates all OpenRouter free tier models and presets", () => {
   const models = [
-    "meta-llama/llama-3.3-70b-instruct:free",
-    "deepseek/deepseek-r1:free",
-    "google/gemini-2.0-flash-exp:free",
-    "qwen/qwen-2.5-coder-32b-instruct:free",
+    "openrouter/free",
+    "google/gemma-4-31b-it:free",
+    "cohere/north-mini-code:free",
+    "liquid/lfm-2.5-2.6b:free",
   ];
 
   for (const model of models) {
@@ -160,40 +160,4 @@ test("validates all OpenRouter free tier models and presets", () => {
   });
   assert.ok(ollama);
   assert.equal(ollama.model, "llama3.2");
-});
-
-test("validates sandbox configuration and formats badge correctly", () => {
-  const sandbox = validateClientModelConfig({
-    provider: "sandbox",
-    model: "chief-sim-v1",
-  });
-  assert.deepEqual(sandbox, {
-    provider: "sandbox",
-    model: "chief-sim-v1",
-  });
-
-  const defaultSandbox = validateClientModelConfig({
-    provider: "sandbox",
-  });
-  assert.deepEqual(defaultSandbox, {
-    provider: "sandbox",
-    model: "chief-sim-v1",
-  });
-
-  assert.equal(
-    formatModelBadge(
-      { provider: "sandbox", model: "chief-sim-v1" },
-      false,
-      "pt",
-    ),
-    "Simulador: chief-sim-v1",
-  );
-  assert.equal(
-    formatModelBadge(
-      { provider: "sandbox", model: "chief-sim-v1" },
-      false,
-      "en",
-    ),
-    "Sandbox: chief-sim-v1",
-  );
 });

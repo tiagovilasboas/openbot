@@ -22,9 +22,6 @@ interface SettingsProviderFieldsProps {
   setAnthropicKey: (val: string) => void;
   anthropicModel: string;
   setAnthropicModel: (val: string) => void;
-  sandboxModel: string;
-  setSandboxModel: (val: string) => void;
-  onSelectSandboxPreset: () => void;
 }
 
 export function SettingsProviderFields({
@@ -44,9 +41,6 @@ export function SettingsProviderFields({
   setAnthropicKey,
   anthropicModel,
   setAnthropicModel,
-  sandboxModel,
-  setSandboxModel,
-  onSelectSandboxPreset,
 }: SettingsProviderFieldsProps) {
   if (provider === "router") {
     return (
@@ -64,7 +58,6 @@ export function SettingsProviderFields({
           }}
           onSelectRouterModel={(model) => setRouterModel(model)}
           onSelectLocalPreset={() => {}}
-          onSelectSandboxPreset={onSelectSandboxPreset}
         />
 
         <div>
@@ -121,7 +114,6 @@ export function SettingsProviderFields({
             setLocalUrl(url);
             setLocalModel(model);
           }}
-          onSelectSandboxPreset={onSelectSandboxPreset}
         />
 
         <div>
@@ -174,37 +166,6 @@ export function SettingsProviderFields({
             value={anthropicModel}
             onChange={(e) => setAnthropicModel(e.target.value)}
             placeholder="claude-3-5-sonnet-20241022"
-          />
-        </div>
-      </div>
-    );
-  }
-
-  if (provider === "sandbox") {
-    return (
-      <div className="flex flex-col gap-3">
-        <SettingsModelPresets
-          provider="sandbox"
-          content={content}
-          routerUrl={routerUrl}
-          routerModel={routerModel}
-          localUrl={localUrl}
-          localModel={localModel}
-          onSelectRouterPreset={() => {}}
-          onSelectRouterModel={() => {}}
-          onSelectLocalPreset={() => {}}
-          onSelectSandboxPreset={onSelectSandboxPreset}
-        />
-
-        <div>
-          <Label className="mb-1 block text-xs font-medium">
-            {content.sandboxModelLabel}
-          </Label>
-          <Input
-            fullWidth
-            value={sandboxModel}
-            onChange={(e) => setSandboxModel(e.target.value)}
-            placeholder="chief-sim-v1"
           />
         </div>
       </div>
