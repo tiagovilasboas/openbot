@@ -2,14 +2,12 @@
 
 import { BotAvatar } from "@/features/bots/BotAvatar.tsx";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
-import type { CalendarEvent } from "@/features/calendar/list-example-events.ts";
 import { GitHubItemsCard } from "@/features/github/GitHubItemsCard.tsx";
 import type {
   GitHubItem,
   GitHubRepoRef,
 } from "@/features/github/github-types.ts";
 import { chatCopy } from "./chat-copy.ts";
-import { ChatToolResult } from "./ChatToolResult.tsx";
 import { FormattedMessage } from "./FormattedMessage.tsx";
 import type { ChatLanguage } from "./respond-to-message.ts";
 
@@ -19,13 +17,11 @@ export interface MessageData {
   role: "assistant" | "user";
   text: string;
   delegatedBot?: BotProfile;
-  events?: CalendarEvent[];
   github?: {
     repo: GitHubRepoRef;
     items: GitHubItem[];
   };
   modelBadge?: string;
-  isDemo?: boolean;
 }
 
 interface ChatMessageItemProps {
@@ -93,15 +89,6 @@ export function ChatMessageItem({
 
         <FormattedMessage content={message.text} />
 
-        {message.events && (
-          <div className="mt-2 w-full">
-            <ChatToolResult
-              events={message.events}
-              language={message.language}
-            />
-          </div>
-        )}
-
         {message.github && (
           <div className="mt-2 w-full">
             <GitHubItemsCard
@@ -112,29 +99,13 @@ export function ChatMessageItem({
           </div>
         )}
 
-        {message.isDemo ? (
-          <div className="mt-2.5 flex items-center pt-2 border-t border-white/5">
-            <button
-              type="button"
-              onClick={onOpenSettings}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-amber-500/25 bg-amber-500/10 px-2.5 py-1 text-left text-xs font-medium text-amber-300 hover:bg-amber-500/20 hover:border-amber-500/40 transition-all active:scale-95 cursor-pointer shadow-sm"
-            >
-              <span className="text-amber-400 font-bold">⚡</span>
-              <span>{chatCopy[message.language].demoResponseBadge}</span>
-              <span className="text-[11px] text-amber-200 underline font-semibold ml-1">
-                {chatCopy[message.language].demoConnectAction}
-              </span>
-            </button>
+        {message.modelBadge && (
+          <div className="mt-1.5 flex items-center gap-1.5 pt-1 text-[11px] text-zinc-500">
+            <span className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-zinc-900/90 px-2 py-0.5 font-mono text-[10px] text-zinc-300">
+              <span className="size-1.5 rounded-full bg-emerald-400" />
+              {message.modelBadge}
+            </span>
           </div>
-        ) : (
-          message.modelBadge && (
-            <div className="mt-1.5 flex items-center gap-1.5 pt-1 text-[11px] text-zinc-500">
-              <span className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-zinc-900/90 px-2 py-0.5 font-mono text-[10px] text-zinc-300">
-                <span className="size-1.5 rounded-full bg-emerald-400" />
-                {message.modelBadge}
-              </span>
-            </div>
-          )
         )}
       </div>
     </article>

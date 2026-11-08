@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { LockScreen } from "@/features/auth/LockScreen.tsx";
+import { useLocalAuth } from "@/features/auth/use-local-auth.ts";
 import { BotAvatar } from "@/features/bots/BotAvatar.tsx";
 import { BotEditModal } from "@/features/bots/BotEditModal.tsx";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
@@ -28,6 +30,7 @@ export function ChatExperience() {
   const [language, setLanguage] = useState<ChatLanguage>("pt");
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
+  const auth = useLocalAuth();
 
   // Dots / Grok Bot systems
   const {
@@ -83,15 +86,13 @@ export function ChatExperience() {
     ? formatModelBadge(modelConfig, false, language)
     : serverModel?.configured
       ? formatModelBadge(serverModel, false, language)
-      : formatModelBadge(null, true, language);
+      : formatModelBadge(null, false, language);
 
   async function sendMessage(value = draft) {
     const text = value.trim();
     if (!text || busy) return;
     const conversationId = conversationIdRef.current;
-    const history = [...messages, { role: "user" as const, text }].map(
-      ({ role, text: msgText }) => ({ role, text: msgText }),
-    );
+    const history = [...messages, { role: "user" as const, text }];
     const updatedMessages: MessageData[] = [
       ...messages,
       { id: getNextId(), role: "user", language, text },
@@ -120,9 +121,7 @@ export function ChatExperience() {
         language,
         text: reply.text,
         delegatedBot: reply.delegatedBot,
-        isDemo: !isConfigured,
         modelBadge: isConfigured ? activeModelLabel : undefined,
-        ...(reply.events ? { events: reply.events } : {}),
         ...(reply.github ? { github: reply.github } : {}),
       },
     ]);
@@ -136,6 +135,12 @@ export function ChatExperience() {
     setBusy(false);
   }
 
+  if (auth.hasPassword && auth.isLocked) {
+    return (
+      <LockScreen language={language} hint={auth.hint} onUnlock={auth.unlock} />
+    );
+  }
+
   return (
     <div className="dark flex h-dvh max-h-dvh w-full overflow-hidden bg-black text-zinc-100 font-sans selection:bg-zinc-800 selection:text-white">
       <ChatSidebar
@@ -144,9 +149,11 @@ export function ChatExperience() {
         activeBotId={activeBotId}
         isMobileOpen={isMobileSidebarOpen}
         isDesktopCollapsed={isDesktopCollapsed}
+        hasPassword={auth.hasPassword}
+        onLock={auth.lock}
         onToggleDesktopCollapse={() => setIsDesktopCollapsed((v) => !v)}
         onCloseMobile={() => setIsMobileSidebarOpen(false)}
-        onSelectBot={(id) => setActiveBotId(id)}
+        onSelectBot={setActiveBotId}
         onCreateBot={() => {
           setBotToEdit(null);
           setIsBotModalOpen(true);
@@ -251,9 +258,14 @@ export function ChatExperience() {
         language={language}
         currentConfig={modelConfig}
         skills={allSkills}
+        hasPassword={auth.hasPassword}
+        authHint={auth.hint}
         onClose={() => setIsSettingsOpen(false)}
-        onAddSkill={(input) => addCustomSkill(input)}
-        onRemoveSkill={(id) => removeCustomSkill(id)}
+        onAddSkill={addCustomSkill}
+        onRemoveSkill={removeCustomSkill}
+        onSetupPassword={auth.setupPassword}
+        onRemovePassword={auth.removePassword}
+        onChangePassword={auth.changePassword}
       />
 
       <BotEditModal
@@ -266,14 +278,10 @@ export function ChatExperience() {
           setIsBotModalOpen(false);
           setBotToEdit(null);
         }}
-        onSave={(updated) => {
-          if (botToEdit) {
-            saveBot(updated);
-          } else {
-            createAndActivateBot(updated);
-          }
-        }}
-        onDelete={(id) => removeBot(id)}
+        onSave={(updated) =>
+          botToEdit ? saveBot(updated) : createAndActivateBot(updated)
+        }
+        onDelete={removeBot}
       />
     </div>
   );

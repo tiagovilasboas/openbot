@@ -2,6 +2,7 @@
 
 import { Modal } from "@heroui/react";
 import { useState } from "react";
+import { SettingsSecuritySection } from "@/features/auth/SettingsSecuritySection.tsx";
 import { chatCopy } from "@/features/chat/chat-copy.ts";
 import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
 import { SettingsSkillsSection } from "@/features/skills/SettingsSkillsSection.tsx";
@@ -13,8 +14,10 @@ export interface SettingsModalProps {
   isOpen: boolean;
   language: ChatLanguage;
   currentConfig: ClientModelConfig | null;
-  initialTab?: "model" | "skills";
+  initialTab?: "model" | "skills" | "security";
   skills: SkillDefinition[];
+  hasPassword?: boolean;
+  authHint?: string | null;
   onClose: () => void;
   onSave?: (config: ClientModelConfig) => void;
   onReset?: () => void;
@@ -25,6 +28,13 @@ export interface SettingsModalProps {
     instructions: string;
   }) => void;
   onRemoveSkill: (id: string) => void;
+  onSetupPassword?: (password: string, hint?: string) => Promise<boolean>;
+  onRemovePassword?: (currentPassword: string) => Promise<boolean>;
+  onChangePassword?: (
+    current: string,
+    newPass: string,
+    newHint?: string,
+  ) => Promise<boolean>;
 }
 
 export function SettingsModal({
@@ -33,14 +43,22 @@ export function SettingsModal({
   currentConfig,
   initialTab = "model",
   skills,
+  hasPassword = false,
+  authHint = null,
   onClose,
   onSave,
   onReset,
   onAddSkill,
   onRemoveSkill,
+  onSetupPassword,
+  onRemovePassword,
+  onChangePassword,
 }: SettingsModalProps) {
-  const [activeTab, setActiveTab] = useState<"model" | "skills">(initialTab);
+  const [activeTab, setActiveTab] = useState<"model" | "skills" | "security">(
+    initialTab,
+  );
   const t = chatCopy[language];
+  const isPt = language === "pt";
 
   return (
     <Modal.Root isOpen={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -76,6 +94,21 @@ export function SettingsModal({
                   {skills.length}
                 </span>
               </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("security")}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
+                  activeTab === "security"
+                    ? "bg-zinc-800 text-white border-white/20"
+                    : "bg-zinc-900/40 text-zinc-400 border-white/5 hover:text-white"
+                }`}
+              >
+                <span>🔒</span>
+                <span>{isPt ? "Segurança" : "Security"}</span>
+                {hasPassword && (
+                  <span className="size-1.5 rounded-full bg-emerald-400" />
+                )}
+              </button>
             </div>
 
             {isOpen && activeTab === "model" && (
@@ -99,6 +132,17 @@ export function SettingsModal({
                 skills={skills}
                 onAddSkill={onAddSkill}
                 onRemoveSkill={onRemoveSkill}
+              />
+            )}
+
+            {isOpen && activeTab === "security" && (
+              <SettingsSecuritySection
+                language={language}
+                hasPassword={hasPassword}
+                hint={authHint}
+                onSetupPassword={onSetupPassword || (async () => false)}
+                onRemovePassword={onRemovePassword || (async () => false)}
+                onChangePassword={onChangePassword || (async () => false)}
               />
             )}
           </Modal.Dialog>

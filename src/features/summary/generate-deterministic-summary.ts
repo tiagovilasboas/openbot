@@ -103,18 +103,7 @@ export function generateDeterministicSummary(
     lines.push("");
   }
 
-  // 4. Fatos Verificados - Agenda
-  if (data.events && data.events.length > 0) {
-    lines.push(
-      isPt ? `**Compromissos Agendados:**` : `**Scheduled Calendar Events:**`,
-    );
-    for (const event of data.events) {
-      lines.push(`- **${event.time}** — ${event.title} (${event.detail})`);
-    }
-    lines.push("");
-  }
-
-  // 5. Sugestões de Ação (Separadas dos fatos)
+  // 4. Sugestões de Ação (Separadas dos fatos)
   lines.push(
     isPt ? `#### 💡 Sugestões de Ação` : `#### 💡 Suggested Next Steps`,
   );
@@ -132,18 +121,7 @@ export function generateDeterministicSummary(
         : `- Triage the most recent issues and categorize by priority.`,
     );
   }
-  if (data.events && data.events.length > 0) {
-    lines.push(
-      isPt
-        ? `- Organizar pausas e foco antes do primeiro compromisso do dia.`
-        : `- Prepare notes and align focus before the day's first meeting.`,
-    );
-  }
-  if (
-    prs.length === 0 &&
-    issues.length === 0 &&
-    (!data.events || data.events.length === 0)
-  ) {
+  if (prs.length === 0 && issues.length === 0) {
     lines.push(
       isPt
         ? `- Repositório sem pendências abertas. Bom momento para avançar no roadmap.`
@@ -152,11 +130,11 @@ export function generateDeterministicSummary(
   }
   lines.push("");
 
-  // 6. Rodapé de Fontes
+  // 5. Rodapé de Fontes
   lines.push(
     isPt
-      ? `*Fontes: GitHub API v3 (somente leitura)${data.events ? " · Agenda local" : ""}*`
-      : `*Sources: GitHub API v3 (read-only)${data.events ? " · Local calendar" : ""}*`,
+      ? `*Fontes: GitHub API v3 (somente leitura)*`
+      : `*Sources: GitHub API v3 (read-only)*`,
   );
 
   return lines.join("\n");

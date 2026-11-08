@@ -10,7 +10,7 @@ export function formatSummaryPrompt(
   data: SummaryDataSource,
   language: ChatLanguage,
   userQuery: string,
-  kind: SummaryRequestKind = "repo_summary",
+  _kind: SummaryRequestKind = "repo_summary",
 ): PromptMessage {
   const isPt = language === "pt";
   const items = data.items ?? [];
@@ -80,13 +80,6 @@ export function formatSummaryPrompt(
     }
   } else if (data.repo) {
     contextLines.push(`GitHub: Repositório sem issues ou PRs abertos.`);
-  }
-
-  if (data.events && data.events.length > 0) {
-    contextLines.push(`Agenda:`);
-    for (const ev of data.events) {
-      contextLines.push(`- ${ev.time}: ${ev.title} (${ev.detail})`);
-    }
   }
 
   contextLines.push("");

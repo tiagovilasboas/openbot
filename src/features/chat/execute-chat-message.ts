@@ -1,5 +1,4 @@
 import type { BotProfile } from "@/features/bots/bot-types.ts";
-import type { CalendarEvent } from "@/features/calendar/list-example-events.ts";
 import { detectGitHubRequest } from "@/features/github/detect-github-request.ts";
 import type {
   GitHubItem,
@@ -13,12 +12,14 @@ import { executeSummary } from "@/features/summary/execute-summary.ts";
 import { chatCopy } from "./chat-copy.ts";
 import { findMentionedBot } from "./find-mentioned-bot.ts";
 import { requestModelReply } from "./request-model-reply.ts";
-import { respondToMessage, type ChatLanguage } from "./respond-to-message.ts";
+import {
+  getUnconfiguredModelMessage,
+  type ChatLanguage,
+} from "./respond-to-message.ts";
 
 export interface ChatReplyOutcome {
   text: string;
   delegatedBot?: BotProfile;
-  events?: CalendarEvent[];
   github?: { repo: GitHubRepoRef; items: GitHubItem[] };
 }
 
@@ -82,7 +83,6 @@ export async function executeChatMessage({
     return {
       text: outcome.text,
       delegatedBot,
-      events: outcome.events,
       github: outcome.github,
     };
   }
@@ -124,22 +124,7 @@ export async function executeChatMessage({
     return { text: errorText, delegatedBot };
   }
 
-  // 3. Demo / Calendar Detection
-  const demo = respondToMessage(text, language);
-  if (demo.kind === "calendar") {
-    if (!executingBot.skills.includes("calendar")) {
-      return {
-        text: isPt
-          ? `A skill de **Agenda** está desativada no bot **${executingBot.name}**.`
-          : `The **Calendar** skill is disabled on bot **${executingBot.name}**.`,
-        delegatedBot,
-      };
-    }
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    return { text: demo.text, events: demo.events, delegatedBot };
-  }
-
-  // 4. Model Reply with Bot System Prompt
+  // 3. Model Reply with Bot System Prompt
   const outcome = await requestModelReply(
     language,
     history,
@@ -151,7 +136,7 @@ export async function executeChatMessage({
     return { text: outcome.text, delegatedBot };
   }
   if (outcome.kind === "unavailable") {
-    return { text: demo.text, delegatedBot };
+    return { text: getUnconfiguredModelMessage(language), delegatedBot };
   }
   return { text: content.modelError, delegatedBot };
 }

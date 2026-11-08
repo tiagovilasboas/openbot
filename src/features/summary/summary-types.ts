@@ -1,4 +1,3 @@
-import type { CalendarEvent } from "../calendar/list-example-events.ts";
 import type {
   GitHubErrorCode,
   GitHubItem,
@@ -13,7 +12,6 @@ export type DetectedSummaryRequest =
       isSummary: true;
       kind: SummaryRequestKind;
       repo: GitHubRepoRef;
-      includeCalendar: boolean;
     }
   | {
       isSummary: false;
@@ -23,8 +21,6 @@ export interface SummaryDataSource {
   repo?: GitHubRepoRef;
   items?: GitHubItem[];
   githubError?: GitHubErrorCode | null;
-  events?: CalendarEvent[];
-  calendarError?: string | null;
 }
 
 export interface SummaryContext {
@@ -34,7 +30,6 @@ export interface SummaryContext {
 
 export interface SummaryOutcome {
   text: string;
-  events?: CalendarEvent[];
   github?: {
     repo: GitHubRepoRef;
     items: GitHubItem[];

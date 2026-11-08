@@ -137,10 +137,16 @@ export function ChatEmptyState({
 
         <button
           type="button"
-          onClick={() => onSelectPrompt(content.prompt)}
+          onClick={() =>
+            onSelectPrompt(
+              language === "pt"
+                ? "pull requests de tiagovilasboas/openbot"
+                : "pull requests of tiagovilasboas/openbot",
+            )
+          }
           className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-zinc-900/70 px-3.5 py-1.5 text-xs text-zinc-300 backdrop-blur-sm transition-all hover:border-white/25 hover:bg-zinc-800 hover:text-white active:scale-95"
         >
-          <span className="text-emerald-400">📅</span>
+          <span className="text-purple-400 text-xs font-semibold">⎇</span>
           <span>{content.prompt}</span>
         </button>
 

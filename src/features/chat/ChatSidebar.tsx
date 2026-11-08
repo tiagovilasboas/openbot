@@ -17,6 +17,8 @@ export interface ChatSidebarProps {
   onCreateBot: () => void;
   onEditBot: (bot: BotProfile) => void;
   onOpenSettings: () => void;
+  hasPassword?: boolean;
+  onLock?: () => void;
 }
 
 function PlusIcon({ className }: { className?: string }) {
@@ -59,6 +61,8 @@ function SidebarContent({
   onCreateBot,
   onEditBot,
   onOpenSettings,
+  hasPassword,
+  onLock,
 }: {
   language: ChatLanguage;
   bots: BotProfile[];
@@ -68,6 +72,8 @@ function SidebarContent({
   onCreateBot: () => void;
   onEditBot: (bot: BotProfile) => void;
   onOpenSettings: () => void;
+  hasPassword?: boolean;
+  onLock?: () => void;
 }) {
   const isPt = language === "pt";
 
@@ -151,7 +157,22 @@ function SidebarContent({
       </div>
 
       {/* Footer / Settings */}
-      <div className="border-t border-white/10 pt-3">
+      <div className="border-t border-white/10 pt-3 flex flex-col gap-1.5">
+        {hasPassword && onLock && (
+          <Button
+            size="sm"
+            variant="secondary"
+            onPress={onLock}
+            className={`w-full justify-start gap-2 border border-white/10 bg-zinc-900/60 text-zinc-400 hover:bg-zinc-800 hover:text-white ${
+              isCollapsed ? "justify-center px-0" : ""
+            }`}
+          >
+            <span className="text-xs">🔒</span>
+            {!isCollapsed && (
+              <span className="text-xs">{isPt ? "Bloquear" : "Lock"}</span>
+            )}
+          </Button>
+        )}
         <Button
           size="sm"
           variant="secondary"
