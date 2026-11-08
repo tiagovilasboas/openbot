@@ -226,6 +226,20 @@ test("adapters map failures to typed errors", async () => {
   );
 });
 
+test("router adapter captures upstream error detail when available", async () => {
+  const router = createRouterAdapter({
+    baseUrl: "https://openrouter.ai/api/v1",
+    model: "meta-llama/llama-3.3-70b-instruct:free",
+    fetchImpl: jsonFetch({ error: { message: "Invalid API key" } }, 401),
+  });
+  const result = await router.generateReply(request);
+  assert.equal(result.ok, false);
+  if (!result.ok) {
+    assert.equal(result.code, "provider_rejected");
+    assert.equal(result.detail, "401: Invalid API key");
+  }
+});
+
 test("anthropic adapter sends the key only as a header", async () => {
   let seen: RequestInit | undefined;
   const adapter = createAnthropicAdapter({

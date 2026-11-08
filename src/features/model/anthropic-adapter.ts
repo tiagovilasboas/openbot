@@ -46,7 +46,22 @@ export function createAnthropicAdapter(
       }
 
       if (!response.ok) {
-        return { ok: false, code: "provider_rejected", provider: "anthropic" };
+        const errorPayload = (await response.json().catch(() => null)) as {
+          error?: { message?: unknown };
+        } | null;
+        const msg =
+          typeof errorPayload?.error?.message === "string"
+            ? errorPayload.error.message.trim()
+            : null;
+        const detail = msg
+          ? `${response.status}: ${msg}`
+          : `HTTP ${response.status}`;
+        return {
+          ok: false,
+          code: "provider_rejected",
+          provider: "anthropic",
+          detail,
+        };
       }
 
       const payload: unknown = await response.json().catch(() => null);

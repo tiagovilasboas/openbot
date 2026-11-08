@@ -85,6 +85,7 @@ export function SettingsForm({
   const [testResult, setTestResult] = useState<{
     ok: boolean;
     error?: string;
+    detail?: string;
   } | null>(null);
 
   function getCandidateConfig(): ClientModelConfig | null {
@@ -130,7 +131,9 @@ export function SettingsForm({
     const result = await testModelConnection(candidate);
     setIsTesting(false);
     setTestResult(
-      result.ok ? { ok: true } : { ok: false, error: result.error },
+      result.ok
+        ? { ok: true }
+        : { ok: false, error: result.error, detail: result.detail },
     );
   }
 
@@ -226,7 +229,7 @@ export function SettingsForm({
               >
                 {testResult.ok
                   ? content.testSuccess
-                  : `${content.testFailed}: ${testResult.error}`}
+                  : `${content.testFailed}: ${testResult.detail ? `${testResult.error} (${testResult.detail})` : testResult.error}`}
               </Chip>
             </div>
           )}

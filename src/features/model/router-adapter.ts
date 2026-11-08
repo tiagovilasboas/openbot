@@ -52,7 +52,22 @@ export function createRouterAdapter(config: RouterAdapterConfig): ModelAdapter {
       }
 
       if (!response.ok) {
-        return { ok: false, code: "provider_rejected", provider: "router" };
+        const errorPayload = (await response.json().catch(() => null)) as {
+          error?: { message?: unknown };
+        } | null;
+        const msg =
+          typeof errorPayload?.error?.message === "string"
+            ? errorPayload.error.message.trim()
+            : null;
+        const detail = msg
+          ? `${response.status}: ${msg}`
+          : `HTTP ${response.status}`;
+        return {
+          ok: false,
+          code: "provider_rejected",
+          provider: "router",
+          detail,
+        };
       }
 
       const payload: unknown = await response.json().catch(() => null);

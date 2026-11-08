@@ -31,7 +31,12 @@ export async function POST(request: Request) {
 
   if (!result.ok) {
     return Response.json(
-      { ok: false, error: result.code, provider: result.provider },
+      {
+        ok: false,
+        error: result.code,
+        provider: result.provider,
+        ...(result.detail ? { detail: result.detail } : {}),
+      },
       { status: 502 },
     );
   }
