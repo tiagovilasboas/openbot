@@ -258,31 +258,3 @@ test("anthropic adapter sends the key only as a header", async () => {
   );
   assert.equal(String(seen?.body).includes("secret-key"), false);
 });
-
-test("selectAdapter creates sandbox adapter and generates simulated replies", async () => {
-  const adapter = selectAdapter(
-    {},
-    { provider: "sandbox", model: "chief-sim-v1" },
-  );
-  assert.ok(adapter);
-  assert.equal(adapter.provider, "sandbox");
-  assert.equal(adapter.model, "chief-sim-v1");
-
-  const ping = await adapter.generateReply({
-    language: "pt",
-    messages: [{ role: "user", text: "Ping" }],
-  });
-  assert.equal(ping.ok, true);
-  if (ping.ok) {
-    assert.match(ping.text, /Pong/);
-  }
-
-  const help = await adapter.generateReply({
-    language: "en",
-    messages: [{ role: "user", text: "help me" }],
-  });
-  assert.equal(help.ok, true);
-  if (help.ok) {
-    assert.match(help.text, /Chief of Staff/);
-  }
-});

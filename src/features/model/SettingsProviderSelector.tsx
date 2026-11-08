@@ -45,23 +45,13 @@ export function SettingsProviderSelector({
         >
           {content.providerAnthropic}
         </Button>
-        <Button
-          size="sm"
-          className="flex-1 text-xs"
-          variant={provider === "sandbox" ? "primary" : "secondary"}
-          onPress={() => onSelectProvider("sandbox")}
-        >
-          {content.providerSandbox}
-        </Button>
       </ButtonGroup>
       <p className="mt-1.5 text-xs text-muted">
         {provider === "router"
           ? content.providerRouterHint
           : provider === "local"
             ? content.providerLocalHint
-            : provider === "anthropic"
-              ? content.providerAnthropicHint
-              : content.providerSandboxHint}
+            : content.providerAnthropicHint}
       </p>
     </div>
   );

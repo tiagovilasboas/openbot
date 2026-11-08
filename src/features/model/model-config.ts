@@ -1,4 +1,4 @@
-export type ModelProviderType = "router" | "local" | "anthropic" | "sandbox";
+export type ModelProviderType = "router" | "local" | "anthropic";
 
 export type RouterConfig = {
   provider: "router";
@@ -19,13 +19,7 @@ export type AnthropicConfig = {
   model: string;
 };
 
-export type SandboxConfig = {
-  provider: "sandbox";
-  model: string;
-};
-
-export type ClientModelConfig =
-  RouterConfig | LocalConfig | AnthropicConfig | SandboxConfig;
+export type ClientModelConfig = RouterConfig | LocalConfig | AnthropicConfig;
 
 export const MODEL_CONFIG_STORAGE_KEY = "openbot_model_config";
 
@@ -123,20 +117,6 @@ export function validateClientModelConfig(
       provider: "anthropic",
       apiKey: candidate.apiKey.trim(),
       model: candidate.model.trim(),
-    };
-  }
-
-  if (provider === "sandbox") {
-    const model =
-      typeof candidate.model === "string" && candidate.model.trim()
-        ? candidate.model.trim()
-        : "chief-sim-v1";
-    if (model.length > maxModelLength) {
-      return null;
-    }
-    return {
-      provider: "sandbox",
-      model,
     };
   }
 
@@ -238,11 +218,7 @@ export function formatModelBadge(
         ? "Local"
         : config.provider === "anthropic"
           ? "Anthropic"
-          : config.provider === "sandbox"
-            ? language === "pt"
-              ? "Simulador"
-              : "Sandbox"
-            : config.provider;
+          : config.provider;
 
   if (config.model && config.model.trim()) {
     return `${providerLabel}: ${config.model.trim()}`;
