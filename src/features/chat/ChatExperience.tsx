@@ -195,7 +195,7 @@ export function ChatExperience() {
               <section
                 aria-label={content.conversationLabel}
                 aria-live="polite"
-                className="mx-auto flex w-full max-w-3xl flex-col gap-5"
+                className="flex w-full flex-col gap-5"
               >
                 {messages.map((message) => (
                   <ChatMessageItem
@@ -229,7 +229,7 @@ export function ChatExperience() {
             </div>
 
             <footer className="shrink-0 border-t border-white/5 bg-black/90 p-3 sm:px-6 backdrop-blur-xl">
-              <div className="mx-auto w-full max-w-3xl">
+              <div className="w-full">
                 <ChatComposer
                   mode="docked"
                   language={language}
