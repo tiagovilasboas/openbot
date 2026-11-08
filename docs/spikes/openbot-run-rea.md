@@ -77,3 +77,13 @@ Para portar os pontos mais fortes do `openbot.run` para a nossa arquitetura PWA,
      - LiquidAI LFM3-1.7B (`liquid/lfm-3-1.7b:free`)
      - Parallel Decisions Fast (`parallel/decisions-fast:free`)
      - HeyGen Voice Turbo (`heygen/voice-turbo:free`)
+
+---
+
+## 5. Artefatos de Especificação e Roadmap
+
+Os desdobramentos deste REA foram estruturados nos seguintes documentos:
+
+1. **[Especificações de Casos de Uso (UC-01 a UC-12)](../specs/use-cases-openbot-run.md):** Especificação completa de cada capacidade identificada no `openbot.run` e adaptada para o PWA.
+2. **[Features, Roadmap e Tasks Detalhadas](../roadmap/features-and-tasks.md):** Rastreabilidade de implementação, tarefas em Story Points (Fibonacci 1-5) e backlog por ondas.
+3. **[Arquitetura e Camadas do Sistema](../architecture/layers.md):** Mapa em 4 camadas seguindo Screaming Architecture e Clean Code.
