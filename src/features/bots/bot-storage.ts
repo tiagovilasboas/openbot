@@ -64,7 +64,7 @@ export function sanitizeBotProfile(raw: unknown): BotProfile | null {
     ? obj.skills.filter(
         (s): s is string => typeof s === "string" && Boolean(s.trim()),
       )
-    : ["github", "calendar", "summary"];
+    : [];
 
   return {
     id,
@@ -228,7 +228,7 @@ export function createBotProfile(input: {
       "Você é um assistente prestativo e especializado.",
     avatarShape: input.avatarShape ?? "hex",
     avatarColor: input.avatarColor ?? "cyan",
-    skills: input.skills ?? ["github", "calendar", "summary"],
+    skills: input.skills ?? [],
     createdAt: now,
     updatedAt: now,
   };

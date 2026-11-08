@@ -59,19 +59,7 @@ export function ChatComposer({
 
   function handleSelectSkill(skill: SkillDefinition) {
     setShowPaletteManual(false);
-    if (skill.id === "summary") {
-      onDraftChange(
-        language === "pt" ? "Briefing de hoje" : "Today's Briefing",
-      );
-    } else if (skill.id === "calendar") {
-      onDraftChange(
-        language === "pt" ? "Agenda de exemplo" : "Sample calendar",
-      );
-    } else if (skill.id === "github") {
-      onDraftChange("Issues de tiagovilasboas/openbot");
-    } else {
-      onDraftChange(`${skill.command} `);
-    }
+    onDraftChange(`${skill.command} `);
   }
 
   function handleSelectBot(bot: BotProfile) {

@@ -93,34 +93,45 @@ export function SettingsSkillsSection({
 
       {tab === "list" ? (
         <div className="flex flex-col gap-2.5 max-h-[50vh] overflow-y-auto pr-1">
-          {skills.map((skill) => (
-            <div
-              key={skill.id}
-              className="flex items-start justify-between gap-3 p-3 rounded-2xl bg-zinc-900/60 border border-white/5 hover:border-white/15 transition-all"
-            >
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-white">
-                    {skill.name}
-                  </span>
-                  <span className="font-mono text-[10px] text-cyan-400 bg-cyan-950/60 border border-cyan-800/40 px-1.5 py-0.5 rounded-md">
-                    {skill.command}
-                  </span>
-                  {skill.isBuiltin && (
-                    <span className="text-[10px] font-medium text-emerald-400 bg-emerald-950/50 border border-emerald-800/30 px-1.5 py-0.5 rounded-md">
-                      {t.skillBuiltin}
+          {skills.length === 0 ? (
+            <div className="flex flex-col items-center justify-center p-8 rounded-2xl border border-dashed border-white/10 text-center gap-2">
+              <span className="text-2xl">🧩</span>
+              <p className="text-xs text-zinc-400">
+                {language === "pt"
+                  ? "Nenhuma skill cadastrada ainda. Crie suas próprias skills personalizadas!"
+                  : "No skills configured yet. Create your own custom skills!"}
+              </p>
+              <button
+                type="button"
+                onClick={() => setTab("create")}
+                className="mt-1 px-3 py-1.5 rounded-xl bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 text-xs font-semibold hover:bg-cyan-900/80"
+              >
+                + {t.skillsCreateTab}
+              </button>
+            </div>
+          ) : (
+            skills.map((skill) => (
+              <div
+                key={skill.id}
+                className="flex items-start justify-between gap-3 p-3 rounded-2xl bg-zinc-900/60 border border-white/5 hover:border-white/15 transition-all"
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-white">
+                      {skill.name}
                     </span>
-                  )}
+                    <span className="font-mono text-[10px] text-cyan-400 bg-cyan-950/60 border border-cyan-800/40 px-1.5 py-0.5 rounded-md">
+                      {skill.command}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-zinc-300">
+                    {skill.description}
+                  </p>
+                  <p className="mt-1.5 text-[11px] text-zinc-500 line-clamp-2 font-mono">
+                    {skill.instructions}
+                  </p>
                 </div>
-                <p className="mt-1 text-xs text-zinc-300">
-                  {skill.description}
-                </p>
-                <p className="mt-1.5 text-[11px] text-zinc-500 line-clamp-2 font-mono">
-                  {skill.instructions}
-                </p>
-              </div>
 
-              {!skill.isBuiltin && (
                 <Button
                   size="sm"
                   variant="ghost"
@@ -129,9 +140,9 @@ export function SettingsSkillsSection({
                 >
                   {t.skillDelete}
                 </Button>
-              )}
-            </div>
-          ))}
+              </div>
+            ))
+          )}
         </div>
       ) : (
         <div className="flex flex-col gap-3.5">

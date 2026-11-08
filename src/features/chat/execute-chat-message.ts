@@ -58,11 +58,11 @@ export async function executeChatMessage({
       ? "You are the Chief of Staff, the general coordinator of the bot team. Your role is to plan, synthesize repository/calendar information, and coordinate/delegate tasks to specialist bots when needed."
       : executingBot.description;
 
-  // Build system prompt from executing bot + enabled custom skills
-  const enabledCustomSkills = allSkills.filter(
-    (s) => !s.isBuiltin && executingBot.skills.includes(s.id),
+  // Build system prompt from executing bot + enabled skills
+  const enabledSkills = allSkills.filter((s) =>
+    executingBot.skills.includes(s.id),
   );
-  const skillSnippets = enabledCustomSkills
+  const skillSnippets = enabledSkills
     .map((s) => `[Skill ${s.name} (${s.command})]: ${s.instructions}`)
     .join("\n");
   const fullSystemPrompt = skillSnippets
@@ -72,14 +72,6 @@ export async function executeChatMessage({
   // 1. Summary Detection
   const summaryDetected = detectSummaryRequest(text);
   if (summaryDetected.isSummary) {
-    if (!executingBot.skills.includes("summary")) {
-      return {
-        text: isPt
-          ? `A skill de **Resumo & Briefing** está desativada no bot **${executingBot.name}**. Habilite-a nas configurações do bot para usar.`
-          : `The **Summary & Briefing** skill is disabled on bot **${executingBot.name}**. Enable it in bot settings.`,
-        delegatedBot,
-      };
-    }
     const outcome = await executeSummary(
       summaryDetected,
       language,
@@ -98,14 +90,6 @@ export async function executeChatMessage({
   // 2. GitHub Request Detection
   const githubDetected = detectGitHubRequest(text);
   if (githubDetected.isGitHubRequest) {
-    if (!executingBot.skills.includes("github")) {
-      return {
-        text: isPt
-          ? `A skill do **GitHub** está desativada no bot **${executingBot.name}**. Habilite-a nas configurações do bot para consultar repositórios.`
-          : `The **GitHub** skill is disabled on bot **${executingBot.name}**. Enable it in bot settings.`,
-        delegatedBot,
-      };
-    }
     const result = await listRepositoryItems(githubDetected.repo, gitHubToken);
     if (result.ok) {
       let items = result.items;
