@@ -1,3 +1,5 @@
+import type { SkillDefinition } from "../skills/skill-types.ts";
+
 export type AvatarShape =
   | "hexagon"
   | "square"
@@ -32,7 +34,8 @@ export interface BotProfile {
   workspaceContext?: string;
   avatarShape: AvatarShape;
   avatarColor: AvatarColor;
-  skills: string[];
+  /** Skills this bot owns: they enter its prompt and its / palette only. */
+  skills: SkillDefinition[];
   createdAt: string;
   updatedAt: string;
 }

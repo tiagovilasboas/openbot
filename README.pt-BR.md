@@ -64,7 +64,7 @@ Você pode editar qualquer um deles ou criar o seu, do zero ou a partir de um mo
 | Briefing               | Resume dados reais do repositório. Sem modelo, monta o resumo com os mesmos dados.                                                                                                    |
 | Failover               | Quando o modelo do router falha, o servidor tenta uma vez um modelo reserva, por padrão um modelo gratuito do OpenRouter, e a resposta mostra a troca.                                |
 | Fila de mensagens      | O que você envia enquanto um bot responde espera a vez, na ordem.                                                                                                                     |
-| Skills                 | Escreva uma skill em Configurações, ou cole um `SKILL.md`, e rode como `/comando`.                                                                                                    |
+| Skills                 | Cada bot guarda as próprias skills. Escreva uma ao editar o bot, ou cole um `SKILL.md`, e rode como `/comando`.                                                                       |
 | Bloqueio local         | Senha opcional que bloqueia o app neste aparelho. O hash é feito com PBKDF2 no navegador.                                                                                             |
 | Dois idiomas           | Português brasileiro e inglês, com troca a qualquer momento.                                                                                                                          |
 

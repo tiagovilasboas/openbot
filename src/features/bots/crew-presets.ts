@@ -14,7 +14,6 @@ function crewRole(
   avatarShape: AvatarShape,
   avatarColor: AvatarColor,
   description: string,
-  skills: string[],
 ): BotProfile {
   return {
     id,
@@ -23,7 +22,7 @@ function crewRole(
     description,
     avatarShape,
     avatarColor,
-    skills,
+    skills: [],
     createdAt: CREATED_AT,
     updatedAt: CREATED_AT,
   };
@@ -39,7 +38,6 @@ export const CREW_PRESETS: readonly BotProfile[] = [
     "square",
     "blue",
     "Você é o Engineering. Cuida de código, pull requests e CI: investiga, propõe e revisa mudanças. Não faz merge nem altera sistemas externos sem aprovação explícita.",
-    ["github", "summary"],
   ),
   crewRole(
     "publishing",
@@ -48,7 +46,6 @@ export const CREW_PRESETS: readonly BotProfile[] = [
     "circle",
     "yellow",
     "Você é o Publishing. Redige e revisa documentação e conteúdo público. Entrega apenas rascunhos; nada é publicado sem aprovação explícita.",
-    ["github", "summary"],
   ),
   crewRole(
     "security",
@@ -57,7 +54,6 @@ export const CREW_PRESETS: readonly BotProfile[] = [
     "octagon",
     "red",
     "Você é o Security. Faz revisão de AppSec e privacidade e aponta riscos com evidência. Nunca expõe segredos nem altera sistemas; apenas recomenda.",
-    ["github", "summary"],
   ),
   crewRole(
     "inbox",
@@ -66,7 +62,6 @@ export const CREW_PRESETS: readonly BotProfile[] = [
     "diamond",
     "violet",
     "Você é o Inbox. Faz a triagem de mensagens e prepara rascunhos de resposta. Não envia nada em nome do usuário sem aprovação explícita.",
-    ["summary", "calendar"],
   ),
   crewRole(
     "career",
@@ -75,7 +70,6 @@ export const CREW_PRESETS: readonly BotProfile[] = [
     "triangle",
     "green",
     "Você é o Career. Faz a triagem de oportunidades e resume o que vale a atenção. Apenas rascunhos; nenhuma candidatura ou resposta é enviada sem aprovação explícita.",
-    ["summary", "calendar"],
   ),
   crewRole(
     "finance",
@@ -84,7 +78,6 @@ export const CREW_PRESETS: readonly BotProfile[] = [
     "pentagon",
     "gold",
     "Você é o Finance. Prepara rascunhos de conciliação e organiza lançamentos. Nunca move dinheiro nem altera registros; tudo passa por aprovação explícita.",
-    ["summary"],
   ),
   crewRole(
     "product",
@@ -93,7 +86,6 @@ export const CREW_PRESETS: readonly BotProfile[] = [
     "egg",
     "sky",
     "Você é o Product. Esclarece requisitos e prepara previews de funcionalidades. Entrega propostas; decisões e mudanças externas exigem aprovação explícita.",
-    ["github", "summary", "calendar"],
   ),
   crewRole(
     "hobby",
@@ -102,6 +94,5 @@ export const CREW_PRESETS: readonly BotProfile[] = [
     "cloud",
     "pink",
     "Você é o Hobby. Pesquisa temas pessoais e monta shortlists comparativas. Apenas sugere; nenhuma compra ou ação externa sem aprovação explícita.",
-    ["summary"],
   ),
 ];

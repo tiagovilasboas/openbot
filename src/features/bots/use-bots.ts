@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useSyncExternalStore } from "react";
+import type { SkillDefinition } from "@/features/skills/skill-types.ts";
 import {
   createBotProfile,
   deleteBotFromList,
@@ -18,12 +19,18 @@ import {
   type AvatarShape,
   type BotProfile,
 } from "./bot-types.ts";
+import { migrateLegacySkills } from "./legacy-skills-migration.ts";
 
 const SERVER_BOTS: BotProfile[] = [DEFAULT_BOT];
 const getServerBots = () => SERVER_BOTS;
 const getServerActiveBotId = () => DEFAULT_BOT.id;
 
 export function useBots() {
+  // Moves the old global skill library into the bots, once per browser.
+  useEffect(() => {
+    migrateLegacySkills();
+  }, []);
+
   const bots = useSyncExternalStore(
     subscribeBots,
     loadBotsFromStorage,
@@ -58,7 +65,7 @@ export function useBots() {
       description?: string;
       avatarShape?: AvatarShape;
       avatarColor?: AvatarColor;
-      skills?: string[];
+      skills?: SkillDefinition[];
     }): BotProfile => {
       const newBot = createBotProfile(input);
       const currentBots = loadBotsFromStorage();

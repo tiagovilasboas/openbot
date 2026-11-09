@@ -2,7 +2,7 @@
 
 import { useRef, type KeyboardEvent } from "react";
 
-export type SettingsTabId = "model" | "skills" | "security";
+export type SettingsTabId = "model" | "security";
 
 export interface SettingsTabItem {
   id: SettingsTabId;

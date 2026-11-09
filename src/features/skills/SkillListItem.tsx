@@ -2,19 +2,19 @@
 
 import { fillCopy } from "@/features/model/settings-copy.ts";
 import { TrashIcon } from "@/shared/ui/FieldIcons.tsx";
-import type { getSkillsCopy } from "./skills-copy.ts";
+import type { SkillsCopy } from "./skills-copy.ts";
 import type { SkillDefinition } from "./skill-types.ts";
 
 export interface SkillListItemProps {
   skill: SkillDefinition;
-  copy: ReturnType<typeof getSkillsCopy>;
+  copy: SkillsCopy;
   isConfirming: boolean;
   onAskRemove: () => void;
   onCancelRemove: () => void;
   onConfirmRemove: () => void;
 }
 
-/** One installed skill, with an inline two-step remove confirmation. */
+/** One of a bot's skills, with an inline two-step remove confirmation. */
 export function SkillListItem({
   skill,
   copy: c,

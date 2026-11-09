@@ -5,8 +5,6 @@ import { SettingsSecuritySection } from "@/features/auth/SettingsSecuritySection
 import { chatCopy } from "@/features/chat/chat-copy.ts";
 import { LanguageToggle } from "@/features/chat/LanguageToggle.tsx";
 import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
-import { SettingsSkillsSection } from "@/features/skills/SettingsSkillsSection.tsx";
-import type { SkillDefinition } from "@/features/skills/skill-types.ts";
 import type { ClientModelConfig } from "./model-config.ts";
 import { ResponsiveSheet } from "@/shared/ui/ResponsiveSheet.tsx";
 import { SettingsForm } from "./SettingsForm.tsx";
@@ -18,20 +16,12 @@ export interface SettingsModalProps {
   language: ChatLanguage;
   onLanguageChange?: (language: ChatLanguage) => void;
   currentConfig: ClientModelConfig | null;
-  initialTab?: "model" | "skills" | "security";
-  skills: SkillDefinition[];
+  initialTab?: SettingsTabId;
   hasPassword?: boolean;
   authHint?: string | null;
   onClose: () => void;
   onSave?: (config: ClientModelConfig) => void;
   onReset?: () => void;
-  onAddSkill: (input: {
-    name: string;
-    command?: string;
-    description?: string;
-    instructions: string;
-  }) => void;
-  onRemoveSkill: (id: string) => void;
   onSetupPassword?: (password: string, hint?: string) => Promise<boolean>;
   onRemovePassword?: (currentPassword: string) => Promise<boolean>;
   onChangePassword?: (
@@ -47,14 +37,11 @@ export function SettingsModal({
   onLanguageChange,
   currentConfig,
   initialTab = "model",
-  skills,
   hasPassword = false,
   authHint = null,
   onClose,
   onSave,
   onReset,
-  onAddSkill,
-  onRemoveSkill,
   onSetupPassword,
   onRemovePassword,
   onChangePassword,
@@ -77,11 +64,6 @@ export function SettingsModal({
           onChange={setActiveTab}
           tabs={[
             { id: "model", label: s.tabModel },
-            {
-              id: "skills",
-              label: s.tabSkills,
-              badge: skills.length > 0 ? String(skills.length) : undefined,
-            },
             {
               id: "security",
               label: s.tabSecurity,
@@ -121,16 +103,6 @@ export function SettingsModal({
             onClose={onClose}
             onSave={onSave}
             onReset={onReset}
-          />
-        </div>
-
-        <div hidden={activeTab !== "skills"}>
-          <SettingsSkillsSection
-            language={language}
-            skills={skills}
-            isActive={activeTab === "skills"}
-            onAddSkill={onAddSkill}
-            onRemoveSkill={onRemoveSkill}
           />
         </div>
 

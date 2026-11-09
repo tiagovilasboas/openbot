@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
+import { BotSkillsEditor } from "@/features/skills/BotSkillsEditor.tsx";
 import type { SkillDefinition } from "@/features/skills/skill-types.ts";
 import {
   FormField,
@@ -12,7 +13,6 @@ import { ResponsiveSheet, SheetFooter } from "@/shared/ui/ResponsiveSheet.tsx";
 import { BotAvatar } from "./BotAvatar.tsx";
 import { BotAvatarPickers } from "./BotAvatarPickers.tsx";
 import { BotDeleteControl } from "./BotDeleteControl.tsx";
-import { BotSkillsSelector } from "./BotSkillsSelector.tsx";
 import { BotTemplatePicker } from "./BotTemplatePicker.tsx";
 import type { BotTemplate } from "./bot-templates.ts";
 import type { AvatarColor, AvatarShape, BotProfile } from "./bot-types.ts";
@@ -21,7 +21,6 @@ import { getBotsCopy } from "./bots-copy.ts";
 interface BotEditModalProps {
   isOpen: boolean;
   bot: BotProfile | null;
-  allSkills: SkillDefinition[];
   language: ChatLanguage;
   canDelete: boolean;
   onClose: () => void;
@@ -69,7 +68,6 @@ function AutoTextarea({
 
 function BotEditForm({
   bot,
-  allSkills,
   language,
   canDelete,
   onClose,
@@ -92,9 +90,7 @@ function BotEditForm({
   const [avatarColor, setAvatarColor] = useState<AvatarColor>(
     bot?.avatarColor || "cyan",
   );
-  const [selectedSkills, setSelectedSkills] = useState<string[]>(
-    bot?.skills || [],
-  );
+  const [skills, setSkills] = useState<SkillDefinition[]>(bot?.skills ?? []);
   const [templateId, setTemplateId] = useState<string | null>(null);
 
   const isValid = name.trim().length > 0;
@@ -129,20 +125,12 @@ function BotEditForm({
       workspaceContext: workspaceContext.trim() || undefined,
       avatarShape,
       avatarColor,
-      skills: selectedSkills,
+      skills,
       createdAt: bot?.createdAt || now,
       updatedAt: now,
     };
     onSave(updated);
     onClose();
-  }
-
-  function toggleSkill(skillId: string) {
-    setSelectedSkills((curr) =>
-      curr.includes(skillId)
-        ? curr.filter((id) => id !== skillId)
-        : [...curr, skillId],
-    );
   }
 
   return (
@@ -239,11 +227,10 @@ function BotEditForm({
         )}
       </FormField>
 
-      <BotSkillsSelector
-        allSkills={allSkills}
-        selectedSkills={selectedSkills}
-        isPt={isPt}
-        onToggleSkill={toggleSkill}
+      <BotSkillsEditor
+        language={language}
+        skills={skills}
+        onChange={setSkills}
       />
 
       <SheetFooter>
