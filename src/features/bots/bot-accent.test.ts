@@ -56,7 +56,7 @@ test("black maps to a light neutral graphite accent", () => {
 });
 
 test("unknown legacy colors fall back to the cyan accent", () => {
-  assert.equal(botAccent("teal" as AvatarColor), botAccent("cyan"));
+  assert.equal(botAccent("chartreuse" as AvatarColor), botAccent("cyan"));
 });
 
 test("avatar tones keep bright bots vivid and the graphite bot dark", () => {

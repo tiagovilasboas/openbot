@@ -16,6 +16,10 @@ const BOT_ACCENTS: Record<AvatarColor, string> = {
   orange: "oklch(0.78 0.15 58)",
   red: "oklch(0.7 0.18 24)",
   black: "oklch(0.82 0.01 264)",
+  teal: "oklch(0.8 0.12 185)",
+  sky: "oklch(0.78 0.12 235)",
+  pink: "oklch(0.76 0.16 350)",
+  gold: "oklch(0.84 0.14 85)",
 };
 
 /* Share of the accent mixed into the ground for the avatar body. */

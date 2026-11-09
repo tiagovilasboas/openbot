@@ -1,6 +1,25 @@
 @import "tailwindcss";
 @import "@heroui/styles";
 
+/* Bot avatar blink: eyes squash briefly every ~5.5s; delay is set per bot. */
+@keyframes bot-blink {
+  0%,
+  97.8%,
+  100% {
+    transform: scaleY(1);
+  }
+  98.9% {
+    transform: scaleY(0.1);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .bot-eyes {
+    animation: bot-blink 5.5s ease-in-out infinite;
+    transform-box: view-box;
+  }
+}
+
 /*
  * Open Bot design tokens. DESIGN.md is the contract; this file is its source.
  * HeroUI semantic variables are re-tuned here so every HeroUI component and

@@ -87,7 +87,7 @@ function BotEditForm({
     bot?.workspaceContext || "",
   );
   const [avatarShape, setAvatarShape] = useState<AvatarShape>(
-    bot?.avatarShape || "hex",
+    bot?.avatarShape || "hexagon",
   );
   const [avatarColor, setAvatarColor] = useState<AvatarColor>(
     bot?.avatarColor || "cyan",

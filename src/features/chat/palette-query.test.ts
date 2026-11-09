@@ -26,7 +26,7 @@ const bot: BotProfile = {
   name: "Writer",
   title: "Copy editor",
   description: "",
-  avatarShape: "hex",
+  avatarShape: "hexagon",
   avatarColor: "cyan",
   skills: [],
   createdAt: "2026-01-01T00:00:00.000Z",

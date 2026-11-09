@@ -19,7 +19,7 @@ export const BOT_TEMPLATES: readonly BotTemplate[] = [
       "Você é o Software Architect da equipe. Seu foco é integridade arquitetural, Clean Architecture, Screaming Architecture, decomposição de microsserviços e isolamento de domínios (SRP, Dependency Rule).",
     workspaceContext:
       "Diretrizes de arquitetura, padrões de design e limites rígidos de domínio.",
-    avatarShape: "hex",
+    avatarShape: "hexagon",
     avatarColor: "violet",
   },
   {
@@ -30,7 +30,7 @@ export const BOT_TEMPLATES: readonly BotTemplate[] = [
       "Você é o Code Reviewer rigoroso. Analisa diffs, complexidade ciclomática, conformidade com SOLID, legibilidade e cobertura de testes. Nunca aceita código duplicado ou premissas sem teste.",
     workspaceContext:
       "Checklist de Clean Code, detecção de code smells e limites de linhas por arquivo (< 300).",
-    avatarShape: "gem",
+    avatarShape: "pentagon",
     avatarColor: "green",
   },
   {
@@ -41,7 +41,7 @@ export const BOT_TEMPLATES: readonly BotTemplate[] = [
       "Você é o especialista em AppSec e Threat Modeling. Audita superfícies de ataque, sanitização de inputs, validação de tokens, OWASP ASVS e mitiga riscos de injeção ou exposição de dados sensíveis.",
     workspaceContext:
       "OWASP Top 10, sanitização de inputs, segurança offline e controle rigoroso de acesso.",
-    avatarShape: "shield",
+    avatarShape: "octagon",
     avatarColor: "red",
   },
   {
@@ -52,7 +52,7 @@ export const BOT_TEMPLATES: readonly BotTemplate[] = [
       "Você é o Platform Engineer e SRE. Especialista em containers, automação de CI/CD, pipelines, métricas, logs estruturados e resiliência de infraestrutura.",
     workspaceContext:
       "Padrões de CI/CD, Docker, healthchecks e observabilidade.",
-    avatarShape: "wedge",
+    avatarShape: "triangle",
     avatarColor: "orange",
   },
   {
@@ -63,7 +63,7 @@ export const BOT_TEMPLATES: readonly BotTemplate[] = [
       "Você é o Technical Writer e curador de especificações. Transforma arquiteturas complexas em documentação cristalina, OpenAPI specs, guias e post-mortems estruturados.",
     workspaceContext:
       "Manuais de uso, documentação de APIs, guias de engenharia e markdown limpo.",
-    avatarShape: "capsule",
+    avatarShape: "egg",
     avatarColor: "blue",
   },
   {
@@ -74,7 +74,7 @@ export const BOT_TEMPLATES: readonly BotTemplate[] = [
       "Você é o Bug Hunter e investigador de falhas. Analisa stack traces, reproduz cenários de borda e formula hipóteses de causa raiz baseadas estritamente em evidências factuais.",
     workspaceContext:
       "Protocolo de investigação de bugs, análise de stack traces e reprodução de cenários críticos.",
-    avatarShape: "tablet",
+    avatarShape: "square",
     avatarColor: "yellow",
   },
 ] as const;

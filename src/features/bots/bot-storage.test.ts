@@ -12,6 +12,7 @@ import {
   updateBotInList,
 } from "./bot-storage.ts";
 import { DEFAULT_BOT } from "./bot-types.ts";
+import { CREW_PRESETS } from "./crew-presets.ts";
 
 function createMockStorage(): Storage {
   const store = new Map<string, string>();
@@ -29,12 +30,34 @@ function createMockStorage(): Storage {
   };
 }
 
-test("loadBotsFromStorage returns default bot on empty storage", () => {
+test("loadBotsFromStorage returns the crew presets on empty storage", () => {
   const storage = createMockStorage();
   const bots = loadBotsFromStorage(storage);
-  assert.equal(bots.length, 1);
+  assert.equal(bots.length, 9);
+  assert.equal(bots[0]?.id, "chief-of-staff");
   assert.equal(bots[0]?.name, DEFAULT_BOT.name);
-  assert.equal(bots[0]?.avatarShape, "shield");
+  assert.equal(new Set(bots.map((b) => b.id)).size, 9);
+  assert.equal(bots[0]?.avatarShape, "hexagon");
+  assert.equal(bots[0]?.avatarColor, "teal");
+});
+
+test("loadBotsFromStorage preserves stored bots without adding presets", () => {
+  const storage = createMockStorage();
+  const mine = createBotProfile({ name: "Mine" });
+  saveBotsToStorage([mine], storage);
+  const bots = loadBotsFromStorage(storage);
+  assert.equal(bots.length, 1);
+  assert.equal(bots[0]?.id, mine.id);
+});
+
+test("crew preset skills all resolve to built-in skills", () => {
+  const valid = new Set(["github", "calendar", "summary"]);
+  for (const bot of CREW_PRESETS) {
+    assert.ok(
+      bot.skills.every((s) => valid.has(s)),
+      bot.id,
+    );
+  }
 });
 
 test("sanitizeBotProfile upgrades legacy OpenBot default to Chief of Staff", () => {
@@ -48,7 +71,74 @@ test("sanitizeBotProfile upgrades legacy OpenBot default to Chief of Staff", () 
   assert.equal(legacy.id, "chief-of-staff");
   assert.equal(legacy.name, "Chief of Staff");
   assert.equal(legacy.title, "Manager & Orquestrador");
-  assert.equal(legacy.avatarShape, "shield");
+  assert.equal(legacy.avatarShape, "hexagon");
+  assert.equal(legacy.avatarColor, "teal");
+});
+
+test("sanitizeBotProfile migrates legacy shapes and falls back to hexagon", () => {
+  const table: Record<string, string> = {
+    head: "circle",
+    hex: "hexagon",
+    tablet: "square",
+    gem: "pentagon",
+    shield: "octagon",
+    wedge: "triangle",
+    pebble: "circle",
+    capsule: "egg",
+    cloud: "cloud",
+    egg: "egg",
+    square: "square",
+    nope: "hexagon",
+  };
+  for (const [stored, expected] of Object.entries(table)) {
+    const bot = sanitizeBotProfile({
+      id: "bot_m",
+      name: "Migrated",
+      avatarShape: stored,
+    });
+    assert.equal(bot?.avatarShape, expected, stored);
+  }
+  assert.equal(
+    sanitizeBotProfile({ id: "bot_n", name: "No shape" })?.avatarShape,
+    "hexagon",
+  );
+  assert.equal(
+    sanitizeBotProfile({
+      id: "bot_p",
+      name: "Proto",
+      avatarShape: "constructor",
+    })?.avatarShape,
+    "hexagon",
+  );
+});
+
+test("sanitizeBotProfile accepts new colors", () => {
+  for (const color of ["teal", "sky", "pink", "gold"]) {
+    const bot = sanitizeBotProfile({
+      id: "bot_h",
+      name: "Color Bot",
+      avatarColor: color,
+    });
+    assert.equal(bot?.avatarColor, color);
+  }
+});
+
+test("crew presets use distinct art shapes with their palette colours", () => {
+  const identity = CREW_PRESETS.map((b) => `${b.avatarShape}/${b.avatarColor}`);
+  assert.deepEqual(identity, [
+    "hexagon/teal",
+    "square/blue",
+    "circle/yellow",
+    "octagon/red",
+    "diamond/violet",
+    "triangle/green",
+    "pentagon/gold",
+    "egg/sky",
+    "cloud/pink",
+  ]);
+  assert.equal(new Set(CREW_PRESETS.map((b) => b.avatarShape)).size, 9);
+  assert.equal(DEFAULT_BOT.avatarShape, "hexagon");
+  assert.equal(DEFAULT_BOT.avatarColor, "teal");
 });
 
 test("sanitizeBotProfile validates fields and falls back to safe defaults", () => {
@@ -61,7 +151,7 @@ test("sanitizeBotProfile validates fields and falls back to safe defaults", () =
   });
   assert.ok(valid);
   assert.equal(valid.name, "Eng Bot");
-  assert.equal(valid.avatarShape, "gem");
+  assert.equal(valid.avatarShape, "pentagon");
   assert.equal(valid.avatarColor, "violet");
   assert.deepEqual(valid.skills, ["github"]);
 
