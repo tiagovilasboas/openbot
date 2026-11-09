@@ -1,24 +1,31 @@
 import type { ReactElement } from "react";
+import {
+  GRAPHITE,
+  TILE_COLOR,
+  brandMarkSvg,
+} from "@/shared/brand/brand-mark-layers.ts";
 
-// The Open Bot mark (ring + satellite dot, from public/openbot-icon.svg),
-// drawn for raster install icons. `tile` keeps the rounded tile for "any"
-// purpose icons; `bleed` paints the tile color edge to edge and shrinks the
-// mark into the maskable safe zone so Android and iOS apply their own mask.
-const TILE_COLOR = "#191a1f";
-const RING_COLOR = "#e7e8eb";
-const DOT_COLOR = "#aab3ff";
-
+// The Open Bot pencil sketch, drawn for raster install icons. Home screens
+// need an opaque icon, so silver graphite sits on the dark app tile. `tile`
+// keeps the rounded tile for "any" purpose icons; `bleed` paints the tile
+// color edge to edge and shrinks the mark into the maskable safe zone so
+// Android and iOS apply their own mask.
 export type AppIconVariant = "tile" | "bleed";
+
+function markDataUri(variant: AppIconVariant): string {
+  const svg = brandMarkSvg({
+    tile: variant === "bleed" ? "none" : "rounded",
+    guides: true,
+    ink: GRAPHITE.onDark,
+  });
+  return `data:image/svg+xml;base64,${btoa(svg)}`;
+}
 
 export function renderAppIcon(
   size: number,
   variant: AppIconVariant,
 ): ReactElement {
-  const scale = variant === "bleed" ? 0.74 : 1;
-  const unit = (size / 64) * scale;
-  const ring = 36 * unit;
-  const stroke = Math.max(2, 4 * unit);
-  const dot = 8 * unit;
+  const mark = variant === "bleed" ? Math.round(size * 0.74) : size;
 
   return (
     <div
@@ -31,38 +38,8 @@ export function renderAppIcon(
         background: variant === "bleed" ? TILE_COLOR : "transparent",
       }}
     >
-      <div
-        style={{
-          position: "relative",
-          width: 64 * unit,
-          height: 64 * unit,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: variant === "bleed" ? "transparent" : TILE_COLOR,
-          borderRadius: variant === "bleed" ? 0 : 19 * (size / 64),
-        }}
-      >
-        <div
-          style={{
-            width: ring,
-            height: ring,
-            borderRadius: "50%",
-            border: `${stroke}px solid ${RING_COLOR}`,
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            left: 44 * unit,
-            top: 12 * unit,
-            width: dot,
-            height: dot,
-            borderRadius: "50%",
-            background: DOT_COLOR,
-          }}
-        />
-      </div>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={markDataUri(variant)} width={mark} height={mark} alt="" />
     </div>
   );
 }
