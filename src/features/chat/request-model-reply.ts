@@ -1,3 +1,7 @@
+import {
+  classifyModelFailure,
+  type ModelFailure,
+} from "../model/classify-model-failure.ts";
 import type { ClientModelConfig } from "../model/model-config.ts";
 import type { ChatLanguage } from "./respond-to-message.ts";
 
@@ -12,7 +16,7 @@ export type FailoverDetail = {
 export type ModelReplyOutcome =
   | { kind: "text"; text: string; failover?: FailoverDetail }
   | { kind: "unavailable" }
-  | { kind: "error" };
+  | { kind: "error"; failure: ModelFailure };
 
 /**
  * Asks the server chat route for a model reply. "unavailable" means the server
@@ -39,12 +43,13 @@ export async function requestModelReply(
       }),
     });
   } catch {
-    return { kind: "error" };
+    return { kind: "error", failure: { kind: "unreachable" } };
   }
 
   const payload: unknown = await response.json().catch(() => null);
   const body = (payload ?? {}) as {
     error?: unknown;
+    detail?: unknown;
     text?: unknown;
     failover?: FailoverDetail;
   };
@@ -59,5 +64,8 @@ export async function requestModelReply(
       ...(body.failover ? { failover: body.failover } : {}),
     };
   }
-  return { kind: "error" };
+  return {
+    kind: "error",
+    failure: classifyModelFailure(body.error, body.detail),
+  };
 }

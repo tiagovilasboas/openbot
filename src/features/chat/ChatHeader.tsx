@@ -2,7 +2,11 @@
 
 import { BotAvatar } from "@/features/bots/BotAvatar.tsx";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
-import { ModelStatusBadge } from "@/features/model/ModelStatusBadge.tsx";
+import type { ModelStatus } from "@/features/model/model-status.ts";
+import {
+  MODEL_STATUS_DOT,
+  ModelStatusBadge,
+} from "@/features/model/ModelStatusBadge.tsx";
 import { chatCopy } from "./chat-copy.ts";
 import { LanguageToggle } from "./LanguageToggle.tsx";
 import type { ChatLanguage } from "./respond-to-message.ts";
@@ -13,7 +17,7 @@ interface ChatHeaderProps {
   language: ChatLanguage;
   onLanguageChange: (language: ChatLanguage) => void;
   activeModelLabel: string;
-  isConfigured: boolean;
+  modelStatus: ModelStatus;
   onOpenSettings?: () => void;
   hasMessages?: boolean;
   onNewChat?: () => void;
@@ -36,7 +40,7 @@ export function ChatHeader({
   language,
   onLanguageChange,
   activeModelLabel,
-  isConfigured,
+  modelStatus,
   onOpenSettings,
   hasMessages,
   onNewChat,
@@ -46,6 +50,8 @@ export function ChatHeader({
   isMobileSidebarOpen,
 }: ChatHeaderProps) {
   const content = chatCopy[language];
+  const statusNote =
+    modelStatus === "failing" ? content.modelStatusFailing : undefined;
 
   const identity = (
     <>
@@ -65,13 +71,12 @@ export function ChatHeader({
         <span className="flex min-w-0 items-center gap-1.5 text-xs leading-4 text-subtle md:hidden">
           <span
             aria-hidden="true"
-            className={`size-1.5 shrink-0 rounded-full ${
-              isConfigured ? "bg-success" : "bg-warning"
-            }`}
+            className={`size-1.5 shrink-0 rounded-full ${MODEL_STATUS_DOT[modelStatus]}`}
           />
           <span className="truncate">
             {compactModelLabel(activeModelLabel)}
           </span>
+          {statusNote && <span className="sr-only">, {statusNote}</span>}
         </span>
       </span>
     </>
@@ -112,7 +117,8 @@ export function ChatHeader({
         <div className="hidden min-w-0 md:flex">
           <ModelStatusBadge
             label={activeModelLabel}
-            isConfigured={isConfigured}
+            status={modelStatus}
+            statusNote={statusNote}
             onPress={onOpenSettings}
             actionLabel={
               onOpenSettings ? content.headerModelSettings : undefined

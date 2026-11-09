@@ -32,7 +32,21 @@ test("reports unavailable only for no_provider_configured", async () => {
       history,
       respond({ error: "provider_rejected" }, 502),
     ),
-    { kind: "error" },
+    { kind: "error", failure: { kind: "unknown" } },
+  );
+  assert.deepEqual(
+    await requestModelReply(
+      "en",
+      history,
+      respond(
+        {
+          error: "provider_rejected",
+          detail: "401: No cookie auth credentials found",
+        },
+        502,
+      ),
+    ),
+    { kind: "error", failure: { kind: "auth", status: 401 } },
   );
 });
 
@@ -42,10 +56,11 @@ test("network failure and empty replies are errors", async () => {
   };
   assert.deepEqual(await requestModelReply("pt", history, down), {
     kind: "error",
+    failure: { kind: "unreachable" },
   });
   assert.deepEqual(
     await requestModelReply("pt", history, respond({ text: "  " })),
-    { kind: "error" },
+    { kind: "error", failure: { kind: "unknown" } },
   );
 });
 
