@@ -1,11 +1,16 @@
+import { BlockedBaseUrlError, modelFetch } from "./guarded-model-fetch.ts";
+import type { ModelNetworkOptions } from "./guarded-model-fetch.ts";
 import type { FetchLike, ModelAdapter, ModelRequest } from "./model-adapter.ts";
+import { providerErrorDetail } from "./provider-error-detail.ts";
 
 export type RouterAdapterConfig = {
   baseUrl: string;
   model: string;
   apiKey?: string;
   fetchImpl?: FetchLike;
-};
+  /** True when baseUrl came from a client and must pass the URL guard. */
+  guardUrl?: boolean;
+} & ModelNetworkOptions;
 
 export function createRouterAdapter(config: RouterAdapterConfig): ModelAdapter {
   const fetchImpl = config.fetchImpl ?? fetch;
@@ -30,24 +35,32 @@ export function createRouterAdapter(config: RouterAdapterConfig): ModelAdapter {
 
       let response: Response;
       try {
-        response = await fetchImpl(endpoint, {
-          method: "POST",
-          headers,
-          body: JSON.stringify({
-            model: config.model,
-            stream: false,
-            messages: [
-              ...(request.systemPrompt
-                ? [{ role: "system", content: request.systemPrompt }]
-                : []),
-              ...request.messages.map((message) => ({
-                role: message.role,
-                content: message.text,
-              })),
-            ],
-          }),
-        });
-      } catch {
+        response = await modelFetch(
+          fetchImpl,
+          endpoint,
+          {
+            method: "POST",
+            headers,
+            body: JSON.stringify({
+              model: config.model,
+              stream: false,
+              messages: [
+                ...(request.systemPrompt
+                  ? [{ role: "system", content: request.systemPrompt }]
+                  : []),
+                ...request.messages.map((message) => ({
+                  role: message.role,
+                  content: message.text,
+                })),
+              ],
+            }),
+          },
+          config,
+        );
+      } catch (error) {
+        if (error instanceof BlockedBaseUrlError) {
+          return { ok: false, code: "blocked_base_url", provider: "router" };
+        }
         return { ok: false, code: "provider_unreachable", provider: "router" };
       }
 
@@ -59,9 +72,7 @@ export function createRouterAdapter(config: RouterAdapterConfig): ModelAdapter {
           typeof errorPayload?.error?.message === "string"
             ? errorPayload.error.message.trim()
             : null;
-        const detail = msg
-          ? `${response.status}: ${msg}`
-          : `HTTP ${response.status}`;
+        const detail = providerErrorDetail(response.status, msg);
         return {
           ok: false,
           code: "provider_rejected",

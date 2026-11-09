@@ -15,6 +15,8 @@ export function describeModelFailure(
       return content.modelErrorRateLimit;
     case "model_unavailable":
       return content.modelErrorModel;
+    case "blocked_url":
+      return content.modelErrorBlockedUrl;
     default:
       return failure.status
         ? `${content.modelError} (HTTP ${failure.status})`

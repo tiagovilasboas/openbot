@@ -29,3 +29,14 @@ test("other failures keep the generic message, with the status if known", () => 
     `${chatCopy.pt.modelError} (HTTP 502)`,
   );
 });
+
+test("a blocked model address explains the restriction in both languages", () => {
+  assert.equal(
+    describeModelFailure({ kind: "blocked_url" }, "pt"),
+    chatCopy.pt.modelErrorBlockedUrl,
+  );
+  assert.equal(
+    describeModelFailure({ kind: "blocked_url" }, "en"),
+    chatCopy.en.modelErrorBlockedUrl,
+  );
+});
