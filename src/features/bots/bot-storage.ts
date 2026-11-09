@@ -282,8 +282,10 @@ export function updateBotInList(
 export function deleteBotFromList(
   bots: BotProfile[],
   idToDelete: string,
+  mainBotId?: string,
 ): { bots: BotProfile[]; newActiveId?: string } {
-  if (bots.length <= 1) {
+  // The main bot leads the crew, so it stays; the last bot stays too.
+  if (bots.length <= 1 || idToDelete === mainBotId) {
     return { bots };
   }
   const nextBots = bots.filter((b) => b.id !== idToDelete);

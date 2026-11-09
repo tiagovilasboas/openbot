@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useSyncExternalStore } from "react";
 import type { SkillDefinition } from "@/features/skills/skill-types.ts";
 import {
   createBotProfile,
@@ -21,10 +21,18 @@ import {
 } from "./bot-types.ts";
 import { migrateCrewShapes } from "./crew-shapes-migration.ts";
 import { migrateLegacySkills } from "./legacy-skills-migration.ts";
+import {
+  loadStoredMainBotId,
+  mainBotFirst,
+  resolveMainBotId,
+  saveMainBotId,
+  subscribeMainBotId,
+} from "./main-bot.ts";
 
 const SERVER_BOTS: BotProfile[] = [DEFAULT_BOT];
 const getServerBots = () => SERVER_BOTS;
 const getServerActiveBotId = () => DEFAULT_BOT.id;
+const getServerMainBotId = () => null;
 
 export function useBots() {
   // Moves the old global skill library into the bots, once per browser.
@@ -80,9 +88,26 @@ export function useBots() {
     [],
   );
 
+  const storedMainBotId = useSyncExternalStore(
+    subscribeMainBotId,
+    loadStoredMainBotId,
+    getServerMainBotId,
+  );
+  const mainBotId = resolveMainBotId(storedMainBotId, bots) ?? DEFAULT_BOT.id;
+  // The main bot always sits on top of the list.
+  const orderedBots = useMemo(
+    () => mainBotFirst(bots, mainBotId),
+    [bots, mainBotId],
+  );
+
+  const makeMainBot = useCallback((id: string) => {
+    saveMainBotId(id);
+  }, []);
+
   const removeBot = useCallback((id: string) => {
     const currentBots = loadBotsFromStorage();
-    const result = deleteBotFromList(currentBots, id);
+    const mainId = resolveMainBotId(loadStoredMainBotId(), currentBots);
+    const result = deleteBotFromList(currentBots, id, mainId);
     saveBotsToStorage(result.bots);
     if (result.newActiveId) {
       saveActiveBotId(result.newActiveId);
@@ -93,12 +118,14 @@ export function useBots() {
     bots.find((b) => b.id === activeBotId) || bots[0] || DEFAULT_BOT;
 
   return {
-    bots,
+    bots: orderedBots,
     activeBot,
     activeBotId,
     setActiveBotId,
     saveBot,
     createAndActivateBot,
     removeBot,
+    mainBotId,
+    makeMainBot,
   };
 }

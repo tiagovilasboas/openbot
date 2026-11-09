@@ -19,6 +19,7 @@ export interface SidebarNavProps {
   language: ChatLanguage;
   bots: BotProfile[];
   activeBotId: string;
+  mainBotId?: string;
   onSelectBot: (botId: string) => void;
   onCreateBot: () => void;
   onEditBot: (bot: BotProfile) => void;
@@ -42,6 +43,7 @@ export function SidebarPanel({
   language,
   bots,
   activeBotId,
+  mainBotId,
   onSelectBot,
   onCreateBot,
   onEditBot,
@@ -81,6 +83,7 @@ export function SidebarPanel({
             language={language}
             bots={bots}
             activeBotId={activeBotId}
+            mainBotId={mainBotId}
             onSelectBot={onSelectBot}
             onEditBot={onEditBot}
           />

@@ -1,7 +1,7 @@
 import { buildBotSystemPrompt } from "@/features/bots/bot-system-prompt.ts";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
 import { crewCopy } from "@/features/crew/crew-copy.ts";
-import { buildCrewRoster, isChiefBot } from "@/features/crew/crew-roster.ts";
+import { buildCrewRoster } from "@/features/crew/crew-roster.ts";
 import { runCrewTurn } from "@/features/crew/run-crew-turn.ts";
 import { detectGitHubRequest } from "@/features/github/detect-github-request.ts";
 import type {
@@ -42,6 +42,7 @@ export async function executeChatMessage({
   history,
   activeBot,
   bots = [],
+  mainBotId,
   gitHubToken,
   modelConfig,
   onBotWorking,
@@ -51,6 +52,8 @@ export async function executeChatMessage({
   history: Array<{ role: "assistant" | "user"; text: string }>;
   activeBot: BotProfile;
   bots?: BotProfile[];
+  /** The bot the user made main; it leads the crew as the Chief. */
+  mainBotId?: string;
   gitHubToken: string | null;
   modelConfig: ClientModelConfig | null;
   /** Follows which bot is working while the Chief's crew answers. */
@@ -67,7 +70,9 @@ export async function executeChatMessage({
     mentionedBot && mentionedBot.id !== activeBot.id ? mentionedBot : undefined;
 
   const botPrompt = buildBotSystemPrompt(executingBot, language);
-  const crewRoster = isChiefBot(executingBot)
+  // The main bot plays the Chief: it knows the crew and can delegate.
+  const isChief = executingBot.id === mainBotId;
+  const crewRoster = isChief
     ? buildCrewRoster(executingBot, bots, language)
     : "";
   const fullSystemPrompt = crewRoster
@@ -137,7 +142,7 @@ export async function executeChatMessage({
     fullSystemPrompt,
   );
   if (outcome.kind === "text") {
-    const crewTurn = isChiefBot(executingBot)
+    const crewTurn = isChief
       ? await runCrewTurn({
           chief: executingBot,
           chiefPrompt: botPrompt,

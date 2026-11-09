@@ -23,6 +23,9 @@ interface BotsCopy {
   deleteBot: string;
   deleteConfirm: string;
   deleteConfirmAction: string;
+  mainBot: string;
+  mainBotHint: string;
+  makeMain: string;
   shapes: Record<AvatarShape, string>;
   colors: Record<AvatarColor, string>;
 }
@@ -52,6 +55,9 @@ const PT: BotsCopy = {
   deleteBot: "Excluir bot",
   deleteConfirm: "Excluir?",
   deleteConfirmAction: "Confirmar",
+  mainBot: "Bot principal",
+  mainBotHint: "Lidera a equipe e não pode ser excluído.",
+  makeMain: "Tornar principal",
   shapes: {
     hexagon: "Hexágono",
     square: "Quadrado",
@@ -106,6 +112,9 @@ const EN: BotsCopy = {
   deleteBot: "Delete bot",
   deleteConfirm: "Delete?",
   deleteConfirmAction: "Confirm",
+  mainBot: "Main bot",
+  mainBotHint: "Leads the crew and cannot be deleted.",
+  makeMain: "Make main",
   shapes: {
     hexagon: "Hexagon",
     square: "Square",

@@ -45,6 +45,8 @@ export function ChatExperience() {
     saveBot,
     createAndActivateBot,
     removeBot,
+    mainBotId,
+    makeMainBot,
   } = useBots();
   const { messages, persistMessages, getNextId, clearMessages } =
     useBotMessages(activeBot.id);
@@ -120,6 +122,7 @@ export function ChatExperience() {
       history,
       activeBot,
       bots,
+      mainBotId,
       gitHubToken,
       modelConfig,
       onBotWorking: setWorkingBot,
@@ -190,6 +193,7 @@ export function ChatExperience() {
         language={language}
         bots={bots}
         activeBotId={activeBotId}
+        mainBotId={mainBotId}
         isMobileOpen={isMobileSidebarOpen}
         isDesktopCollapsed={isDesktopCollapsed}
         hasPassword={auth.hasPassword}
@@ -239,6 +243,7 @@ export function ChatExperience() {
             skills={activeBotSkills}
             bots={bots}
             activeBot={activeBot}
+            mainBotId={mainBotId}
             isConfigured={isConfigured}
             onOpenSettings={() => setIsSettingsOpen(true)}
             onDraftChange={setDraft}
@@ -282,7 +287,8 @@ export function ChatExperience() {
         isOpen={isBotModalOpen}
         bot={botToEdit}
         language={language}
-        canDelete={bots.length > 1}
+        isMain={botToEdit?.id === mainBotId}
+        canDelete={bots.length > 1 && botToEdit?.id !== mainBotId}
         onClose={() => {
           setIsBotModalOpen(false);
           setBotToEdit(null);
@@ -291,6 +297,7 @@ export function ChatExperience() {
           botToEdit ? saveBot(updated) : createAndActivateBot(updated)
         }
         onDelete={removeBot}
+        onMakeMain={makeMainBot}
       />
     </div>
   );

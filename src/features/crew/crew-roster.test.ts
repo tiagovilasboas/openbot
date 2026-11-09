@@ -2,20 +2,15 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import type { BotProfile } from "../bots/bot-types.ts";
 import { CREW_PRESETS } from "../bots/crew-presets.ts";
-import {
-  buildCrewRoster,
-  crewHandle,
-  crewRole,
-  isChiefBot,
-} from "./crew-roster.ts";
+import { buildCrewRoster, crewHandle, crewRole } from "./crew-roster.ts";
 
 const chief = CREW_PRESETS[0] as BotProfile;
 const engineering = CREW_PRESETS[1] as BotProfile;
 
-test("only the Chief of Staff counts as the chief", () => {
-  assert.equal(isChiefBot(chief), true);
-  assert.equal(isChiefBot({ id: "default" }), true);
-  assert.equal(isChiefBot(engineering), false);
+test("whichever bot leads, the roster lists everyone else", () => {
+  const roster = buildCrewRoster(engineering, [...CREW_PRESETS], "en");
+  assert.match(roster, /- Chief of Staff @ChiefofStaff/);
+  assert.doesNotMatch(roster, /- Engineering @Engineering/);
 });
 
 test("handles drop spaces so they resolve like @mentions", () => {

@@ -10,16 +10,17 @@ interface SidebarBotListProps {
   language: ChatLanguage;
   bots: BotProfile[];
   activeBotId: string;
+  /** The bot leading the crew; it shows the Chief of Staff role. */
+  mainBotId?: string;
   onSelectBot: (botId: string) => void;
   onEditBot: (bot: BotProfile) => void;
 }
-
-const DEFAULT_BOT_IDS = new Set(["chief-of-staff", "default"]);
 
 export function SidebarBotList({
   language,
   bots,
   activeBotId,
+  mainBotId,
   onSelectBot,
   onEditBot,
 }: SidebarBotListProps) {
@@ -29,9 +30,8 @@ export function SidebarBotList({
     <ul className="flex flex-col gap-0.5">
       {bots.map((bot) => {
         const isActive = bot.id === activeBotId;
-        const role = DEFAULT_BOT_IDS.has(bot.id)
-          ? content.chiefOfStaffTitle
-          : bot.title;
+        const role =
+          bot.id === mainBotId ? content.chiefOfStaffTitle : bot.title;
 
         return (
           <li key={bot.id} className="group relative">

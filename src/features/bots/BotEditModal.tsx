@@ -13,6 +13,7 @@ import { ResponsiveSheet, SheetFooter } from "@/shared/ui/ResponsiveSheet.tsx";
 import { BotAvatar } from "./BotAvatar.tsx";
 import { BotAvatarPickers } from "./BotAvatarPickers.tsx";
 import { BotDeleteControl } from "./BotDeleteControl.tsx";
+import { BotMainControl } from "./BotMainControl.tsx";
 import { BotTemplatePicker } from "./BotTemplatePicker.tsx";
 import type { BotTemplate } from "./bot-templates.ts";
 import type { AvatarColor, AvatarShape, BotProfile } from "./bot-types.ts";
@@ -23,9 +24,12 @@ interface BotEditModalProps {
   bot: BotProfile | null;
   language: ChatLanguage;
   canDelete: boolean;
+  /** Whether this bot is the main one, which leads the crew. */
+  isMain?: boolean;
   onClose: () => void;
   onSave: (bot: BotProfile) => void;
   onDelete?: (id: string) => void;
+  onMakeMain?: (id: string) => void;
 }
 
 type BotEditFormProps = Omit<BotEditModalProps, "isOpen">;
@@ -70,9 +74,11 @@ function BotEditForm({
   bot,
   language,
   canDelete,
+  isMain = false,
   onClose,
   onSave,
   onDelete,
+  onMakeMain,
 }: BotEditFormProps) {
   const isEditing = Boolean(bot?.id && bot.id !== "new");
   const isPt = language === "pt";
@@ -232,6 +238,14 @@ function BotEditForm({
         skills={skills}
         onChange={setSkills}
       />
+
+      {isEditing && bot && onMakeMain && (
+        <BotMainControl
+          isPt={isPt}
+          isMain={isMain}
+          onMakeMain={() => onMakeMain(bot.id)}
+        />
+      )}
 
       <SheetFooter>
         <div className="flex items-center justify-between gap-2">
