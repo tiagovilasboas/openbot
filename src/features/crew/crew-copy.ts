@@ -6,7 +6,8 @@ export const DELEGATE_KEYWORD = "@delegate";
 interface CrewCopy {
   rosterHeader: string;
   noSkills: string;
-  delegationRules: string;
+  /** How to delegate, with a real crew member's name in the example. */
+  delegationRules: (exampleName: string) => string;
   antiLoopRule: string;
   userAsked: string;
   yourTask: string;
@@ -23,14 +24,15 @@ export const crewCopy: Record<ChatLanguage, CrewCopy> = {
     rosterHeader:
       "Sua equipe (outros bots que você conhece e pode acionar pelo nome):",
     noSkills: "sem skills",
-    delegationRules: [
-      "Para passar uma tarefa a alguém da equipe, escreva uma linha por tarefa, sozinha na linha, exatamente assim:",
-      `${DELEGATE_KEYWORD} Engineering: <tarefa completa, que se entende sozinha>`,
-      "Regras: no máximo 3 linhas; só delegue quando o especialista agregar algo real; nunca delegue para você mesmo; depois dessas linhas não escreva mais nada.",
-      "Você vai receber as respostas e então escreverá a resposta final ao usuário. Se puder responder sozinho, responda direto, sem " +
-        DELEGATE_KEYWORD +
-        ".",
-    ].join("\n"),
+    delegationRules: (exampleName) =>
+      [
+        "Para passar uma tarefa a alguém da equipe, escreva uma linha por tarefa, sozinha na linha, exatamente assim:",
+        `${DELEGATE_KEYWORD} ${exampleName}: <tarefa completa, que se entende sozinha>`,
+        "Regras: no máximo 3 linhas; só delegue quando o especialista agregar algo real; nunca delegue para você mesmo; depois dessas linhas não escreva mais nada.",
+        "Você vai receber as respostas e então escreverá a resposta final ao usuário. Se puder responder sozinho, responda direto, sem " +
+          DELEGATE_KEYWORD +
+          ".",
+      ].join("\n"),
     antiLoopRule:
       "[Regra Anti-Loop]: Responda estritamente com o conteúdo solicitado. Nunca envie mensagens só de agradecimento, confirmação ou cortesia. Não delegue para outros bots.",
     userAsked: "Pedido original do usuário",
@@ -48,14 +50,15 @@ export const crewCopy: Record<ChatLanguage, CrewCopy> = {
   en: {
     rosterHeader: "Your crew (other bots you know and can call by name):",
     noSkills: "no skills",
-    delegationRules: [
-      "To hand a task to a crew member, write one line per task, alone on its line, exactly like this:",
-      `${DELEGATE_KEYWORD} Engineering: <the full task, understandable on its own>`,
-      "Rules: at most 3 lines; delegate only when the specialist adds something real; never delegate to yourself; write nothing after those lines.",
-      "You will receive their answers and then write the final reply to the user. If you can answer alone, answer directly without " +
-        DELEGATE_KEYWORD +
-        ".",
-    ].join("\n"),
+    delegationRules: (exampleName) =>
+      [
+        "To hand a task to a crew member, write one line per task, alone on its line, exactly like this:",
+        `${DELEGATE_KEYWORD} ${exampleName}: <the full task, understandable on its own>`,
+        "Rules: at most 3 lines; delegate only when the specialist adds something real; never delegate to yourself; write nothing after those lines.",
+        "You will receive their answers and then write the final reply to the user. If you can answer alone, answer directly without " +
+          DELEGATE_KEYWORD +
+          ".",
+      ].join("\n"),
     antiLoopRule:
       "[Anti-Loop Rule]: Answer strictly with the requested content. Never send thank-you, acknowledgement-only or courtesy messages. Do not delegate to other bots.",
     userAsked: "The user's original request",

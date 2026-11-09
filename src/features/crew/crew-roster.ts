@@ -58,5 +58,5 @@ export function buildCrewRoster(
       : copy.noSkills;
     return `- ${bot.name} ${crewHandle(bot)}${title}: ${role} [skills: ${skills}]`;
   });
-  return `${copy.rosterHeader}\n${lines.join("\n")}\n\n${copy.delegationRules}`;
+  return `${copy.rosterHeader}\n${lines.join("\n")}\n\n${copy.delegationRules(crew[0]?.name ?? "")}`;
 }

@@ -69,6 +69,20 @@ test("the roster header follows the language and bots without skills say so", ()
   assert.match(roster, /\[skills: sem skills\]/);
 });
 
+test("the roster is built from the user's own bots, nothing fixed", () => {
+  const gardener: BotProfile = {
+    ...engineering,
+    id: "user-bot-1",
+    name: "Jardineira",
+    title: "",
+    description: "Você é a Jardineira. Cuida das plantas da casa.",
+  };
+  const roster = buildCrewRoster(chief, [chief, gardener], "pt");
+  assert.match(roster, /- Jardineira @Jardineira: Cuida das plantas da casa\./);
+  assert.match(roster, /@delegate Jardineira: <tarefa/);
+  assert.doesNotMatch(roster, /Engineering/);
+});
+
 test("the roster teaches the @delegate line format", () => {
   const roster = buildCrewRoster(chief, [...CREW_PRESETS], "en");
   assert.match(roster, /@delegate Engineering: <the full task/);
