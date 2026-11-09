@@ -1,15 +1,26 @@
 "use client";
 
-import { Button, Input } from "@heroui/react";
 import { useState } from "react";
 import { chatCopy } from "@/features/chat/chat-copy.ts";
 import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
+import { fillCopy } from "@/features/model/settings-copy.ts";
+import { CheckIcon, PlusIcon, PuzzleIcon } from "@/shared/ui/FieldIcons.tsx";
+import {
+  FIELD_CLASS,
+  FormField,
+  TEXTAREA_CLASS,
+} from "@/shared/ui/FormField.tsx";
+import { SheetFooter } from "@/shared/ui/ResponsiveSheet.tsx";
+import { SkillListItem } from "./SkillListItem.tsx";
+import { getSkillsCopy } from "./skills-copy.ts";
 import { parseSkillFromMarkdown } from "./skill-storage.ts";
 import type { SkillDefinition } from "./skill-types.ts";
 
 export interface SettingsSkillsSectionProps {
   language: ChatLanguage;
   skills: SkillDefinition[];
+  /** False while another settings tab is shown: the footer is not rendered. */
+  isActive?: boolean;
   onAddSkill: (input: {
     name: string;
     command?: string;
@@ -19,19 +30,28 @@ export interface SettingsSkillsSectionProps {
   onRemoveSkill: (id: string) => void;
 }
 
+const SECONDARY_BUTTON =
+  "min-h-11 rounded-full border border-border bg-surface px-5 text-[15px] font-medium text-foreground transition-colors hover:bg-surface-secondary active:scale-[0.97] md:text-sm";
+
 export function SettingsSkillsSection({
   language,
   skills,
+  isActive = true,
   onAddSkill,
   onRemoveSkill,
 }: SettingsSkillsSectionProps) {
   const t = chatCopy[language];
-  const [tab, setTab] = useState<"list" | "create">("list");
+  const c = getSkillsCopy(language);
+  const [view, setView] = useState<"list" | "create">("list");
   const [name, setName] = useState("");
   const [command, setCommand] = useState("");
   const [description, setDescription] = useState("");
   const [instructions, setInstructions] = useState("");
   const [markdownInput, setMarkdownInput] = useState("");
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  const canSave = Boolean(name.trim() && instructions.trim());
 
   function handleImportMarkdown(text: string) {
     setMarkdownInput(text);
@@ -44,9 +64,10 @@ export function SettingsSkillsSection({
   }
 
   function handleSave() {
-    if (!name.trim() || !instructions.trim()) return;
+    if (!canSave) return;
+    const created = name.trim();
     onAddSkill({
-      name: name.trim(),
+      name: created,
       command: command.trim() || undefined,
       description: description.trim(),
       instructions: instructions.trim(),
@@ -56,183 +77,193 @@ export function SettingsSkillsSection({
     setDescription("");
     setInstructions("");
     setMarkdownInput("");
-    setTab("list");
+    setNotice(fillCopy(c.added, { name: created }));
+    setView("list");
+  }
+
+  function handleRemove(id: string) {
+    onRemoveSkill(id);
+    setConfirmingId(null);
+    setNotice(c.removed);
+  }
+
+  if (view === "create") {
+    return (
+      <div className="flex flex-col gap-6">
+        <button
+          type="button"
+          onClick={() => setView("list")}
+          className="-ms-2 flex min-h-11 w-fit items-center gap-1.5 rounded-full px-2 text-[15px] font-medium text-muted transition-colors hover:text-foreground active:scale-[0.97] md:text-sm"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1.75}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="size-4"
+            aria-hidden="true"
+          >
+            <path d="M15 5l-7 7 7 7" />
+          </svg>
+          {c.back}
+        </button>
+
+        <h3 className="text-[15px] font-semibold text-foreground">
+          {c.createTitle}
+        </h3>
+
+        <FormField label={t.skillImportLabel} helper={c.importHint}>
+          {(control) => (
+            <textarea
+              {...control}
+              rows={3}
+              placeholder={c.markdownPlaceholder}
+              value={markdownInput}
+              onChange={(e) => handleImportMarkdown(e.target.value)}
+              className={`${TEXTAREA_CLASS} font-mono`}
+            />
+          )}
+        </FormField>
+
+        <div className="flex flex-col gap-4">
+          <FormField label={t.skillNameLabel}>
+            {(control) => (
+              <input
+                {...control}
+                placeholder={c.namePlaceholder}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className={FIELD_CLASS}
+              />
+            )}
+          </FormField>
+          <FormField label={t.skillCommandLabel} helper={c.commandHint}>
+            {(control) => (
+              <input
+                {...control}
+                placeholder={c.commandPlaceholder}
+                value={command}
+                autoCapitalize="none"
+                spellCheck={false}
+                onChange={(e) => setCommand(e.target.value)}
+                className={`${FIELD_CLASS} font-mono`}
+              />
+            )}
+          </FormField>
+          <FormField label={t.skillDescLabel}>
+            {(control) => (
+              <input
+                {...control}
+                placeholder={c.descPlaceholder}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className={FIELD_CLASS}
+              />
+            )}
+          </FormField>
+          <FormField
+            label={t.skillInstructionsLabel}
+            helper={canSave ? undefined : c.requiredHint}
+          >
+            {(control) => (
+              <textarea
+                {...control}
+                rows={5}
+                placeholder={c.instructionsPlaceholder}
+                value={instructions}
+                onChange={(e) => setInstructions(e.target.value)}
+                className={TEXTAREA_CLASS}
+              />
+            )}
+          </FormField>
+        </div>
+
+        {isActive && (
+          <SheetFooter>
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setView("list")}
+                className={SECONDARY_BUTTON}
+              >
+                {c.cancel}
+              </button>
+              <button
+                type="button"
+                disabled={!canSave}
+                onClick={handleSave}
+                className="min-h-11 rounded-full bg-foreground px-6 text-[15px] font-semibold text-background transition-opacity hover:opacity-90 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40 md:text-sm"
+              >
+                {t.skillCreateButton}
+              </button>
+            </div>
+          </SheetFooter>
+        )}
+      </div>
+    );
   }
 
   return (
-    <div className="flex flex-col gap-4 text-zinc-100">
-      <div>
-        <h3 className="text-base font-bold text-white">{t.skillsTitle}</h3>
-        <p className="text-xs text-zinc-400">{t.skillsSubtitle}</p>
-      </div>
-
-      <div className="flex gap-2">
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className="text-[15px] font-semibold text-foreground">
+            {t.skillsTitle}
+          </h3>
+          <p className="text-[13px] text-subtle">{t.skillsSubtitle}</p>
+        </div>
         <button
           type="button"
-          onClick={() => setTab("list")}
-          className={`flex-1 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
-            tab === "list"
-              ? "bg-zinc-800 text-white border-white/20"
-              : "bg-zinc-900/40 text-zinc-400 border-white/5 hover:text-white"
-          }`}
+          onClick={() => {
+            setNotice(null);
+            setView("create");
+          }}
+          className={`${SECONDARY_BUTTON} flex shrink-0 items-center gap-1.5 px-4`}
         >
-          {t.skillsAvailable} ({skills.length})
-        </button>
-        <button
-          type="button"
-          onClick={() => setTab("create")}
-          className={`flex-1 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
-            tab === "create"
-              ? "bg-zinc-800 text-white border-white/20"
-              : "bg-zinc-900/40 text-zinc-400 border-white/5 hover:text-white"
-          }`}
-        >
-          {t.skillsCreateTab}
+          <PlusIcon className="size-4" />
+          {c.addSkill}
         </button>
       </div>
 
-      {tab === "list" ? (
-        <div className="flex flex-col gap-2.5 max-h-[50vh] overflow-y-auto pr-1">
-          {skills.length === 0 ? (
-            <div className="flex flex-col items-center justify-center p-8 rounded-2xl border border-dashed border-white/10 text-center gap-2">
-              <span className="text-2xl">🧩</span>
-              <p className="text-xs text-zinc-400">
-                {language === "pt"
-                  ? "Nenhuma skill cadastrada ainda. Crie suas próprias skills personalizadas!"
-                  : "No skills configured yet. Create your own custom skills!"}
-              </p>
-              <button
-                type="button"
-                onClick={() => setTab("create")}
-                className="mt-1 px-3 py-1.5 rounded-xl bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 text-xs font-semibold hover:bg-cyan-900/80"
-              >
-                + {t.skillsCreateTab}
-              </button>
-            </div>
-          ) : (
-            skills.map((skill) => (
-              <div
-                key={skill.id}
-                className="flex items-start justify-between gap-3 p-3 rounded-2xl bg-zinc-900/60 border border-white/5 hover:border-white/15 transition-all"
-              >
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-white">
-                      {skill.name}
-                    </span>
-                    <span className="font-mono text-[10px] text-cyan-400 bg-cyan-950/60 border border-cyan-800/40 px-1.5 py-0.5 rounded-md">
-                      {skill.command}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-xs text-zinc-300">
-                    {skill.description}
-                  </p>
-                  <p className="mt-1.5 text-[11px] text-zinc-500 line-clamp-2 font-mono">
-                    {skill.instructions}
-                  </p>
-                </div>
+      <div role="status" aria-live="polite">
+        {notice && (
+          <p className="flex items-center gap-2 rounded-xl bg-success-soft px-3.5 py-2.5 text-[13px] text-success">
+            <CheckIcon className="size-4 shrink-0" />
+            {notice}
+          </p>
+        )}
+      </div>
 
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="text-xs text-rose-400 hover:bg-rose-500/10"
-                  onPress={() => onRemoveSkill(skill.id)}
-                >
-                  {t.skillDelete}
-                </Button>
-              </div>
-            ))
-          )}
+      {skills.length === 0 ? (
+        <div className="flex flex-col items-center gap-3 rounded-2xl bg-surface px-6 py-10 text-center">
+          <PuzzleIcon className="size-6 text-subtle" />
+          <p className="max-w-xs text-balance text-[15px] text-muted md:text-sm">
+            {c.empty}
+          </p>
+          <button
+            type="button"
+            onClick={() => setView("create")}
+            className="min-h-11 rounded-full bg-foreground px-5 text-[15px] font-semibold text-background active:scale-[0.97] md:text-sm"
+          >
+            {c.addSkill}
+          </button>
         </div>
       ) : (
-        <div className="flex flex-col gap-3.5">
-          <div>
-            <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-zinc-400">
-              {t.skillImportLabel}
-            </label>
-            <textarea
-              rows={3}
-              placeholder={
-                language === "pt"
-                  ? "# Nome da Skill\n> Descrição curta\n\nInstruções detalhadas do prompt..."
-                  : "# Skill Name\n> Short description\n\nDetailed instructions..."
-              }
-              value={markdownInput}
-              onChange={(e) => handleImportMarkdown(e.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-zinc-900 px-3 py-2 text-xs font-mono text-white placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-white/30 resize-none leading-relaxed"
+        <ul className="flex flex-col gap-1.5">
+          {skills.map((skill) => (
+            <SkillListItem
+              key={skill.id}
+              skill={skill}
+              copy={c}
+              isConfirming={confirmingId === skill.id}
+              onAskRemove={() => setConfirmingId(skill.id)}
+              onCancelRemove={() => setConfirmingId(null)}
+              onConfirmRemove={() => handleRemove(skill.id)}
             />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                {t.skillNameLabel}
-              </label>
-              <Input
-                placeholder="ex: Code Review"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full bg-zinc-900 border-white/10 text-white rounded-xl"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                {t.skillCommandLabel}
-              </label>
-              <Input
-                placeholder="ex: /code-review"
-                value={command}
-                onChange={(e) => setCommand(e.target.value)}
-                className="w-full bg-zinc-900 border-white/10 text-white rounded-xl"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-zinc-400">
-              {t.skillDescLabel}
-            </label>
-            <Input
-              placeholder={
-                language === "pt"
-                  ? "ex: Analisa diffs de PRs procurando bugs"
-                  : "e.g. Reviews PR diffs for bugs"
-              }
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full bg-zinc-900 border-white/10 text-white rounded-xl"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-zinc-400">
-              {t.skillInstructionsLabel}
-            </label>
-            <textarea
-              rows={4}
-              placeholder={
-                language === "pt"
-                  ? "Instruções injetadas no modelo quando esta skill for invocada..."
-                  : "Instructions injected into model context when this skill is invoked..."
-              }
-              value={instructions}
-              onChange={(e) => setInstructions(e.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-white/30 resize-none leading-relaxed"
-            />
-          </div>
-
-          <div className="flex justify-end pt-2">
-            <Button
-              size="sm"
-              variant="primary"
-              isDisabled={!name.trim() || !instructions.trim()}
-              onPress={handleSave}
-              className="bg-white text-black font-semibold hover:bg-zinc-200"
-            >
-              {t.skillCreateButton}
-            </Button>
-          </div>
-        </div>
+          ))}
+        </ul>
       )}
     </div>
   );

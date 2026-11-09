@@ -1,8 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { AlertIcon, CheckIcon, LockIcon } from "@/shared/ui/FieldIcons.tsx";
+import { FIELD_CLASS, FormField } from "@/shared/ui/FormField.tsx";
+import { SecretInput } from "@/shared/ui/SecretInput.tsx";
 import type { ChatLanguage } from "../chat/respond-to-message.ts";
 import { SecurityManageForm } from "./SecurityManageForm.tsx";
+import { getSecurityCopy } from "./security-copy.ts";
 
 export interface SettingsSecuritySectionProps {
   language: ChatLanguage;
@@ -25,9 +29,8 @@ export function SettingsSecuritySection({
   onRemovePassword,
   onChangePassword,
 }: SettingsSecuritySectionProps) {
-  const isPt = language === "pt";
+  const c = getSecurityCopy(language);
 
-  // Setup state
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [newHint, setNewHint] = useState("");
@@ -35,21 +38,25 @@ export function SettingsSecuritySection({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const feedbackRef = useRef<HTMLDivElement>(null);
+
+  // Forms can be taller than the viewport: bring the result into view.
+  useEffect(() => {
+    if (error || success) {
+      feedbackRef.current?.scrollIntoView({ block: "nearest" });
+    }
+  }, [error, success]);
 
   async function handleSetup(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setSuccess(null);
     if (newPassword.length < 4) {
-      setError(
-        isPt
-          ? "A senha deve ter pelo menos 4 caracteres."
-          : "Password must be at least 4 characters.",
-      );
+      setError(c.tooShort);
       return;
     }
     if (newPassword !== confirmPassword) {
-      setError(isPt ? "As senhas não coincidem." : "Passwords do not match.");
+      setError(c.mismatch);
       return;
     }
 
@@ -57,16 +64,12 @@ export function SettingsSecuritySection({
     try {
       const ok = await onSetupPassword(newPassword, newHint);
       if (ok) {
-        setSuccess(
-          isPt
-            ? "Senha local ativada com sucesso!"
-            : "Local password enabled successfully!",
-        );
+        setSuccess(c.setupDone);
         setNewPassword("");
         setConfirmPassword("");
         setNewHint("");
       } else {
-        setError(isPt ? "Falha ao definir senha." : "Failed to set password.");
+        setError(c.setupFailed);
       }
     } finally {
       setLoading(false);
@@ -74,92 +77,83 @@ export function SettingsSecuritySection({
   }
 
   return (
-    <div className="flex flex-col gap-6 text-zinc-100 animate-in fade-in duration-200">
+    <div className="flex flex-col gap-6">
       <div>
-        <h3 className="text-base font-semibold text-white">
-          {isPt ? "Segurança & Bloqueio Local" : "Security & Local Lock"}
-        </h3>
-        <p className="text-xs text-zinc-400 mt-0.5">
-          {isPt
-            ? "Proteja seu OpenBot com senha ou PIN 100% offline via Web Crypto."
-            : "Protect your OpenBot with a 100% offline password or PIN via Web Crypto."}
-        </p>
+        <h3 className="text-[15px] font-semibold text-foreground">{c.title}</h3>
+        <p className="text-[13px] text-subtle">{c.description}</p>
       </div>
 
-      {error && (
-        <div className="rounded-xl border border-red-500/30 bg-red-950/40 p-3 text-xs text-red-300">
-          {error}
-        </div>
-      )}
-      {success && (
-        <div className="rounded-xl border border-emerald-500/30 bg-emerald-950/40 p-3 text-xs text-emerald-300">
-          {success}
-        </div>
-      )}
+      <div
+        ref={feedbackRef}
+        role="status"
+        aria-live="polite"
+        className="empty:hidden"
+      >
+        {error && (
+          <p
+            role="alert"
+            className="flex items-start gap-2 rounded-xl bg-danger-soft px-3.5 py-2.5 text-[13px] text-danger"
+          >
+            <AlertIcon className="mt-0.5 size-4 shrink-0" />
+            {error}
+          </p>
+        )}
+        {success && (
+          <p className="flex items-start gap-2 rounded-xl bg-success-soft px-3.5 py-2.5 text-[13px] text-success">
+            <CheckIcon className="mt-0.5 size-4 shrink-0" />
+            {success}
+          </p>
+        )}
+      </div>
 
       {!hasPassword ? (
-        <form onSubmit={handleSetup} className="flex flex-col gap-3">
-          <div className="rounded-2xl border border-white/10 bg-zinc-900/60 p-4 flex flex-col gap-3">
-            <h4 className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">
-              {isPt ? "Definir Senha ou PIN" : "Set Password or PIN"}
-            </h4>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs text-zinc-400">
-                {isPt
-                  ? "Senha ou PIN (mínimo 4 caracteres)"
-                  : "Password or PIN (min 4 chars)"}
-              </label>
-              <input
-                type="password"
+        <form onSubmit={handleSetup} className="flex flex-col gap-4">
+          <h4 className="text-[15px] font-semibold text-foreground">
+            {c.setupTitle}
+          </h4>
+          <FormField label={c.passwordLabel} helper={c.passwordHelper}>
+            {(control) => (
+              <SecretInput
+                {...control}
                 value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full rounded-xl border border-white/10 bg-zinc-900 px-3.5 py-2 text-sm text-zinc-100 outline-none focus:border-emerald-500/50"
+                onChange={setNewPassword}
+                showLabel={c.showSecret}
+                hideLabel={c.hideSecret}
+                autoComplete="new-password"
               />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs text-zinc-400">
-                {isPt ? "Confirmar Senha ou PIN" : "Confirm Password or PIN"}
-              </label>
-              <input
-                type="password"
+            )}
+          </FormField>
+          <FormField label={c.confirmLabel}>
+            {(control) => (
+              <SecretInput
+                {...control}
                 value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full rounded-xl border border-white/10 bg-zinc-900 px-3.5 py-2 text-sm text-zinc-100 outline-none focus:border-emerald-500/50"
+                onChange={setConfirmPassword}
+                showLabel={c.showSecret}
+                hideLabel={c.hideSecret}
+                autoComplete="new-password"
               />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs text-zinc-400">
-                {isPt ? "Dica de Senha (Opcional)" : "Password Hint (Optional)"}
-              </label>
+            )}
+          </FormField>
+          <FormField label={c.hintLabel}>
+            {(control) => (
               <input
+                {...control}
                 type="text"
                 value={newHint}
                 onChange={(e) => setNewHint(e.target.value)}
-                placeholder={
-                  isPt
-                    ? "Ex: data especial, frase favorita"
-                    : "e.g. special date"
-                }
-                className="w-full rounded-xl border border-white/10 bg-zinc-900 px-3.5 py-2 text-sm text-zinc-100 outline-none focus:border-emerald-500/50"
+                placeholder={c.hintPlaceholder}
+                className={FIELD_CLASS}
               />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading || !newPassword}
-              className="mt-2 w-full rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black py-2.5 text-xs font-semibold transition-all disabled:opacity-40"
-            >
-              {loading
-                ? isPt
-                  ? "Ativando..."
-                  : "Enabling..."
-                : isPt
-                  ? "Ativar Proteção por Senha"
-                  : "Enable Password Protection"}
-            </button>
-          </div>
+            )}
+          </FormField>
+          <button
+            type="submit"
+            disabled={loading || !newPassword}
+            className="min-h-11 w-full rounded-full bg-foreground px-6 text-[15px] font-semibold text-background transition-opacity hover:opacity-90 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40 md:ms-auto md:w-fit md:text-sm"
+          >
+            {loading ? c.enabling : c.enable}
+          </button>
         </form>
       ) : (
         <SecurityManageForm
@@ -174,15 +168,10 @@ export function SettingsSecuritySection({
         />
       )}
 
-      <div className="rounded-2xl border border-white/5 bg-zinc-900/40 p-3.5 text-xs text-zinc-400 leading-relaxed">
-        🔒{" "}
-        <strong className="text-zinc-300">
-          {isPt ? "100% Offline:" : "100% Offline:"}
-        </strong>{" "}
-        {isPt
-          ? "Sua senha nunca é enviada para nenhum servidor. A criptografia é feita diretamente no navegador via Web Crypto PBKDF2 com 100.000 iterações SHA-256."
-          : "Your password is never sent to any server. Cryptography runs locally in the browser via Web Crypto PBKDF2 with 100,000 SHA-256 iterations."}
-      </div>
+      <p className="flex items-start gap-2 text-[13px] text-subtle">
+        <LockIcon className="mt-0.5 size-4 shrink-0" />
+        {c.offlineNote}
+      </p>
     </div>
   );
 }
