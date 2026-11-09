@@ -75,10 +75,29 @@ export function connectKey(id: ConnectionId, key: string): void {
     return;
   }
   saveProviderKey(id, key);
-  const active = loadStoredModelConfig();
-  if (active?.provider === id) {
-    saveStoredModelConfig({ ...active, apiKey: key.trim() });
+  const next = configAfterConnect(id, key, loadStoredModelConfig());
+  if (next) saveStoredModelConfig(next);
+}
+
+/**
+ * The model config after a key connects: the active one takes the new key,
+ * and a first OpenRouter key with no model set starts on the free router.
+ */
+export function configAfterConnect(
+  id: "router" | "anthropic",
+  key: string,
+  active: ClientModelConfig | null,
+): ClientModelConfig | null {
+  if (active?.provider === id) return { ...active, apiKey: key.trim() };
+  if (!active && id === "router") {
+    return {
+      provider: "router",
+      baseUrl: OPENROUTER_URL,
+      model: OPENROUTER_TEST_MODEL,
+      apiKey: key.trim(),
+    };
   }
+  return null;
 }
 
 /** Forgets the key, including the copy the active model holds. */
