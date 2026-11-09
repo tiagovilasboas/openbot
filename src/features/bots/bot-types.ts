@@ -76,6 +76,9 @@ export const AVATAR_COLORS: readonly AvatarColor[] = [
   "gold",
 ] as const;
 
+/** Longest bot name kept by the form and the sanitizer. */
+export const BOT_NAME_MAX_LENGTH = 40;
+
 export const DEFAULT_BOT: BotProfile = {
   id: "chief-of-staff",
   name: "Chief of Staff",

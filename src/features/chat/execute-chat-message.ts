@@ -1,5 +1,6 @@
 import { buildBotSystemPrompt } from "@/features/bots/bot-system-prompt.ts";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
+import { chiefPlainReply } from "@/features/crew/chief-plain-reply.ts";
 import { crewCopy } from "@/features/crew/crew-copy.ts";
 import { buildCrewRoster } from "@/features/crew/crew-roster.ts";
 import { runCrewTurn } from "@/features/crew/run-crew-turn.ts";
@@ -16,6 +17,7 @@ import { executeSummary } from "@/features/summary/execute-summary.ts";
 import { chatCopy } from "./chat-copy.ts";
 import { describeModelFailure } from "./describe-model-failure.ts";
 import { findMentionedBot } from "./find-mentioned-bot.ts";
+import { limitHistory } from "./request-history.ts";
 import { requestModelReply } from "./request-model-reply.ts";
 import {
   getUnconfiguredModelMessage,
@@ -39,7 +41,7 @@ export interface ChatReplyOutcome {
 export async function executeChatMessage({
   text,
   language,
-  history,
+  history: fullHistory,
   activeBot,
   bots = [],
   mainBotId,
@@ -59,6 +61,8 @@ export async function executeChatMessage({
   /** Follows which bot is working while the Chief's crew answers. */
   onBotWorking?: (bot: BotProfile) => void;
 }): Promise<ChatReplyOutcome> {
+  // The server caps the history; send only the newest messages.
+  const history = limitHistory(fullHistory);
   const content = chatCopy[language];
   const isPt = language === "pt";
 
@@ -169,7 +173,9 @@ export async function executeChatMessage({
     return {
       text: crewTurn
         ? (crewTurn.synthesis ?? crewCopy[language].synthesisFailed)
-        : outcome.text,
+        : isChief
+          ? chiefPlainReply(outcome.text, bots, executingBot.id, language)
+          : outcome.text,
       ...(crewTurn
         ? {
             crew: {

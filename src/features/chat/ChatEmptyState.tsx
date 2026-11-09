@@ -82,7 +82,7 @@ export function ChatEmptyState({
                 <TerminalIcon className="size-6" />
               </span>
             )}
-            <h2 className="mt-4 max-w-md text-balance text-[26px] font-semibold leading-tight tracking-[-0.02em] text-foreground md:mt-5 md:max-w-xl md:text-[32px] md:tracking-[-0.025em]">
+            <h2 className="mt-4 max-w-md text-balance wrap-anywhere text-[26px] font-semibold leading-tight tracking-[-0.02em] text-foreground md:mt-5 md:max-w-xl md:text-[32px] md:tracking-[-0.025em]">
               {title}
             </h2>
             <p className="mt-2 max-w-md text-pretty text-[15px] text-muted">
