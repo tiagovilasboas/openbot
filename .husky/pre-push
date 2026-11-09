@@ -1,1 +1,15 @@
+# Git hooks run in a non-interactive shell, so its default Node may be older
+# than the project needs. Load nvm when it is installed and switch to the
+# version pinned in .nvmrc before running the gate.
+NVM_SH="${NVM_DIR:-$HOME/.nvm}/nvm.sh"
+if [ -s "$NVM_SH" ]; then
+  . "$NVM_SH"
+  nvm use --silent >/dev/null 2>&1 || true
+fi
+
+if ! node -e 'const [a, b] = process.versions.node.split(".").map(Number); process.exit(a > 22 || (a === 22 && b >= 6) ? 0 : 1)'; then
+  echo "pre-push: openbot needs Node.js >= 22.6.0 (found $(node -v)). Run 'nvm use' (see .nvmrc) and try again." >&2
+  exit 1
+fi
+
 npm run check
