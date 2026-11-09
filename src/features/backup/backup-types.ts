@@ -11,6 +11,7 @@ export const BACKUP_ALLOWED_KEYS = {
   bots: "openbot_bots",
   activeBotId: "openbot_active_bot_id",
   mainBotId: "openbot_main_bot_id",
+  language: "openbot_language",
   messagesPrefix: "openbot_msgs_",
 } as const;
 

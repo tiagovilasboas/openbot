@@ -245,3 +245,19 @@ test("merge keeps existing bots and messages and adds new ids", () => {
   assert.match(target.getItem("openbot_msgs_c")!, /new/);
   assert.equal(target.getItem("openbot_active_bot_id"), "b");
 });
+
+test("a replace import brings the language back, a merge keeps the user's", () => {
+  const file = envelope({ bots: [bot("c")], messages: {}, language: "en" });
+  const parsed = parseBackup(file);
+  assert.ok(parsed.ok);
+
+  const replaced = seeded();
+  replaced.setItem("openbot_language", "pt");
+  restoreBackup(parsed.backup, replaced, "replace");
+  assert.equal(replaced.getItem("openbot_language"), "en");
+
+  const merged = seeded();
+  merged.setItem("openbot_language", "pt");
+  restoreBackup(parsed.backup, merged, "merge");
+  assert.equal(merged.getItem("openbot_language"), "pt");
+});

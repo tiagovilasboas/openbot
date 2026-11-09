@@ -33,6 +33,8 @@ export function restoreBackup(
     }
     if (data.activeBotId) storage.setItem(KEYS.activeBotId, data.activeBotId);
     if (data.mainBotId) storage.setItem(KEYS.mainBotId, data.mainBotId);
+    // A replace brings the saved language back too; a merge keeps the user's.
+    if (data.language) storage.setItem(KEYS.language, data.language);
     return {
       bots: data.bots.length,
       conversations: Object.keys(data.messages).length,
