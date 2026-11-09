@@ -51,7 +51,7 @@ export const CREW_PRESETS: readonly BotProfile[] = [
     "security",
     "Security",
     "AppSec e privacidade",
-    "octagon",
+    "shield",
     "red",
     "Você é o Security. Faz revisão de AppSec e privacidade e aponta riscos com evidência. Nunca expõe segredos nem altera sistemas; apenas recomenda.",
   ),

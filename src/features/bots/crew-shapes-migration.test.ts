@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { BOTS_STORAGE_KEY, loadBotsFromStorage } from "./bot-storage.ts";
 import {
-  CREW_SHAPES_KEY,
+  CREW_SHAPE_ROUNDS,
   migrateCrewShapes,
   updateCrewShapes,
 } from "./crew-shapes-migration.ts";
@@ -31,6 +31,7 @@ function oldCrew(overrides: Record<string, string> = {}) {
     inbox: "diamond",
     finance: "pentagon",
     product: "egg",
+    security: "octagon",
     ...overrides,
   };
   return JSON.stringify(
@@ -53,6 +54,7 @@ test("migrateCrewShapes gives a saved crew its new heads", () => {
   assert.equal(shapeOf(storage, "inbox"), "flower");
   assert.equal(shapeOf(storage, "finance"), "clover");
   assert.equal(shapeOf(storage, "product"), "dumpling");
+  assert.equal(shapeOf(storage, "security"), "shield");
   assert.equal(shapeOf(storage, "engineering"), "square");
 });
 
@@ -69,12 +71,25 @@ test("migrateCrewShapes runs once", () => {
   const storage = createMockStorage();
   storage.setItem(BOTS_STORAGE_KEY, oldCrew());
   migrateCrewShapes(storage);
-  assert.equal(storage.getItem(CREW_SHAPES_KEY), "1");
+  for (const round of CREW_SHAPE_ROUNDS) {
+    assert.equal(storage.getItem(round.key), "1");
+  }
 
   // A shape picked after the migration is never moved again.
   storage.setItem(BOTS_STORAGE_KEY, oldCrew());
   assert.equal(migrateCrewShapes(storage), false);
   assert.equal(shapeOf(storage, "chief-of-staff"), "hexagon");
+});
+
+test("migrateCrewShapes runs only the rounds a browser has not run", () => {
+  const storage = createMockStorage();
+  storage.setItem(CREW_SHAPE_ROUNDS[0]!.key, "1");
+  // The Chief kept a hexagon the user picked after the first round.
+  storage.setItem(BOTS_STORAGE_KEY, oldCrew());
+
+  assert.equal(migrateCrewShapes(storage), true);
+  assert.equal(shapeOf(storage, "chief-of-staff"), "hexagon");
+  assert.equal(shapeOf(storage, "security"), "shield");
 });
 
 test("migrateCrewShapes leaves a fresh browser alone", () => {
@@ -85,6 +100,9 @@ test("migrateCrewShapes leaves a fresh browser alone", () => {
 
 test("updateCrewShapes ignores custom bots with crew shapes", () => {
   const custom = { ...CREW_PRESETS[0]!, id: "bot_x", avatarShape: "hexagon" };
-  const [bot] = updateCrewShapes([custom as (typeof CREW_PRESETS)[number]]);
+  const [bot] = updateCrewShapes(
+    [custom as (typeof CREW_PRESETS)[number]],
+    CREW_SHAPE_ROUNDS[0]!.changes,
+  );
   assert.equal(bot, custom);
 });
