@@ -62,14 +62,12 @@ test("detectSummaryRequest identifies daily briefing requests", () => {
   assert.equal(pt.isSummary, true);
   if (pt.isSummary) {
     assert.equal(pt.kind, "daily_briefing");
-    assert.equal(pt.includeCalendar, true);
   }
 
   const en = detectSummaryRequest("Give me the daily briefing");
   assert.equal(en.isSummary, true);
   if (en.isSummary) {
     assert.equal(en.kind, "daily_briefing");
-    assert.equal(en.includeCalendar, true);
   }
 });
 
@@ -84,16 +82,6 @@ test("generateDeterministicSummary formats factual sections and suggested action
     {
       repo: { owner: "tiagovilasboas", repo: "openbot" },
       items: sampleItems,
-      events: [
-        {
-          id: "1",
-          title: "Daily Standup",
-          time: "09:30",
-          detail: "Team sync",
-          date: null,
-          fictional: true,
-        },
-      ],
     },
     "pt",
     "daily_briefing",
@@ -103,7 +91,6 @@ test("generateDeterministicSummary formats factual sections and suggested action
   assert.match(summary, /Pull Requests: \*\*1\*\* abertos/);
   assert.match(summary, /Issues: \*\*1\*\* abertas/);
   assert.match(summary, /#42/);
-  assert.match(summary, /Daily Standup/);
   assert.match(summary, /Sugestões de Ação/);
   assert.match(summary, /Fontes: GitHub API v3/);
 });
@@ -156,7 +143,6 @@ test("executeSummary executes deterministically when no model is configured", as
       isSummary: true,
       kind: "repo_summary",
       repo: { owner: "tiagovilasboas", repo: "openbot" },
-      includeCalendar: true,
     },
     "pt",
     "Resuma o repositório",
@@ -167,7 +153,6 @@ test("executeSummary executes deterministically when no model is configured", as
 
   assert.match(outcome.text, /Resumo de tiagovilasboas\/openbot/);
   assert.equal(outcome.github?.items.length, 2);
-  assert.equal(outcome.events?.length, 2);
 });
 
 test("executeSummary uses model reply when configured and falls back on error", async () => {
@@ -192,7 +177,6 @@ test("executeSummary uses model reply when configured and falls back on error", 
       isSummary: true,
       kind: "repo_summary",
       repo: { owner: "tiagovilasboas", repo: "openbot" },
-      includeCalendar: false,
     },
     "pt",
     "Resuma o repositório",
@@ -229,7 +213,6 @@ test("executeSummary uses model reply when configured and falls back on error", 
       isSummary: true,
       kind: "repo_summary",
       repo: { owner: "tiagovilasboas", repo: "openbot" },
-      includeCalendar: false,
     },
     "pt",
     "Resuma o repositório",

@@ -1,54 +1,53 @@
 "use client";
 
-import { Chip } from "@heroui/react";
-
 interface ModelStatusBadgeProps {
   label: string;
   isConfigured: boolean;
   onPress?: () => void;
+  /** Names what pressing the pill does, for assistive tech. */
+  actionLabel?: string;
+  className?: string;
 }
+
+const PILL =
+  "inline-flex h-8 min-w-0 max-w-64 items-center gap-2 rounded-full border border-border bg-surface px-3 text-xs font-medium text-muted";
 
 export function ModelStatusBadge({
   label,
   isConfigured,
   onPress,
+  actionLabel,
+  className = "",
 }: ModelStatusBadgeProps) {
-  return (
-    <Chip
-      size="sm"
-      variant="soft"
-      color={isConfigured ? "success" : "warning"}
-      className={`max-w-[70px] xs:max-w-[110px] sm:max-w-xs truncate border border-white/10 bg-zinc-900/60 text-zinc-300 px-1.5 sm:px-2.5 ${
-        onPress
-          ? "cursor-pointer transition-all hover:border-white/25 hover:bg-zinc-800 hover:text-white active:scale-95"
-          : ""
-      }`}
-      onClick={onPress}
-      aria-label={`Status: ${label}`}
-      role={onPress ? "button" : undefined}
-      tabIndex={onPress ? 0 : undefined}
-      onKeyDown={
-        onPress
-          ? (e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                onPress();
-              }
-            }
-          : undefined
-      }
-    >
-      <span className="flex items-center gap-1.5 truncate">
-        <span
-          className={`inline-block size-1.5 shrink-0 rounded-full ${
-            isConfigured ? "bg-emerald-400" : "bg-amber-400"
-          }`}
-          aria-hidden="true"
-        />
-        <span className="truncate text-[11px] sm:text-xs font-medium">
-          {label}
-        </span>
+  const body = (
+    <>
+      <span
+        aria-hidden="true"
+        className={`size-1.5 shrink-0 rounded-full ${
+          isConfigured ? "bg-success" : "bg-warning"
+        }`}
+      />
+      <span className="truncate">{label}</span>
+      {actionLabel && <span className="sr-only">, {actionLabel}</span>}
+    </>
+  );
+
+  if (!onPress) {
+    return (
+      <span title={label} className={`${PILL} ${className}`}>
+        {body}
       </span>
-    </Chip>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      title={label}
+      onClick={onPress}
+      className={`${PILL} transition-[background-color,color,transform] duration-150 ease-out-expo hover:bg-surface-secondary hover:text-foreground active:scale-[0.97] ${className}`}
+    >
+      {body}
+    </button>
   );
 }

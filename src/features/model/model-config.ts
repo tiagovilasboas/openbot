@@ -208,7 +208,7 @@ export function formatModelBadge(
   language: "pt" | "en" = "pt",
 ): string {
   if (isDemo || !config?.provider) {
-    return language === "pt" ? "Modo Demo" : "Demo Mode";
+    return language === "pt" ? "Sem modelo" : "No model";
   }
 
   const providerLabel =

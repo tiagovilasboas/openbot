@@ -31,12 +31,6 @@ const dailyKeywords = [
   "today",
   "meu dia",
   "my day",
-  "agenda",
-  "schedule",
-  "compromissos",
-  "compromíssos",
-  "events",
-  "eventos",
 ];
 
 const repoInTextPattern = /\b([a-zA-Z0-9_-]+)\/([a-zA-Z0-9_.-]+)\b/;
@@ -88,7 +82,6 @@ export function detectSummaryRequest(input: string): DetectedSummaryRequest {
       isSummary: true,
       kind: "repo_summary",
       repo: foundRepo,
-      includeCalendar: hasDailyKeyword,
     };
   }
 
@@ -102,7 +95,6 @@ export function detectSummaryRequest(input: string): DetectedSummaryRequest {
       isSummary: true,
       kind: "daily_briefing",
       repo: defaultRepo,
-      includeCalendar: true,
     };
   }
 

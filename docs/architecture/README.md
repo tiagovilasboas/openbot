@@ -1,14 +1,14 @@
 # Architecture principles
 
-Open Bot is in the planning stage. These principles guide implementation decisions.
+OpenBot follows **Screaming Architecture**, **Dependency Rule**, **SRP**, and **Clean Code**.
 
-The [delivery gate contract](delivery-gates.md) documents the versioned Husky hooks, quality checks and CI gate for the application.
+- **[Camadas e Estrutura do Sistema](layers.md):** Mapa completo das 4 camadas (Apresentação, Aplicação, Domínio e Infraestrutura/Adaptadores).
+- **[Contrato de Portas de Entrega](delivery-gates.md):** Git hooks versionados, checks de qualidade estáticos e CI gate para o repositório.
+- **[Especificação do MVP](mvp.md):** Escopo inicial e contratos de leitura para desenvolvedores.
 
-- **Screaming Architecture:** organize code around product capabilities and domains. Keep related behavior together.
-- **Clean Code:** favor clear names, focused functions, explicit contracts, and understandable errors.
-- **KISS:** choose the simplest design that meets current needs.
-- **YAGNI:** add capabilities when a real use case requires them.
-- **SRP:** give each module a cohesive responsibility and a clear reason to change.
-- **Adapters:** isolate model providers, MCP servers, external APIs, storage, and interfaces behind focused boundaries. Domain behavior must not depend on provider details. Add abstractions when a real boundary warrants them.
+## Princípios Arquiteturais
 
-Skills describe procedures and do not grant permissions. Tool execution is controlled by the host; actions that modify external data require explicit approval. See [grok-bot-architecture](https://github.com/tiagovilasboas/grok-bot-architecture) for the reference patterns.
+- **Screaming Architecture:** Organização dos módulos pelo domínio de negócio (`src/features/*`), não por convenções de framework.
+- **Dependency Rule:** Dependências sempre apontam para dentro. O domínio e os contratos são independentes de detalhes externos.
+- **Clean Code & SRP:** Módulos pequenos, responsabilidades coesas e limite rígido de ~300 linhas por arquivo.
+- **Adapters Isolados:** Provedores de modelo (OpenRouter, Ollama, Anthropic), APIs externas (GitHub) e armazenamento são isolados atrás de interfaces tipadas com suporte a failover automático.

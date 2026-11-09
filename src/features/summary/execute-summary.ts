@@ -1,4 +1,3 @@
-import { listExampleEvents } from "../calendar/list-example-events.ts";
 import { requestModelReply } from "../chat/request-model-reply.ts";
 import type { ChatLanguage } from "../chat/respond-to-message.ts";
 import { listRepositoryItems } from "../github/list-repository-items.ts";
@@ -39,12 +38,7 @@ export async function executeSummary(
     }
   }
 
-  // 2. Fetch Calendar events if requested
-  if (request.includeCalendar) {
-    dataSource.events = listExampleEvents(language);
-  }
-
-  // 3. Generate summary text (AI model if configured, otherwise deterministic)
+  // 2. Generate summary text (AI model if configured, otherwise deterministic)
   let summaryText = "";
 
   if (modelConfig) {
@@ -82,9 +76,6 @@ export async function executeSummary(
     text: summaryText,
     ...(dataSource.items && dataSource.items.length > 0 && request.repo
       ? { github: { repo: request.repo, items: dataSource.items } }
-      : {}),
-    ...(dataSource.events && dataSource.events.length > 0
-      ? { events: dataSource.events }
       : {}),
     partialFailures,
   };

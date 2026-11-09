@@ -52,30 +52,32 @@ As frentes 1.1 e 1.2 podem avançar em paralelo. A comparação opcional 1.3 nã
 
 ## Etapa 2 — entrada e conversa
 
-| Ordem | Entrega                     | Pontos | Depende de | Critério de aceite                                                                                                                                                                     |
-| ----- | --------------------------- | -----: | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2.1   | Inicialização local e HTTPS |      5 | 1.4        | Uma pessoa inicia o servidor e abre a interface no celular com certificado confiável; instruções descrevem limites e configuração.                                                     |
-| 2.2   | Pareamento e sessão         |      5 | 2.1        | Código temporário de uso único conecta dispositivo; expiração, tentativa inválida e acesso sem sessão são recusados.                                                                   |
-| 2.3   | Gerenciar dispositivos      |      3 | 2.2        | Listar e revogar sessões; dispositivo revogado perde acesso e consegue iniciar novo pareamento.                                                                                        |
-| 2.4   | Conversa e histórico        |      5 | 1.4, 2.2   | Criar e retomar conversa; respostas em fluxo e falhas de rede ficam visíveis.                                                                                                          |
-| 2.5   | Configurar modelo           |      5 | 1.4, 2.2   | Escolher endpoint local, Anthropic ou rota gratuita validada; testar conexão, identificar destino, guardar credenciais no servidor e permitir removê-las.                              |
-| 2.6   | Boas-vindas e idioma        |      3 | 2.2, 2.5   | Orientar pareamento, escolha de modelo, nome e idioma; sem modelo configurado, oferecer rota gratuita validada com informação e ativação explícita; permitir conectar serviços depois. |
-| 2.7   | Falhas e fallback de modelo |      3 | 2.5        | Mostrar indisponibilidade ou limite; permitir escolher outra rota. Fallback automático só após configuração e consentimento explícitos para o destino e eventual cobrança.             |
+Veja também o detalhamento de tarefas e portabilidade do `openbot.run` em [features-and-tasks.md](features-and-tasks.md).
+
+| Ordem | Entrega                     | Pontos | Depende de | Critério de aceite                                                                                                                                                                     |            Status             |
+| ----- | --------------------------- | -----: | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------: |
+| 2.1   | Inicialização local e HTTPS |      5 | 1.4        | Uma pessoa inicia o servidor e abre a interface no celular com certificado confiável; instruções descrevem limites e configuração.                                                     |            Aberto             |
+| 2.2   | Pareamento e sessão         |      5 | 2.1        | Autenticação local offline por PBKDF2 (SHA-256) com tela de bloqueio e sessão local já implementada; código temporário de pareamento móvel na sequência.                               | **Concluído** (Local offline) |
+| 2.3   | Gerenciar dispositivos      |      3 | 2.2        | Listar e revogar sessões; dispositivo revogado perde acesso e consegue iniciar novo pareamento.                                                                                        |            Aberto             |
+| 2.4   | Conversa e histórico        |      5 | 1.4, 2.2   | Criar e retomar conversa; respostas em fluxo, falhas de rede e fila FIFO assíncrona não-bloqueante.                                                                                    |         **Concluído**         |
+| 2.5   | Configurar modelo           |      5 | 1.4, 2.2   | Escolher endpoint local, Anthropic ou rota gratuita validada (OpenRouter Free dinâmico); testar conexão e guardar credenciais com segurança.                                           |         **Concluído**         |
+| 2.6   | Boas-vindas e idioma        |      3 | 2.2, 2.5   | Orientar pareamento, escolha de modelo, nome e idioma; sem modelo configurado, oferecer rota gratuita validada com informação e ativação explícita; permitir conectar serviços depois. |         **Concluído**         |
+| 2.7   | Falhas e fallback de modelo |      3 | 2.5        | Mostrar indisponibilidade ou limite; Provider Failover Engine automático sob 429/5xx com aviso visual na mensagem.                                                                     |         **Concluído**         |
 
 Após a autenticação, conversa, configuração de modelo e gestão de dispositivos podem avançar em paralelo com contratos estáveis. A implementação deve definir proteção de origem, sessão, expiração e armazenamento seguro antes de expor o serviço.
 
 ## Etapa 3 — GitHub para devs e expansão pessoal
 
-| Ordem | Entrega                   | Pontos | Depende de    | Critério de aceite                                                                                                           |
-| ----- | ------------------------- | -----: | ------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| 3.1   | Execução de ferramentas   |      5 | 2.4, 2.5      | Validar identidade, permissões e argumentos; limites, erros e recusas são visíveis; nenhuma skill concede acesso.            |
-| 3.2   | Carregamento de skills    |      3 | 3.1           | Selecionar skill permitida sob demanda; tratar conteúdo externo como não confiável e nunca executar scripts automaticamente. |
-| 3.3   | Cliente MCP               |      5 | 3.1           | Conectar servidor aprovado, expor somente ferramentas permitidas e tratar desconexão e encerramento.                         |
-| 3.4   | Conexão GitHub            |      5 | 3.1, 2.2      | Autorizar leitura, consultar issues ou PRs permitidos, mostrar fontes e permitir desconexão.                                 |
-| 3.5   | Conexão calendário        |      5 | 3.8           | Autorizar leitura, consultar eventos por período e fuso, tratar token expirado e permitir desconexão.                        |
-| 3.6   | Resumo diário             |      3 | 3.2, 3.4, 3.5 | Responder com fontes, datas e falhas parciais; não inventar dados nem executar escritas.                                     |
-| 3.7   | Configurações de conexões |      3 | 3.4           | Mostrar escopos e estado do GitHub; permitir reconectar ou revogar acesso. Estender ao calendário em 3.5.                    |
-| 3.8   | Aceite e piloto para devs |      3 | 3.4, 3.7      | Concluir os cenários, instalação externa e critérios do primeiro marco; registrar lacunas antes de expandir.                 |
+| Ordem | Entrega                   | Pontos | Depende de    | Critério de aceite                                                                                                           |                        Status                         |
+| ----- | ------------------------- | -----: | ------------- | ---------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------: |
+| 3.1   | Execução de ferramentas   |      5 | 2.4, 2.5      | Validar identidade, permissões e argumentos; limites, erros e recusas são visíveis; nenhuma skill concede acesso.            |                        Aberto                         |
+| 3.2   | Carregamento de skills    |      3 | 3.1           | Selecionar skill permitida sob demanda; tratar conteúdo externo como não confiável e nunca executar scripts automaticamente. | **Concluído** (Skills de usuário e injeção no prompt) |
+| 3.3   | Cliente MCP               |      5 | 3.1           | Conectar servidor aprovado, expor somente ferramentas permitidas e tratar desconexão e encerramento.                         |                        Aberto                         |
+| 3.4   | Conexão GitHub            |      5 | 3.1, 2.2      | Autorizar leitura, consultar issues ou PRs permitidos, mostrar fontes e permitir desconexão.                                 |                     **Concluído**                     |
+| 3.5   | Conexão calendário        |      5 | 3.8           | Autorizar leitura, consultar eventos por período e fuso, tratar token expirado e permitir desconexão.                        |                        Aberto                         |
+| 3.6   | Resumo diário             |      3 | 3.2, 3.4, 3.5 | Responder com fontes, datas e falhas parciais; não inventar dados nem executar escritas.                                     |                     **Concluído**                     |
+| 3.7   | Configurações de conexões |      3 | 3.4           | Mostrar escopos e estado do GitHub; permitir reconectar ou revogar acesso.                                                   |                     **Concluído**                     |
+| 3.8   | Aceite e piloto para devs |      3 | 3.4, 3.7      | Concluir os cenários, instalação externa e critérios do primeiro marco; registrar lacunas antes de expandir.                 |                     Em andamento                      |
 
 O calendário começa após o aceite do marco para devs. O cliente MCP é necessário apenas se a integração escolhida o utilizar; API direta aprovada pode atender o primeiro marco. A escolha entre MCP e API direta é feita por integração; não depende de expor todo catálogo de ferramentas ao modelo.
 

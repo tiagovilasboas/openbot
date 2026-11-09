@@ -47,6 +47,16 @@ const FALLBACK_FREE_MODELS: FreeModelItem[] = [
     name: "LiquidAI: LFM3-1.7B (free)",
     contextLength: 262144,
   },
+  {
+    id: "parallel/decisions-fast:free",
+    name: "Parallel: Decisions Fast (free)",
+    contextLength: 131072,
+  },
+  {
+    id: "heygen/voice-turbo:free",
+    name: "HeyGen: HeyGen Voice Turbo (free)",
+    contextLength: 131072,
+  },
 ];
 
 export async function GET() {

@@ -25,6 +25,7 @@ export interface BotProfile {
   name: string;
   title?: string;
   description: string;
+  workspaceContext?: string;
   avatarShape: AvatarShape;
   avatarColor: AvatarColor;
   skills: string[];
@@ -64,7 +65,7 @@ export const DEFAULT_BOT: BotProfile = {
     "Você é o Chief of Staff, o coordenador geral da equipe de bots. Seu papel é planejar, sintetizar informações de repositórios/calendário e coordenar/delegar tarefas para bots especialistas quando necessário.",
   avatarShape: "shield",
   avatarColor: "cyan",
-  skills: ["github", "calendar", "summary"],
+  skills: [],
   createdAt: "2026-01-01T00:00:00.000Z",
   updatedAt: "2026-01-01T00:00:00.000Z",
 };

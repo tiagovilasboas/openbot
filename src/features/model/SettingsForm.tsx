@@ -1,6 +1,5 @@
 "use client";
 
-import { Button, Chip, Modal } from "@heroui/react";
 import { useState } from "react";
 import { chatCopy } from "@/features/chat/chat-copy.ts";
 import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
@@ -9,6 +8,7 @@ import {
   loadStoredGitHubToken,
   saveStoredGitHubToken,
 } from "@/features/github/github-config.ts";
+import { SheetFooter } from "@/shared/ui/ResponsiveSheet.tsx";
 import {
   clearStoredModelConfig,
   saveStoredModelConfig,
@@ -16,6 +16,11 @@ import {
   type ClientModelConfig,
   type ModelProviderType,
 } from "./model-config.ts";
+import {
+  ConnectionTest,
+  type ConnectionTestResult,
+} from "./ConnectionTest.tsx";
+import { getSettingsCopy } from "./settings-copy.ts";
 import { SettingsGitHubSection } from "./SettingsGitHubSection.tsx";
 import { SettingsProviderFields } from "./SettingsProviderFields.tsx";
 import { SettingsProviderSelector } from "./SettingsProviderSelector.tsx";
@@ -24,6 +29,8 @@ import { testModelConnection } from "./test-model-connection.ts";
 export interface SettingsFormProps {
   language: ChatLanguage;
   currentConfig: ClientModelConfig | null;
+  /** False while another settings tab is shown: the footer is not rendered. */
+  isActive?: boolean;
   onClose: () => void;
   onSave?: (config: ClientModelConfig) => void;
   onReset?: () => void;
@@ -32,11 +39,14 @@ export interface SettingsFormProps {
 export function SettingsForm({
   language,
   currentConfig,
+  isActive = true,
   onClose,
   onSave,
   onReset,
 }: SettingsFormProps) {
   const content = chatCopy[language];
+  const s = getSettingsCopy(language);
+  const [isConfirmingReset, setIsConfirmingReset] = useState(false);
   const [provider, setProvider] = useState<ModelProviderType>(
     currentConfig?.provider ?? "router",
   );
@@ -148,32 +158,38 @@ export function SettingsForm({
     onClose();
   }
 
+  const connectionResult: ConnectionTestResult | null = !testResult
+    ? null
+    : testResult.ok
+      ? { ok: true, message: content.testSuccess }
+      : {
+          ok: false,
+          message:
+            testResult.error === "invalid_fields"
+              ? s.testInvalid
+              : `${content.testFailed}: ${testResult.detail ? `${testResult.error} (${testResult.detail})` : testResult.error}`,
+        };
+
   return (
     <>
-      <Modal.Header className="flex items-center justify-between border-b border-separator pb-4">
-        <div>
-          <Modal.Heading className="text-lg font-semibold">
-            {content.settingsTitle}
-          </Modal.Heading>
-          <p className="mt-0.5 text-xs text-muted">
-            {content.settingsSubtitle}
-          </p>
-        </div>
-        <Modal.CloseTrigger />
-      </Modal.Header>
-
-      <Modal.Body className="flex flex-col gap-4 py-4">
-        <SettingsProviderSelector
-          provider={provider}
-          content={content}
-          onSelectProvider={(next) => {
-            setProvider(next);
-            setTestResult(null);
-          }}
-        />
+      <div className="flex flex-col gap-8">
+        <section className="flex flex-col gap-3">
+          <h3 className="text-[15px] font-semibold text-foreground">
+            {s.sectionProvider}
+          </h3>
+          <SettingsProviderSelector
+            provider={provider}
+            content={content}
+            onSelectProvider={(next) => {
+              setProvider(next);
+              setTestResult(null);
+            }}
+          />
+        </section>
 
         <SettingsProviderFields
           provider={provider}
+          language={language}
           content={content}
           routerUrl={routerUrl}
           setRouterUrl={setRouterUrl}
@@ -191,56 +207,74 @@ export function SettingsForm({
           setAnthropicModel={setAnthropicModel}
         />
 
-        <div className="pt-1">
-          <Button
-            size="sm"
-            variant="secondary"
-            className="w-full"
-            isDisabled={isTesting}
-            onPress={() => void handleTest()}
-          >
-            {isTesting ? content.testingConnection : content.testConnection}
-          </Button>
-          {testResult && (
-            <div className="mt-2 flex justify-center">
-              <Chip
-                size="sm"
-                variant="soft"
-                color={testResult.ok ? "success" : "danger"}
-              >
-                {testResult.ok
-                  ? content.testSuccess
-                  : `${content.testFailed}: ${testResult.detail ? `${testResult.error} (${testResult.detail})` : testResult.error}`}
-              </Chip>
-            </div>
-          )}
-        </div>
+        <section className="flex flex-col gap-3">
+          <h3 className="text-[15px] font-semibold text-foreground">
+            {s.sectionConnection}
+          </h3>
+          <ConnectionTest
+            label={content.testConnection}
+            loadingLabel={content.testingConnection}
+            isTesting={isTesting}
+            result={connectionResult}
+            idleHint={s.testIdle}
+            onTest={() => void handleTest()}
+          />
+        </section>
 
         <SettingsGitHubSection
           language={language}
           token={gitHubToken}
           onTokenChange={setGitHubToken}
         />
-      </Modal.Body>
+      </div>
 
-      <Modal.Footer className="flex flex-col-reverse gap-2 border-t border-separator pt-4 sm:flex-row sm:justify-between">
-        <Button
-          size="md"
-          variant="ghost"
-          className="text-xs text-muted"
-          onPress={handleReset}
-        >
-          {content.resetDefaults}
-        </Button>
-        <div className="flex gap-2">
-          <Button size="md" variant="secondary" onPress={onClose}>
-            {content.close}
-          </Button>
-          <Button size="md" variant="primary" onPress={handleSave}>
-            {content.saveSettings}
-          </Button>
-        </div>
-      </Modal.Footer>
+      {isActive && (
+        <SheetFooter>
+          {isConfirmingReset ? (
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div>
+                <p className="text-[15px] font-medium text-foreground md:text-sm">
+                  {s.resetConfirm}
+                </p>
+                <p className="text-[13px] text-subtle">{s.resetConfirmHint}</p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsConfirmingReset(false)}
+                  className="min-h-11 flex-1 rounded-full border border-border bg-surface px-5 text-[15px] font-medium text-foreground active:scale-[0.97] md:flex-none md:text-sm"
+                >
+                  {s.cancel}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  className="min-h-11 flex-1 rounded-full bg-danger px-5 text-[15px] font-medium text-background active:scale-[0.97] md:flex-none md:text-sm"
+                >
+                  {s.resetConfirmAction}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => setIsConfirmingReset(true)}
+                className="min-h-11 rounded-full px-4 text-[15px] font-medium text-muted transition-colors hover:bg-surface hover:text-foreground active:scale-[0.97] md:text-sm"
+              >
+                {content.resetDefaults}
+              </button>
+              <button
+                type="button"
+                onClick={handleSave}
+                className="min-h-11 rounded-full bg-foreground px-6 text-[15px] font-semibold text-background transition-opacity hover:opacity-90 active:scale-[0.97] md:text-sm"
+              >
+                {content.saveSettings}
+              </button>
+            </div>
+          )}
+        </SheetFooter>
+      )}
     </>
   );
 }
