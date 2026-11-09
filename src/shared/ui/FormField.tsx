@@ -1,11 +1,11 @@
 import { useId, type ReactNode } from "react";
 import { AlertIcon } from "./FieldIcons.tsx";
 
-/** Shared control look: 48px tall, 16px on phone, 14px on desktop. */
+/** Shared control look: 44px tall on phone, 40px on desktop. 16px text on phone stops iOS zoom on focus. */
 export const FIELD_CLASS =
-  "w-full min-h-12 rounded-xl border border-border bg-surface px-3.5 text-base text-foreground placeholder:text-subtle md:text-sm disabled:pointer-events-none disabled:opacity-40";
+  "w-full min-h-11 rounded-xl border border-border bg-surface px-3 text-base text-foreground placeholder:text-subtle md:min-h-10 md:text-sm disabled:pointer-events-none disabled:opacity-40";
 
-export const TEXTAREA_CLASS = `${FIELD_CLASS} min-h-24 resize-none py-3 leading-relaxed`;
+export const TEXTAREA_CLASS = `${FIELD_CLASS.replace(" md:min-h-10", "")} min-h-20 resize-none py-2.5 leading-relaxed`;
 
 export interface FieldControlProps {
   id: string;
@@ -27,11 +27,8 @@ export function FormField({ label, helper, error, children }: FormFieldProps) {
   const hasNote = Boolean(error || helper);
 
   return (
-    <div className="flex flex-col gap-1.5">
-      <label
-        htmlFor={id}
-        className="text-[15px] font-medium text-foreground md:text-sm"
-      >
+    <div className="flex flex-col gap-1">
+      <label htmlFor={id} className="text-sm font-medium text-foreground">
         {label}
       </label>
       {children({

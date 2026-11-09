@@ -171,9 +171,9 @@ export function SettingsForm({
 
   return (
     <>
-      <div className="flex flex-col gap-8">
-        <section className="flex flex-col gap-3">
-          <h3 className="text-[15px] font-semibold text-foreground">
+      <div className="flex flex-col gap-5 md:gap-8">
+        <section className="flex flex-col gap-2">
+          <h3 className="text-sm font-semibold text-foreground">
             {s.sectionProvider}
           </h3>
           <SettingsProviderSelector
@@ -210,8 +210,8 @@ export function SettingsForm({
           />
         )}
 
-        <section className="flex flex-col gap-3">
-          <h3 className="text-[15px] font-semibold text-foreground">
+        <section className="flex flex-col gap-2">
+          <h3 className="text-sm font-semibold text-foreground">
             {s.sectionConnection}
           </h3>
           <ConnectionTest
@@ -228,9 +228,9 @@ export function SettingsForm({
       {isActive && (
         <SheetFooter>
           {isConfirmingReset ? (
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
               <div>
-                <p className="text-[15px] font-medium text-foreground md:text-sm">
+                <p className="text-sm font-medium text-foreground">
                   {s.resetConfirm}
                 </p>
                 <p className="text-[13px] text-subtle">{s.resetConfirmHint}</p>
@@ -239,14 +239,14 @@ export function SettingsForm({
                 <button
                   type="button"
                   onClick={() => setIsConfirmingReset(false)}
-                  className="min-h-11 flex-1 rounded-full border border-border bg-surface px-5 text-[15px] font-medium text-foreground active:scale-[0.97] md:flex-none md:text-sm"
+                  className="min-h-11 flex-1 rounded-full border border-border bg-surface px-5 text-sm font-medium text-foreground active:scale-[0.97] md:flex-none"
                 >
                   {s.cancel}
                 </button>
                 <button
                   type="button"
                   onClick={handleReset}
-                  className="min-h-11 flex-1 rounded-full bg-danger px-5 text-[15px] font-medium text-background active:scale-[0.97] md:flex-none md:text-sm"
+                  className="min-h-11 flex-1 rounded-full bg-danger px-5 text-sm font-medium text-background active:scale-[0.97] md:flex-none"
                 >
                   {s.resetConfirmAction}
                 </button>
@@ -257,14 +257,14 @@ export function SettingsForm({
               <button
                 type="button"
                 onClick={() => setIsConfirmingReset(true)}
-                className="min-h-11 rounded-full px-4 text-[15px] font-medium text-muted transition-colors hover:bg-surface hover:text-foreground active:scale-[0.97] md:text-sm"
+                className="min-h-11 rounded-full px-4 text-sm font-medium text-muted transition-colors hover:bg-surface hover:text-foreground active:scale-[0.97]"
               >
                 {content.resetDefaults}
               </button>
               <button
                 type="button"
                 onClick={handleSave}
-                className="min-h-11 rounded-full bg-foreground px-6 text-[15px] font-semibold text-background transition-opacity hover:opacity-90 active:scale-[0.97] md:text-sm"
+                className="min-h-11 rounded-full bg-foreground px-6 text-sm font-semibold text-background transition-opacity hover:opacity-90 active:scale-[0.97]"
               >
                 {content.saveSettings}
               </button>

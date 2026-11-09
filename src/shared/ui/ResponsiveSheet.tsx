@@ -93,7 +93,7 @@ export function ResponsiveSheet({
               className="mx-auto mt-2 h-1 w-9 shrink-0 rounded-full bg-border md:hidden"
               aria-hidden="true"
             />
-            <header className="flex shrink-0 items-start justify-between gap-3 px-5 pb-3 pt-3 md:px-6 md:pt-5">
+            <header className="flex shrink-0 items-start justify-between gap-3 px-4 pb-2 pt-3 md:px-6 md:pb-3 md:pt-5">
               <div className="min-w-0">
                 <Modal.Heading className="text-balance text-lg font-semibold">
                   {title}
@@ -110,17 +110,17 @@ export function ResponsiveSheet({
               </Modal.CloseTrigger>
             </header>
             {subheader && (
-              <div className="shrink-0 border-b border-separator px-5 pb-3 md:px-6">
+              <div className="shrink-0 border-b border-separator px-4 pb-3 md:px-6">
                 {subheader}
               </div>
             )}
             <FooterTargetContext.Provider value={footerEl}>
-              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5 md:px-6">
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 md:px-6 md:py-5">
                 {children}
               </div>
               <footer
                 ref={setFooterEl}
-                className="shrink-0 border-t border-separator bg-overlay px-5 pb-[max(var(--safe-bottom),1rem)] pt-3 empty:hidden md:px-6 md:pb-4"
+                className="shrink-0 border-t border-separator bg-overlay px-4 pb-[max(var(--safe-bottom),0.75rem)] pt-2.5 empty:hidden md:px-6 md:pb-4"
               >
                 {footer}
               </footer>

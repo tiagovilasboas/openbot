@@ -82,8 +82,8 @@ export function SettingsModal({
       >
         <div hidden={activeTab !== "model"}>
           {onLanguageChange && (
-            <section className="mb-8 flex flex-col gap-3">
-              <h3 className="text-[15px] font-semibold text-foreground">
+            <section className="mb-5 flex flex-col gap-2 md:mb-8">
+              <h3 className="text-sm font-semibold text-foreground">
                 {s.sectionLanguage}
               </h3>
               <LanguageToggle
