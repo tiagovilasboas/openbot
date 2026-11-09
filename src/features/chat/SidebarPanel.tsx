@@ -4,7 +4,6 @@ import { useId } from "react";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
 import { AuthorCredit } from "@/shared/brand/AuthorCredit.tsx";
 import { chatCopy } from "./chat-copy.ts";
-import { LanguageToggle } from "./LanguageToggle.tsx";
 import type { ChatLanguage } from "./respond-to-message.ts";
 import { SidebarActionRow } from "./SidebarActionRow.tsx";
 import { SidebarBotList } from "./SidebarBotList.tsx";
@@ -28,7 +27,6 @@ export interface SidebarNavProps {
   onLock?: () => void;
   onNewChat?: () => void;
   canStartNewChat?: boolean;
-  onLanguageChange?: (language: ChatLanguage) => void;
 }
 
 export function CreateBotGlyph() {
@@ -52,9 +50,7 @@ export function SidebarPanel({
   onLock,
   onNewChat,
   canStartNewChat = true,
-  onLanguageChange,
-  showLanguage = false,
-}: SidebarNavProps & { showLanguage?: boolean }) {
+}: SidebarNavProps) {
   const content = chatCopy[language];
   const botsLabelId = useId();
 
@@ -99,14 +95,6 @@ export function SidebarPanel({
       </nav>
 
       <div className="flex shrink-0 flex-col gap-1 border-t border-separator px-2 py-2">
-        {showLanguage && onLanguageChange && (
-          <LanguageToggle
-            language={language}
-            onChange={onLanguageChange}
-            density="full"
-            className="mb-1"
-          />
-        )}
         {hasPassword && onLock && (
           <SidebarActionRow
             icon={<LockIcon />}

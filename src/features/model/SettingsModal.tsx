@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { SettingsSecuritySection } from "@/features/auth/SettingsSecuritySection.tsx";
 import { chatCopy } from "@/features/chat/chat-copy.ts";
+import { LanguageToggle } from "@/features/chat/LanguageToggle.tsx";
 import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
 import { SettingsSkillsSection } from "@/features/skills/SettingsSkillsSection.tsx";
 import type { SkillDefinition } from "@/features/skills/skill-types.ts";
@@ -15,6 +16,7 @@ import { SettingsTabs, type SettingsTabId } from "./SettingsTabs.tsx";
 export interface SettingsModalProps {
   isOpen: boolean;
   language: ChatLanguage;
+  onLanguageChange?: (language: ChatLanguage) => void;
   currentConfig: ClientModelConfig | null;
   initialTab?: "model" | "skills" | "security";
   skills: SkillDefinition[];
@@ -42,6 +44,7 @@ export interface SettingsModalProps {
 export function SettingsModal({
   isOpen,
   language,
+  onLanguageChange,
   currentConfig,
   initialTab = "model",
   skills,
@@ -94,6 +97,18 @@ export function SettingsModal({
         aria-labelledby={`settings-tab-${activeTab}`}
       >
         <div hidden={activeTab !== "model"}>
+          {onLanguageChange && (
+            <section className="mb-8 flex flex-col gap-3">
+              <h3 className="text-[15px] font-semibold text-foreground">
+                {s.sectionLanguage}
+              </h3>
+              <LanguageToggle
+                language={language}
+                onChange={onLanguageChange}
+                density="full"
+              />
+            </section>
+          )}
           <SettingsForm
             key={
               currentConfig
