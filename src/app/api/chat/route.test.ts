@@ -155,7 +155,7 @@ test("a provider rejection maps to 502 with error, provider and detail", async (
   assert.deepEqual(await response.json(), {
     error: "provider_rejected",
     provider: "router",
-    detail: "401: bad key",
+    detail: "401: unauthorized",
   });
 });
 
@@ -210,7 +210,7 @@ test("when the primary fails and the fallback answers, the reply carries the fai
     failover: {
       fromModel: "vendor/model-a",
       toModel: "vendor/model-b",
-      reason: "503: overloaded",
+      reason: "503: upstream_error",
     },
   });
   assert.equal(urls.length, 2);
@@ -243,6 +243,6 @@ test("a failing fallback surfaces the fallback's error as 502", async () => {
   assert.equal(response.status, 502);
   assert.equal(
     ((await response.json()) as { detail: string }).detail,
-    "500: down",
+    "500: upstream_error",
   );
 });
