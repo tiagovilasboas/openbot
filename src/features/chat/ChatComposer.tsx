@@ -1,17 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useLayoutEffect, useRef } from "react";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
 import type { SkillDefinition } from "@/features/skills/skill-types.ts";
 import { BotMentionPalette } from "./BotMentionPalette.tsx";
 import { chatCopy } from "./chat-copy.ts";
 import { CommandPalette } from "./CommandPalette.tsx";
+import { paletteOptionId } from "./ComposerPalette.tsx";
+import { ComposerToolbar } from "./ComposerToolbar.tsx";
 import type { ChatLanguage } from "./respond-to-message.ts";
+import { useCoarsePointer } from "./use-coarse-pointer.ts";
+import { useComposerPalette } from "./use-composer-palette.ts";
 
 interface ChatComposerProps {
   language: ChatLanguage;
   draft: string;
+  /** While a reply runs, sending still works: the message joins the queue. */
   busy: boolean;
+  /** Kept for compatibility; ConversationView renders the queue status. */
   queueCount?: number;
   mode?: "hero" | "docked";
   skills?: SkillDefinition[];
@@ -20,28 +26,10 @@ interface ChatComposerProps {
   onSend: () => void;
 }
 
-function ArrowUpIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      aria-hidden="true"
-      className={className ?? "size-4"}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2.5}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      viewBox="0 0 24 24"
-    >
-      <path d="M12 19V5M5 12l7-7 7 7" />
-    </svg>
-  );
-}
-
 export function ChatComposer({
   language,
   draft,
   busy,
-  queueCount = 0,
   mode = "docked",
   skills = [],
   bots = [],
@@ -49,30 +37,28 @@ export function ChatComposer({
   onSend,
 }: ChatComposerProps) {
   const content = chatCopy[language];
-  const isHero = mode === "hero";
   const canSend = Boolean(draft.trim());
-  const [showPaletteManual, setShowPaletteManual] = useState(false);
-  const [showBotPaletteManual, setShowBotPaletteManual] = useState(false);
+  const isCoarsePointer = useCoarsePointer();
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const paletteId = useId();
+  const palette = useComposerPalette({ draft, skills, bots, onDraftChange });
+  const activeOption =
+    palette.kind && palette.activeIndex >= 0
+      ? paletteOptionId(paletteId, palette.activeIndex)
+      : undefined;
 
-  const isSlashActive = draft.startsWith("/") || showPaletteManual;
-  const mentionMatch = draft.match(/(?:^|\s)@([a-zA-Z0-9_-]*)$/);
-  const isAtActive = Boolean(mentionMatch) || showBotPaletteManual;
-  const mentionQuery = mentionMatch ? (mentionMatch[1] ?? "") : "";
+  // Grow with the draft up to the CSS max-height, then scroll. An empty
+  // draft keeps one row, so a wrapping placeholder never inflates it.
+  useLayoutEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    textarea.style.height = "auto";
+    if (!draft) return;
+    textarea.style.height = `${textarea.scrollHeight}px`;
+  }, [draft]);
 
-  function handleSelectSkill(skill: SkillDefinition) {
-    setShowPaletteManual(false);
-    onDraftChange(`${skill.command} `);
-  }
-
-  function handleSelectBot(bot: BotProfile) {
-    setShowBotPaletteManual(false);
-    if (mentionMatch) {
-      const atIndex = draft.lastIndexOf("@");
-      const prefix = draft.slice(0, atIndex);
-      onDraftChange(`${prefix}@${bot.name} `);
-    } else {
-      onDraftChange(draft ? `${draft.trim()} @${bot.name} ` : `@${bot.name} `);
-    }
+  function submit() {
+    if (canSend) onSend();
   }
 
   return (
@@ -80,105 +66,73 @@ export function ChatComposer({
       className="relative w-full"
       onSubmit={(event) => {
         event.preventDefault();
-        if (canSend) {
-          onSend();
-        }
+        submit();
       }}
     >
-      {isSlashActive && skills.length > 0 && (
+      {palette.kind === "skills" && (
         <CommandPalette
-          query={draft}
-          skills={skills}
-          onSelect={handleSelectSkill}
-          onClose={() => setShowPaletteManual(false)}
+          id={paletteId}
+          language={language}
+          skills={palette.skillItems}
+          hasSkills={palette.hasSkills}
+          activeIndex={palette.activeIndex}
+          onActiveIndexChange={palette.setActiveIndex}
+          onSelect={palette.selectSkill}
         />
       )}
-
-      {isAtActive && bots.length > 0 && (
+      {palette.kind === "bots" && (
         <BotMentionPalette
-          query={mentionQuery}
-          bots={bots}
+          id={paletteId}
           language={language}
-          onSelect={handleSelectBot}
-          onClose={() => setShowBotPaletteManual(false)}
+          bots={palette.botItems}
+          activeIndex={palette.activeIndex}
+          onActiveIndexChange={palette.setActiveIndex}
+          onSelect={palette.selectBot}
         />
       )}
 
       <div
-        className={`group relative flex flex-col w-full rounded-2xl border border-white/12 bg-zinc-900/95 shadow-xl shadow-black/60 backdrop-blur-xl transition-all duration-150 focus-within:border-white/30 focus-within:ring-1 focus-within:ring-white/20 ${
-          isHero ? "p-3 sm:p-3.5 sm:rounded-3xl" : "p-2 sm:p-2.5"
-        }`}
+        className="flex w-full cursor-text flex-col rounded-3xl border border-border bg-surface transition-colors duration-(--duration-ui) ease-out-expo focus-within:border-[color:color-mix(in_oklab,var(--bot-accent)_45%,var(--border))]"
+        onClick={(event) => {
+          const target = event.target as HTMLElement;
+          if (!target.closest("button, textarea")) textareaRef.current?.focus();
+        }}
       >
         <textarea
-          aria-label={content.composerLabel}
-          className={`w-full flex-1 resize-none border-0 bg-transparent text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:ring-0 leading-snug [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
-            isHero
-              ? "min-h-[44px] text-sm sm:text-base"
-              : "min-h-[26px] max-h-36 text-sm"
-          }`}
-          placeholder={content.placeholder}
+          ref={textareaRef}
+          rows={1}
           value={draft}
-          rows={isHero ? 2 : 1}
+          aria-label={content.composerLabel}
+          aria-autocomplete="list"
+          aria-controls={palette.kind ? paletteId : undefined}
+          aria-activedescendant={activeOption}
+          placeholder={content.composerPlaceholder}
+          enterKeyHint={isCoarsePointer ? "enter" : "send"}
+          autoComplete="off"
+          className={`block max-h-[40dvh] w-full resize-none overflow-y-auto bg-transparent px-4 pb-1 pt-3.5 text-base leading-6 text-foreground outline-hidden placeholder:text-subtle md:max-h-[18rem] md:text-[15px] md:leading-[22px] ${
+            mode === "hero" ? "md:min-h-16" : ""
+          }`}
           onChange={(event) => onDraftChange(event.target.value)}
           onKeyDown={(event) => {
-            if (event.key === "Enter" && !event.shiftKey) {
-              event.preventDefault();
-              if (canSend) {
-                onSend();
-              }
-            }
+            if (palette.handleKeyDown(event)) return;
+            if (event.key !== "Enter" || event.shiftKey) return;
+            if (event.nativeEvent.isComposing || isCoarsePointer) return;
+            event.preventDefault();
+            submit();
           }}
         />
 
-        <div className="flex items-center justify-between gap-2 pt-0.5">
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <button
-              type="button"
-              aria-label="Abrir catálogo de skills (/)"
-              onClick={() => {
-                setShowBotPaletteManual(false);
-                if (!draft.startsWith("/")) {
-                  onDraftChange("/");
-                }
-                setShowPaletteManual((v) => !v);
-              }}
-              className="flex size-6 sm:size-7 items-center justify-center rounded-lg border border-white/10 bg-zinc-800/80 text-zinc-400 hover:text-cyan-400 hover:border-cyan-500/40 transition-colors font-mono text-xs font-semibold"
-            >
-              /
-            </button>
-            <button
-              type="button"
-              aria-label={content.mentionButtonAria}
-              onClick={() => {
-                setShowPaletteManual(false);
-                setShowBotPaletteManual((v) => !v);
-              }}
-              className="flex size-6 sm:size-7 items-center justify-center rounded-lg border border-white/10 bg-zinc-800/80 text-zinc-400 hover:text-purple-400 hover:border-purple-500/40 transition-colors font-mono text-xs font-semibold"
-            >
-              @
-            </button>
-            <p className="text-[11px] text-zinc-500 select-none pl-1 hidden sm:block">
-              {content.composerHint}
-            </p>
-            {queueCount > 0 && (
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-950/40 px-2 py-0.5 font-mono text-[10px] text-amber-300">
-                <span className="size-1.5 rounded-full bg-amber-400 animate-pulse" />
-                {queueCount} {language === "pt" ? "na fila" : "queued"}
-              </span>
-            )}
-          </div>
-
-          <button
-            type="submit"
-            disabled={!canSend}
-            aria-label={content.sendMessageLabel}
-            className={`flex items-center justify-center rounded-full bg-white text-black font-semibold transition-all duration-150 active:scale-95 hover:bg-zinc-200 disabled:opacity-20 disabled:pointer-events-none ${
-              isHero ? "size-9 sm:size-10" : "size-8 sm:size-9"
-            }`}
-          >
-            <ArrowUpIcon className={isHero ? "size-4 sm:size-5" : "size-4"} />
-          </button>
-        </div>
+        <ComposerToolbar
+          language={language}
+          paletteId={paletteId}
+          openPalette={palette.kind}
+          busy={busy}
+          canSend={canSend}
+          onTogglePalette={(kind) => {
+            palette.toggle(kind);
+            textareaRef.current?.focus();
+          }}
+        />
       </div>
     </form>
   );
