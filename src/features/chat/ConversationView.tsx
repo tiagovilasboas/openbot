@@ -16,6 +16,7 @@ export interface ConversationViewProps {
   busy: boolean;
   draft: string;
   queueCount: number;
+  isConfigured: boolean;
   activeBotSkills: SkillDefinition[];
   bots: BotProfile[];
   messagesEndRef: RefObject<HTMLDivElement | null>;
@@ -31,6 +32,7 @@ export function ConversationView({
   busy,
   draft,
   queueCount,
+  isConfigured,
   activeBotSkills,
   bots,
   messagesEndRef,
@@ -79,6 +81,7 @@ export function ConversationView({
           )}
           <ChatComposer
             mode="docked"
+            isConfigured={isConfigured}
             language={language}
             draft={draft}
             busy={busy}

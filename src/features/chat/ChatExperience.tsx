@@ -253,6 +253,7 @@ export function ChatExperience() {
             busy={busy}
             draft={draft}
             queueCount={queueCount}
+            isConfigured={isConfigured}
             activeBotSkills={activeBotSkills}
             bots={bots}
             messagesEndRef={messagesEndRef}

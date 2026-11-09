@@ -127,6 +127,7 @@ export const chatCopy = {
     gitHubIssuesQuery: "issues de tiagovilasboas/openbot",
     gitHubPullsQuery: "pull requests de tiagovilasboas/openbot",
     composerPlaceholder: "Pergunte ou peça issues de um repo",
+    composerNoModelPlaceholder: "Sem modelo. Configure um nas Configurações",
   },
   en: {
     title: "OpenBot",
@@ -252,5 +253,6 @@ export const chatCopy = {
     gitHubIssuesQuery: "issues of tiagovilasboas/openbot",
     gitHubPullsQuery: "pull requests of tiagovilasboas/openbot",
     composerPlaceholder: "Ask anything or request repo issues",
+    composerNoModelPlaceholder: "No model yet. Set one up in Settings",
   },
 } as const;
