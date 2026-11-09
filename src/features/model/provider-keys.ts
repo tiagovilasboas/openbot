@@ -100,6 +100,7 @@ export function saveProviderKey(
   } catch {
     // Ignore storage write quota exceptions silently
   }
+  notifyListeners();
   return next;
 }
 
@@ -109,4 +110,40 @@ export function clearProviderKeys(storage?: Storage): void {
   } catch {
     // Ignore storage exceptions silently
   }
+  notifyListeners();
+}
+
+let listeners: Array<() => void> = [];
+let cachedRaw: string | null | undefined;
+let cachedKeys: ProviderKeys = {};
+
+function notifyListeners(): void {
+  listeners.forEach((listener) => listener());
+}
+
+export function subscribeProviderKeys(listener: () => void): () => void {
+  listeners.push(listener);
+  if (typeof window !== "undefined") {
+    window.addEventListener("storage", listener);
+  }
+  return () => {
+    listeners = listeners.filter((item) => item !== listener);
+    if (typeof window !== "undefined") {
+      window.removeEventListener("storage", listener);
+    }
+  };
+}
+
+/** The saved keys as a stable object, for useSyncExternalStore. */
+export function readProviderKeysSnapshot(): ProviderKeys {
+  const s = resolveStorage();
+  if (!s) return cachedKeys;
+  try {
+    if (s.getItem(PROVIDER_KEYS_STORAGE_KEY) === cachedRaw) return cachedKeys;
+    cachedKeys = loadProviderKeys(s);
+    cachedRaw = s.getItem(PROVIDER_KEYS_STORAGE_KEY);
+  } catch {
+    // Keep the last snapshot when storage is unavailable
+  }
+  return cachedKeys;
 }

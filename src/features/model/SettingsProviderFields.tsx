@@ -1,12 +1,9 @@
 "use client";
 
-import type { Ref } from "react";
 import type { chatCopy } from "@/features/chat/chat-copy.ts";
 import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
 import { FIELD_CLASS, FormField } from "@/shared/ui/FormField.tsx";
-import { SecretInput } from "@/shared/ui/SecretInput.tsx";
 import type { ModelProviderType } from "./model-config.ts";
-import { getSettingsCopy } from "./settings-copy.ts";
 import { SettingsModelPresets } from "./SettingsModelPresets.tsx";
 
 interface SettingsProviderFieldsProps {
@@ -17,17 +14,10 @@ interface SettingsProviderFieldsProps {
   setRouterUrl: (val: string) => void;
   routerModel: string;
   setRouterModel: (val: string) => void;
-  routerApiKey: string;
-  setRouterApiKey: (val: string) => void;
-  /** Shown under the key field when the router needs a key it lacks. */
-  routerApiKeyError?: string | null;
-  routerApiKeyRef?: Ref<HTMLInputElement>;
   localUrl: string;
   setLocalUrl: (val: string) => void;
   localModel: string;
   setLocalModel: (val: string) => void;
-  anthropicKey: string;
-  setAnthropicKey: (val: string) => void;
   anthropicModel: string;
   setAnthropicModel: (val: string) => void;
 }
@@ -68,43 +58,6 @@ function TextRow({
   );
 }
 
-interface SecretRowProps {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  placeholder: string;
-  language: ChatLanguage;
-  error?: string | null;
-  inputRef?: Ref<HTMLInputElement>;
-}
-
-function SecretRow({
-  label,
-  value,
-  onChange,
-  placeholder,
-  language,
-  error,
-  inputRef,
-}: SecretRowProps) {
-  const s = getSettingsCopy(language);
-  return (
-    <FormField label={label} error={error}>
-      {(control) => (
-        <SecretInput
-          {...control}
-          ref={inputRef}
-          value={value}
-          onChange={onChange}
-          placeholder={placeholder}
-          showLabel={s.showSecret}
-          hideLabel={s.hideSecret}
-        />
-      )}
-    </FormField>
-  );
-}
-
 export function SettingsProviderFields({
   provider,
   language,
@@ -113,16 +66,10 @@ export function SettingsProviderFields({
   setRouterUrl,
   routerModel,
   setRouterModel,
-  routerApiKey,
-  setRouterApiKey,
-  routerApiKeyError,
-  routerApiKeyRef,
   localUrl,
   setLocalUrl,
   localModel,
   setLocalModel,
-  anthropicKey,
-  setAnthropicKey,
   anthropicModel,
   setAnthropicModel,
 }: SettingsProviderFieldsProps) {
@@ -159,15 +106,6 @@ export function SettingsProviderFields({
             onChange={setRouterModel}
             placeholder="o3-mini"
             mono
-          />
-          <SecretRow
-            label={content.routerApiKeyLabel}
-            value={routerApiKey}
-            onChange={setRouterApiKey}
-            placeholder="sk-or-v1-..."
-            language={language}
-            error={routerApiKeyError}
-            inputRef={routerApiKeyRef}
           />
         </div>
       </div>
@@ -216,13 +154,6 @@ export function SettingsProviderFields({
   if (provider === "anthropic") {
     return (
       <div className="flex flex-col gap-4">
-        <SecretRow
-          label={content.anthropicKeyLabel}
-          value={anthropicKey}
-          onChange={setAnthropicKey}
-          placeholder="sk-ant-api03-..."
-          language={language}
-        />
         <TextRow
           label={content.anthropicModelLabel}
           value={anthropicModel}
