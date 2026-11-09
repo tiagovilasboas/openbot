@@ -19,6 +19,7 @@ export type ModelErrorCode =
   | "no_provider_configured"
   | "provider_unreachable"
   | "provider_rejected"
+  | "blocked_base_url"
   | "invalid_provider_response";
 
 export type FailoverInfo = {
