@@ -1,6 +1,6 @@
 // Minimal app-shell service worker. It never touches /api/* or non-GET
 // requests, so model replies and credentials are never cached.
-const CACHE = "openbot-shell-v2";
+const CACHE = "openbot-shell-v3";
 const SHELL = ["/", "/openbot-icon.svg"];
 
 self.addEventListener("install", (event) => {

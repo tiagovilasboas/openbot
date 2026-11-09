@@ -95,26 +95,3 @@ export function SidebarToggleIcon(props: IconProps) {
     </ShellIcon>
   );
 }
-
-/* The Open Bot mark (public/openbot-icon.svg); its satellite dot takes the
-   active bot's accent. */
-export function BrandMark({ className = "size-7" }: IconProps) {
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 64 64"
-      className={`shrink-0 ${className}`}
-    >
-      <rect width="64" height="64" rx="19" className="fill-surface" />
-      <circle
-        cx="32"
-        cy="32"
-        r="18"
-        fill="none"
-        strokeWidth="4"
-        className="stroke-foreground"
-      />
-      <circle cx="48" cy="16" r="4" className="fill-bot-accent" />
-    </svg>
-  );
-}
