@@ -100,7 +100,7 @@ export function SidebarRail({
                   <BotAvatar
                     shape={bot.avatarShape}
                     color={bot.avatarColor}
-                    size={28}
+                    size={34}
                     active={isActive}
                   />
                 </RailButton>
