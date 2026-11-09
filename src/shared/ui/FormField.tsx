@@ -5,7 +5,7 @@ import { AlertIcon } from "./FieldIcons.tsx";
 export const FIELD_CLASS =
   "w-full min-h-11 rounded-xl border border-border bg-surface px-3 text-base text-foreground placeholder:text-subtle md:min-h-10 md:text-sm disabled:pointer-events-none disabled:opacity-40";
 
-export const TEXTAREA_CLASS = `${FIELD_CLASS} min-h-20 resize-none py-2.5 leading-relaxed`;
+export const TEXTAREA_CLASS = `${FIELD_CLASS.replace(" md:min-h-10", "")} min-h-20 resize-none py-2.5 leading-relaxed`;
 
 export interface FieldControlProps {
   id: string;
