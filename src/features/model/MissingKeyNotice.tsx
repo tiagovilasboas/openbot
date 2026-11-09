@@ -20,7 +20,7 @@ export function MissingKeyNotice({
   return (
     <div
       role="status"
-      className="flex items-center gap-3 rounded-2xl bg-warning-soft px-4 py-3 text-warning"
+      className="flex items-center gap-3 rounded-xl bg-warning-soft py-1.5 pe-1.5 ps-3 text-warning"
     >
       <AlertIcon className="size-4 shrink-0" />
       <p className="min-w-0 flex-1 text-[13px]">
@@ -30,7 +30,7 @@ export function MissingKeyNotice({
         <button
           type="button"
           onClick={onConnect}
-          className="min-h-9 shrink-0 rounded-full bg-foreground px-4 text-[13px] font-semibold text-background active:scale-[0.97]"
+          className="min-h-11 shrink-0 rounded-full bg-foreground px-4 text-[13px] font-semibold text-background active:scale-[0.97]"
         >
           {s.connectAction}
         </button>

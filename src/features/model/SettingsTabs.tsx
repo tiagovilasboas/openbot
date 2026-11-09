@@ -64,7 +64,7 @@ export function SettingsTabs({
             tabIndex={selected ? 0 : -1}
             onClick={() => onChange(tab.id)}
             onKeyDown={(e) => handleKeyDown(e, index)}
-            className={`flex min-h-11 items-center justify-center gap-1.5 rounded-xl px-2 text-[15px] font-medium transition-colors active:scale-[0.97] md:text-sm ${
+            className={`flex min-h-11 items-center justify-center gap-1.5 rounded-xl px-2 text-sm font-medium transition-colors active:scale-[0.97] ${
               selected
                 ? "bg-surface-tertiary text-foreground"
                 : "text-muted hover:text-foreground"
