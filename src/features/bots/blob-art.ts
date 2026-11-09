@@ -57,6 +57,10 @@ function ring(
   });
 }
 
+function polar([cx, cy]: Point, r: number, angle: number): Point {
+  return [cx + Math.cos(angle) * r, cy + Math.sin(angle) * r];
+}
+
 const SPECS: Record<AvatarShape, BlobSpec> = {
   hexagon: {
     points: ring(6, [50, 55], [44, 38], 0),
@@ -97,6 +101,57 @@ const SPECS: Record<AvatarShape, BlobSpec> = {
     ],
     soft: [0.5, 0.5, 0.3, 0.5, 0.5, 0.5, 0.5, 0.3, 0.5],
     eyeY: 46,
+  },
+  flower: {
+    // Five round petals around the face.
+    points: [0, 1, 2, 3, 4].flatMap((k) => {
+      const a = -Math.PI / 2 + (k * 2 * Math.PI) / 5;
+      return [
+        polar([50, 54], 44, a - 0.3),
+        polar([50, 54], 44, a + 0.3),
+        polar([50, 54], 23, a + Math.PI / 5),
+      ];
+    }),
+    soft: [0, 1, 2, 3, 4].flatMap(() => [0.5, 0.5, 0.3]),
+    eyeY: 55,
+    eyeHeight: 16,
+  },
+  clover: {
+    // Four round leaves with deep notches between them.
+    points: [0, 1, 2, 3].flatMap((k) => {
+      const a = -Math.PI / 4 + (k * Math.PI) / 2;
+      return [
+        polar([50, 52], 30, a - 0.72),
+        polar([50, 52], 46, a - 0.36),
+        polar([50, 52], 46, a + 0.36),
+        polar([50, 52], 30, a + 0.72),
+        polar([50, 52], 17, a + Math.PI / 4),
+      ];
+    }),
+    soft: [0, 1, 2, 3].flatMap(() => [0.5, 0.5, 0.5, 0.5, 0.3]),
+    eyeY: 53,
+    eyeHeight: 16,
+  },
+  dumpling: {
+    // A squishy bun: a wide soft base and a pinched, pleated top.
+    points: [
+      [50, 14],
+      [57, 25],
+      [66, 24],
+      [72, 32],
+      [84, 40],
+      [95, 66],
+      [86, 88],
+      [14, 88],
+      [5, 66],
+      [16, 40],
+      [28, 32],
+      [34, 24],
+      [43, 25],
+    ],
+    soft: [0.45, 0.4, 0.5, 0.4, 0.5, 0.5, 0.4, 0.4, 0.5, 0.5, 0.4, 0.5, 0.4],
+    eyeY: 60,
+    eyeHeight: 15,
   },
   triangle: {
     points: [
