@@ -1,7 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { FormField } from "@/shared/ui/FormField.tsx";
+import { SecretInput } from "@/shared/ui/SecretInput.tsx";
+import { SpinnerIcon } from "@/shared/ui/FieldIcons.tsx";
 import type { ChatLanguage } from "../chat/respond-to-message.ts";
+import { getLockCopy } from "./auth-copy.ts";
 
 interface LockScreenProps {
   language: ChatLanguage;
@@ -11,12 +15,16 @@ interface LockScreenProps {
 
 export function LockScreen({ language, hint, onUnlock }: LockScreenProps) {
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showHint, setShowHint] = useState(false);
+  const fieldRef = useRef<HTMLDivElement>(null);
 
-  const isPt = language === "pt";
+  const copy = getLockCopy(language === "pt");
+
+  useEffect(() => {
+    fieldRef.current?.querySelector("input")?.focus();
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -30,6 +38,7 @@ export function LockScreen({ language, hint, onUnlock }: LockScreenProps) {
       if (!ok) {
         setError(true);
         setPassword("");
+        fieldRef.current?.querySelector("input")?.focus();
       }
     } finally {
       setLoading(false);
@@ -37,86 +46,50 @@ export function LockScreen({ language, hint, onUnlock }: LockScreenProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/95 px-4 backdrop-blur-2xl text-zinc-100 font-sans selection:bg-zinc-800 animate-in fade-in duration-300">
-      <div className="w-full max-w-sm flex flex-col items-center text-center">
-        {/* Glowing Shield / Lock Icon */}
-        <div className="relative mb-6 flex size-16 items-center justify-center rounded-2xl bg-zinc-900 border border-white/10 shadow-2xl shadow-black">
-          <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 blur-sm" />
-          <svg
-            className="relative size-8 text-emerald-400"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={1.75}
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
-            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-          </svg>
-        </div>
-
-        <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-white mb-1.5">
-          {isPt ? "OpenBot Bloqueado" : "OpenBot Locked"}
+    <div className="fixed inset-0 z-50 animate-fade-in overflow-y-auto bg-background pt-safe pb-safe text-foreground">
+      <div className="mx-auto flex min-h-full w-full max-w-sm flex-col items-center justify-center px-5 py-10">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/openbot-icon.svg"
+          alt=""
+          width={56}
+          height={56}
+          className="mb-6 size-14 rounded-2xl"
+        />
+        <h1 className="mb-1.5 text-balance text-center text-[26px] font-semibold tracking-[-0.02em] md:text-[32px] md:tracking-[-0.025em]">
+          {copy.title}
         </h1>
-        <p className="text-xs sm:text-sm text-zinc-400 mb-6">
-          {isPt
-            ? "Digite sua senha ou PIN local para acessar"
-            : "Enter your local password or PIN to access"}
+        <p className="mb-8 text-balance text-center text-[15px] text-muted md:text-sm">
+          {copy.hint}
         </p>
 
-        <form onSubmit={handleSubmit} className="w-full flex flex-col gap-3">
-          <div className="relative w-full">
-            <input
-              type={showPassword ? "text" : "password"}
-              autoFocus
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                if (error) setError(false);
-              }}
-              placeholder={
-                isPt ? "Senha ou PIN local" : "Local password or PIN"
-              }
-              className="w-full rounded-xl border border-white/10 bg-zinc-900/90 px-4 py-3 text-sm text-zinc-100 placeholder-zinc-500 outline-none transition-all focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 pr-10"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword((v) => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-200 transition-colors p-1"
-              aria-label={
-                showPassword
-                  ? isPt
-                    ? "Ocultar senha"
-                    : "Hide password"
-                  : isPt
-                    ? "Mostrar senha"
-                    : "Show password"
-              }
-            >
-              {showPassword ? "👁️‍🗨️" : "👁️"}
-            </button>
-          </div>
-
-          {error && (
-            <div className="rounded-lg bg-red-950/50 border border-red-500/30 px-3 py-2 text-xs text-red-300 animate-in fade-in duration-150">
-              {isPt
-                ? "Senha incorreta. Tente novamente."
-                : "Incorrect password. Try again."}
-            </div>
-          )}
+        <form onSubmit={handleSubmit} className="flex w-full flex-col gap-4">
+          <FormField label={copy.label} error={error ? copy.error : null}>
+            {(control) => (
+              <div ref={fieldRef}>
+                <SecretInput
+                  {...control}
+                  value={password}
+                  onChange={(v) => {
+                    setPassword(v);
+                    if (error) setError(false);
+                  }}
+                  placeholder={copy.placeholder}
+                  showLabel={copy.show}
+                  hideLabel={copy.hide}
+                  autoComplete="current-password"
+                />
+              </div>
+            )}
+          </FormField>
 
           <button
             type="submit"
             disabled={!password.trim() || loading}
-            className="w-full rounded-xl bg-zinc-100 px-4 py-2.5 text-sm font-semibold text-black transition-all hover:bg-white active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed shadow-md shadow-white/5"
+            className="flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-[15px] font-semibold text-background transition-transform active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40"
           >
-            {loading
-              ? isPt
-                ? "Desbloqueando..."
-                : "Unlocking..."
-              : isPt
-                ? "Desbloquear"
-                : "Unlock"}
+            {loading && <SpinnerIcon className="size-4" />}
+            {loading ? copy.unlocking : copy.unlock}
           </button>
         </form>
 
@@ -126,26 +99,21 @@ export function LockScreen({ language, hint, onUnlock }: LockScreenProps) {
               <button
                 type="button"
                 onClick={() => setShowHint(true)}
-                className="text-[11px] text-zinc-400 hover:text-zinc-300 underline transition-colors cursor-pointer"
+                className="min-h-11 rounded-full px-4 text-[15px] text-muted underline underline-offset-4 transition-colors hover:text-foreground md:text-sm"
               >
-                {isPt ? "Ver dica de senha" : "Show password hint"}
+                {copy.showHint}
               </button>
             ) : (
-              <p className="text-xs text-zinc-400 bg-zinc-900/70 border border-white/5 rounded-lg px-3 py-1.5">
-                💡 <span className="font-medium text-zinc-300">{hint}</span>
+              <p className="rounded-xl bg-surface px-3.5 py-2.5 text-[13px] text-foreground">
+                {hint}
               </p>
             )}
           </div>
         )}
 
-        <div className="mt-10 flex items-center gap-1.5 text-[11px] text-zinc-400 font-mono">
-          <span className="size-1.5 rounded-full bg-emerald-400/80" />
-          <span>
-            {isPt
-              ? "100% Offline · PBKDF2 Web Crypto Local"
-              : "100% Offline · Local PBKDF2 Web Crypto"}
-          </span>
-        </div>
+        <p className="mt-10 text-center text-[13px] text-subtle">
+          {copy.offline}
+        </p>
       </div>
     </div>
   );
