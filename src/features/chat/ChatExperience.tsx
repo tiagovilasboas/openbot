@@ -24,7 +24,8 @@ import { ConversationView } from "./ConversationView.tsx";
 import { executeChatMessage } from "./execute-chat-message.ts";
 import { buildReplyMessages } from "./reply-messages.ts";
 import type { ChatLanguage } from "./respond-to-message.ts";
-import { useBotMessages } from "./use-bot-messages.ts";
+import { insertReplyAfter, threadUpTo } from "./thread-sequencing.ts";
+import { useBotMessages, loadBotMessages } from "./use-bot-messages.ts";
 import { useMessageQueue } from "./use-message-queue.ts";
 
 export function ChatExperience() {
@@ -107,11 +108,15 @@ export function ChatExperience() {
 
   async function processTurn(
     turnText: string,
-    currentHistory: MessageData[],
+    userMessageId: number,
     conversationId: number,
   ) {
     setBusy(true);
-    const history = currentHistory.map((m) => ({
+    // Read the stored thread, not a render closure, so queued messages stay.
+    const history = threadUpTo(
+      loadBotMessages(activeBot.id),
+      userMessageId,
+    ).map((m) => ({
       role: m.role,
       text: m.text,
     }));
@@ -135,21 +140,24 @@ export function ChatExperience() {
       return;
     }
 
-    const updatedWithAssistant: MessageData[] = [
-      ...currentHistory,
-      ...buildReplyMessages(reply, {
-        language,
-        modelBadge: isConfigured ? activeModelLabel : undefined,
-        nextId: getNextId,
-      }),
-    ];
-    persistMessages(updatedWithAssistant);
+    const replyMessages = buildReplyMessages(reply, {
+      language,
+      modelBadge: isConfigured ? activeModelLabel : undefined,
+      nextId: getNextId,
+    });
+    persistMessages(
+      insertReplyAfter(
+        loadBotMessages(activeBot.id),
+        userMessageId,
+        replyMessages,
+      ),
+    );
     setBusy(false);
 
     // If another message was queued in the meantime, process it sequentially
     const nextQueued = dequeue();
     if (nextQueued && nextQueued.conversationId === conversationIdRef.current) {
-      void processTurn(nextQueued.text, updatedWithAssistant, conversationId);
+      void processTurn(nextQueued.text, nextQueued.id, conversationId);
     }
   }
 
@@ -158,11 +166,13 @@ export function ChatExperience() {
     if (!text) return;
     const conversationId = conversationIdRef.current;
     const userMsgId = getNextId();
-    const updatedMessages: MessageData[] = [
-      ...messages,
-      { id: userMsgId, role: "user", language, text },
-    ];
-    persistMessages(updatedMessages);
+    const userMessage: MessageData = {
+      id: userMsgId,
+      role: "user",
+      language,
+      text,
+    };
+    persistMessages([...loadBotMessages(activeBot.id), userMessage]);
     setDraft("");
 
     if (busy) {
@@ -170,7 +180,7 @@ export function ChatExperience() {
       return;
     }
 
-    void processTurn(text, updatedMessages, conversationId);
+    void processTurn(text, userMsgId, conversationId);
   }
 
   function startNewChat() {
