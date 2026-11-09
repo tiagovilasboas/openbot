@@ -1,51 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import type { chatCopy } from "@/features/chat/chat-copy.ts";
 import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
 import { CheckIcon } from "@/shared/ui/FieldIcons.tsx";
 import type { ModelProviderType } from "./model-config.ts";
 import { fillCopy, getSettingsCopy } from "./settings-copy.ts";
-
-export interface FreeModelEntry {
-  id: string;
-  name: string;
-  contextLength?: number;
-}
-
-export const FALLBACK_OPENROUTER_FREE_MODELS: FreeModelEntry[] = [
-  { id: "openrouter/free", name: "Auto Free Router", contextLength: 262144 },
-  {
-    id: "nvidia/nemotron-3.5-super-vl:free",
-    name: "NVIDIA Nemotron 3.5 Super VL",
-    contextLength: 1000000,
-  },
-  {
-    id: "nvidia/nemotron-3-ultra-550b-a55b:free",
-    name: "NVIDIA Nemotron 3 Ultra",
-    contextLength: 1000000,
-  },
-  {
-    id: "nvidia/nemotron-3.5-lightning:free",
-    name: "NVIDIA Nemotron 3.5 Lightning",
-    contextLength: 1000000,
-  },
-  {
-    id: "google/gemma-4-31b-it:free",
-    name: "Google Gemma 4 31B",
-    contextLength: 262144,
-  },
-  {
-    id: "cohere/north-mini-code:free",
-    name: "Cohere North Mini Code",
-    contextLength: 256000,
-  },
-  {
-    id: "liquid/lfm-3-1.7b:free",
-    name: "LiquidAI LFM3 1.7B",
-    contextLength: 262144,
-  },
-];
+import { useFreeModels } from "./use-free-models.ts";
 
 export interface SettingsModelPresetsProps {
   provider: ModelProviderType;
@@ -132,36 +92,9 @@ export function SettingsModelPresets({
   onSelectLocalPreset,
 }: SettingsModelPresetsProps) {
   const s = getSettingsCopy(language);
-  const [liveFreeModels, setLiveFreeModels] = useState<FreeModelEntry[]>(
-    FALLBACK_OPENROUTER_FREE_MODELS,
+  const { liveFreeModels, hasLoadedLive, isAccountList } = useFreeModels(
+    provider === "router" && routerUrl.includes("openrouter.ai"),
   );
-  const [hasLoadedLive, setHasLoadedLive] = useState(false);
-
-  useEffect(() => {
-    if (provider !== "router" || !routerUrl.includes("openrouter.ai")) return;
-
-    let isMounted = true;
-    fetch("/api/model/free")
-      .then((r) => r.json())
-      .then((data: { ok?: boolean; models?: FreeModelEntry[] }) => {
-        if (
-          isMounted &&
-          data?.ok &&
-          Array.isArray(data.models) &&
-          data.models.length > 0
-        ) {
-          setLiveFreeModels(data.models);
-        }
-      })
-      .catch(() => {})
-      .finally(() => {
-        if (isMounted) setHasLoadedLive(true);
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, [provider, routerUrl]);
 
   if (provider === "router") {
     const isOpenRouter = routerUrl.includes("openrouter.ai");
@@ -218,9 +151,12 @@ export function SettingsModelPresets({
                 className="text-[13px] font-medium tabular-nums text-muted"
               >
                 {hasLoadedLive
-                  ? fillCopy(s.freeModelsLive, {
-                      count: liveFreeModels.length,
-                    })
+                  ? fillCopy(
+                      isAccountList ? s.freeModelsAccount : s.freeModelsLive,
+                      {
+                        count: liveFreeModels.length,
+                      },
+                    )
                   : s.freeModelsLoading}
               </span>
               <a
