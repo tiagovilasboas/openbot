@@ -32,6 +32,8 @@ export const settingsCopy = {
     testIdle: "Verifique se o modelo responde antes de salvar.",
     testInvalid:
       "Preencha os campos obrigatórios do provedor e teste novamente.",
+    missingKey:
+      "A OpenRouter exige uma chave de API, mesmo nos modelos gratuitos. Crie uma em openrouter.ai/keys e cole aqui.",
     githubPublicApi: "API pública ({remaining}/{limit} req/h)",
     githubTokenSet: "Token definido",
     githubTokenUnset: "Sem token",
@@ -71,6 +73,8 @@ export const settingsCopy = {
     allModels: "Browse all models",
     testIdle: "Check that the model answers before saving.",
     testInvalid: "Fill in the provider's required fields and test again.",
+    missingKey:
+      "OpenRouter needs an API key, even for free models. Create one at openrouter.ai/keys and paste it here.",
     githubPublicApi: "Public API ({remaining}/{limit} req/h)",
     githubTokenSet: "Token set",
     githubTokenUnset: "No token",

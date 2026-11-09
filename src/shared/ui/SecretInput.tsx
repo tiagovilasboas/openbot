@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type Ref } from "react";
 import { EyeIcon, EyeOffIcon } from "./FieldIcons.tsx";
 import { FIELD_CLASS, type FieldControlProps } from "./FormField.tsx";
 
@@ -11,6 +11,7 @@ interface SecretInputProps extends FieldControlProps {
   hideLabel: string;
   placeholder?: string;
   autoComplete?: string;
+  ref?: Ref<HTMLInputElement>;
 }
 
 /** Password-type input with a 44px show/hide toggle. */
@@ -21,6 +22,7 @@ export function SecretInput({
   hideLabel,
   placeholder,
   autoComplete = "off",
+  ref,
   ...aria
 }: SecretInputProps) {
   const [visible, setVisible] = useState(false);
@@ -29,6 +31,7 @@ export function SecretInput({
     <div className="relative">
       <input
         {...aria}
+        ref={ref}
         type={visible ? "text" : "password"}
         value={value}
         onChange={(e) => onChange(e.target.value)}
