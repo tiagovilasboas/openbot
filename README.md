@@ -1,13 +1,13 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/readme/banner-dark.svg">
-  <img alt="Open Bot: a crew of nine bots" src="docs/assets/readme/banner-light.svg" width="100%">
+  <img alt="Open Bot: a crew of nine bots, led by the Chief of Staff" src="docs/assets/readme/banner-light.svg" width="100%">
 </picture>
 
 # Open Bot
 
-> An open-source personal AI assistant built for your phone. One bot per chat, the model you choose, and API keys that stay on your own server.
+> A crew of AI bots that lives on your phone. A Chief of Staff leads and delegates, you pick the model, and your API keys stay on your own server.
 
-[Português](README.pt-BR.md) · [Getting started](#getting-started) · [Screens](#what-it-looks-like) · [One bot, one chat](#one-bot-one-chat) · [Models](#choose-a-model) · [Install on your phone](#install-on-your-phone) · [Status](#status-and-limits)
+[Português](README.pt-BR.md) · [Getting started](#getting-started) · [Screens](#what-it-looks-like) · [The crew](#the-crew) · [Models](#choose-a-model) · [Install on your phone](#install-on-your-phone) · [Status](#status-and-limits)
 
 ```mermaid
 flowchart LR
@@ -29,31 +29,54 @@ The app in your browser talks only to your server. The server holds the keys and
 
 ## What it looks like
 
-![Three phone screens: the Chief of Staff empty state, a chat about the pull requests merged today, and the drawer with the nine bots](docs/assets/readme/phones-en.webp)
+![Three phone screens: the Chief of Staff empty state, a conversation where the Chief hands tasks to Engineering and Security, and the drawer with the nine bots](docs/assets/readme/phones-en.webp)
 
 ![Desktop layout with the bot list in a sidebar and the conversation in a reading column](docs/assets/readme/desktop-en.webp)
 
 On a phone the bot list is a drawer and the composer sits in reach of your thumb. From tablet width up it becomes a sidebar you can collapse.
 
-## One bot, one chat
+## The crew
 
 Each bot has its own conversation, prompt, avatar and skills. Switching bots switches the chat, and each history stays on this device. Type `@` to hand a message to another bot, and `/` to run one of your skills.
 
 Open Bot starts with a crew of nine. Every crew prompt asks for your explicit approval before any external change.
 
-| Bot            | Handles                                                         |
-| -------------- | --------------------------------------------------------------- |
-| Chief of Staff | Plans, summarizes and delegates to the others. The default bot. |
-| Engineering    | Code, pull requests and CI                                      |
-| Publishing     | Docs and public content                                         |
-| Security       | AppSec and privacy                                              |
-| Inbox          | Triage and drafts                                               |
-| Career         | Opportunity triage                                              |
-| Finance        | Reconciliation drafts                                           |
-| Product        | Requirements and previews                                       |
-| Hobby          | Research and shortlists                                         |
+| Bot            | Handles                                                               |
+| -------------- | --------------------------------------------------------------------- |
+| Chief of Staff | Plans, summarizes and delegates to the others. The main bot at start. |
+| Engineering    | Code, pull requests and CI                                            |
+| Publishing     | Docs and public content                                               |
+| Security       | AppSec and privacy                                                    |
+| Inbox          | Triage and drafts                                                     |
+| Career         | Opportunity triage                                                    |
+| Finance        | Reconciliation drafts                                                 |
+| Product        | Requirements and previews                                             |
+| Hobby          | Research and shortlists                                               |
 
 You can edit any of them or create your own, from a blank form or from a template: Architect, Code Reviewer, AppSec Lead, Platform Engineer, Technical Writer or Bug Hunter.
+
+### The main bot leads
+
+One bot is the main bot. It plays the Chief of Staff: it sits on top of the list, knows every other bot, and cannot be deleted. Any bot can take the role: open it, choose Make main, and the crew follows it. Nothing about the crew is fixed. The Chief reads the bots you have, their roles and their skills, every time you send a message.
+
+### How delegation works
+
+```mermaid
+flowchart LR
+  U[You] --> C[Main bot: Chief of Staff]
+  C -->|delegate| B1[Specialist bot]
+  C -->|delegate| B2[Another specialist]
+  B1 --> C
+  B2 --> C
+  C -->|one summary| U
+```
+
+Ask the Chief for something that needs more than one specialist and it writes one `@delegate` line per task. Each specialist answers in turn, under its own name and avatar, then the Chief writes one summary for you.
+
+- At most three delegations per turn, answered one after another, so free model tiers are not flooded.
+- One hop only. A specialist never delegates again, so there are no loops.
+- Names the Chief invents, itself, and repeats are dropped. A specialist that fails does not break the turn.
+- You can still talk to any bot directly, or hand a single message over with `@`.
 
 ## What it does today
 
@@ -62,6 +85,7 @@ You can edit any of them or create your own, from a blank form or from a templat
 | Chat with a model     | The server calls the provider you configured. See [Choose a model](#choose-a-model).                                                                                                           |
 | GitHub issues and PRs | Ask for `owner/repo` or paste a GitHub link. Public repositories work without a token. For private ones, connect GitHub in Settings, under Connections, or set `GITHUB_TOKEN` in `.env.local`. |
 | Briefing              | Summarizes real repository data. Without a model, it falls back to a summary built from the same data.                                                                                         |
+| Delegation            | The main bot hands work to your other bots and brings back one summary. See [How delegation works](#how-delegation-works).                                                                     |
 | Failover              | When the router model fails, the server retries once on a fallback model, by default a free OpenRouter model, and the reply shows the switch.                                                  |
 | Message queue         | Messages you send while a bot is replying wait their turn, in order.                                                                                                                           |
 | Skills                | Each bot keeps its own skills. Write one when you edit the bot, or paste a `SKILL.md`, and run it as a `/command`.                                                                             |
@@ -70,11 +94,11 @@ You can edit any of them or create your own, from a blank form or from a templat
 
 ## Choose a model
 
-| Provider  | Variables in `.env.local`                               | Notes                                                                                                                        |
-| --------- | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| Router    | `ROUTER_URL`, `ROUTER_MODEL`, optional `ROUTER_API_KEY` | Any OpenAI-compatible endpoint, such as OpenRouter, 9Router or OmniRoute. Settings lists the current OpenRouter free models. |
-| Local     | `LOCAL_MODEL_URL`, `LOCAL_MODEL_NAME`                   | An Ollama-compatible `/api/chat` server that you run.                                                                        |
-| Anthropic | `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`                  | Paid API usage.                                                                                                              |
+| Provider  | Variables in `.env.local`                               | Notes                                                                                                                                     |
+| --------- | ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Router    | `ROUTER_URL`, `ROUTER_MODEL`, optional `ROUTER_API_KEY` | Any OpenAI-compatible endpoint, such as OpenRouter, 9Router or OmniRoute. Settings lists the free OpenRouter models your own key can use. |
+| Local     | `LOCAL_MODEL_URL`, `LOCAL_MODEL_NAME`                   | An Ollama-compatible `/api/chat` server that you run.                                                                                     |
+| Anthropic | `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`                  | Paid API usage.                                                                                                                           |
 
 Variables in `.env.local` stay on the server. Never prefix them with `NEXT_PUBLIC_`, which would ship them to the browser.
 
@@ -98,6 +122,7 @@ Open Bot is an early project, at version 0.1.0.
 - Installing on a physical iPhone or Android device has not been verified yet.
 - Bots, chats, skills and Settings live in this browser's `localStorage`. There is no sync or backup yet.
 - The crew descriptions are still in Portuguese only, even with the English interface.
+- Delegation has only run against a free model by hand. No automated test calls a live model.
 - No calendar integration exists yet.
 
 The [roadmap](docs/roadmap/README.md) and the [developer-first plan](docs/roadmap/developer-first.md) list what comes next.
