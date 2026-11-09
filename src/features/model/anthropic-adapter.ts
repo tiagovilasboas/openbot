@@ -1,11 +1,14 @@
+import { modelFetch } from "./guarded-model-fetch.ts";
+import type { ModelNetworkOptions } from "./guarded-model-fetch.ts";
 import type { FetchLike, ModelAdapter, ModelRequest } from "./model-adapter.ts";
+import { providerErrorDetail } from "./provider-error-detail.ts";
 
 export type AnthropicAdapterConfig = {
   apiKey: string;
   model: string;
   maxTokens?: number;
   fetchImpl?: FetchLike;
-};
+} & ModelNetworkOptions;
 
 const endpoint = "https://api.anthropic.com/v1/messages";
 
@@ -20,23 +23,28 @@ export function createAnthropicAdapter(
     async generateReply(request: ModelRequest) {
       let response: Response;
       try {
-        response = await fetchImpl(endpoint, {
-          method: "POST",
-          headers: {
-            "content-type": "application/json",
-            "x-api-key": config.apiKey,
-            "anthropic-version": "2023-06-01",
+        response = await modelFetch(
+          fetchImpl,
+          endpoint,
+          {
+            method: "POST",
+            headers: {
+              "content-type": "application/json",
+              "x-api-key": config.apiKey,
+              "anthropic-version": "2023-06-01",
+            },
+            body: JSON.stringify({
+              model: config.model,
+              max_tokens: config.maxTokens ?? 1024,
+              ...(request.systemPrompt ? { system: request.systemPrompt } : {}),
+              messages: request.messages.map((message) => ({
+                role: message.role,
+                content: message.text,
+              })),
+            }),
           },
-          body: JSON.stringify({
-            model: config.model,
-            max_tokens: config.maxTokens ?? 1024,
-            ...(request.systemPrompt ? { system: request.systemPrompt } : {}),
-            messages: request.messages.map((message) => ({
-              role: message.role,
-              content: message.text,
-            })),
-          }),
-        });
+          config,
+        );
       } catch {
         return {
           ok: false,
@@ -53,9 +61,7 @@ export function createAnthropicAdapter(
           typeof errorPayload?.error?.message === "string"
             ? errorPayload.error.message.trim()
             : null;
-        const detail = msg
-          ? `${response.status}: ${msg}`
-          : `HTTP ${response.status}`;
+        const detail = providerErrorDetail(response.status, msg);
         return {
           ok: false,
           code: "provider_rejected",

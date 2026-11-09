@@ -1,6 +1,6 @@
-import { executeWithFailover } from "@/features/model/failover-runner";
-import { parseChatRequest } from "@/features/model/parse-chat-request";
-import { selectAdapter } from "@/features/model/select-adapter";
+import { executeWithFailover } from "../../../features/model/failover-runner.ts";
+import { parseChatRequest } from "../../../features/model/parse-chat-request.ts";
+import { selectAdapter } from "../../../features/model/select-adapter.ts";
 
 export const dynamic = "force-dynamic";
 
@@ -28,9 +28,10 @@ export async function POST(request: Request) {
   });
 
   if (!result.ok) {
+    // detail is a status plus a fixed tag, never upstream free text.
     return Response.json(
       { error: result.code, provider: result.provider, detail: result.detail },
-      { status: 502 },
+      { status: result.code === "blocked_base_url" ? 400 : 502 },
     );
   }
   return Response.json({
