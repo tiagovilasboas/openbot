@@ -1,4 +1,5 @@
 import type { BotProfile } from "@/features/bots/bot-types.ts";
+import { buildCrewRoster, isChiefBot } from "@/features/crew/crew-roster.ts";
 import { detectGitHubRequest } from "@/features/github/detect-github-request.ts";
 import type {
   GitHubItem,
@@ -68,9 +69,15 @@ export async function executeChatMessage({
   const skillSnippets = executingBot.skills
     .map((s) => `[Skill ${s.name} (${s.command})]: ${s.instructions}`)
     .join("\n");
-  const fullSystemPrompt = skillSnippets
+  const botPrompt = skillSnippets
     ? `${baseDescription}${workspaceSnippet}\n\n${isPt ? "Skills Habilitadas:" : "Enabled Skills:"}\n${skillSnippets}`
     : `${baseDescription}${workspaceSnippet}`;
+  const crewRoster = isChiefBot(executingBot)
+    ? buildCrewRoster(executingBot, bots, language)
+    : "";
+  const fullSystemPrompt = crewRoster
+    ? `${botPrompt}\n\n${crewRoster}`
+    : botPrompt;
 
   // 1. Summary Detection
   const summaryDetected = detectSummaryRequest(text);
