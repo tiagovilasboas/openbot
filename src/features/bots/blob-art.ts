@@ -82,16 +82,21 @@ const SPECS: Record<AvatarShape, BlobSpec> = {
     eyeY: 58,
     eyeHeight: 15,
   },
-  diamond: {
+  ghost: {
+    // A round dome over three soft scallops.
     points: [
-      [50, 8],
-      [90, 54],
-      [50, 93],
-      [10, 54],
+      [50, 10],
+      [86, 26],
+      [90, 88],
+      [74, 80],
+      [60, 92],
+      [46, 80],
+      [30, 92],
+      [12, 86],
+      [14, 26],
     ],
-    soft: [0.16, 0.5, 0.5, 0.5],
-    eyeY: 60,
-    shine: [36, 40],
+    soft: [0.5, 0.5, 0.3, 0.5, 0.5, 0.5, 0.5, 0.3, 0.5],
+    eyeY: 46,
   },
   triangle: {
     points: [

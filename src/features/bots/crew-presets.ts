@@ -59,7 +59,7 @@ export const CREW_PRESETS: readonly BotProfile[] = [
     "inbox",
     "Inbox",
     "Triagem e rascunhos",
-    "diamond",
+    "ghost",
     "violet",
     "Você é o Inbox. Faz a triagem de mensagens e prepara rascunhos de resposta. Não envia nada em nome do usuário sem aprovação explícita.",
   ),

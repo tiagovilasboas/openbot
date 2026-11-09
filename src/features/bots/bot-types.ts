@@ -5,7 +5,7 @@ export type AvatarShape =
   | "square"
   | "circle"
   | "octagon"
-  | "diamond"
+  | "ghost"
   | "triangle"
   | "pentagon"
   | "egg"
@@ -45,7 +45,7 @@ export const AVATAR_SHAPES: readonly AvatarShape[] = [
   "square",
   "circle",
   "octagon",
-  "diamond",
+  "ghost",
   "triangle",
   "pentagon",
   "egg",
@@ -91,6 +91,8 @@ export const LEGACY_SHAPES: Readonly<Record<string, AvatarShape>> = {
   wedge: "triangle",
   pebble: "circle",
   capsule: "egg",
+  // The pointed top read as a drop; the Inbox became a ghost.
+  diamond: "ghost",
   cloud: "cloud",
   egg: "egg",
 };
