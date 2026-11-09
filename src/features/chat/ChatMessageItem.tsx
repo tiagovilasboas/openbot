@@ -59,7 +59,7 @@ export function ChatMessageItem({ message, activeBot }: ChatMessageItemProps) {
           <BotAvatar
             shape={displayingBot.avatarShape}
             color={displayingBot.avatarColor}
-            size={22}
+            size={26}
           />
         )}
         <span className="text-[13px] font-medium text-foreground">
