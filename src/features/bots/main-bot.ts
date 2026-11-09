@@ -22,6 +22,16 @@ export function resolveMainBotId(
   return LEGACY_MAIN_IDS.find((id) => ids.has(id)) ?? bots[0]?.id;
 }
 
+/** The list with the main bot on top; the others keep their order. */
+export function mainBotFirst<T extends Pick<BotProfile, "id">>(
+  bots: T[],
+  mainBotId: string | undefined,
+): T[] {
+  const main = bots.find((bot) => bot.id === mainBotId);
+  if (!main || bots[0] === main) return bots;
+  return [main, ...bots.filter((bot) => bot !== main)];
+}
+
 function browserStorage(): Storage | undefined {
   return typeof window !== "undefined" ? window.localStorage : undefined;
 }
