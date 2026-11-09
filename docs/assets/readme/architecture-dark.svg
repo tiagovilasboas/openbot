@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 340" width="1280" height="340" role="img" aria-labelledby="title">
+<title id="title">Architecture: the app talks only to your server, which holds the keys and calls the model and GitHub</title>
+<style>@keyframes bot-blink{0%,97.8%,100%{transform:scaleY(1)}98.9%{transform:scaleY(.1)}}@media (prefers-reduced-motion:no-preference){.bot-eyes{animation:bot-blink 5.5s ease-in-out infinite;transform-box:view-box}}text{font-family:ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}</style>
+<defs><radialGradient id="halo" cx="50%" cy="38%" r="60%"><stop offset="0" stop-color="#ffffff0d"/><stop offset="1" stop-color="#0b0c0f" stop-opacity="0"/></radialGradient><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1L9 5L1 9" fill="none" stroke="#9b9ba3" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+<rect x="0.5" y="0.5" width="1279" height="339" rx="32" fill="#0b0c0f" stroke="#ffffff1f"/>
+<rect x="0.5" y="0.5" width="1279" height="339" rx="32" fill="url(#halo)"/>
+<rect x="60" y="125" width="290" height="90" rx="20" fill="#13151a" stroke="#ffffff1f"/><text x="84" y="168.0" text-anchor="start" font-size="16" font-weight="700" fill="#f4f4f5" >The app</text><text x="84" y="190.0" text-anchor="start" font-size="13" font-weight="400" fill="#9b9ba3" >PWA on your phone or desktop</text>
+<path d="M354 170 L458 170" stroke="#9b9ba3" stroke-width="1.6" stroke-linecap="round" marker-end="url(#arrow)" fill="none"/>
+<text x="406" y="156" text-anchor="middle" font-size="12" font-weight="400" fill="#9b9ba3" >messages</text>
+<rect x="462" y="105" width="330" height="130" rx="20" fill="#13151a" stroke="#52d6b8"/><text x="486" y="168.0" text-anchor="start" font-size="16" font-weight="700" fill="#f4f4f5" >Your Next.js server</text><text x="486" y="190.0" text-anchor="start" font-size="13" font-weight="400" fill="#9b9ba3" >Holds the keys. Never sent to the browser.</text>
+<path d="M486 205 h36 M486 205" stroke="#52d6b8" stroke-width="1.4" stroke-linecap="round" stroke-opacity=".0"/>
+<path d="M796 170 C850 170, 850 62, 896 62" fill="none" stroke="#9b9ba3" stroke-opacity=".75" stroke-width="1.4" stroke-linecap="round" marker-end="url(#arrow)"/>
+<rect x="900" y="32" width="320" height="60" rx="16" fill="#13151a" stroke="#ffffff1f"/>
+<text x="922" y="58" text-anchor="start" font-size="15" font-weight="700" fill="#f4f4f5" >Router</text>
+<text x="922" y="78" text-anchor="start" font-size="12" font-weight="400" fill="#9b9ba3" >OpenRouter, 9Router, OmniRoute</text>
+<path d="M796 170 C850 170, 850 142, 896 142" fill="none" stroke="#9b9ba3" stroke-opacity=".75" stroke-width="1.4" stroke-linecap="round" marker-end="url(#arrow)"/>
+<rect x="900" y="112" width="320" height="60" rx="16" fill="#13151a" stroke="#ffffff1f"/>
+<text x="922" y="138" text-anchor="start" font-size="15" font-weight="700" fill="#f4f4f5" >Local model</text>
+<text x="922" y="158" text-anchor="start" font-size="12" font-weight="400" fill="#9b9ba3" >Ollama on your machine</text>
+<path d="M796 170 C850 170, 850 222, 896 222" fill="none" stroke="#9b9ba3" stroke-opacity=".75" stroke-width="1.4" stroke-linecap="round" marker-end="url(#arrow)"/>
+<rect x="900" y="192" width="320" height="60" rx="16" fill="#13151a" stroke="#ffffff1f"/>
+<text x="922" y="218" text-anchor="start" font-size="15" font-weight="700" fill="#f4f4f5" >Anthropic API</text>
+<text x="922" y="238" text-anchor="start" font-size="12" font-weight="400" fill="#9b9ba3" >Claude models</text>
+<path d="M796 170 C850 170, 850 302, 896 302" fill="none" stroke="#9b9ba3" stroke-opacity=".75" stroke-width="1.4" stroke-linecap="round" marker-end="url(#arrow)"/>
+<rect x="900" y="272" width="320" height="60" rx="16" fill="#13151a" stroke="#ffffff1f"/>
+<text x="922" y="298" text-anchor="start" font-size="15" font-weight="700" fill="#f4f4f5" >GitHub REST API</text>
+<text x="922" y="318" text-anchor="start" font-size="12" font-weight="400" fill="#9b9ba3" >Issues and pull requests</text>
+</svg>

@@ -9,14 +9,10 @@
 
 [English](README.md) · [Por onde começar](#por-onde-começar) · [Telas](#como-ele-é) · [A equipe](#a-equipe) · [Modelos](#escolha-o-modelo) · [Instale no celular](#instale-no-celular) · [Status](#status-e-limites)
 
-```mermaid
-flowchart LR
-  P[PWA no celular ou desktop] -->|mensagens| S[Seu servidor Next.js]
-  S --> R[Router: OpenRouter, 9Router, OmniRoute]
-  S --> L[Modelo local: Ollama]
-  S --> A[API da Anthropic]
-  S --> G[API REST do GitHub]
-```
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/readme/architecture-dark.svg">
+  <img alt="Arquitetura: o app fala só com o seu servidor, que guarda as chaves e chama o modelo e o GitHub" src="docs/assets/readme/architecture-light.svg" width="100%">
+</picture>
 
 O app no navegador fala só com o seu servidor. O servidor guarda as chaves e chama o modelo e o GitHub.
 
@@ -61,15 +57,10 @@ Um bot é o principal. Ele faz o papel de Chief of Staff: fica no topo da lista,
 
 ### Como a delegação funciona
 
-```mermaid
-flowchart LR
-  U[Você] --> C[Bot principal: Chief of Staff]
-  C -->|delega| B1[Bot especialista]
-  C -->|delega| B2[Outro especialista]
-  B1 --> C
-  B2 --> C
-  C -->|um resumo| U
-```
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/readme/delegation-dark.svg">
+  <img alt="Como a delegação funciona: você pede ao bot principal, ele passa tarefas aos especialistas e volta um resumo só" src="docs/assets/readme/delegation-light.svg" width="100%">
+</picture>
 
 Peça ao Chief algo que precise de mais de um especialista e ele escreve uma linha `@delegar` por tarefa. Cada especialista responde na sua vez, com o próprio nome e avatar, e depois o Chief escreve um resumo só para você.
 
