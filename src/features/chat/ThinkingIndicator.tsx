@@ -15,7 +15,7 @@ const DOT_DELAYS = ["0ms", "150ms", "300ms"];
 export function ThinkingIndicator({ bot, language }: ThinkingIndicatorProps) {
   return (
     <div className="flex items-center gap-2.5 animate-enter" role="status">
-      <BotAvatar shape={bot.avatarShape} color={bot.avatarColor} size={24} />
+      <BotAvatar shape={bot.avatarShape} color={bot.avatarColor} size={29} />
       <div aria-hidden="true" className="flex items-center gap-1.5">
         {DOT_DELAYS.map((delay) => (
           <span
