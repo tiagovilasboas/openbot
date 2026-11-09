@@ -30,6 +30,16 @@ export const CheckIcon = (p: IconProps) => (
     <path d="M5 12.5l4.5 4.5L19 7.5" />
   </Icon>
 );
+export const ChevronRightIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M9.5 6l6 6-6 6" />
+  </Icon>
+);
+export const ChevronLeftIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M14.5 6l-6 6 6 6" />
+  </Icon>
+);
 export const AlertIcon = (p: IconProps) => (
   <Icon {...p}>
     <circle cx="12" cy="12" r="9" />

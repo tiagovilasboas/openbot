@@ -57,16 +57,16 @@ You can edit any of them or create your own, from a blank form or from a templat
 
 ## What it does today
 
-| Capability            | How it works                                                                                                                                                            |
-| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Chat with a model     | The server calls the provider you configured. See [Choose a model](#choose-a-model).                                                                                    |
-| GitHub issues and PRs | Ask for `owner/repo` or paste a GitHub link. Public repositories work without a token. For private ones, add a token in Settings or set `GITHUB_TOKEN` in `.env.local`. |
-| Briefing              | Summarizes real repository data. Without a model, it falls back to a summary built from the same data.                                                                  |
-| Failover              | When the router model fails, the server retries once on a fallback model, by default a free OpenRouter model, and the reply shows the switch.                           |
-| Message queue         | Messages you send while a bot is replying wait their turn, in order.                                                                                                    |
-| Skills                | Each bot keeps its own skills. Write one when you edit the bot, or paste a `SKILL.md`, and run it as a `/command`.                                                      |
-| Local lock            | Optional password that locks the app on this device. It is hashed with PBKDF2 in the browser.                                                                           |
-| Two languages         | Brazilian Portuguese and English, switchable at any time.                                                                                                               |
+| Capability            | How it works                                                                                                                                                                                   |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Chat with a model     | The server calls the provider you configured. See [Choose a model](#choose-a-model).                                                                                                           |
+| GitHub issues and PRs | Ask for `owner/repo` or paste a GitHub link. Public repositories work without a token. For private ones, connect GitHub in Settings, under Connections, or set `GITHUB_TOKEN` in `.env.local`. |
+| Briefing              | Summarizes real repository data. Without a model, it falls back to a summary built from the same data.                                                                                         |
+| Failover              | When the router model fails, the server retries once on a fallback model, by default a free OpenRouter model, and the reply shows the switch.                                                  |
+| Message queue         | Messages you send while a bot is replying wait their turn, in order.                                                                                                                           |
+| Skills                | Each bot keeps its own skills. Write one when you edit the bot, or paste a `SKILL.md`, and run it as a `/command`.                                                                             |
+| Local lock            | Optional password that locks the app on this device. It is hashed with PBKDF2 in the browser.                                                                                                  |
+| Two languages         | Brazilian Portuguese and English, switchable at any time.                                                                                                                                      |
 
 ## Choose a model
 
@@ -78,7 +78,7 @@ You can edit any of them or create your own, from a blank form or from a templat
 
 Variables in `.env.local` stay on the server. Never prefix them with `NEXT_PUBLIC_`, which would ship them to the browser.
 
-You can also choose the provider in Settings, under Model, and test the connection there. That choice overrides `.env.local`. It is saved in this browser's `localStorage` and travels to your own server with each message, so prefer `.env.local` for keys on a shared device.
+You can also choose the provider in Settings, under Model. Keys go under Connections: each service has its own key, tested before it is saved. That choice overrides `.env.local`. It is saved in this browser's `localStorage` and travels to your own server with each message, so prefer `.env.local` for keys on a shared device.
 
 ## Install on your phone
 
