@@ -16,6 +16,12 @@ import {
   type ClientModelConfig,
   type ModelProviderType,
 } from "./model-config.ts";
+import {
+  clearProviderKeys,
+  loadProviderKeys,
+  saveProviderKey,
+  seedKeysFromConfig,
+} from "./provider-keys.ts";
 import { lacksRequiredRouterKey } from "./router-key.ts";
 import {
   ConnectionTest,
@@ -60,9 +66,10 @@ export function SettingsForm({
   const [routerModel, setRouterModel] = useState(
     currentConfig?.provider === "router" ? currentConfig.model : "o3-mini",
   );
-  const [routerApiKey, setRouterApiKey] = useState(
-    currentConfig?.provider === "router" ? (currentConfig.apiKey ?? "") : "",
+  const [savedKeys] = useState(() =>
+    seedKeysFromConfig(loadProviderKeys(), currentConfig),
   );
+  const [routerApiKey, setRouterApiKey] = useState(savedKeys.router ?? "");
   const routerKeyRef = useRef<HTMLInputElement>(null);
   const [wasKeyFlagged, setWasKeyFlagged] = useState(false);
 
@@ -75,9 +82,7 @@ export function SettingsForm({
     currentConfig?.provider === "local" ? currentConfig.model : "llama3",
   );
 
-  const [anthropicKey, setAnthropicKey] = useState(
-    currentConfig?.provider === "anthropic" ? currentConfig.apiKey : "",
-  );
+  const [anthropicKey, setAnthropicKey] = useState(savedKeys.anthropic ?? "");
   const [anthropicModel, setAnthropicModel] = useState(
     currentConfig?.provider === "anthropic"
       ? currentConfig.model
@@ -160,6 +165,8 @@ export function SettingsForm({
     }
     if (flagMissingRouterKey()) return;
     saveStoredModelConfig(candidate);
+    saveProviderKey("router", routerApiKey);
+    saveProviderKey("anthropic", anthropicKey);
     if (gitHubToken.trim()) {
       saveStoredGitHubToken(gitHubToken.trim());
     } else {
@@ -171,6 +178,7 @@ export function SettingsForm({
 
   function handleReset() {
     clearStoredModelConfig();
+    clearProviderKeys();
     clearStoredGitHubToken();
     onReset?.();
     onClose();
