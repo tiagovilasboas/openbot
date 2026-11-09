@@ -64,8 +64,15 @@ test("the roster lists every other bot with handle, role and skills", () => {
 test("the roster header follows the language and bots without skills say so", () => {
   const roster = buildCrewRoster(chief, [...CREW_PRESETS], "pt");
   assert.match(roster, /^Sua equipe/);
-  assert.equal(roster.split("\n").length, CREW_PRESETS.length);
+  const botLines = roster.split("\n").filter((line) => line.startsWith("- "));
+  assert.equal(botLines.length, CREW_PRESETS.length - 1);
   assert.match(roster, /\[skills: sem skills\]/);
+});
+
+test("the roster teaches the @delegate line format", () => {
+  const roster = buildCrewRoster(chief, [...CREW_PRESETS], "en");
+  assert.match(roster, /@delegate Engineering: <the full task/);
+  assert.match(roster, /at most 3 lines/);
 });
 
 test("a Chief alone gets no roster", () => {

@@ -14,6 +14,8 @@ export interface ConversationViewProps {
   messages: MessageData[];
   activeBot: BotProfile;
   busy: boolean;
+  /** The bot shown as thinking; a crew member while it answers the Chief. */
+  thinkingBot?: BotProfile;
   draft: string;
   queueCount: number;
   isConfigured: boolean;
@@ -30,6 +32,7 @@ export function ConversationView({
   messages,
   activeBot,
   busy,
+  thinkingBot,
   draft,
   queueCount,
   isConfigured,
@@ -58,7 +61,12 @@ export function ConversationView({
               onOpenSettings={onOpenSettings}
             />
           ))}
-          {busy && <ThinkingIndicator bot={activeBot} language={language} />}
+          {busy && (
+            <ThinkingIndicator
+              bot={thinkingBot ?? activeBot}
+              language={language}
+            />
+          )}
           <div ref={messagesEndRef} className="h-px" />
         </section>
       </div>

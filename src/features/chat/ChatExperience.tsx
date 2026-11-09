@@ -22,6 +22,7 @@ import type { MessageData } from "./ChatMessageItem.tsx";
 import { ChatSidebar } from "./ChatSidebar.tsx";
 import { ConversationView } from "./ConversationView.tsx";
 import { executeChatMessage } from "./execute-chat-message.ts";
+import { buildReplyMessages } from "./reply-messages.ts";
 import type { ChatLanguage } from "./respond-to-message.ts";
 import { useBotMessages } from "./use-bot-messages.ts";
 import { useMessageQueue } from "./use-message-queue.ts";
@@ -30,6 +31,8 @@ export function ChatExperience() {
   const [language, setLanguage] = useState<ChatLanguage>("pt");
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
+  // While the Chief's crew answers, the thinking row follows the working bot.
+  const [workingBot, setWorkingBot] = useState<BotProfile | null>(null);
   const auth = useLocalAuth();
   const { queueCount, enqueue, dequeue, clearQueue } = useMessageQueue();
 
@@ -119,8 +122,10 @@ export function ChatExperience() {
       bots,
       gitHubToken,
       modelConfig,
+      onBotWorking: setWorkingBot,
     });
     recordModelCall(reply.modelCall);
+    setWorkingBot(null);
 
     if (conversationIdRef.current !== conversationId) {
       setBusy(false);
@@ -129,16 +134,11 @@ export function ChatExperience() {
 
     const updatedWithAssistant: MessageData[] = [
       ...currentHistory,
-      {
-        id: getNextId(),
-        role: "assistant",
+      ...buildReplyMessages(reply, {
         language,
-        text: reply.text,
-        delegatedBot: reply.delegatedBot,
         modelBadge: isConfigured ? activeModelLabel : undefined,
-        ...(reply.github ? { github: reply.github } : {}),
-        ...(reply.failover ? { failover: reply.failover } : {}),
-      },
+        nextId: getNextId,
+      }),
     ];
     persistMessages(updatedWithAssistant);
     setBusy(false);
@@ -251,6 +251,7 @@ export function ChatExperience() {
             messages={messages}
             activeBot={activeBot}
             busy={busy}
+            thinkingBot={workingBot ?? activeBot}
             draft={draft}
             queueCount={queueCount}
             isConfigured={isConfigured}
