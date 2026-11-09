@@ -1,10 +1,14 @@
+import { BlockedBaseUrlError, modelFetch } from "./guarded-model-fetch.ts";
+import type { ModelNetworkOptions } from "./guarded-model-fetch.ts";
 import type { FetchLike, ModelAdapter, ModelRequest } from "./model-adapter.ts";
 
 export type LocalAdapterConfig = {
   baseUrl: string;
   model: string;
   fetchImpl?: FetchLike;
-};
+  /** True when baseUrl came from a client and must pass the URL guard. */
+  guardUrl?: boolean;
+} & ModelNetworkOptions;
 
 export function createLocalAdapter(config: LocalAdapterConfig): ModelAdapter {
   const fetchImpl = config.fetchImpl ?? fetch;
@@ -16,24 +20,32 @@ export function createLocalAdapter(config: LocalAdapterConfig): ModelAdapter {
     async generateReply(request: ModelRequest) {
       let response: Response;
       try {
-        response = await fetchImpl(endpoint, {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({
-            model: config.model,
-            stream: false,
-            messages: [
-              ...(request.systemPrompt
-                ? [{ role: "system", content: request.systemPrompt }]
-                : []),
-              ...request.messages.map((message) => ({
-                role: message.role,
-                content: message.text,
-              })),
-            ],
-          }),
-        });
-      } catch {
+        response = await modelFetch(
+          fetchImpl,
+          endpoint,
+          {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              model: config.model,
+              stream: false,
+              messages: [
+                ...(request.systemPrompt
+                  ? [{ role: "system", content: request.systemPrompt }]
+                  : []),
+                ...request.messages.map((message) => ({
+                  role: message.role,
+                  content: message.text,
+                })),
+              ],
+            }),
+          },
+          config,
+        );
+      } catch (error) {
+        if (error instanceof BlockedBaseUrlError) {
+          return { ok: false, code: "blocked_base_url", provider: "local" };
+        }
         return { ok: false, code: "provider_unreachable", provider: "local" };
       }
 
