@@ -2,8 +2,9 @@
 
 import type { chatCopy } from "@/features/chat/chat-copy.ts";
 import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
-import { CheckIcon } from "@/shared/ui/FieldIcons.tsx";
 import type { ModelProviderType } from "./model-config.ts";
+import { FreeModelList } from "./FreeModelList.tsx";
+import { PresetRow } from "./PresetRow.tsx";
 import { fillCopy, getSettingsCopy } from "./settings-copy.ts";
 import { useFreeModels } from "./use-free-models.ts";
 
@@ -18,65 +19,6 @@ export interface SettingsModelPresetsProps {
   onSelectRouterPreset: (url: string, model: string) => void;
   onSelectRouterModel: (model: string) => void;
   onSelectLocalPreset: (url: string, model: string) => void;
-}
-
-function formatContext(tokens?: number): string {
-  if (!tokens) return "";
-  if (tokens >= 1_000_000) return `${Math.round(tokens / 1_000_000)}M`;
-  if (tokens >= 1_000) return `${Math.round(tokens / 1_000)}k`;
-  return `${tokens}`;
-}
-
-interface PresetRowProps {
-  name: string;
-  description: string;
-  badge?: string;
-  selected: boolean;
-  onSelect: () => void;
-}
-
-/** One selectable row: name, one-line description, optional badge, check. */
-function PresetRow({
-  name,
-  description,
-  badge,
-  selected,
-  onSelect,
-}: PresetRowProps) {
-  return (
-    <button
-      type="button"
-      role="radio"
-      aria-checked={selected}
-      onClick={onSelect}
-      className={`flex min-h-14 w-full items-center gap-3 rounded-xl px-3.5 py-2 text-start transition-colors active:scale-[0.99] ${
-        selected
-          ? "bg-surface-tertiary"
-          : "bg-surface hover:bg-surface-secondary"
-      }`}
-    >
-      <span className="min-w-0 flex-1">
-        <span className="block overflow-hidden text-ellipsis whitespace-nowrap text-[15px] font-medium text-foreground md:text-sm">
-          {name}
-        </span>
-        <span className="block overflow-hidden text-ellipsis whitespace-nowrap text-[13px] text-muted">
-          {description}
-        </span>
-      </span>
-      {badge && (
-        <span className="shrink-0 rounded-full bg-success-soft px-2 py-0.5 text-xs font-medium text-success">
-          {badge}
-        </span>
-      )}
-      <span
-        className={`flex size-5 shrink-0 items-center justify-center rounded-full ${
-          selected ? "bg-bot-accent text-background" : "border border-border"
-        }`}
-      >
-        {selected && <CheckIcon className="size-3.5" />}
-      </span>
-    </button>
-  );
 }
 
 export function SettingsModelPresets({
@@ -102,11 +44,11 @@ export function SettingsModelPresets({
       routerUrl.includes(":3000") || routerUrl.includes(":20128");
 
     return (
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-2.5">
         <div
           role="radiogroup"
           aria-label={content.presetsLabel}
-          className="flex flex-col gap-1.5"
+          className="flex flex-col gap-1"
         >
           <PresetRow
             name={s.presetOpenRouterName}
@@ -132,7 +74,7 @@ export function SettingsModelPresets({
         </div>
 
         {isOpenRouter && (
-          <div className="flex animate-enter flex-col gap-3">
+          <div className="flex animate-enter flex-col gap-2">
             <p className="text-[13px] text-subtle">
               {content.presetOpenRouterHint}{" "}
               <a
@@ -169,28 +111,12 @@ export function SettingsModelPresets({
               </a>
             </div>
 
-            <div
-              role="radiogroup"
-              aria-label={s.freeModelsList}
-              className="flex max-h-72 flex-col gap-1.5 overflow-y-auto overscroll-contain"
-            >
-              {liveFreeModels.map((item) => {
-                const cleanName = item.name
-                  .replace(/ \(free\)/i, "")
-                  .replace(/:free$/i, "");
-                const ctx = formatContext(item.contextLength);
-                return (
-                  <PresetRow
-                    key={item.id}
-                    name={cleanName}
-                    description={ctx ? `${item.id} · ${ctx}` : item.id}
-                    badge={s.badgeFree}
-                    selected={routerModel === item.id}
-                    onSelect={() => onSelectRouterModel(item.id)}
-                  />
-                );
-              })}
-            </div>
+            <FreeModelList
+              language={language}
+              models={liveFreeModels}
+              selectedId={routerModel}
+              onSelect={onSelectRouterModel}
+            />
           </div>
         )}
       </div>
@@ -205,7 +131,7 @@ export function SettingsModelPresets({
       <div
         role="radiogroup"
         aria-label={content.presetsLabel}
-        className="flex flex-col gap-1.5"
+        className="flex flex-col gap-1"
       >
         <PresetRow
           name={s.presetOllamaName}

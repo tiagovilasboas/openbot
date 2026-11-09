@@ -39,7 +39,7 @@ export function SecretInput({
         autoComplete={autoComplete}
         autoCapitalize="none"
         spellCheck={false}
-        className={`${FIELD_CLASS} pe-12`}
+        className={`${FIELD_CLASS} pe-11`}
       />
       <button
         type="button"
