@@ -150,7 +150,6 @@ export function ChatSidebar(props: ChatSidebarProps) {
             </div>
             <SidebarPanel
               {...props}
-              showLanguage
               onSelectBot={thenClose(onSelectBot)}
               onCreateBot={thenClose(onCreateBot)}
               onEditBot={thenClose(onEditBot)}
