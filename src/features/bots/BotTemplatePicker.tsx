@@ -51,7 +51,7 @@ export function BotTemplatePicker({
                 <BotAvatar
                   shape={tmpl.avatarShape}
                   color={tmpl.avatarColor}
-                  size={32}
+                  size={38}
                   className="shrink-0"
                 />
                 <span className="min-w-0 flex-1">

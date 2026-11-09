@@ -44,7 +44,7 @@ export function BotMentionPalette({
           <BotAvatar
             shape={bot.avatarShape}
             color={bot.avatarColor}
-            size={28}
+            size={34}
           />
         ),
         title: bot.name,

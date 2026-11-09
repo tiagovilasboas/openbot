@@ -46,7 +46,7 @@ export function SidebarBotList({
               <BotAvatar
                 shape={bot.avatarShape}
                 color={bot.avatarColor}
-                size={32}
+                size={38}
                 active={isActive}
               />
               <span className="flex min-w-0 flex-col">

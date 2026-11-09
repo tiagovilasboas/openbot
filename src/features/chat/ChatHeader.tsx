@@ -59,7 +59,7 @@ export function ChatHeader({
         <BotAvatar
           shape={activeBot.avatarShape}
           color={activeBot.avatarColor}
-          size={34}
+          size={41}
         />
       ) : (
         <BrandMark />

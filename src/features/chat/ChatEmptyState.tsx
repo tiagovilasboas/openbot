@@ -72,7 +72,7 @@ export function ChatEmptyState({
               <BotAvatar
                 shape={activeBot.avatarShape}
                 color={activeBot.avatarColor}
-                size={67}
+                size={80}
               />
             ) : (
               <span
