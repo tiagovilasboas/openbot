@@ -2,13 +2,7 @@ import type { BotProfile } from "../bots/bot-types.ts";
 import type { ChatLanguage } from "../chat/respond-to-message.ts";
 import { crewCopy } from "./crew-copy.ts";
 
-const CHIEF_IDS = new Set(["chief-of-staff", "default"]);
 const MAX_ROLE_LENGTH = 140;
-
-/** The Chief of Staff is the only bot that knows and directs the crew. */
-export function isChiefBot(bot: Pick<BotProfile, "id">): boolean {
-  return CHIEF_IDS.has(bot.id);
-}
 
 /** The handle a bot answers to; matches how @mentions resolve names. */
 export function crewHandle(bot: Pick<BotProfile, "name">): string {
@@ -47,7 +41,7 @@ export function buildCrewRoster(
   language: ChatLanguage,
 ): string {
   const copy = crewCopy[language];
-  const crew = bots.filter((bot) => bot.id !== chief.id && !isChiefBot(bot));
+  const crew = bots.filter((bot) => bot.id !== chief.id);
   if (crew.length === 0) return "";
 
   const lines = crew.map((bot) => {

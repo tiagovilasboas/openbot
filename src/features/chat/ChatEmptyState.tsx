@@ -16,6 +16,7 @@ export interface ChatEmptyStateProps {
   skills?: SkillDefinition[];
   bots?: BotProfile[];
   activeBot?: BotProfile;
+  mainBotId?: string;
   isConfigured?: boolean;
   onOpenSettings?: () => void;
   onDraftChange: (value: string) => void;
@@ -23,18 +24,21 @@ export interface ChatEmptyStateProps {
   onSelectPrompt: (prompt: string) => void;
 }
 
-const MANAGER_BOT_IDS = new Set(["chief-of-staff", "default"]);
-
-function greetingFor(language: ChatLanguage, bot?: BotProfile) {
+function greetingFor(
+  language: ChatLanguage,
+  bot?: BotProfile,
+  mainBotId?: string,
+) {
   const content = chatCopy[language];
   if (!bot) {
     return { title: content.emptyHeading, subtitle: content.emptySubheading };
   }
   return {
     title: content.botGreeting.replace("{bot}", bot.name),
-    subtitle: MANAGER_BOT_IDS.has(bot.id)
-      ? content.chiefOfStaffTitle
-      : bot.title || content.emptySubheading,
+    subtitle:
+      bot.id === mainBotId
+        ? content.chiefOfStaffTitle
+        : bot.title || content.emptySubheading,
   };
 }
 
@@ -49,6 +53,7 @@ export function ChatEmptyState({
   skills,
   bots,
   activeBot,
+  mainBotId,
   isConfigured,
   onOpenSettings,
   onDraftChange,
@@ -56,7 +61,7 @@ export function ChatEmptyState({
   onSelectPrompt,
 }: ChatEmptyStateProps) {
   const content = chatCopy[language];
-  const { title, subtitle } = greetingFor(language, activeBot);
+  const { title, subtitle } = greetingFor(language, activeBot, mainBotId);
 
   return (
     <section className="flex min-h-0 flex-1 flex-col md:overflow-y-auto md:px-6 md:py-10">

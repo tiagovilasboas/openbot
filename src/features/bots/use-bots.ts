@@ -21,10 +21,17 @@ import {
 } from "./bot-types.ts";
 import { migrateCrewShapes } from "./crew-shapes-migration.ts";
 import { migrateLegacySkills } from "./legacy-skills-migration.ts";
+import {
+  loadStoredMainBotId,
+  resolveMainBotId,
+  saveMainBotId,
+  subscribeMainBotId,
+} from "./main-bot.ts";
 
 const SERVER_BOTS: BotProfile[] = [DEFAULT_BOT];
 const getServerBots = () => SERVER_BOTS;
 const getServerActiveBotId = () => DEFAULT_BOT.id;
+const getServerMainBotId = () => null;
 
 export function useBots() {
   // Moves the old global skill library into the bots, once per browser.
@@ -80,9 +87,21 @@ export function useBots() {
     [],
   );
 
+  const storedMainBotId = useSyncExternalStore(
+    subscribeMainBotId,
+    loadStoredMainBotId,
+    getServerMainBotId,
+  );
+  const mainBotId = resolveMainBotId(storedMainBotId, bots) ?? DEFAULT_BOT.id;
+
+  const makeMainBot = useCallback((id: string) => {
+    saveMainBotId(id);
+  }, []);
+
   const removeBot = useCallback((id: string) => {
     const currentBots = loadBotsFromStorage();
-    const result = deleteBotFromList(currentBots, id);
+    const mainId = resolveMainBotId(loadStoredMainBotId(), currentBots);
+    const result = deleteBotFromList(currentBots, id, mainId);
     saveBotsToStorage(result.bots);
     if (result.newActiveId) {
       saveActiveBotId(result.newActiveId);
@@ -100,5 +119,7 @@ export function useBots() {
     saveBot,
     createAndActivateBot,
     removeBot,
+    mainBotId,
+    makeMainBot,
   };
 }
