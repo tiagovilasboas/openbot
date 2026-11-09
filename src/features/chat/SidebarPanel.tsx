@@ -2,6 +2,7 @@
 
 import { useId } from "react";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
+import { AuthorCredit } from "@/shared/brand/AuthorCredit.tsx";
 import { chatCopy } from "./chat-copy.ts";
 import { LanguageToggle } from "./LanguageToggle.tsx";
 import type { ChatLanguage } from "./respond-to-message.ts";
@@ -117,6 +118,10 @@ export function SidebarPanel({
           icon={<SettingsIcon />}
           label={content.settings}
           onPress={onOpenSettings}
+        />
+        <AuthorCredit
+          profileTitle={content.authorProfileTitle}
+          sponsorLabel={content.authorSponsorLabel}
         />
       </div>
     </>
