@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useSyncExternalStore } from "react";
+import { useCallback, useRef, useSyncExternalStore } from "react";
 import type { MessageData } from "./ChatMessageItem.tsx";
 
 const EMPTY_MESSAGES: MessageData[] = [];
@@ -89,9 +89,15 @@ export function useBotMessages(botId: string) {
     [botId],
   );
 
+  // A turn asks for the user id and, after an await, the reply id from the
+  // same render's closure, so `messages` alone would hand out the same id
+  // twice. The ref keeps ids increasing across calls.
+  const lastIssuedIdRef = useRef(0);
   const getNextId = useCallback((): number => {
     const currentMax = messages.reduce((max, m) => Math.max(max, m.id || 0), 0);
-    return currentMax + 1;
+    const next = Math.max(currentMax, lastIssuedIdRef.current) + 1;
+    lastIssuedIdRef.current = next;
+    return next;
   }, [messages]);
 
   const clearMessages = useCallback(() => {
