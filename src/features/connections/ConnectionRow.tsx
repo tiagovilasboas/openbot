@@ -25,10 +25,10 @@ export function ConnectionRow({
       <button
         type="button"
         onClick={onOpen}
-        className="flex min-h-16 w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-surface-secondary active:bg-surface-secondary"
+        className="flex min-h-14 w-full items-center gap-3 px-3.5 py-2 text-left transition-colors hover:bg-surface-secondary active:bg-surface-secondary"
       >
         <span className="min-w-0 flex-1">
-          <span className="block text-[15px] font-medium text-foreground md:text-sm">
+          <span className="block text-sm font-medium text-foreground">
             {name}
           </span>
           <span className="block truncate text-[13px] text-subtle">
@@ -40,7 +40,7 @@ export function ConnectionRow({
             {connectedLabel}
           </span>
         ) : (
-          <span className="shrink-0 rounded-full border border-border px-3 py-1 text-[13px] font-medium text-foreground">
+          <span className="shrink-0 rounded-full border border-border px-3 py-0.5 text-[13px] font-medium text-foreground">
             {connectLabel}
           </span>
         )}

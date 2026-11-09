@@ -38,7 +38,7 @@ export function SettingsProviderSelector({
     <div
       role="radiogroup"
       aria-label={content.provider}
-      className="flex flex-col gap-1.5"
+      className="flex flex-col gap-1"
     >
       {options.map((option) => {
         const selected = option.id === provider;
@@ -50,17 +50,17 @@ export function SettingsProviderSelector({
             aria-checked={selected}
             tabIndex={selected ? 0 : -1}
             onClick={() => onSelectProvider(option.id)}
-            className={`flex min-h-14 items-center gap-3 rounded-xl px-3.5 py-2 text-start transition-colors active:scale-[0.99] ${
+            className={`flex min-h-12 items-center gap-3 rounded-xl px-3 py-1.5 text-start transition-colors active:scale-[0.99] ${
               selected
                 ? "bg-surface-tertiary"
                 : "bg-surface hover:bg-surface-secondary"
             }`}
           >
             <span className="min-w-0 flex-1">
-              <span className="block text-[15px] font-medium text-foreground md:text-sm">
+              <span className="block text-sm font-medium text-foreground">
                 {option.name}
               </span>
-              <span className="block truncate text-[13px] text-muted">
+              <span className="block truncate text-xs text-muted">
                 {option.hint}
               </span>
             </span>

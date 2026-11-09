@@ -26,13 +26,13 @@ export function ConnectionTest({
   onTest,
 }: ConnectionTestProps) {
   return (
-    <div className="flex flex-col gap-2.5">
+    <div className="flex flex-col gap-2">
       <button
         type="button"
         onClick={onTest}
         disabled={isTesting}
         aria-busy={isTesting}
-        className="flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-border bg-surface px-5 text-[15px] font-medium text-foreground transition-colors hover:bg-surface-secondary active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40 md:text-sm"
+        className="flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-border bg-surface px-5 text-sm font-medium text-foreground transition-colors hover:bg-surface-secondary active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40"
       >
         {isTesting && <SpinnerIcon className="size-4" />}
         {isTesting ? loadingLabel : label}
@@ -40,7 +40,7 @@ export function ConnectionTest({
       <div role="status" aria-live="polite">
         {result ? (
           <p
-            className={`flex items-start gap-2 rounded-xl px-3.5 py-2.5 text-[13px] ${
+            className={`flex items-start gap-2 rounded-xl px-3 py-2 text-[13px] ${
               result.ok
                 ? "bg-success-soft text-success"
                 : "bg-danger-soft text-danger"

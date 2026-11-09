@@ -30,6 +30,8 @@ export const settingsCopy = {
     freeModelsList: "Modelos gratuitos",
     getKey: "Obter chave em openrouter.ai/keys",
     allModels: "Ver todos os modelos",
+    showAll: "Ver todos ({count})",
+    showFewer: "Mostrar menos",
     testIdle: "Verifique se o modelo responde antes de salvar.",
     testInvalid:
       "Preencha os campos obrigatórios do provedor e teste novamente.",
@@ -69,6 +71,8 @@ export const settingsCopy = {
     freeModelsList: "Free models",
     getKey: "Get a key at openrouter.ai/keys",
     allModels: "Browse all models",
+    showAll: "Show all ({count})",
+    showFewer: "Show fewer",
     testIdle: "Check that the model answers before saving.",
     testInvalid: "Fill in the provider's required fields and test again.",
     keyMissing: "{provider} isn't connected yet.",

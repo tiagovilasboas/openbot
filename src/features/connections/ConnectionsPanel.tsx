@@ -54,9 +54,9 @@ export function ConnectionsPanel({
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       {GROUPS.map((group) => (
-        <section key={group} className="flex flex-col gap-2">
+        <section key={group} className="flex flex-col gap-1.5">
           <h3 className="text-[13px] font-medium text-subtle">
             {group === "models" ? c.groupModels : c.groupTools}
           </h3>

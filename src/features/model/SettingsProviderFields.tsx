@@ -75,7 +75,7 @@ export function SettingsProviderFields({
 }: SettingsProviderFieldsProps) {
   if (provider === "router") {
     return (
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4 md:gap-6">
         <SettingsModelPresets
           provider="router"
           language={language}
@@ -91,7 +91,7 @@ export function SettingsProviderFields({
           onSelectRouterModel={(model) => setRouterModel(model)}
           onSelectLocalPreset={() => {}}
         />
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3 md:gap-4">
           <TextRow
             label={content.routerUrlLabel}
             value={routerUrl}
@@ -114,7 +114,7 @@ export function SettingsProviderFields({
 
   if (provider === "local") {
     return (
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4 md:gap-6">
         <SettingsModelPresets
           provider="local"
           language={language}
@@ -130,7 +130,7 @@ export function SettingsProviderFields({
             setLocalModel(model);
           }}
         />
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3 md:gap-4">
           <TextRow
             label={content.localUrlLabel}
             value={localUrl}

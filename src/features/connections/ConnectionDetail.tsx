@@ -83,11 +83,11 @@ export function ConnectionDetail({
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <button
         type="button"
         onClick={onBack}
-        className="-ml-2 flex min-h-11 w-fit items-center gap-1 rounded-full px-2 text-[15px] font-medium text-muted transition-colors hover:text-foreground md:text-sm"
+        className="-ml-2 flex min-h-11 w-fit items-center gap-1 rounded-full px-2 text-sm font-medium text-muted transition-colors hover:text-foreground"
       >
         <ChevronLeftIcon className="size-4" />
         {c.back}
@@ -102,7 +102,7 @@ export function ConnectionDetail({
         <p className="text-[13px] text-subtle">{c.descriptions[entry.id]}</p>
       </header>
 
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-1">
         <FormField
           label={entry.id === "github" ? c.tokenLabel : c.keyLabel}
           helper={c.storedHere}
@@ -125,7 +125,7 @@ export function ConnectionDetail({
           href={entry.keyUrl}
           target="_blank"
           rel="noreferrer"
-          className="w-fit text-[13px] font-medium text-bot-accent underline-offset-2 hover:underline"
+          className="inline-flex min-h-11 w-fit items-center text-[13px] font-medium text-bot-accent underline-offset-2 hover:underline"
         >
           {fillCopy(c.getKey, { url: entry.keyUrlLabel })}
         </a>
@@ -143,7 +143,7 @@ export function ConnectionDetail({
         <button
           type="button"
           onClick={handleDisconnect}
-          className="min-h-11 w-full rounded-full px-5 text-[15px] font-medium text-danger transition-colors hover:bg-danger-soft active:scale-[0.97] md:text-sm"
+          className="min-h-11 w-full rounded-full px-5 text-sm font-medium text-danger transition-colors hover:bg-danger-soft active:scale-[0.97]"
         >
           {c.disconnect}
         </button>
