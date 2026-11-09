@@ -1,11 +1,41 @@
 "use client";
 
 import React from "react";
+import { CodeBlock } from "./CodeBlock.tsx";
 import { parseBlocks, parseInlineTokens } from "./parse-markdown-blocks.ts";
+import type { ChatLanguage } from "./respond-to-message.ts";
 
 interface FormattedMessageProps {
   content: string;
   className?: string;
+  language?: ChatLanguage;
+}
+
+type Segment =
+  | { kind: "markdown"; text: string }
+  | { kind: "code"; lang: string; code: string };
+
+const FENCE = /```([\w+-]*)[^\S\n]*\n?([\s\S]*?)```/g;
+
+function splitFences(raw: string): Segment[] {
+  const segments: Segment[] = [];
+  let last = 0;
+  for (const match of raw.matchAll(FENCE)) {
+    const start = match.index ?? 0;
+    if (start > last) {
+      segments.push({ kind: "markdown", text: raw.slice(last, start) });
+    }
+    segments.push({
+      kind: "code",
+      lang: match[1],
+      code: match[2].replace(/\n$/, ""),
+    });
+    last = start + match[0].length;
+  }
+  if (last < raw.length) {
+    segments.push({ kind: "markdown", text: raw.slice(last) });
+  }
+  return segments;
 }
 
 function renderInline(text: string): React.ReactNode[] {
@@ -14,7 +44,7 @@ function renderInline(text: string): React.ReactNode[] {
     switch (token.type) {
       case "bold":
         return (
-          <strong key={index} className="font-semibold text-white">
+          <strong key={index} className="font-semibold text-foreground">
             {token.text}
           </strong>
         );
@@ -22,14 +52,14 @@ function renderInline(text: string): React.ReactNode[] {
         return (
           <code
             key={index}
-            className="rounded border border-white/10 bg-zinc-800 px-1.5 py-0.5 font-mono text-xs text-zinc-200"
+            className="rounded-md bg-surface-secondary px-1.5 py-0.5 font-mono text-[0.88em] break-words"
           >
             {token.text}
           </code>
         );
       case "italic":
         return (
-          <em key={index} className="italic text-zinc-400">
+          <em key={index} className="italic">
             {token.text}
           </em>
         );
@@ -39,75 +69,90 @@ function renderInline(text: string): React.ReactNode[] {
   });
 }
 
+function MarkdownBlocks({ text }: { text: string }) {
+  return parseBlocks(text).map((block, i) => {
+    switch (block.type) {
+      case "h3":
+        return (
+          <h3
+            key={i}
+            className="mt-5 text-balance text-base font-semibold text-foreground first:mt-0"
+          >
+            {renderInline(block.text)}
+          </h3>
+        );
+      case "h4":
+        return (
+          <h4
+            key={i}
+            className="mt-4 text-balance text-[15px] font-semibold text-foreground first:mt-0"
+          >
+            {renderInline(block.text)}
+          </h4>
+        );
+      case "quote": {
+        const lower = block.text.toLowerCase();
+        const isWarning =
+          block.text.includes("⚠️") ||
+          lower.includes("falha") ||
+          lower.includes("failure");
+        return (
+          <blockquote
+            key={i}
+            className={
+              isWarning
+                ? "my-3 rounded-xl bg-warning-soft px-3 py-2 text-[13px] text-foreground"
+                : "my-3 border-l border-border pl-4 text-muted"
+            }
+          >
+            {renderInline(block.text)}
+          </blockquote>
+        );
+      }
+      case "list":
+        return (
+          <ul
+            key={i}
+            className="my-3 list-disc space-y-1.5 pl-5 marker:text-subtle first:mt-0"
+          >
+            {block.items.map((item, j) => (
+              <li key={j} className="pl-1">
+                {renderInline(item)}
+              </li>
+            ))}
+          </ul>
+        );
+      case "paragraph":
+        return (
+          <p key={i} className="my-3 first:mt-0 break-words">
+            {renderInline(block.text)}
+          </p>
+        );
+    }
+  });
+}
+
 export function FormattedMessage({
   content,
   className,
+  language = "pt",
 }: FormattedMessageProps) {
-  const blocks = parseBlocks(content);
-
   return (
     <div
-      className={`space-y-2 text-sm sm:text-base leading-relaxed ${className ?? ""}`}
+      className={`min-w-0 text-base leading-[1.65] text-foreground md:text-[15px] md:leading-[1.7] [&_a]:text-bot-accent [&_a]:underline [&_a]:underline-offset-3 [&_a]:decoration-1 ${className ?? ""}`}
     >
-      {blocks.map((block, i) => {
-        switch (block.type) {
-          case "h3":
-            return (
-              <h3
-                key={i}
-                className="text-base sm:text-lg font-semibold text-white tracking-tight pt-2 first:pt-0"
-              >
-                {renderInline(block.text)}
-              </h3>
-            );
-          case "h4":
-            return (
-              <h4
-                key={i}
-                className="text-xs sm:text-sm font-semibold text-zinc-300 uppercase tracking-wider pt-2 first:pt-0"
-              >
-                {renderInline(block.text)}
-              </h4>
-            );
-          case "quote": {
-            const isWarning =
-              block.text.includes("⚠️") ||
-              block.text.toLowerCase().includes("falha") ||
-              block.text.toLowerCase().includes("failure");
-            return (
-              <blockquote
-                key={i}
-                className={`my-2 rounded-xl border p-3 text-xs sm:text-sm ${
-                  isWarning
-                    ? "border-amber-500/30 bg-amber-500/10 text-amber-200"
-                    : "border-white/10 bg-zinc-900/60 text-zinc-300"
-                }`}
-              >
-                {renderInline(block.text)}
-              </blockquote>
-            );
-          }
-          case "list":
-            return (
-              <ul
-                key={i}
-                className="my-1.5 space-y-1 pl-4 list-disc marker:text-zinc-500 text-zinc-300"
-              >
-                {block.items.map((item, j) => (
-                  <li key={j} className="leading-relaxed">
-                    {renderInline(item)}
-                  </li>
-                ))}
-              </ul>
-            );
-          case "paragraph":
-            return (
-              <p key={i} className="text-zinc-200 leading-relaxed">
-                {renderInline(block.text)}
-              </p>
-            );
-        }
-      })}
+      {splitFences(content).map((segment, i) =>
+        segment.kind === "code" ? (
+          <CodeBlock
+            key={i}
+            code={segment.code}
+            lang={segment.lang}
+            language={language}
+          />
+        ) : (
+          <MarkdownBlocks key={i} text={segment.text} />
+        ),
+      )}
     </div>
   );
 }
