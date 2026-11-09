@@ -21,6 +21,9 @@ const ICON_BUTTON =
 // Tailwind's md breakpoint: the drawer has no place on a desktop layout.
 const DESKTOP_QUERY = "(min-width: 48rem)";
 
+// From package.json, inlined by next.config.ts at build time.
+const APP_VERSION = process.env.APP_VERSION;
+
 function SidebarBrand({ name }: { name: string }) {
   return (
     <span className="flex min-w-0 items-center gap-2.5 px-1">
@@ -28,6 +31,11 @@ function SidebarBrand({ name }: { name: string }) {
       <span className="truncate text-[15px] font-semibold tracking-tight text-foreground">
         {name}
       </span>
+      {APP_VERSION && (
+        <span className="shrink-0 font-mono text-[11px] text-subtle tabular-nums">
+          v{APP_VERSION}
+        </span>
+      )}
     </span>
   );
 }
