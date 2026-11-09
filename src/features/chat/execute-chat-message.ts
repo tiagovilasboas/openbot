@@ -1,5 +1,6 @@
 import { buildBotSystemPrompt } from "@/features/bots/bot-system-prompt.ts";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
+import { chiefPlainReply } from "@/features/crew/chief-plain-reply.ts";
 import { crewCopy } from "@/features/crew/crew-copy.ts";
 import { buildCrewRoster } from "@/features/crew/crew-roster.ts";
 import { runCrewTurn } from "@/features/crew/run-crew-turn.ts";
@@ -172,7 +173,9 @@ export async function executeChatMessage({
     return {
       text: crewTurn
         ? (crewTurn.synthesis ?? crewCopy[language].synthesisFailed)
-        : outcome.text,
+        : isChief
+          ? chiefPlainReply(outcome.text, bots, executingBot.id, language)
+          : outcome.text,
       ...(crewTurn
         ? {
             crew: {

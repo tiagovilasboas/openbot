@@ -16,6 +16,8 @@ interface CrewCopy {
   delegatingTo: (names: string[]) => string;
   specialistFailed: (name: string) => string;
   synthesisFailed: string;
+  /** Shown when the Chief named a bot that is not on the crew. */
+  delegateNotFound: string;
 }
 
 /** Prompt and UI text for the Chief's crew, in both supported languages. */
@@ -46,6 +48,8 @@ export const crewCopy: Record<ChatLanguage, CrewCopy> = {
     specialistFailed: (name) => `${name} não conseguiu responder desta vez.`,
     synthesisFailed:
       "Não consegui juntar as respostas agora; veja o que cada especialista disse acima.",
+    delegateNotFound:
+      "Não encontrei esse bot na equipe, então não consegui passar a tarefa adiante.",
   },
   en: {
     rosterHeader: "Your crew (other bots you know and can call by name):",
@@ -72,5 +76,7 @@ export const crewCopy: Record<ChatLanguage, CrewCopy> = {
     specialistFailed: (name) => `${name} could not answer this time.`,
     synthesisFailed:
       "I could not combine the answers right now; see what each specialist said above.",
+    delegateNotFound:
+      "I could not find that bot on the crew, so I could not hand the task over.",
   },
 };

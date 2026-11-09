@@ -1,22 +1,24 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
 import { BotSkillsEditor } from "@/features/skills/BotSkillsEditor.tsx";
 import type { SkillDefinition } from "@/features/skills/skill-types.ts";
-import {
-  FormField,
-  FIELD_CLASS,
-  TEXTAREA_CLASS,
-} from "@/shared/ui/FormField.tsx";
+import { FormField, FIELD_CLASS } from "@/shared/ui/FormField.tsx";
 import { ResponsiveSheet, SheetFooter } from "@/shared/ui/ResponsiveSheet.tsx";
+import { AutoTextarea } from "./AutoTextarea.tsx";
 import { BotAvatar } from "./BotAvatar.tsx";
 import { BotAvatarPickers } from "./BotAvatarPickers.tsx";
 import { BotDeleteControl } from "./BotDeleteControl.tsx";
 import { BotMainControl } from "./BotMainControl.tsx";
 import { BotTemplatePicker } from "./BotTemplatePicker.tsx";
 import type { BotTemplate } from "./bot-templates.ts";
-import type { AvatarColor, AvatarShape, BotProfile } from "./bot-types.ts";
+import {
+  BOT_NAME_MAX_LENGTH,
+  type AvatarColor,
+  type AvatarShape,
+  type BotProfile,
+} from "./bot-types.ts";
 import { getBotsCopy } from "./bots-copy.ts";
 
 interface BotEditModalProps {
@@ -33,42 +35,6 @@ interface BotEditModalProps {
 }
 
 type BotEditFormProps = Omit<BotEditModalProps, "isOpen">;
-
-/** Textarea that grows with its content (sheet body scrolls, not the field). */
-function AutoTextarea({
-  value,
-  onChange,
-  ...rest
-}: {
-  value: string;
-  onChange: (value: string) => void;
-  id?: string;
-  placeholder?: string;
-  "aria-describedby"?: string;
-  minRows: number;
-}) {
-  const ref = useRef<HTMLTextAreaElement>(null);
-  const { minRows, ...props } = rest;
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    el.style.height = "auto";
-    el.style.height = `${el.scrollHeight}px`;
-  }, [value]);
-
-  return (
-    <textarea
-      {...props}
-      ref={ref}
-      rows={minRows}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className={TEXTAREA_CLASS}
-      style={{ minHeight: `${minRows * 1.625 + 1.5}rem` }}
-    />
-  );
-}
 
 function BotEditForm({
   bot,
@@ -183,6 +149,7 @@ function BotEditForm({
               onChange={(e) => setName(e.target.value)}
               placeholder={copy.namePlaceholder}
               autoComplete="off"
+              maxLength={BOT_NAME_MAX_LENGTH}
               className={FIELD_CLASS}
             />
           )}

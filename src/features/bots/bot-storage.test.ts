@@ -12,7 +12,7 @@ import {
   updateBotInList,
 } from "./bot-storage.ts";
 import { createCustomSkill } from "../skills/skill-definition.ts";
-import { DEFAULT_BOT } from "./bot-types.ts";
+import { BOT_NAME_MAX_LENGTH, DEFAULT_BOT } from "./bot-types.ts";
 import { CREW_PRESETS } from "./crew-presets.ts";
 
 function createMockStorage(): Storage {
@@ -254,4 +254,15 @@ test("findMentionedBot correctly resolves @bot mentions", () => {
   // Return null when bot is not found or no mention is present
   assert.equal(findMentionedBot("@desconhecido faça isso", bots), null);
   assert.equal(findMentionedBot("apenas uma mensagem comum", bots), null);
+});
+
+test("bot names are cut to the shared limit on load and on create", () => {
+  const long = "A".repeat(204);
+  const loaded = sanitizeBotProfile({ id: "x", name: long });
+  assert.equal(loaded?.name.length, BOT_NAME_MAX_LENGTH);
+  assert.equal(BOT_NAME_MAX_LENGTH, 40);
+  assert.equal(
+    createBotProfile({ name: long }).name.length,
+    BOT_NAME_MAX_LENGTH,
+  );
 });
