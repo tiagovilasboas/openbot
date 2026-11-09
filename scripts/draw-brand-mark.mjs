@@ -1,5 +1,5 @@
-// Draws the Open Bot mark as one of the crew heads, the way a graphite pencil
-// sketch would: no fill and no colour, only pencil lines. Outline passes,
+// Draws the Open Bot mark as the Chief of Staff's ghost head, the way a
+// graphite pencil sketch would: no fill and no colour, only pencil lines. Outline passes,
 // hatching on the shadow side, pill eyes filled in with a scribble, and faint
 // construction lines. The random generator is seeded, so the drawing is the
 // same on every run. It writes the art data and the static icon:
@@ -32,6 +32,69 @@ const num = (v) => {
 const point = ([x, y]) => `${num(x)} ${num(y)}`;
 const radians = (deg) => (deg * Math.PI) / 180;
 
+/**
+ * The ghost as a dense polygon: a round dome, straight sides and three soft
+ * scallops along the hem.
+ */
+function ghostOutline() {
+  const dome = { cx: 32, cy: 30, r: 18 };
+  const [left, right, hem, sag] = [14, 50, 46.5, 5];
+  const points = [];
+  for (let a = 180; a < 360; a += 3) {
+    points.push([
+      dome.cx + dome.r * Math.cos(radians(a)),
+      dome.cy + dome.r * Math.sin(radians(a)),
+    ]);
+  }
+  for (let y = dome.cy; y < hem; y += 1) points.push([right, y]);
+  for (let x = right; x > left; x -= 0.5) {
+    const s = (right - x) / ((right - left) / 3);
+    points.push([x, hem + sag * Math.sin(Math.PI * (s % 1))]);
+  }
+  for (let y = hem; y > dome.cy; y -= 1) points.push([left, y]);
+  return points;
+}
+const OUTLINE = ghostOutline();
+
+/** Where a ray from the centre at `theta` leaves the ghost. */
+function ghostRadius(theta) {
+  const [dx, dy] = [Math.cos(theta), Math.sin(theta)];
+  let far = 0;
+  for (let i = 0; i < OUTLINE.length; i++) {
+    const [ax, ay] = OUTLINE[i];
+    const [bx, by] = OUTLINE[(i + 1) % OUTLINE.length];
+    const [ex, ey] = [bx - ax, by - ay];
+    const den = dx * ey - dy * ex;
+    if (Math.abs(den) < 1e-9) continue;
+    const [px, py] = [ax - HEAD.cx, ay - HEAD.cy];
+    const t = (px * ey - py * ex) / den;
+    const u = (px * dy - py * dx) / den;
+    if (t > 0 && u >= 0 && u <= 1) far = Math.max(far, t);
+  }
+  return far;
+}
+
+/** Where a line crosses the ghost shrunk by `inset`, sorted along it. */
+function crossings(origin, [dx, dy], inset) {
+  const hits = [];
+  const shrink = ([x, y]) => {
+    const k = 1 - inset / Math.hypot(x - HEAD.cx, y - HEAD.cy);
+    return [HEAD.cx + (x - HEAD.cx) * k, HEAD.cy + (y - HEAD.cy) * k];
+  };
+  for (let i = 0; i < OUTLINE.length; i++) {
+    const [ax, ay] = shrink(OUTLINE[i]);
+    const [bx, by] = shrink(OUTLINE[(i + 1) % OUTLINE.length]);
+    const [ex, ey] = [bx - ax, by - ay];
+    const den = dx * ey - dy * ex;
+    if (Math.abs(den) < 1e-9) continue;
+    const [px, py] = [ax - origin[0], ay - origin[1]];
+    const t = (px * ey - py * ex) / den;
+    const u = (px * dy - py * dx) / den;
+    if (u >= 0 && u < 1) hits.push(t);
+  }
+  return hits.sort((a, b) => a - b);
+}
+
 /** Catmull-Rom through the points, written as cubic Bézier segments. */
 function smooth(points) {
   let d = `M${point(points[0])}`;
@@ -49,7 +112,7 @@ function smooth(points) {
   return d;
 }
 
-/** One hand-drawn pass around the head: a slow wobble and a loose overshoot. */
+/** One hand-drawn pass around the ghost: a slow wobble and a loose overshoot. */
 function pencilPass({ r, amp, start, sweep = 372, drift = 0.4, step = 8 }) {
   const from = start ?? between(0, 360);
   const [k1, k2] = [2 + Math.floor(rand() * 2), 3 + Math.floor(rand() * 3)];
@@ -62,7 +125,7 @@ function pencilPass({ r, amp, start, sweep = 372, drift = 0.4, step = 8 }) {
       amp * (0.6 * Math.sin(k1 * theta + p1) + 0.4 * Math.sin(k2 * theta + p2));
     const progress = a / sweep;
     const tail = progress > 0.9 ? drift * ((progress - 0.9) / 0.1) : 0;
-    const radius = r + wobble + tail;
+    const radius = ghostRadius(theta) + (r - HEAD.r) + wobble + tail;
     points.push([
       HEAD.cx + ox + radius * Math.cos(theta),
       HEAD.cy + oy + radius * Math.sin(theta),
@@ -72,12 +135,11 @@ function pencilPass({ r, amp, start, sweep = 372, drift = 0.4, step = 8 }) {
 }
 
 /**
- * Parallel pencil strokes across the head, one per chord, kept to the band
+ * Parallel pencil strokes across the ghost, one per chord, kept to the band
  * of offsets [from, to] measured along the strokes' normal.
  */
 function hatch({ angle, spacing, from, to, inset = 0.8 }) {
-  const { cx, cy } = HEAD;
-  const r = HEAD.r - inset;
+  const { cx, cy, r } = HEAD;
   const a = radians(angle);
   const [dx, dy] = [Math.cos(a), Math.sin(a)];
   const [nx, ny] = [-dy, dx];
@@ -85,12 +147,14 @@ function hatch({ angle, spacing, from, to, inset = 0.8 }) {
   let d = "";
   for (let t = from ?? -r; t <= (to ?? r); t += spacing) {
     const o = t + between(-0.15, 0.15);
-    if (Math.abs(o) >= r - 0.6) continue;
-    const half = Math.sqrt(r * r - o * o);
-    const s = -half + between(0.1, 0.9);
-    const e = half - between(0.1, 0.9);
-    const mid = at(o + between(-0.3, 0.3), (s + e) / 2);
-    d += `M${point(at(o, s))}Q${point(mid)} ${point(at(o, e))}`;
+    const hits = crossings(at(o, 0), [dx, dy], inset);
+    for (let i = 0; i + 1 < hits.length; i += 2) {
+      if (hits[i + 1] - hits[i] < 1.5) continue;
+      const s = hits[i] + between(0.1, 0.9);
+      const e = hits[i + 1] - between(0.1, 0.9);
+      const mid = at(o + between(-0.3, 0.3), (s + e) / 2);
+      d += `M${point(at(o, s))}Q${point(mid)} ${point(at(o, e))}`;
+    }
   }
   return d;
 }
@@ -226,7 +290,7 @@ const artFile = fileURLToPath(
   new URL("src/shared/brand/brand-mark-art.ts", root),
 );
 const source = `// Generated by scripts/draw-brand-mark.mjs, not hand-edited. The Open Bot mark:
-// a crew head sketched in graphite pencil on a 0 0 64 64 viewBox, lines only.
+// the ghost head sketched in graphite pencil on a 0 0 64 64 viewBox, lines only.
 // The pencil colour is applied by brand-mark-layers.ts.
 
 export const BRAND_MARK_ART = ${JSON.stringify(art)} as const;
