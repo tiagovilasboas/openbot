@@ -57,16 +57,16 @@ Você pode editar qualquer um deles ou criar o seu, do zero ou a partir de um mo
 
 ## O que ele faz hoje
 
-| Recurso                | Como funciona                                                                                                                                                                         |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Conversa com um modelo | O servidor chama o provedor que você configurou. Veja [Escolha o modelo](#escolha-o-modelo).                                                                                          |
-| Issues e PRs do GitHub | Peça `dono/repo` ou cole um link do GitHub. Repositórios públicos funcionam sem token. Para os privados, adicione um token em Configurações ou defina `GITHUB_TOKEN` no `.env.local`. |
-| Briefing               | Resume dados reais do repositório. Sem modelo, monta o resumo com os mesmos dados.                                                                                                    |
-| Failover               | Quando o modelo do router falha, o servidor tenta uma vez um modelo reserva, por padrão um modelo gratuito do OpenRouter, e a resposta mostra a troca.                                |
-| Fila de mensagens      | O que você envia enquanto um bot responde espera a vez, na ordem.                                                                                                                     |
-| Skills                 | Cada bot guarda as próprias skills. Escreva uma ao editar o bot, ou cole um `SKILL.md`, e rode como `/comando`.                                                                       |
-| Bloqueio local         | Senha opcional que bloqueia o app neste aparelho. O hash é feito com PBKDF2 no navegador.                                                                                             |
-| Dois idiomas           | Português brasileiro e inglês, com troca a qualquer momento.                                                                                                                          |
+| Recurso                | Como funciona                                                                                                                                                                                          |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Conversa com um modelo | O servidor chama o provedor que você configurou. Veja [Escolha o modelo](#escolha-o-modelo).                                                                                                           |
+| Issues e PRs do GitHub | Peça `dono/repo` ou cole um link do GitHub. Repositórios públicos funcionam sem token. Para os privados, conecte o GitHub em Configurações, na aba Conexões, ou defina `GITHUB_TOKEN` no `.env.local`. |
+| Briefing               | Resume dados reais do repositório. Sem modelo, monta o resumo com os mesmos dados.                                                                                                                     |
+| Failover               | Quando o modelo do router falha, o servidor tenta uma vez um modelo reserva, por padrão um modelo gratuito do OpenRouter, e a resposta mostra a troca.                                                 |
+| Fila de mensagens      | O que você envia enquanto um bot responde espera a vez, na ordem.                                                                                                                                      |
+| Skills                 | Cada bot guarda as próprias skills. Escreva uma ao editar o bot, ou cole um `SKILL.md`, e rode como `/comando`.                                                                                        |
+| Bloqueio local         | Senha opcional que bloqueia o app neste aparelho. O hash é feito com PBKDF2 no navegador.                                                                                                              |
+| Dois idiomas           | Português brasileiro e inglês, com troca a qualquer momento.                                                                                                                                           |
 
 ## Escolha o modelo
 
@@ -78,7 +78,7 @@ Você pode editar qualquer um deles ou criar o seu, do zero ou a partir de um mo
 
 As variáveis do `.env.local` ficam no servidor. Nunca use o prefixo `NEXT_PUBLIC_`, que as envia para o navegador.
 
-Você também pode escolher o provedor em Configurações, na aba Modelo, e testar a conexão ali. Essa escolha tem prioridade sobre o `.env.local`. Ela fica salva no `localStorage` deste navegador e vai para o seu servidor a cada mensagem; num aparelho compartilhado, prefira guardar as chaves no `.env.local`.
+Você também pode escolher o provedor em Configurações, na aba Modelo. As chaves ficam na aba Conexões: cada serviço tem a sua, testada antes de ser salva. Essa escolha tem prioridade sobre o `.env.local`. Ela fica salva no `localStorage` deste navegador e vai para o seu servidor a cada mensagem; num aparelho compartilhado, prefira guardar as chaves no `.env.local`.
 
 ## Instale no celular
 

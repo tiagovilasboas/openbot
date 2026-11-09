@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ConnectionsPanel } from "@/features/connections/ConnectionsPanel.tsx";
 import { SettingsSecuritySection } from "@/features/auth/SettingsSecuritySection.tsx";
 import { chatCopy } from "@/features/chat/chat-copy.ts";
 import { LanguageToggle } from "@/features/chat/LanguageToggle.tsx";
@@ -64,6 +65,7 @@ export function SettingsModal({
           onChange={setActiveTab}
           tabs={[
             { id: "model", label: s.tabModel },
+            { id: "connections", label: s.tabConnections },
             {
               id: "security",
               label: s.tabSecurity,
@@ -103,6 +105,15 @@ export function SettingsModal({
             onClose={onClose}
             onSave={onSave}
             onReset={onReset}
+            onOpenConnections={() => setActiveTab("connections")}
+          />
+        </div>
+
+        <div hidden={activeTab !== "connections"}>
+          <ConnectionsPanel
+            language={language}
+            showSecretLabel={s.showSecret}
+            hideSecretLabel={s.hideSecret}
           />
         </div>
 
