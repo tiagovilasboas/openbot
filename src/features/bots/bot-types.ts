@@ -5,7 +5,10 @@ export type AvatarShape =
   | "square"
   | "circle"
   | "octagon"
-  | "diamond"
+  | "ghost"
+  | "flower"
+  | "clover"
+  | "dumpling"
   | "triangle"
   | "pentagon"
   | "egg"
@@ -45,7 +48,10 @@ export const AVATAR_SHAPES: readonly AvatarShape[] = [
   "square",
   "circle",
   "octagon",
-  "diamond",
+  "ghost",
+  "flower",
+  "clover",
+  "dumpling",
   "triangle",
   "pentagon",
   "egg",
@@ -74,7 +80,7 @@ export const DEFAULT_BOT: BotProfile = {
   title: "Manager & Orquestrador",
   description:
     "Você é o Chief of Staff, o coordenador geral da equipe de bots. Seu papel é planejar, sintetizar informações de repositórios/calendário e coordenar/delegar tarefas para bots especialistas quando necessário.",
-  avatarShape: "hexagon",
+  avatarShape: "ghost",
   avatarColor: "teal",
   skills: [],
   createdAt: "2026-01-01T00:00:00.000Z",
@@ -91,6 +97,8 @@ export const LEGACY_SHAPES: Readonly<Record<string, AvatarShape>> = {
   wedge: "triangle",
   pebble: "circle",
   capsule: "egg",
+  // The pointed top read as a drop.
+  diamond: "ghost",
   cloud: "cloud",
   egg: "egg",
 };

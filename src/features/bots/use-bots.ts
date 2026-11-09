@@ -19,6 +19,7 @@ import {
   type AvatarShape,
   type BotProfile,
 } from "./bot-types.ts";
+import { migrateCrewShapes } from "./crew-shapes-migration.ts";
 import { migrateLegacySkills } from "./legacy-skills-migration.ts";
 
 const SERVER_BOTS: BotProfile[] = [DEFAULT_BOT];
@@ -29,6 +30,8 @@ export function useBots() {
   // Moves the old global skill library into the bots, once per browser.
   useEffect(() => {
     migrateLegacySkills();
+    // Gives saved crews their new heads, once per browser.
+    migrateCrewShapes();
   }, []);
 
   const bots = useSyncExternalStore(

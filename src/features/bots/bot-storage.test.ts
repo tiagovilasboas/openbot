@@ -38,7 +38,7 @@ test("loadBotsFromStorage returns the crew presets on empty storage", () => {
   assert.equal(bots[0]?.id, "chief-of-staff");
   assert.equal(bots[0]?.name, DEFAULT_BOT.name);
   assert.equal(new Set(bots.map((b) => b.id)).size, 9);
-  assert.equal(bots[0]?.avatarShape, "hexagon");
+  assert.equal(bots[0]?.avatarShape, "ghost");
   assert.equal(bots[0]?.avatarColor, "teal");
 });
 
@@ -97,11 +97,11 @@ test("sanitizeBotProfile upgrades legacy OpenBot default to Chief of Staff", () 
   assert.equal(legacy.id, "chief-of-staff");
   assert.equal(legacy.name, "Chief of Staff");
   assert.equal(legacy.title, "Manager & Orquestrador");
-  assert.equal(legacy.avatarShape, "hexagon");
+  assert.equal(legacy.avatarShape, "ghost");
   assert.equal(legacy.avatarColor, "teal");
 });
 
-test("sanitizeBotProfile migrates legacy shapes and falls back to hexagon", () => {
+test("sanitizeBotProfile migrates legacy shapes and falls back to the ghost", () => {
   const table: Record<string, string> = {
     head: "circle",
     hex: "hexagon",
@@ -111,10 +111,11 @@ test("sanitizeBotProfile migrates legacy shapes and falls back to hexagon", () =
     wedge: "triangle",
     pebble: "circle",
     capsule: "egg",
+    diamond: "ghost",
     cloud: "cloud",
     egg: "egg",
     square: "square",
-    nope: "hexagon",
+    nope: "ghost",
   };
   for (const [stored, expected] of Object.entries(table)) {
     const bot = sanitizeBotProfile({
@@ -126,7 +127,7 @@ test("sanitizeBotProfile migrates legacy shapes and falls back to hexagon", () =
   }
   assert.equal(
     sanitizeBotProfile({ id: "bot_n", name: "No shape" })?.avatarShape,
-    "hexagon",
+    "ghost",
   );
   assert.equal(
     sanitizeBotProfile({
@@ -134,7 +135,7 @@ test("sanitizeBotProfile migrates legacy shapes and falls back to hexagon", () =
       name: "Proto",
       avatarShape: "constructor",
     })?.avatarShape,
-    "hexagon",
+    "ghost",
   );
 });
 
@@ -152,18 +153,18 @@ test("sanitizeBotProfile accepts new colors", () => {
 test("crew presets use distinct art shapes with their palette colours", () => {
   const identity = CREW_PRESETS.map((b) => `${b.avatarShape}/${b.avatarColor}`);
   assert.deepEqual(identity, [
-    "hexagon/teal",
+    "ghost/teal",
     "square/blue",
     "circle/yellow",
     "octagon/red",
-    "diamond/violet",
+    "flower/violet",
     "triangle/green",
-    "pentagon/gold",
-    "egg/sky",
+    "clover/gold",
+    "dumpling/sky",
     "cloud/pink",
   ]);
   assert.equal(new Set(CREW_PRESETS.map((b) => b.avatarShape)).size, 9);
-  assert.equal(DEFAULT_BOT.avatarShape, "hexagon");
+  assert.equal(DEFAULT_BOT.avatarShape, "ghost");
   assert.equal(DEFAULT_BOT.avatarColor, "teal");
 });
 
