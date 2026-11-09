@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { withApiHeaders } from "../server-guard/api-request-init.ts";
 import { useProviderKeys } from "./use-provider-keys.ts";
 
 export interface FreeModelEntry {
@@ -60,12 +61,15 @@ export function useFreeModels(isOpenRouter: boolean) {
 
     let isMounted = true;
     const request = routerKey
-      ? fetch("/api/model/free", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ apiKey: routerKey }),
-        })
-      : fetch("/api/model/free");
+      ? fetch(
+          "/api/model/free",
+          withApiHeaders({
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ apiKey: routerKey }),
+          }),
+        )
+      : fetch("/api/model/free", withApiHeaders());
     request
       .then((r) => r.json())
       .then(

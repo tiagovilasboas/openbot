@@ -1,3 +1,4 @@
+import { withApiHeaders } from "../server-guard/api-request-init.ts";
 import type { ClientModelConfig } from "./model-config.ts";
 
 export type TestConnectionOutcome =
@@ -15,11 +16,14 @@ export async function testModelConnection(
   fetchImpl: typeof fetch = fetch,
 ): Promise<TestConnectionOutcome> {
   try {
-    const response = await fetchImpl("/api/model/test", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ config }),
-    });
+    const response = await fetchImpl(
+      "/api/model/test",
+      withApiHeaders({
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ config }),
+      }),
+    );
 
     const payload = (await response.json().catch(() => null)) as {
       ok?: boolean;
@@ -52,9 +56,12 @@ export async function fetchActiveServerModel(
   fetchImpl: typeof fetch = fetch,
 ): Promise<ActiveServerModelOutcome> {
   try {
-    const response = await fetchImpl("/api/model/test", {
-      method: "GET",
-    });
+    const response = await fetchImpl(
+      "/api/model/test",
+      withApiHeaders({
+        method: "GET",
+      }),
+    );
     if (!response.ok) return { configured: false };
     const payload = (await response.json().catch(() => null)) as {
       configured?: boolean;
