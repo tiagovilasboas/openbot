@@ -15,7 +15,6 @@ import {
   type ActiveServerModelOutcome,
 } from "@/features/model/test-model-connection.ts";
 import { useModelConfig } from "@/features/model/use-model-config.ts";
-import { useSkills } from "@/features/skills/use-skills.ts";
 import { ChatEmptyState } from "./ChatEmptyState.tsx";
 import { ChatHeader } from "./ChatHeader.tsx";
 import type { MessageData } from "./ChatMessageItem.tsx";
@@ -43,14 +42,11 @@ export function ChatExperience() {
     createAndActivateBot,
     removeBot,
   } = useBots();
-  const { allSkills, addCustomSkill, removeCustomSkill } = useSkills();
   const { messages, persistMessages, getNextId, clearMessages } =
     useBotMessages(activeBot.id);
 
-  // Filter skills belonging to active bot for composer / palette
-  const activeBotSkills = allSkills.filter((s) =>
-    activeBot.skills.includes(s.id),
-  );
+  // The active bot's own skills feed the composer's command palette.
+  const activeBotSkills = activeBot.skills;
 
   // Sidebar & Modals state
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
@@ -115,7 +111,6 @@ export function ChatExperience() {
       language,
       history,
       activeBot,
-      allSkills,
       bots,
       gitHubToken,
       modelConfig,
@@ -267,12 +262,9 @@ export function ChatExperience() {
         isOpen={isSettingsOpen}
         language={language}
         currentConfig={modelConfig}
-        skills={allSkills}
         hasPassword={auth.hasPassword}
         authHint={auth.hint}
         onClose={() => setIsSettingsOpen(false)}
-        onAddSkill={addCustomSkill}
-        onRemoveSkill={removeCustomSkill}
         onSetupPassword={auth.setupPassword}
         onRemovePassword={auth.removePassword}
         onChangePassword={auth.changePassword}
@@ -281,7 +273,6 @@ export function ChatExperience() {
       <BotEditModal
         isOpen={isBotModalOpen}
         bot={botToEdit}
-        allSkills={allSkills}
         language={language}
         canDelete={bots.length > 1}
         onClose={() => {

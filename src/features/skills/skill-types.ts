@@ -7,5 +7,3 @@ export interface SkillDefinition {
   isBuiltin: boolean;
   createdAt: string;
 }
-
-export const BUILTIN_SKILLS: readonly SkillDefinition[] = [];

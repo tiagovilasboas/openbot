@@ -5,7 +5,6 @@ export const settingsCopy = {
   pt: {
     tabsLabel: "Seções das configurações",
     tabModel: "Modelo",
-    tabSkills: "Skills",
     tabSecurity: "Segurança",
     securityActive: "Proteção ativa",
     showSecret: "Mostrar valor",
@@ -45,7 +44,6 @@ export const settingsCopy = {
   en: {
     tabsLabel: "Settings sections",
     tabModel: "Model",
-    tabSkills: "Skills",
     tabSecurity: "Security",
     securityActive: "Protection on",
     showSecret: "Show value",

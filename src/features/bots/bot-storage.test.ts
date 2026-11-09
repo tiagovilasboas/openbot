@@ -11,6 +11,7 @@ import {
   saveBotsToStorage,
   updateBotInList,
 } from "./bot-storage.ts";
+import { createCustomSkill } from "../skills/skill-definition.ts";
 import { DEFAULT_BOT } from "./bot-types.ts";
 import { CREW_PRESETS } from "./crew-presets.ts";
 
@@ -50,14 +51,39 @@ test("loadBotsFromStorage preserves stored bots without adding presets", () => {
   assert.equal(bots[0]?.id, mine.id);
 });
 
-test("crew preset skills all resolve to built-in skills", () => {
-  const valid = new Set(["github", "calendar", "summary"]);
+test("crew presets start without skills of their own", () => {
   for (const bot of CREW_PRESETS) {
-    assert.ok(
-      bot.skills.every((s) => valid.has(s)),
-      bot.id,
-    );
+    assert.deepEqual(bot.skills, [], bot.id);
   }
+});
+
+test("sanitizeBotProfile keeps a bot's own skills and drops invalid ones", () => {
+  const own = {
+    id: "skill_1",
+    name: "Review",
+    command: "/review",
+    instructions: "Find bugs.",
+  };
+  const bot = sanitizeBotProfile({
+    id: "b1",
+    name: "Reviewer",
+    skills: [own, { id: "", name: "No id" }, 42],
+  });
+  assert.deepEqual(
+    bot?.skills.map((s) => [s.id, s.command]),
+    [["skill_1", "/review"]],
+  );
+});
+
+test("sanitizeBotProfile resolves old library ids and drops unknown ones", () => {
+  const library = [
+    createCustomSkill({ name: "Briefing", instructions: "Summarise." }),
+  ];
+  const bot = sanitizeBotProfile(
+    { id: "b1", name: "Old", skills: [library[0]!.id, "skill_gone"] },
+    library,
+  );
+  assert.deepEqual(bot?.skills, library);
 });
 
 test("sanitizeBotProfile upgrades legacy OpenBot default to Chief of Staff", () => {
@@ -153,7 +179,8 @@ test("sanitizeBotProfile validates fields and falls back to safe defaults", () =
   assert.equal(valid.name, "Eng Bot");
   assert.equal(valid.avatarShape, "pentagon");
   assert.equal(valid.avatarColor, "violet");
-  assert.deepEqual(valid.skills, ["github"]);
+  // "github" was a built-in skill id; with no library to resolve it, it goes.
+  assert.deepEqual(valid.skills, []);
 
   const invalid = sanitizeBotProfile({ id: "", name: "" });
   assert.equal(invalid, null);

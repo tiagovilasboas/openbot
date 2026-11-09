@@ -6,7 +6,6 @@ import type {
 } from "@/features/github/github-types.ts";
 import { listRepositoryItems } from "@/features/github/list-repository-items.ts";
 import type { ClientModelConfig } from "@/features/model/model-config.ts";
-import type { SkillDefinition } from "@/features/skills/skill-types.ts";
 import { detectSummaryRequest } from "@/features/summary/detect-summary-request.ts";
 import { executeSummary } from "@/features/summary/execute-summary.ts";
 import { chatCopy } from "./chat-copy.ts";
@@ -29,7 +28,6 @@ export async function executeChatMessage({
   language,
   history,
   activeBot,
-  allSkills,
   bots = [],
   gitHubToken,
   modelConfig,
@@ -38,7 +36,6 @@ export async function executeChatMessage({
   language: ChatLanguage;
   history: Array<{ role: "assistant" | "user"; text: string }>;
   activeBot: BotProfile;
-  allSkills: SkillDefinition[];
   bots?: BotProfile[];
   gitHubToken: string | null;
   modelConfig: ClientModelConfig | null;
@@ -64,10 +61,7 @@ export async function executeChatMessage({
   const workspaceSnippet = executingBot.workspaceContext
     ? `\n\n${isPt ? "Contexto de Workspace:" : "Workspace Context:"}\n${executingBot.workspaceContext}`
     : "";
-  const enabledSkills = allSkills.filter((s) =>
-    executingBot.skills.includes(s.id),
-  );
-  const skillSnippets = enabledSkills
+  const skillSnippets = executingBot.skills
     .map((s) => `[Skill ${s.name} (${s.command})]: ${s.instructions}`)
     .join("\n");
   const fullSystemPrompt = skillSnippets

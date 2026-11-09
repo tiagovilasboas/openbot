@@ -1,6 +1,4 @@
-import { BUILTIN_SKILLS, type SkillDefinition } from "./skill-types.ts";
-
-export const SKILLS_STORAGE_KEY = "openbot_custom_skills";
+import type { SkillDefinition } from "./skill-types.ts";
 
 function sanitizeCommand(name: string, explicitCommand?: string): string {
   if (explicitCommand && explicitCommand.trim()) {
@@ -42,83 +40,12 @@ export function sanitizeSkill(raw: unknown): SkillDefinition | null {
   };
 }
 
-const EMPTY_CUSTOM_SKILLS: SkillDefinition[] = [];
-let cachedCustomSkillsRaw: string | null = null;
-let cachedCustomSkills: SkillDefinition[] = EMPTY_CUSTOM_SKILLS;
-let customSkillsListeners: Array<() => void> = [];
-
-export function subscribeCustomSkills(listener: () => void): () => void {
-  customSkillsListeners.push(listener);
-  return () => {
-    customSkillsListeners = customSkillsListeners.filter((l) => l !== listener);
-  };
-}
-
-export function loadCustomSkillsFromStorage(
-  storage?: Storage,
-): SkillDefinition[] {
-  try {
-    const isDefaultStorage = !storage;
-    const s =
-      storage ??
-      (typeof window !== "undefined" ? window.localStorage : undefined);
-    if (!s) return EMPTY_CUSTOM_SKILLS;
-
-    const raw = s.getItem(SKILLS_STORAGE_KEY);
-    if (!raw) {
-      if (isDefaultStorage) {
-        cachedCustomSkillsRaw = null;
-        cachedCustomSkills = EMPTY_CUSTOM_SKILLS;
-      }
-      return EMPTY_CUSTOM_SKILLS;
-    }
-    if (isDefaultStorage && raw === cachedCustomSkillsRaw) {
-      return cachedCustomSkills;
-    }
-
-    const parsed: unknown = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return EMPTY_CUSTOM_SKILLS;
-
-    const sanitized = parsed
-      .map(sanitizeSkill)
-      .filter((skill): skill is SkillDefinition => skill !== null);
-
-    if (isDefaultStorage) {
-      cachedCustomSkillsRaw = raw;
-      cachedCustomSkills = sanitized;
-    }
-    return sanitized;
-  } catch {
-    return EMPTY_CUSTOM_SKILLS;
-  }
-}
-
-export function saveCustomSkillsToStorage(
-  skills: SkillDefinition[],
-  storage?: Storage,
-): void {
-  try {
-    const isDefaultStorage = !storage;
-    const s =
-      storage ??
-      (typeof window !== "undefined" ? window.localStorage : undefined);
-    if (!s) return;
-    const raw = JSON.stringify(skills);
-    s.setItem(SKILLS_STORAGE_KEY, raw);
-    if (isDefaultStorage) {
-      cachedCustomSkillsRaw = raw;
-      cachedCustomSkills = skills;
-      customSkillsListeners.forEach((l) => l());
-    }
-  } catch {
-    // ignore
-  }
-}
-
-export function getAllSkills(
-  customSkills: SkillDefinition[],
-): SkillDefinition[] {
-  return [...BUILTIN_SKILLS, ...customSkills];
+/** Valid skills from untrusted stored data; invalid entries are dropped. */
+export function sanitizeSkillList(raw: unknown): SkillDefinition[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map(sanitizeSkill)
+    .filter((skill): skill is SkillDefinition => skill !== null);
 }
 
 export function createCustomSkill(input: {

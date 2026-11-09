@@ -7,6 +7,8 @@ import {
   type AvatarShape,
   type BotProfile,
 } from "./bot-types.ts";
+import { sanitizeSkill } from "../skills/skill-definition.ts";
+import type { SkillDefinition } from "../skills/skill-types.ts";
 import { CREW_PRESETS } from "./crew-presets.ts";
 
 export const BOTS_STORAGE_KEY = "openbot_bots";
@@ -29,7 +31,28 @@ function isValidColor(val: unknown): val is AvatarColor {
   );
 }
 
-export function sanitizeBotProfile(raw: unknown): BotProfile | null {
+/**
+ * A bot's own skills. Before bots owned their skills, `skills` held ids into
+ * one global library: `library` resolves those, and unknown ids are dropped.
+ */
+function sanitizeBotSkills(
+  raw: unknown,
+  library: readonly SkillDefinition[],
+): SkillDefinition[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.flatMap((entry): SkillDefinition[] => {
+    const skill =
+      typeof entry === "string"
+        ? library.find((s) => s.id === entry)
+        : sanitizeSkill(entry);
+    return skill ? [skill] : [];
+  });
+}
+
+export function sanitizeBotProfile(
+  raw: unknown,
+  library: readonly SkillDefinition[] = [],
+): BotProfile | null {
   if (!raw || typeof raw !== "object") return null;
   const obj = raw as Record<string, unknown>;
 
@@ -67,11 +90,7 @@ export function sanitizeBotProfile(raw: unknown): BotProfile | null {
       ? DEFAULT_BOT.avatarColor
       : "cyan";
 
-  const skills = Array.isArray(obj.skills)
-    ? obj.skills.filter(
-        (s): s is string => typeof s === "string" && Boolean(s.trim()),
-      )
-    : [];
+  const skills = sanitizeBotSkills(obj.skills, library);
 
   return {
     id,
@@ -124,6 +143,24 @@ export function subscribeActiveBotId(listener: () => void): () => void {
   };
 }
 
+/** The stored bot list, sanitized; the crew presets when nothing is stored. */
+export function parseBots(
+  raw: string | null,
+  library: readonly SkillDefinition[] = [],
+): BotProfile[] {
+  if (!raw) return DEFAULT_BOTS_LIST;
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return DEFAULT_BOTS_LIST;
+    const sanitized = parsed
+      .map((bot) => sanitizeBotProfile(bot, library))
+      .filter((b): b is BotProfile => b !== null);
+    return sanitized.length > 0 ? sanitized : DEFAULT_BOTS_LIST;
+  } catch {
+    return DEFAULT_BOTS_LIST;
+  }
+}
+
 export function loadBotsFromStorage(storage?: Storage): BotProfile[] {
   try {
     const isDefaultStorage = !storage;
@@ -133,23 +170,9 @@ export function loadBotsFromStorage(storage?: Storage): BotProfile[] {
     if (!s) return DEFAULT_BOTS_LIST;
 
     const raw = s.getItem(BOTS_STORAGE_KEY);
-    if (!raw) {
-      if (isDefaultStorage) {
-        cachedBotsRaw = null;
-        cachedBots = DEFAULT_BOTS_LIST;
-      }
-      return DEFAULT_BOTS_LIST;
-    }
     if (isDefaultStorage && raw === cachedBotsRaw) return cachedBots;
 
-    const parsed: unknown = JSON.parse(raw);
-    if (!Array.isArray(parsed) || parsed.length === 0) return DEFAULT_BOTS_LIST;
-
-    const sanitized = parsed
-      .map(sanitizeBotProfile)
-      .filter((b): b is BotProfile => b !== null);
-
-    const result = sanitized.length > 0 ? sanitized : DEFAULT_BOTS_LIST;
+    const result = parseBots(raw);
     if (isDefaultStorage) {
       cachedBotsRaw = raw;
       cachedBots = result;
@@ -225,7 +248,7 @@ export function createBotProfile(input: {
   description?: string;
   avatarShape?: AvatarShape;
   avatarColor?: AvatarColor;
-  skills?: string[];
+  skills?: SkillDefinition[];
 }): BotProfile {
   const now = new Date().toISOString();
   const id = `bot_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;

@@ -64,7 +64,7 @@ You can edit any of them or create your own, from a blank form or from a templat
 | Briefing              | Summarizes real repository data. Without a model, it falls back to a summary built from the same data.                                                                  |
 | Failover              | When the router model fails, the server retries once on a fallback model, by default a free OpenRouter model, and the reply shows the switch.                           |
 | Message queue         | Messages you send while a bot is replying wait their turn, in order.                                                                                                    |
-| Skills                | Write a skill in Settings, or paste a `SKILL.md`, and run it as a `/command`.                                                                                           |
+| Skills                | Each bot keeps its own skills. Write one when you edit the bot, or paste a `SKILL.md`, and run it as a `/command`.                                                      |
 | Local lock            | Optional password that locks the app on this device. It is hashed with PBKDF2 in the browser.                                                                           |
 | Two languages         | Brazilian Portuguese and English, switchable at any time.                                                                                                               |
 

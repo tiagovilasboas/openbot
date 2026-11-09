@@ -123,10 +123,10 @@ Este documento detalha todos os casos de uso identificados na Engenharia Reversa
 
 - **Ator:** Usuário.
 - **Fluxo Principal:**
-  1. O usuário cadastra ou importa instruções procedurais (skills) com comandos rápidos (`/comando`).
-  2. Habilita seletivamente quais bots têm acesso a quais skills.
+  1. Ao editar um bot, o usuário cadastra ou importa instruções procedurais (skills) com comandos rápidos (`/comando`).
+  2. Cada skill pertence ao bot que a criou; outro bot não a vê.
   3. O acionamento pode ser via autocomplete na caixa de texto.
-- **Adaptação PWA:** Implementado em `src/features/skills/`, com paleta de comandos `/` no `ChatComposer.tsx` e gestão em `SettingsSkillsSection.tsx`.
+- **Adaptação PWA:** Implementado em `src/features/skills/`, com paleta de comandos `/` no `ChatComposer.tsx` e gestão em `BotSkillsEditor.tsx`, dentro da edição do bot. A biblioteca global antiga é copiada uma vez para os bots que a usavam (`legacy-skills-migration.ts`).
 
 ---
 

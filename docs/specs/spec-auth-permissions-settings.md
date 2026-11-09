@@ -48,8 +48,8 @@ A interface `SettingsModal.tsx` é dividida em 5 abas modulares:
 2. **Aba Conexões & Integrações:**
    - GitHub Personal Access Token (escopo somente leitura `repo` / `public_repo`).
    - Servidores MCP locais (Stdio / SSE).
-3. **Aba Skills & Procedimentos:**
-   - Listagem e cadastro de skills customizadas em Markdown com comando rápido (`/comando`).
+3. **Skills (fora das Configurações):**
+   - Cada bot cadastra as próprias skills, em Markdown e com comando rápido (`/comando`), na edição do bot. Não há aba de skills.
 4. **Aba Segurança & Sessão:**
    - Criar, alterar ou remover senha mestre do app.
    - Configuração de tempo limite de inatividade (auto-lock).

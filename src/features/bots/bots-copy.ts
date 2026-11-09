@@ -18,8 +18,6 @@ interface BotsCopy {
   instructionsPlaceholder: string;
   workspaceLabel: string;
   workspacePlaceholder: string;
-  skillsLabel: string;
-  skillsEmpty: string;
   save: string;
   cancel: string;
   deleteBot: string;
@@ -49,9 +47,6 @@ const PT: BotsCopy = {
   workspaceLabel: "Contexto de projeto (opcional)",
   workspacePlaceholder:
     "Diretrizes de repositório, caminhos ou escopo deste bot.",
-  skillsLabel: "Skills habilitadas",
-  skillsEmpty:
-    "Nenhuma skill cadastrada ainda. Crie skills em Configurações > Skills.",
   save: "Salvar bot",
   cancel: "Cancelar",
   deleteBot: "Excluir bot",
@@ -103,8 +98,6 @@ const EN: BotsCopy = {
   instructionsPlaceholder: "Define this bot's behavior, tone and goals.",
   workspaceLabel: "Project context (optional)",
   workspacePlaceholder: "Repository guidelines, paths or scope for this bot.",
-  skillsLabel: "Enabled skills",
-  skillsEmpty: "No skills yet. Create skills in Settings > Skills.",
   save: "Save bot",
   cancel: "Cancel",
   deleteBot: "Delete bot",
