@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { LockScreen } from "@/features/auth/LockScreen.tsx";
 import { useLocalAuth } from "@/features/auth/use-local-auth.ts";
 import { BotEditModal } from "@/features/bots/BotEditModal.tsx";
+import { botAccent } from "@/features/bots/bot-accent.ts";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
 import { useBots } from "@/features/bots/use-bots.ts";
 import { useGitHubToken } from "@/features/github/use-github-token.ts";
@@ -69,6 +70,17 @@ export function ChatExperience() {
   useEffect(() => {
     document.documentElement.lang = language === "pt" ? "pt-BR" : "en";
   }, [language]);
+
+  // The active bot's accent drives focus rings, caret, selection and the
+  // bot's own chrome, including portaled sheets, so it lives on <html>.
+  const activeAccent = botAccent(activeBot.avatarColor);
+  useEffect(() => {
+    const root = document.documentElement;
+    root.style.setProperty("--bot-accent", activeAccent);
+    return () => {
+      root.style.removeProperty("--bot-accent");
+    };
+  }, [activeAccent]);
 
   useEffect(() => {
     void fetchActiveServerModel().then((server) => setServerModel(server));
@@ -172,7 +184,7 @@ export function ChatExperience() {
   }
 
   return (
-    <div className="dark flex h-dvh max-h-dvh w-full overflow-hidden bg-black text-zinc-100 font-sans selection:bg-zinc-800 selection:text-white">
+    <div className="flex h-dvh w-full overflow-hidden bg-background text-foreground">
       <ChatSidebar
         language={language}
         bots={bots}
@@ -196,9 +208,12 @@ export function ChatExperience() {
           setIsBotModalOpen(true);
         }}
         onOpenSettings={() => setIsSettingsOpen(true)}
+        onNewChat={startNewChat}
+        canStartNewChat={messages.length > 0}
+        onLanguageChange={setLanguage}
       />
 
-      <main className="flex flex-1 min-w-0 flex-col h-full overflow-hidden bg-black">
+      <main className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
         <ChatHeader
           language={language}
           onLanguageChange={setLanguage}
@@ -209,6 +224,7 @@ export function ChatExperience() {
           onNewChat={startNewChat}
           activeBot={activeBot}
           onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
+          isMobileSidebarOpen={isMobileSidebarOpen}
           onOpenBotEdit={() => {
             setBotToEdit(activeBot);
             setIsBotModalOpen(true);
