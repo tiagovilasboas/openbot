@@ -6,10 +6,12 @@ import type {
 } from "@/features/github/github-types.ts";
 import { listRepositoryItems } from "@/features/github/list-repository-items.ts";
 import type { ClientModelConfig } from "@/features/model/model-config.ts";
+import type { ModelCallResult } from "@/features/model/model-status.ts";
 import type { SkillDefinition } from "@/features/skills/skill-types.ts";
 import { detectSummaryRequest } from "@/features/summary/detect-summary-request.ts";
 import { executeSummary } from "@/features/summary/execute-summary.ts";
 import { chatCopy } from "./chat-copy.ts";
+import { describeModelFailure } from "./describe-model-failure.ts";
 import { findMentionedBot } from "./find-mentioned-bot.ts";
 import { requestModelReply } from "./request-model-reply.ts";
 import {
@@ -22,6 +24,8 @@ export interface ChatReplyOutcome {
   delegatedBot?: BotProfile;
   github?: { repo: GitHubRepoRef; items: GitHubItem[] };
   failover?: { fromModel: string; toModel: string; reason: string };
+  /** Set when the turn reached the model, so the header dot can follow it. */
+  modelCall?: ModelCallResult;
 }
 
 export async function executeChatMessage({
@@ -140,11 +144,16 @@ export async function executeChatMessage({
     return {
       text: outcome.text,
       delegatedBot,
+      modelCall: "ok",
       ...(outcome.failover ? { failover: outcome.failover } : {}),
     };
   }
   if (outcome.kind === "unavailable") {
     return { text: getUnconfiguredModelMessage(language), delegatedBot };
   }
-  return { text: content.modelError, delegatedBot };
+  return {
+    text: describeModelFailure(outcome.failure, language),
+    delegatedBot,
+    modelCall: "failed",
+  };
 }

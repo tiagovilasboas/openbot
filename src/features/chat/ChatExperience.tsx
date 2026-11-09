@@ -15,6 +15,7 @@ import {
   type ActiveServerModelOutcome,
 } from "@/features/model/test-model-connection.ts";
 import { useModelConfig } from "@/features/model/use-model-config.ts";
+import { useModelStatus } from "@/features/model/use-model-status.ts";
 import { useSkills } from "@/features/skills/use-skills.ts";
 import { ChatEmptyState } from "./ChatEmptyState.tsx";
 import { ChatHeader } from "./ChatHeader.tsx";
@@ -93,6 +94,10 @@ export function ChatExperience() {
   }, [messages, busy]);
 
   const isConfigured = Boolean(modelConfig || serverModel?.configured);
+  const { status: modelStatus, recordModelCall } = useModelStatus(
+    modelConfig,
+    isConfigured,
+  );
   const activeModelLabel = modelConfig
     ? formatModelBadge(modelConfig, false, language)
     : serverModel?.configured
@@ -120,6 +125,7 @@ export function ChatExperience() {
       gitHubToken,
       modelConfig,
     });
+    recordModelCall(reply.modelCall);
 
     if (conversationIdRef.current !== conversationId) {
       setBusy(false);
@@ -218,7 +224,7 @@ export function ChatExperience() {
           language={language}
           onLanguageChange={setLanguage}
           activeModelLabel={activeModelLabel}
-          isConfigured={isConfigured}
+          modelStatus={modelStatus}
           onOpenSettings={() => setIsSettingsOpen(true)}
           hasMessages={messages.length > 0}
           onNewChat={startNewChat}
