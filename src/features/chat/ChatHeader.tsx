@@ -6,7 +6,8 @@ import { ModelStatusBadge } from "@/features/model/ModelStatusBadge.tsx";
 import { chatCopy } from "./chat-copy.ts";
 import { LanguageToggle } from "./LanguageToggle.tsx";
 import type { ChatLanguage } from "./respond-to-message.ts";
-import { BrandMark, MenuIcon, NewChatIcon } from "./ShellIcons.tsx";
+import { BrandMark } from "@/shared/brand/BrandMark.tsx";
+import { MenuIcon, NewChatIcon } from "./ShellIcons.tsx";
 
 interface ChatHeaderProps {
   language: ChatLanguage;

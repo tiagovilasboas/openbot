@@ -5,7 +5,8 @@ import { useEffect } from "react";
 import { chatCopy } from "./chat-copy.ts";
 import { SidebarPanel, type SidebarNavProps } from "./SidebarPanel.tsx";
 import { RailButton, SidebarRail } from "./SidebarRail.tsx";
-import { BrandMark, CloseIcon, SidebarToggleIcon } from "./ShellIcons.tsx";
+import { BrandMark } from "@/shared/brand/BrandMark.tsx";
+import { CloseIcon, SidebarToggleIcon } from "./ShellIcons.tsx";
 
 export interface ChatSidebarProps extends SidebarNavProps {
   isMobileOpen: boolean;
