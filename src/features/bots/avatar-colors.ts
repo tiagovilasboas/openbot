@@ -1,27 +1,21 @@
 import type { AvatarColor } from "./bot-types.ts";
 
-/** Flat palette colour for each avatar colour (also used by the pickers). */
+/** Coloured-pencil pigment for each avatar colour (also used by the pickers). */
 export const COLOR_MAP: Record<AvatarColor, string> = {
-  cyan: "#06b6d4",
-  blue: "#3b82f6",
-  violet: "#8b5cf6",
-  magenta: "#d946ef",
-  green: "#10b981",
-  yellow: "#f59e0b",
-  orange: "#f97316",
-  red: "#ef4444",
-  black: "#27272a",
-  teal: "#2DD4BF",
-  sky: "#0EA5E9",
-  pink: "#EC4899",
-  gold: "#EAB308",
+  vermilion: "#E04A33",
+  sienna: "#CF6E3F",
+  ochre: "#D8A63C",
+  sap: "#74AD3F",
+  viridian: "#35A58C",
+  cerulean: "#3AA6D9",
+  cobalt: "#4C78D6",
+  mauve: "#9C72CC",
+  rose: "#DB6A93",
+  // The graphite of the Open Bot mark: a mid grey, never pure black.
+  graphite: "#8B8E95",
 };
 
-// Never pure black or white heads (avoids the xAI logo look): "black" is a
-// dark grey head with light eyes.
-const BLACK_HEAD = "#3F3F46";
-const DARK_EYES = "#0A0A0A";
-const LIGHT_EYES = "#F5F5F5";
+const EYES = "#0A0A0A";
 
 export interface HeadTones {
   base: string;
@@ -53,13 +47,13 @@ export function mix(hex: string, other: string, k: number): string {
     .join("")}`;
 }
 
+/** The pigment for a colour; unknown (legacy) colours fall back to cerulean. */
 export function avatarSwatch(color: AvatarColor): string {
-  return COLOR_MAP[color] ?? COLOR_MAP.cyan;
+  return COLOR_MAP[color] ?? COLOR_MAP.cerulean;
 }
 
 export function headTones(color: AvatarColor, light = false): HeadTones {
-  const isBlack = color === "black";
-  const base = isBlack ? BLACK_HEAD : avatarSwatch(color);
+  const base = avatarSwatch(color);
   return {
     base,
     light: mix(base, "#FFFFFF", 0.35),
@@ -67,7 +61,7 @@ export function headTones(color: AvatarColor, light = false): HeadTones {
     shade: mix(base, "#000000", 0.35),
     ink: light ? INK_LIGHT : INK_DARK,
     guide: GUIDE_COLOR,
-    eyes: isBlack ? LIGHT_EYES : DARK_EYES,
+    eyes: EYES,
   };
 }
 

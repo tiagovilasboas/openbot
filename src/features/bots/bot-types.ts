@@ -9,20 +9,18 @@ export type AvatarShape =
   | "egg"
   | "cloud";
 
+/** Coloured-pencil pigments: Open Bot's own palette for the crew heads. */
 export type AvatarColor =
-  | "black"
-  | "blue"
-  | "cyan"
-  | "red"
-  | "green"
-  | "yellow"
-  | "orange"
-  | "violet"
-  | "magenta"
-  | "teal"
-  | "sky"
-  | "pink"
-  | "gold";
+  | "vermilion"
+  | "sienna"
+  | "ochre"
+  | "sap"
+  | "viridian"
+  | "cerulean"
+  | "cobalt"
+  | "mauve"
+  | "rose"
+  | "graphite";
 
 export interface BotProfile {
   id: string;
@@ -49,20 +47,18 @@ export const AVATAR_SHAPES: readonly AvatarShape[] = [
   "cloud",
 ] as const;
 
+/** Picker order: warm to cool around the wheel, then the neutral. */
 export const AVATAR_COLORS: readonly AvatarColor[] = [
-  "cyan",
-  "blue",
-  "violet",
-  "magenta",
-  "green",
-  "yellow",
-  "orange",
-  "red",
-  "black",
-  "teal",
-  "sky",
-  "pink",
-  "gold",
+  "vermilion",
+  "sienna",
+  "ochre",
+  "sap",
+  "viridian",
+  "cerulean",
+  "cobalt",
+  "mauve",
+  "rose",
+  "graphite",
 ] as const;
 
 export const DEFAULT_BOT: BotProfile = {
@@ -72,7 +68,7 @@ export const DEFAULT_BOT: BotProfile = {
   description:
     "Você é o Chief of Staff, o coordenador geral da equipe de bots. Seu papel é planejar, sintetizar informações de repositórios/calendário e coordenar/delegar tarefas para bots especialistas quando necessário.",
   avatarShape: "hexagon",
-  avatarColor: "teal",
+  avatarColor: "viridian",
   skills: [],
   createdAt: "2026-01-01T00:00:00.000Z",
   updatedAt: "2026-01-01T00:00:00.000Z",
@@ -90,4 +86,21 @@ export const LEGACY_SHAPES: Readonly<Record<string, AvatarShape>> = {
   capsule: "egg",
   cloud: "cloud",
   egg: "egg",
+};
+
+/** Colours stored by older versions, mapped onto the nearest pigment. */
+export const LEGACY_COLORS: Readonly<Record<string, AvatarColor>> = {
+  cyan: "cerulean",
+  sky: "cerulean",
+  blue: "cobalt",
+  violet: "mauve",
+  magenta: "rose",
+  pink: "rose",
+  red: "vermilion",
+  orange: "sienna",
+  yellow: "ochre",
+  gold: "ochre",
+  green: "sap",
+  teal: "viridian",
+  black: "graphite",
 };

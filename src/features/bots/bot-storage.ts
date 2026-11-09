@@ -2,6 +2,7 @@ import {
   AVATAR_COLORS,
   AVATAR_SHAPES,
   DEFAULT_BOT,
+  LEGACY_COLORS,
   LEGACY_SHAPES,
   type AvatarColor,
   type AvatarShape,
@@ -22,11 +23,13 @@ function migrateShape(val: unknown): AvatarShape {
     : DEFAULT_BOT.avatarShape;
 }
 
-function isValidColor(val: unknown): val is AvatarColor {
-  return (
-    typeof val === "string" &&
-    (AVATAR_COLORS as readonly string[]).includes(val)
-  );
+/** Current pigment, or the pigment an older colour maps to; null if unknown. */
+function migrateColor(val: unknown): AvatarColor | null {
+  if (typeof val !== "string") return null;
+  if ((AVATAR_COLORS as readonly string[]).includes(val)) {
+    return val as AvatarColor;
+  }
+  return Object.hasOwn(LEGACY_COLORS, val) ? LEGACY_COLORS[val]! : null;
 }
 
 export function sanitizeBotProfile(raw: unknown): BotProfile | null {
@@ -59,13 +62,11 @@ export function sanitizeBotProfile(raw: unknown): BotProfile | null {
       ? DEFAULT_BOT.avatarShape
       : migrateShape(obj.avatarShape);
 
-  const color: AvatarColor = isValidColor(obj.avatarColor)
-    ? isLegacyDefault && obj.avatarColor === "cyan"
+  const storedColor = migrateColor(obj.avatarColor);
+  const color: AvatarColor =
+    isLegacyDefault && (storedColor === null || obj.avatarColor === "cyan")
       ? DEFAULT_BOT.avatarColor
-      : obj.avatarColor
-    : isLegacyDefault
-      ? DEFAULT_BOT.avatarColor
-      : "cyan";
+      : (storedColor ?? "cerulean");
 
   const skills = Array.isArray(obj.skills)
     ? obj.skills.filter(
@@ -238,7 +239,7 @@ export function createBotProfile(input: {
       input.description?.trim() ||
       "Você é um assistente prestativo e especializado.",
     avatarShape: input.avatarShape ?? "hexagon",
-    avatarColor: input.avatarColor ?? "cyan",
+    avatarColor: input.avatarColor ?? "cerulean",
     skills: input.skills ?? [],
     createdAt: now,
     updatedAt: now,

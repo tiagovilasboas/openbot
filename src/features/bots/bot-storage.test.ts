@@ -11,7 +11,7 @@ import {
   saveBotsToStorage,
   updateBotInList,
 } from "./bot-storage.ts";
-import { DEFAULT_BOT } from "./bot-types.ts";
+import { AVATAR_COLORS, DEFAULT_BOT } from "./bot-types.ts";
 import { CREW_PRESETS } from "./crew-presets.ts";
 
 function createMockStorage(): Storage {
@@ -38,7 +38,7 @@ test("loadBotsFromStorage returns the crew presets on empty storage", () => {
   assert.equal(bots[0]?.name, DEFAULT_BOT.name);
   assert.equal(new Set(bots.map((b) => b.id)).size, 9);
   assert.equal(bots[0]?.avatarShape, "hexagon");
-  assert.equal(bots[0]?.avatarColor, "teal");
+  assert.equal(bots[0]?.avatarColor, "viridian");
 });
 
 test("loadBotsFromStorage preserves stored bots without adding presets", () => {
@@ -72,7 +72,7 @@ test("sanitizeBotProfile upgrades legacy OpenBot default to Chief of Staff", () 
   assert.equal(legacy.name, "Chief of Staff");
   assert.equal(legacy.title, "Manager & Orquestrador");
   assert.equal(legacy.avatarShape, "hexagon");
-  assert.equal(legacy.avatarColor, "teal");
+  assert.equal(legacy.avatarColor, "viridian");
 });
 
 test("sanitizeBotProfile migrates legacy shapes and falls back to hexagon", () => {
@@ -112,33 +112,82 @@ test("sanitizeBotProfile migrates legacy shapes and falls back to hexagon", () =
   );
 });
 
-test("sanitizeBotProfile accepts new colors", () => {
-  for (const color of ["teal", "sky", "pink", "gold"]) {
+test("sanitizeBotProfile accepts every pigment", () => {
+  for (const color of AVATAR_COLORS) {
     const bot = sanitizeBotProfile({
       id: "bot_h",
-      name: "Color Bot",
+      name: "Pigment",
       avatarColor: color,
     });
     assert.equal(bot?.avatarColor, color);
   }
 });
 
+test("sanitizeBotProfile migrates legacy colours to pigments", () => {
+  const table: Record<string, string> = {
+    cyan: "cerulean",
+    sky: "cerulean",
+    blue: "cobalt",
+    violet: "mauve",
+    magenta: "rose",
+    pink: "rose",
+    red: "vermilion",
+    orange: "sienna",
+    yellow: "ochre",
+    gold: "ochre",
+    green: "sap",
+    teal: "viridian",
+    black: "graphite",
+    chartreuse: "cerulean",
+    constructor: "cerulean",
+  };
+  for (const [stored, expected] of Object.entries(table)) {
+    const bot = sanitizeBotProfile({
+      id: "bot_c",
+      name: "Migrated",
+      avatarColor: stored,
+    });
+    assert.equal(bot?.avatarColor, expected, stored);
+  }
+  assert.equal(
+    sanitizeBotProfile({ id: "bot_n", name: "No colour" })?.avatarColor,
+    "cerulean",
+  );
+});
+
+test("sanitizeBotProfile gives the legacy default its own pigment", () => {
+  for (const stored of ["cyan", undefined, "chartreuse"]) {
+    const legacy = sanitizeBotProfile({
+      id: "default",
+      name: "OpenBot",
+      avatarColor: stored,
+    });
+    assert.equal(legacy?.avatarColor, DEFAULT_BOT.avatarColor, String(stored));
+  }
+  const kept = sanitizeBotProfile({
+    id: "default",
+    name: "OpenBot",
+    avatarColor: "pink",
+  });
+  assert.equal(kept?.avatarColor, "rose");
+});
+
 test("crew presets use distinct art shapes with their palette colours", () => {
   const identity = CREW_PRESETS.map((b) => `${b.avatarShape}/${b.avatarColor}`);
   assert.deepEqual(identity, [
-    "hexagon/teal",
-    "square/blue",
-    "circle/yellow",
-    "octagon/red",
-    "diamond/violet",
-    "triangle/green",
-    "pentagon/gold",
-    "egg/sky",
-    "cloud/pink",
+    "hexagon/viridian",
+    "square/cobalt",
+    "circle/ochre",
+    "octagon/vermilion",
+    "diamond/mauve",
+    "triangle/sap",
+    "pentagon/ochre",
+    "egg/cerulean",
+    "cloud/rose",
   ]);
   assert.equal(new Set(CREW_PRESETS.map((b) => b.avatarShape)).size, 9);
   assert.equal(DEFAULT_BOT.avatarShape, "hexagon");
-  assert.equal(DEFAULT_BOT.avatarColor, "teal");
+  assert.equal(DEFAULT_BOT.avatarColor, "viridian");
 });
 
 test("sanitizeBotProfile validates fields and falls back to safe defaults", () => {
@@ -146,13 +195,13 @@ test("sanitizeBotProfile validates fields and falls back to safe defaults", () =
     id: "bot_123",
     name: "Eng Bot",
     avatarShape: "gem",
-    avatarColor: "violet",
+    avatarColor: "mauve",
     skills: ["github"],
   });
   assert.ok(valid);
   assert.equal(valid.name, "Eng Bot");
   assert.equal(valid.avatarShape, "pentagon");
-  assert.equal(valid.avatarColor, "violet");
+  assert.equal(valid.avatarColor, "mauve");
   assert.deepEqual(valid.skills, ["github"]);
 
   const invalid = sanitizeBotProfile({ id: "", name: "" });
@@ -164,12 +213,12 @@ test("createBotProfile generates unique bot profile", () => {
     name: "Research Bot",
     description: "Pesquisa na web e GitHub",
     avatarShape: "cloud",
-    avatarColor: "blue",
+    avatarColor: "cobalt",
   });
   assert.ok(bot.id.startsWith("bot_"));
   assert.equal(bot.name, "Research Bot");
   assert.equal(bot.avatarShape, "cloud");
-  assert.equal(bot.avatarColor, "blue");
+  assert.equal(bot.avatarColor, "cobalt");
 });
 
 test("updateBotInList and deleteBotFromList maintain integrity", () => {

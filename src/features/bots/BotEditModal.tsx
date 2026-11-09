@@ -90,7 +90,7 @@ function BotEditForm({
     bot?.avatarShape || "hexagon",
   );
   const [avatarColor, setAvatarColor] = useState<AvatarColor>(
-    bot?.avatarColor || "cyan",
+    bot?.avatarColor || "cerulean",
   );
   const [selectedSkills, setSelectedSkills] = useState<string[]>(
     bot?.skills || [],

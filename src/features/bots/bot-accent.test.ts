@@ -49,25 +49,25 @@ test("every avatar color has an in-gamut accent that reads on the ground", () =>
   }
 });
 
-test("black maps to a light neutral graphite accent", () => {
-  const [lightness, chroma] = parseOklch(botAccent("black"));
+test("graphite maps to a light neutral accent", () => {
+  const [lightness, chroma] = parseOklch(botAccent("graphite"));
   assert.ok(lightness >= 0.75);
   assert.ok(chroma <= 0.02);
 });
 
-test("unknown legacy colors fall back to the cyan accent", () => {
-  assert.equal(botAccent("chartreuse" as AvatarColor), botAccent("cyan"));
+test("unknown legacy colors fall back to the cerulean accent", () => {
+  assert.equal(botAccent("chartreuse" as AvatarColor), botAccent("cerulean"));
 });
 
 test("avatar tones keep bright bots vivid and the graphite bot dark", () => {
-  const cyan = botAvatarTones("cyan");
-  assert.equal(cyan.edge, cyan.accent);
+  const cerulean = botAvatarTones("cerulean");
+  assert.equal(cerulean.edge, cerulean.accent);
   assert.match(
-    cyan.bottom,
+    cerulean.bottom,
     /color-mix\(in oklab, .+ 58%, var\(--background\)\)/,
   );
 
-  const graphite = botAvatarTones("black");
+  const graphite = botAvatarTones("graphite");
   assert.notEqual(graphite.edge, graphite.accent);
   assert.match(graphite.top, / 34%, /);
 });

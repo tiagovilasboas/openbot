@@ -27,7 +27,7 @@ const bot: BotProfile = {
   title: "Copy editor",
   description: "",
   avatarShape: "hexagon",
-  avatarColor: "cyan",
+  avatarColor: "cerulean",
   skills: [],
   createdAt: "2026-01-01T00:00:00.000Z",
   updatedAt: "2026-01-01T00:00:00.000Z",

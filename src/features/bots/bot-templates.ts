@@ -20,7 +20,7 @@ export const BOT_TEMPLATES: readonly BotTemplate[] = [
     workspaceContext:
       "Diretrizes de arquitetura, padrões de design e limites rígidos de domínio.",
     avatarShape: "hexagon",
-    avatarColor: "violet",
+    avatarColor: "mauve",
   },
   {
     id: "code-reviewer",
@@ -31,7 +31,7 @@ export const BOT_TEMPLATES: readonly BotTemplate[] = [
     workspaceContext:
       "Checklist de Clean Code, detecção de code smells e limites de linhas por arquivo (< 300).",
     avatarShape: "pentagon",
-    avatarColor: "green",
+    avatarColor: "sap",
   },
   {
     id: "security-specialist",
@@ -42,7 +42,7 @@ export const BOT_TEMPLATES: readonly BotTemplate[] = [
     workspaceContext:
       "OWASP Top 10, sanitização de inputs, segurança offline e controle rigoroso de acesso.",
     avatarShape: "octagon",
-    avatarColor: "red",
+    avatarColor: "vermilion",
   },
   {
     id: "platform-engineer",
@@ -53,7 +53,7 @@ export const BOT_TEMPLATES: readonly BotTemplate[] = [
     workspaceContext:
       "Padrões de CI/CD, Docker, healthchecks e observabilidade.",
     avatarShape: "triangle",
-    avatarColor: "orange",
+    avatarColor: "sienna",
   },
   {
     id: "technical-writer",
@@ -64,7 +64,7 @@ export const BOT_TEMPLATES: readonly BotTemplate[] = [
     workspaceContext:
       "Manuais de uso, documentação de APIs, guias de engenharia e markdown limpo.",
     avatarShape: "egg",
-    avatarColor: "blue",
+    avatarColor: "cobalt",
   },
   {
     id: "bug-hunter",
@@ -75,6 +75,6 @@ export const BOT_TEMPLATES: readonly BotTemplate[] = [
     workspaceContext:
       "Protocolo de investigação de bugs, análise de stack traces e reprodução de cenários críticos.",
     avatarShape: "square",
-    avatarColor: "yellow",
+    avatarColor: "ochre",
   },
 ] as const;
