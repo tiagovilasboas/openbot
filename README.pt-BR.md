@@ -111,7 +111,7 @@ O Open Bot é um projeto inicial, na versão 0.1.0.
 
 - Os testes automatizados usam provedores simulados. Nenhum teste roda contra um modelo de verdade.
 - A instalação num iPhone ou Android físico ainda não foi verificada.
-- Bots, conversas, skills e Configurações ficam no `localStorage` deste navegador. Ainda não há sincronização nem backup.
+- Bots, conversas, skills e Configurações ficam no `localStorage` deste navegador. Não há sincronização, mas você pode exportar e importar um arquivo de backup em Configurações (ele deixa de fora chaves, tokens e senhas).
 - As descrições da equipe ainda estão só em português, mesmo com a interface em inglês.
 - A delegação só rodou à mão contra um modelo gratuito. Nenhum teste automatizado chama um modelo real.
 - Ainda não existe integração com calendário.

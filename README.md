@@ -111,7 +111,7 @@ Open Bot is an early project, at version 0.1.0.
 
 - Automated tests use stubbed providers. No test runs against a live model.
 - Installing on a physical iPhone or Android device has not been verified yet.
-- Bots, chats, skills and Settings live in this browser's `localStorage`. There is no sync or backup yet.
+- Bots, chats, skills and Settings live in this browser's `localStorage`. There is no sync, but you can export and import a backup file in Settings (it leaves out keys, tokens and passwords).
 - The crew descriptions are still in Portuguese only, even with the English interface.
 - Delegation has only run against a free model by hand. No automated test calls a live model.
 - No calendar integration exists yet.
