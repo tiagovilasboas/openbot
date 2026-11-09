@@ -1,3 +1,4 @@
+import { withApiHeaders } from "../server-guard/api-request-init.ts";
 import {
   classifyModelFailure,
   type ModelFailure,
@@ -32,16 +33,19 @@ export async function requestModelReply(
 ): Promise<ModelReplyOutcome> {
   let response: Response;
   try {
-    response = await fetchImpl("/api/chat", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        language,
-        messages,
-        ...(config ? { config } : {}),
-        ...(systemPrompt ? { systemPrompt } : {}),
+    response = await fetchImpl(
+      "/api/chat",
+      withApiHeaders({
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          language,
+          messages,
+          ...(config ? { config } : {}),
+          ...(systemPrompt ? { systemPrompt } : {}),
+        }),
       }),
-    });
+    );
   } catch {
     return { kind: "error", failure: { kind: "unreachable" } };
   }

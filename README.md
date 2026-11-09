@@ -103,7 +103,7 @@ You can also choose the provider in Settings, under Model. Keys go under Connect
 
 The service worker caches the app shell only. It never caches `/api` calls, model replies or credentials.
 
-The server has no login. Anyone who can reach its address can use the keys in `.env.local`, so keep it on your machine or behind access control you trust.
+By default the server has no login, which is fine on localhost. Every `/api` call is checked for a same-site `Origin` (or the `x-openbot-client: 1` header), capped at 64 KB and limited to 60 requests per minute per IP (`OPENBOT_RATE_LIMIT`). To expose it beyond your machine, set `OPENBOT_ACCESS_TOKEN` in `.env.local`: every `/api` call then needs `Authorization: Bearer <token>`. In the browser, save the token once with `localStorage.setItem("openbot_access_token", "<token>")` in the developer console. Keep it behind HTTPS and access control you trust.
 
 ## Status and limits
 

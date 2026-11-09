@@ -1,3 +1,4 @@
+import { withApiHeaders } from "../server-guard/api-request-init.ts";
 export type GitHubTokenTestOutcome =
   | {
       ok: true;
@@ -14,11 +15,14 @@ export async function testGitHubToken(
   fetchImpl: typeof fetch = fetch,
 ): Promise<GitHubTokenTestOutcome> {
   try {
-    const response = await fetchImpl("/api/github/test", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ token: token.trim() || undefined }),
-    });
+    const response = await fetchImpl(
+      "/api/github/test",
+      withApiHeaders({
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ token: token.trim() || undefined }),
+      }),
+    );
     const data = (await response.json().catch(() => null)) as {
       ok?: boolean;
       authenticated?: boolean;
