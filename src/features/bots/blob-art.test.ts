@@ -36,6 +36,26 @@ test("eyes sit side by side inside the head", () => {
   }
 });
 
+test("every head is mirror-symmetric", () => {
+  for (const shape of AVATAR_SHAPES) {
+    const { body, eyes } = BLOB_ART[shape];
+    const values = numbers(body);
+    const points: Array<[number, number]> = [];
+    for (let i = 0; i + 1 < values.length; i += 2) {
+      points.push([values[i]!, values[i + 1]!]);
+    }
+    for (const [x, y] of points) {
+      const twin = points.some(
+        ([mx, my]) =>
+          Math.abs(mx - (100 - x)) <= 0.15 && Math.abs(my - y) <= 0.15,
+      );
+      assert.ok(twin, `${shape} has no mirror for ${x},${y}`);
+    }
+    assert.ok(Math.abs(eyes.left[0] + eyes.right[0] - 100) <= 0.2, shape);
+    assert.equal(eyes.tilt, 0, shape);
+  }
+});
+
 test("every shape draws its own silhouette", () => {
   const bodies = new Set(AVATAR_SHAPES.map((s) => BLOB_ART[s].body));
   assert.equal(bodies.size, AVATAR_SHAPES.length);

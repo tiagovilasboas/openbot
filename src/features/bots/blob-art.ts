@@ -3,7 +3,8 @@ import { AVATAR_SHAPES, type AvatarShape } from "./bot-types.ts";
 /*
  * The crew as soft blobs: every geometric shape drawn as if it went squishy.
  * Each corner is rounded by a share of its edges (0.5 = fully soft) and the
- * points get a small seeded wobble, so the heads look drawn by hand. Pure
+ * points get a small seeded wobble, so the heads look drawn by hand. The
+ * wobble is mirrored across the middle, so every head stays symmetric. Pure
  * geometry on a 0 0 100 100 viewBox; colours live in avatar-colors.ts.
  */
 
@@ -66,14 +67,13 @@ const SPECS: Record<AvatarShape, BlobSpec> = {
     points: ring(6, [50, 55], [44, 38], 0),
     soft: 0.42,
     eyeY: 52,
-    tilt: -6,
   },
   square: {
     points: [
-      [14, 20],
-      [86, 17],
-      [89, 88],
-      [11, 90],
+      [14, 18],
+      [86, 18],
+      [88, 89],
+      [12, 89],
     ],
     soft: 0.36,
     eyeY: 52,
@@ -91,15 +91,14 @@ const SPECS: Record<AvatarShape, BlobSpec> = {
     points: [
       [50, 10],
       [86, 26],
-      [90, 88],
-      [74, 80],
-      [60, 92],
-      [46, 80],
-      [30, 92],
-      [12, 86],
+      [88, 90],
+      [68, 80],
+      [50, 92],
+      [32, 80],
+      [12, 90],
       [14, 26],
     ],
-    soft: [0.5, 0.5, 0.3, 0.5, 0.5, 0.5, 0.5, 0.3, 0.5],
+    soft: [0.5, 0.5, 0.3, 0.5, 0.5, 0.5, 0.3, 0.5],
     eyeY: 46,
   },
   flower: {
@@ -153,6 +152,19 @@ const SPECS: Record<AvatarShape, BlobSpec> = {
     eyeY: 60,
     eyeHeight: 15,
   },
+  shield: {
+    // A soft badge with a rounded point.
+    points: [
+      [50, 14],
+      [88, 16],
+      [86, 56],
+      [50, 92],
+      [14, 56],
+      [12, 16],
+    ],
+    soft: [0.5, 0.35, 0.5, 0.35, 0.5, 0.35],
+    eyeY: 46,
+  },
   triangle: {
     points: [
       [50, 12],
@@ -165,10 +177,9 @@ const SPECS: Record<AvatarShape, BlobSpec> = {
     shine: [40, 42],
   },
   pentagon: {
-    points: ring(5, [50, 56], [43, 41], -Math.PI / 2 + 0.12),
+    points: ring(5, [50, 56], [43, 41]),
     soft: 0.46,
     eyeY: 55,
-    tilt: 8,
   },
   egg: {
     points: ring(10, [50, 53], [34, 41], -Math.PI / 2, (angle) => [
@@ -180,7 +191,8 @@ const SPECS: Record<AvatarShape, BlobSpec> = {
   },
   cloud: {
     points: ring(12, [50, 56], [44, 36], -Math.PI / 2, (angle, i) => {
-      const k = Math.sin(angle) > 0.5 ? 0.94 : i % 2 ? 0.86 : 1.04;
+      // 0.4, not 0.5: sin(30°) lands on either side of 0.5 in floating point.
+      const k = Math.sin(angle) > 0.4 ? 0.94 : i % 2 ? 0.86 : 1.04;
       return [k, k];
     }),
     soft: 0.5,
@@ -228,12 +240,32 @@ export function softPolygon(
   return `${parts.join("")}Z`;
 }
 
-function drawBlob(spec: BlobSpec, seed: number): BlobArt {
+/** The index of the point mirrored across x = 50, or -1 when there is none. */
+function mirrorOf(points: readonly Point[], [x, y]: Point): number {
+  return points.findIndex(
+    ([mx, my]) => Math.abs(mx - (100 - x)) < 0.5 && Math.abs(my - y) < 0.5,
+  );
+}
+
+/** A seeded wobble that moves mirrored points as mirror images. */
+function mirroredWobble(points: readonly Point[], seed: number): Point[] {
   const random = mulberry32(seed);
-  const points = spec.points.map(([x, y]): Point => [
-    x + (random() * 2 - 1) * WOBBLE,
-    y + (random() * 2 - 1) * WOBBLE,
-  ]);
+  const moved: Point[] = [...points];
+  points.forEach((point, i) => {
+    const twin = mirrorOf(points, point);
+    if (twin !== -1 && twin < i) return;
+    const dx = twin === i ? 0 : (random() * 2 - 1) * WOBBLE;
+    const dy = (random() * 2 - 1) * WOBBLE;
+    moved[i] = [point[0] + dx, point[1] + dy];
+    if (twin !== -1 && twin !== i) {
+      moved[twin] = [points[twin]![0] - dx, points[twin]![1] + dy];
+    }
+  });
+  return moved;
+}
+
+function drawBlob(spec: BlobSpec, seed: number): BlobArt {
+  const points = mirroredWobble(spec.points, seed);
   const xs = points.map(([x]) => x);
   const ys = points.map(([, y]) => y);
   const [minX, maxX] = [Math.min(...xs), Math.max(...xs)];

@@ -9,6 +9,7 @@ export type AvatarShape =
   | "flower"
   | "clover"
   | "dumpling"
+  | "shield"
   | "triangle"
   | "pentagon"
   | "egg"
@@ -52,6 +53,7 @@ export const AVATAR_SHAPES: readonly AvatarShape[] = [
   "flower",
   "clover",
   "dumpling",
+  "shield",
   "triangle",
   "pentagon",
   "egg",
@@ -93,7 +95,6 @@ export const LEGACY_SHAPES: Readonly<Record<string, AvatarShape>> = {
   hex: "hexagon",
   tablet: "square",
   gem: "pentagon",
-  shield: "octagon",
   wedge: "triangle",
   pebble: "circle",
   capsule: "egg",
