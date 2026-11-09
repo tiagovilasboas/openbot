@@ -1,14 +1,13 @@
 export type AvatarShape =
-  | "head"
-  | "hex"
-  | "tablet"
-  | "gem"
-  | "shield"
-  | "cloud"
-  | "wedge"
-  | "pebble"
-  | "capsule"
-  | "egg";
+  | "hexagon"
+  | "square"
+  | "circle"
+  | "octagon"
+  | "diamond"
+  | "triangle"
+  | "pentagon"
+  | "egg"
+  | "cloud";
 
 export type AvatarColor =
   | "black"
@@ -22,7 +21,8 @@ export type AvatarColor =
   | "magenta"
   | "teal"
   | "sky"
-  | "pink";
+  | "pink"
+  | "gold";
 
 export interface BotProfile {
   id: string;
@@ -37,16 +37,15 @@ export interface BotProfile {
 }
 
 export const AVATAR_SHAPES: readonly AvatarShape[] = [
-  "head",
-  "hex",
-  "tablet",
-  "gem",
-  "shield",
-  "cloud",
-  "wedge",
-  "pebble",
-  "capsule",
+  "hexagon",
+  "square",
+  "circle",
+  "octagon",
+  "diamond",
+  "triangle",
+  "pentagon",
   "egg",
+  "cloud",
 ] as const;
 
 export const AVATAR_COLORS: readonly AvatarColor[] = [
@@ -62,6 +61,7 @@ export const AVATAR_COLORS: readonly AvatarColor[] = [
   "teal",
   "sky",
   "pink",
+  "gold",
 ] as const;
 
 export const DEFAULT_BOT: BotProfile = {
@@ -70,9 +70,23 @@ export const DEFAULT_BOT: BotProfile = {
   title: "Manager & Orquestrador",
   description:
     "Você é o Chief of Staff, o coordenador geral da equipe de bots. Seu papel é planejar, sintetizar informações de repositórios/calendário e coordenar/delegar tarefas para bots especialistas quando necessário.",
-  avatarShape: "head",
+  avatarShape: "hexagon",
   avatarColor: "teal",
   skills: ["github", "calendar", "summary"],
   createdAt: "2026-01-01T00:00:00.000Z",
   updatedAt: "2026-01-01T00:00:00.000Z",
+};
+
+/** Shapes stored by older versions, mapped onto the current art shapes. */
+export const LEGACY_SHAPES: Readonly<Record<string, AvatarShape>> = {
+  head: "circle",
+  hex: "hexagon",
+  tablet: "square",
+  gem: "pentagon",
+  shield: "octagon",
+  wedge: "triangle",
+  pebble: "circle",
+  capsule: "egg",
+  cloud: "cloud",
+  egg: "egg",
 };

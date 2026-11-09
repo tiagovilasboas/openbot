@@ -2,6 +2,7 @@ import {
   AVATAR_COLORS,
   AVATAR_SHAPES,
   DEFAULT_BOT,
+  LEGACY_SHAPES,
   type AvatarColor,
   type AvatarShape,
   type BotProfile,
@@ -11,11 +12,14 @@ import { CREW_PRESETS } from "./crew-presets.ts";
 export const BOTS_STORAGE_KEY = "openbot_bots";
 export const ACTIVE_BOT_STORAGE_KEY = "openbot_active_bot_id";
 
-function isValidShape(val: unknown): val is AvatarShape {
-  return (
-    typeof val === "string" &&
-    (AVATAR_SHAPES as readonly string[]).includes(val)
-  );
+function migrateShape(val: unknown): AvatarShape {
+  if (typeof val !== "string") return DEFAULT_BOT.avatarShape;
+  if ((AVATAR_SHAPES as readonly string[]).includes(val)) {
+    return val as AvatarShape;
+  }
+  return Object.hasOwn(LEGACY_SHAPES, val)
+    ? LEGACY_SHAPES[val]!
+    : DEFAULT_BOT.avatarShape;
 }
 
 function isValidColor(val: unknown): val is AvatarColor {
@@ -49,14 +53,11 @@ export function sanitizeBotProfile(raw: unknown): BotProfile | null {
       ? obj.title.trim()
       : undefined;
 
-  const shape: AvatarShape = isValidShape(obj.avatarShape)
-    ? isLegacyDefault &&
-      (obj.avatarShape === "hex" || obj.avatarShape === "shield")
+  const shape: AvatarShape =
+    isLegacyDefault &&
+    (obj.avatarShape === "hex" || obj.avatarShape === "shield")
       ? DEFAULT_BOT.avatarShape
-      : obj.avatarShape
-    : isLegacyDefault
-      ? DEFAULT_BOT.avatarShape
-      : "hex";
+      : migrateShape(obj.avatarShape);
 
   const color: AvatarColor = isValidColor(obj.avatarColor)
     ? isLegacyDefault && obj.avatarColor === "cyan"
@@ -232,7 +233,7 @@ export function createBotProfile(input: {
     description:
       input.description?.trim() ||
       "Você é um assistente prestativo e especializado.",
-    avatarShape: input.avatarShape ?? "hex",
+    avatarShape: input.avatarShape ?? "hexagon",
     avatarColor: input.avatarColor ?? "cyan",
     skills: input.skills ?? ["github", "calendar", "summary"],
     createdAt: now,

@@ -1,6 +1,18 @@
 "use client";
 
+import { useId } from "react";
+
+import { blinkDelay } from "./avatar-blink.ts";
+import {
+  GUIDE_OPACITY,
+  avatarSwatch,
+  headTones,
+  strokeBoost,
+} from "./avatar-colors.ts";
 import type { AvatarColor, AvatarShape } from "./bot-types.ts";
+import { HEAD_ART } from "./head-art-data.ts";
+
+export { avatarSwatch };
 
 interface BotAvatarProps {
   shape: AvatarShape;
@@ -9,59 +21,21 @@ interface BotAvatarProps {
   className?: string;
 }
 
-const COLOR_MAP: Record<
-  AvatarColor,
-  { fill: string; stroke: string; glow: string }
-> = {
-  cyan: { fill: "#06b6d4", stroke: "#22d3ee", glow: "rgba(6,182,212,0.3)" },
-  blue: { fill: "#3b82f6", stroke: "#60a5fa", glow: "rgba(59,130,246,0.3)" },
-  violet: {
-    fill: "#8b5cf6",
-    stroke: "#a78bfa",
-    glow: "rgba(139,92,246,0.3)",
-  },
-  magenta: {
-    fill: "#d946ef",
-    stroke: "#f472b6",
-    glow: "rgba(217,70,239,0.3)",
-  },
-  green: { fill: "#10b981", stroke: "#34d399", glow: "rgba(16,185,129,0.3)" },
-  yellow: {
-    fill: "#f59e0b",
-    stroke: "#fbbf24",
-    glow: "rgba(245,158,11,0.3)",
-  },
-  orange: {
-    fill: "#f97316",
-    stroke: "#fb923c",
-    glow: "rgba(249,115,22,0.3)",
-  },
-  red: { fill: "#ef4444", stroke: "#f87171", glow: "rgba(239,68,68,0.3)" },
-  black: { fill: "#27272a", stroke: "#52525b", glow: "rgba(39,39,42,0.4)" },
-  teal: { fill: "#2DD4BF", stroke: "#5EEAD4", glow: "rgba(45,212,191,0.3)" },
-  sky: { fill: "#0EA5E9", stroke: "#38BDF8", glow: "rgba(14,165,233,0.3)" },
-  pink: { fill: "#EC4899", stroke: "#F472B6", glow: "rgba(236,72,153,0.3)" },
-};
-
-/** Flat swatch color for pickers (matches the avatar fill). */
-export function avatarSwatch(color: AvatarColor): string {
-  return COLOR_MAP[color]?.fill ?? COLOR_MAP.cyan.fill;
-}
-
-// Flat "head": solid disc + two dark pill eyes. Never white or black (avoids
-// the xAI logo look), so "black" renders as dark grey with light eyes.
-function HeadAvatar({
+/** Colored-pencil crew head: any shape in any palette colour. */
+export function BotAvatar({
+  shape,
   color,
-  className,
-  dimension,
-}: {
-  color: AvatarColor;
-  className: string;
-  dimension: string;
-}) {
-  const isBlack = color === "black";
-  const fill = isBlack ? "#3F3F46" : avatarSwatch(color);
-  const eyes = isBlack ? "#F5F5F5" : "#0A0A0A";
+  size = 32,
+  className = "",
+}: BotAvatarProps) {
+  const clipId = `head-clip-${useId().replace(/:/g, "")}`;
+  const art = HEAD_ART[shape] ?? HEAD_ART.hexagon;
+  const tones = headTones(color);
+  const boost = strokeBoost(size);
+  const hatchBoost = 1 + (boost - 1) * 0.4;
+  const showGuides = typeof size === "number" && size >= 64;
+  const dimension = typeof size === "number" ? `${size}px` : size;
+
   return (
     <svg
       aria-hidden="true"
@@ -69,155 +43,72 @@ function HeadAvatar({
       style={{ width: dimension, height: dimension }}
       className={`shrink-0 select-none transition-transform duration-150 ${className}`}
     >
-      <circle cx="50" cy="50" r="44" fill={fill} />
-      <rect x="34.6" y="39" width="7" height="18.5" rx="3.5" fill={eyes} />
-      <rect x="58.4" y="39" width="7" height="18.5" rx="3.5" fill={eyes} />
-    </svg>
-  );
-}
-
-export function BotAvatar({
-  shape,
-  color,
-  size = 32,
-  className = "",
-}: BotAvatarProps) {
-  const c = COLOR_MAP[color] ?? COLOR_MAP.cyan;
-  const dimension = typeof size === "number" ? `${size}px` : size;
-
-  if (shape === "head") {
-    return (
-      <HeadAvatar color={color} className={className} dimension={dimension} />
-    );
-  }
-
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 100 100"
-      style={{
-        width: dimension,
-        height: dimension,
-        filter: `drop-shadow(0 2px 6px ${c.glow})`,
-      }}
-      className={`shrink-0 select-none transition-transform duration-150 ${className}`}
-    >
-      <defs>
-        <linearGradient
-          id={`grad-${shape}-${color}`}
-          x1="0%"
-          y1="0%"
-          x2="100%"
-          y2="100%"
+      <clipPath id={clipId}>
+        <path d={art.body} />
+      </clipPath>
+      {showGuides && (
+        <g
+          fill="none"
+          stroke={tones.guide}
+          strokeLinecap="round"
+          opacity={GUIDE_OPACITY}
         >
-          <stop offset="0%" stopColor={c.stroke} stopOpacity="1" />
-          <stop offset="100%" stopColor={c.fill} stopOpacity="0.85" />
-        </linearGradient>
-      </defs>
-
-      {shape === "hex" && (
-        <polygon
-          points="50,6 88,28 88,72 50,94 12,72 12,28"
-          fill={`url(#grad-${shape}-${color})`}
-          stroke={c.stroke}
-          strokeWidth="3"
-          strokeLinejoin="round"
-        />
+          {art.guides.map((g, i) => (
+            <path
+              key={i}
+              d={g.d}
+              strokeWidth={g.width}
+              strokeOpacity={g.opacity}
+            />
+          ))}
+        </g>
       )}
-
-      {shape === "tablet" && (
-        <rect
-          x="12"
-          y="12"
-          width="76"
-          height="76"
-          rx="22"
-          ry="22"
-          fill={`url(#grad-${shape}-${color})`}
-          stroke={c.stroke}
-          strokeWidth="3"
-        />
-      )}
-
-      {shape === "gem" && (
-        <polygon
-          points="50,8 88,32 72,90 28,90 12,32"
-          fill={`url(#grad-${shape}-${color})`}
-          stroke={c.stroke}
-          strokeWidth="3"
-          strokeLinejoin="round"
-        />
-      )}
-
-      {shape === "shield" && (
-        <path
-          d="M 50,8 L 86,22 C 86,64 50,90 50,92 C 50,90 14,64 14,22 Z"
-          fill={`url(#grad-${shape}-${color})`}
-          stroke={c.stroke}
-          strokeWidth="3"
-          strokeLinejoin="round"
-        />
-      )}
-
-      {shape === "cloud" && (
-        <path
-          d="M 25,68 A 18,18 0 0,1 32,38 A 22,22 0 0,1 68,34 A 20,20 0 0,1 80,68 Z"
-          fill={`url(#grad-${shape}-${color})`}
-          stroke={c.stroke}
-          strokeWidth="3"
-          strokeLinejoin="round"
-        />
-      )}
-
-      {shape === "wedge" && (
-        <path
-          d="M 50,10 L 88,84 C 88,88 85,90 80,90 L 20,90 C 15,90 12,88 12,84 Z"
-          fill={`url(#grad-${shape}-${color})`}
-          stroke={c.stroke}
-          strokeWidth="3"
-          strokeLinejoin="round"
-        />
-      )}
-
-      {shape === "pebble" && (
-        <path
-          d="M 30,14 C 68,10 90,32 86,66 C 82,90 56,90 30,86 C 10,80 10,25 30,14 Z"
-          fill={`url(#grad-${shape}-${color})`}
-          stroke={c.stroke}
-          strokeWidth="3"
-          strokeLinejoin="round"
-        />
-      )}
-
-      {shape === "capsule" && (
-        <rect
-          x="18"
-          y="10"
-          width="64"
-          height="80"
-          rx="32"
-          ry="32"
-          fill={`url(#grad-${shape}-${color})`}
-          stroke={c.stroke}
-          strokeWidth="3"
-        />
-      )}
-
-      {shape === "egg" && (
-        <ellipse
-          cx="50"
-          cy="54"
-          rx="35"
-          ry="42"
-          fill={`url(#grad-${shape}-${color})`}
-          stroke={c.stroke}
-          strokeWidth="3"
-        />
-      )}
-
-      {/* Sleek inner monogram dot / aperture */}
-      <circle cx="50" cy="50" r="6" fill="#000000" opacity="0.3" />
-      <circle cx="50" cy="50" r="3" fill="#ffffff" opacity="0.8" />
+      <path d={art.body} fill={tones.base} />
+      <g fill="none" strokeLinecap="round" clipPath={`url(#${clipId})`}>
+        {art.hatch.map((layer, i) => (
+          <path
+            key={i}
+            d={layer.d}
+            stroke={tones[layer.tone]}
+            strokeWidth={layer.width * hatchBoost}
+            strokeOpacity={layer.opacity}
+          />
+        ))}
+      </g>
+      <g
+        fill="none"
+        stroke={tones.ink}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        {art.ink.map((stroke, i) => (
+          <path
+            key={i}
+            d={stroke.d}
+            strokeWidth={stroke.width * boost}
+            strokeOpacity={stroke.opacity}
+          />
+        ))}
+      </g>
+      <g
+        className="bot-eyes"
+        fill={tones.eyes}
+        stroke={tones.eyes}
+        strokeOpacity={0.7}
+        style={{
+          transformOrigin: `${art.eyeAt[0]}px ${art.eyeAt[1]}px`,
+          animationDelay: `${blinkDelay(`${shape}-${color}`)}s`,
+        }}
+      >
+        {art.eyes.map((eye, i) => (
+          <path
+            key={i}
+            d={eye.d}
+            fillOpacity={eye.fillOpacity}
+            strokeWidth={eye.strokeWidth}
+          />
+        ))}
+      </g>
     </svg>
   );
 }

@@ -45,7 +45,7 @@ function BotEditForm({
   const [title, setTitle] = useState(bot?.title || "");
   const [description, setDescription] = useState(bot?.description || "");
   const [avatarShape, setAvatarShape] = useState<AvatarShape>(
-    bot?.avatarShape || "hex",
+    bot?.avatarShape || "hexagon",
   );
   const [avatarColor, setAvatarColor] = useState<AvatarColor>(
     bot?.avatarColor || "cyan",

@@ -9,7 +9,7 @@ Este documento detalha o spike de UX, modelo mental e implementação canônica 
 No ecossistema do Grok Bot e Dots, cada bot opera como uma entidade autônoma com especialidade, prompt de sistema e skills próprias:
 
 - **Isolamento de Conversas**: A interface não mistura contextos ou históricos de bots diferentes. Ao alternar o bot ativo na barra lateral ou no cabeçalho, o chat carrega exclusivamente o histórico (`messages`) correspondente àquele bot em `localStorage` (`openbot_msgs_<botId>`).
-- **Identidade Visual Icônica**: Cada bot possui um avatar geométrico em SVG (`hex`, `tablet`, `gem`, `shield`, `cloud`, `wedge`, `pebble`, `capsule`, `egg`) combinado com uma paleta de 9 cores vibrantes (`cyan`, `blue`, `violet`, `magenta`, `green`, `yellow`, `orange`, `red`, `black`).
+- **Identidade Visual Icônica**: Cada bot possui um avatar geométrico em SVG (`hexagon`, `square`, `circle`, `octagon`, `diamond`, `triangle`, `pentagon`, `egg`, `cloud`) combinado com uma paleta de cores vibrantes (`cyan`, `blue`, `violet`, `magenta`, `green`, `yellow`, `orange`, `red`, `black`, `teal`, `sky`, `pink`, `gold`).
 - **Instruções de Sistema**: A `description` do bot ativo atua diretamente como `system prompt` para o modelo de IA em todas as requisições.
 
 ---
