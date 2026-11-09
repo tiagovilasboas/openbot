@@ -38,7 +38,43 @@ const COLOR_MAP: Record<
   },
   red: { fill: "#ef4444", stroke: "#f87171", glow: "rgba(239,68,68,0.3)" },
   black: { fill: "#27272a", stroke: "#52525b", glow: "rgba(39,39,42,0.4)" },
+  teal: { fill: "#2DD4BF", stroke: "#5EEAD4", glow: "rgba(45,212,191,0.3)" },
+  sky: { fill: "#0EA5E9", stroke: "#38BDF8", glow: "rgba(14,165,233,0.3)" },
+  pink: { fill: "#EC4899", stroke: "#F472B6", glow: "rgba(236,72,153,0.3)" },
 };
+
+/** Flat swatch color for pickers (matches the avatar fill). */
+export function avatarSwatch(color: AvatarColor): string {
+  return COLOR_MAP[color]?.fill ?? COLOR_MAP.cyan.fill;
+}
+
+// Flat "head": solid disc + two dark pill eyes. Never white or black (avoids
+// the xAI logo look), so "black" renders as dark grey with light eyes.
+function HeadAvatar({
+  color,
+  className,
+  dimension,
+}: {
+  color: AvatarColor;
+  className: string;
+  dimension: string;
+}) {
+  const isBlack = color === "black";
+  const fill = isBlack ? "#3F3F46" : avatarSwatch(color);
+  const eyes = isBlack ? "#F5F5F5" : "#0A0A0A";
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 100 100"
+      style={{ width: dimension, height: dimension }}
+      className={`shrink-0 select-none transition-transform duration-150 ${className}`}
+    >
+      <circle cx="50" cy="50" r="44" fill={fill} />
+      <rect x="34.6" y="39" width="7" height="18.5" rx="3.5" fill={eyes} />
+      <rect x="58.4" y="39" width="7" height="18.5" rx="3.5" fill={eyes} />
+    </svg>
+  );
+}
 
 export function BotAvatar({
   shape,
@@ -48,6 +84,12 @@ export function BotAvatar({
 }: BotAvatarProps) {
   const c = COLOR_MAP[color] ?? COLOR_MAP.cyan;
   const dimension = typeof size === "number" ? `${size}px` : size;
+
+  if (shape === "head") {
+    return (
+      <HeadAvatar color={color} className={className} dimension={dimension} />
+    );
+  }
 
   return (
     <svg

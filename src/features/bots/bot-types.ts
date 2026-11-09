@@ -1,4 +1,5 @@
 export type AvatarShape =
+  | "head"
   | "hex"
   | "tablet"
   | "gem"
@@ -18,7 +19,10 @@ export type AvatarColor =
   | "yellow"
   | "orange"
   | "violet"
-  | "magenta";
+  | "magenta"
+  | "teal"
+  | "sky"
+  | "pink";
 
 export interface BotProfile {
   id: string;
@@ -33,6 +37,7 @@ export interface BotProfile {
 }
 
 export const AVATAR_SHAPES: readonly AvatarShape[] = [
+  "head",
   "hex",
   "tablet",
   "gem",
@@ -54,6 +59,9 @@ export const AVATAR_COLORS: readonly AvatarColor[] = [
   "orange",
   "red",
   "black",
+  "teal",
+  "sky",
+  "pink",
 ] as const;
 
 export const DEFAULT_BOT: BotProfile = {
@@ -62,8 +70,8 @@ export const DEFAULT_BOT: BotProfile = {
   title: "Manager & Orquestrador",
   description:
     "Você é o Chief of Staff, o coordenador geral da equipe de bots. Seu papel é planejar, sintetizar informações de repositórios/calendário e coordenar/delegar tarefas para bots especialistas quando necessário.",
-  avatarShape: "shield",
-  avatarColor: "cyan",
+  avatarShape: "head",
+  avatarColor: "teal",
   skills: ["github", "calendar", "summary"],
   createdAt: "2026-01-01T00:00:00.000Z",
   updatedAt: "2026-01-01T00:00:00.000Z",

@@ -49,7 +49,8 @@ export function sanitizeBotProfile(raw: unknown): BotProfile | null {
       : undefined;
 
   const shape: AvatarShape = isValidShape(obj.avatarShape)
-    ? isLegacyDefault && obj.avatarShape === "hex"
+    ? isLegacyDefault &&
+      (obj.avatarShape === "hex" || obj.avatarShape === "shield")
       ? DEFAULT_BOT.avatarShape
       : obj.avatarShape
     : isLegacyDefault
@@ -57,8 +58,12 @@ export function sanitizeBotProfile(raw: unknown): BotProfile | null {
       : "hex";
 
   const color: AvatarColor = isValidColor(obj.avatarColor)
-    ? obj.avatarColor
-    : "cyan";
+    ? isLegacyDefault && obj.avatarColor === "cyan"
+      ? DEFAULT_BOT.avatarColor
+      : obj.avatarColor
+    : isLegacyDefault
+      ? DEFAULT_BOT.avatarColor
+      : "cyan";
 
   const skills = Array.isArray(obj.skills)
     ? obj.skills.filter(

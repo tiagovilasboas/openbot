@@ -34,7 +34,8 @@ test("loadBotsFromStorage returns default bot on empty storage", () => {
   const bots = loadBotsFromStorage(storage);
   assert.equal(bots.length, 1);
   assert.equal(bots[0]?.name, DEFAULT_BOT.name);
-  assert.equal(bots[0]?.avatarShape, "shield");
+  assert.equal(bots[0]?.avatarShape, "head");
+  assert.equal(bots[0]?.avatarColor, "teal");
 });
 
 test("sanitizeBotProfile upgrades legacy OpenBot default to Chief of Staff", () => {
@@ -48,7 +49,35 @@ test("sanitizeBotProfile upgrades legacy OpenBot default to Chief of Staff", () 
   assert.equal(legacy.id, "chief-of-staff");
   assert.equal(legacy.name, "Chief of Staff");
   assert.equal(legacy.title, "Manager & Orquestrador");
-  assert.equal(legacy.avatarShape, "shield");
+  assert.equal(legacy.avatarShape, "head");
+  assert.equal(legacy.avatarColor, "teal");
+});
+
+test("sanitizeBotProfile accepts head shape and new colors, keeps non-default shapes", () => {
+  for (const color of ["teal", "sky", "pink"]) {
+    const bot = sanitizeBotProfile({
+      id: "bot_h",
+      name: "Head Bot",
+      avatarShape: "head",
+      avatarColor: color,
+    });
+    assert.equal(bot?.avatarShape, "head");
+    assert.equal(bot?.avatarColor, color);
+  }
+  const kept = sanitizeBotProfile({
+    id: "bot_s",
+    name: "Shield Bot",
+    avatarShape: "shield",
+    avatarColor: "cyan",
+  });
+  assert.equal(kept?.avatarShape, "shield");
+  assert.equal(kept?.avatarColor, "cyan");
+  const unknown = sanitizeBotProfile({
+    id: "bot_u",
+    name: "Odd",
+    avatarShape: "nope",
+  });
+  assert.equal(unknown?.avatarShape, "hex");
 });
 
 test("sanitizeBotProfile validates fields and falls back to safe defaults", () => {

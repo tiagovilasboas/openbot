@@ -1,6 +1,6 @@
 "use client";
 
-import { BotAvatar } from "./BotAvatar.tsx";
+import { BotAvatar, avatarSwatch } from "./BotAvatar.tsx";
 import {
   AVATAR_COLORS,
   AVATAR_SHAPES,
@@ -70,7 +70,7 @@ export function BotAvatarPickers({
             >
               <span
                 className="size-2.5 rounded-full"
-                style={{ backgroundColor: col === "black" ? "#27272a" : col }}
+                style={{ backgroundColor: avatarSwatch(col) }}
               />
               <span className="capitalize">{col}</span>
             </button>
