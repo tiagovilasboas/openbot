@@ -20,6 +20,8 @@ interface ChatComposerProps {
   /** Kept for compatibility; ConversationView renders the queue status. */
   queueCount?: number;
   mode?: "hero" | "docked";
+  /** Without a model the placeholder says so; sending and commands still work. */
+  isConfigured?: boolean;
   skills?: SkillDefinition[];
   bots?: BotProfile[];
   onDraftChange: (value: string) => void;
@@ -31,6 +33,7 @@ export function ChatComposer({
   draft,
   busy,
   mode = "docked",
+  isConfigured = true,
   skills = [],
   bots = [],
   onDraftChange,
@@ -106,7 +109,11 @@ export function ChatComposer({
           aria-autocomplete="list"
           aria-controls={palette.kind ? paletteId : undefined}
           aria-activedescendant={activeOption}
-          placeholder={content.composerPlaceholder}
+          placeholder={
+            isConfigured
+              ? content.composerPlaceholder
+              : content.composerNoModelPlaceholder
+          }
           enterKeyHint={isCoarsePointer ? "enter" : "send"}
           autoComplete="off"
           className={`block max-h-[40dvh] w-full resize-none overflow-y-auto bg-transparent px-4 pb-1 pt-3.5 text-base leading-6 text-foreground outline-hidden placeholder:text-subtle md:max-h-[18rem] md:text-[15px] md:leading-[22px] ${

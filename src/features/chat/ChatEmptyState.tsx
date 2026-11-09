@@ -104,6 +104,7 @@ export function ChatEmptyState({
           <div className="order-2 px-4 pb-[max(var(--safe-bottom),0.75rem)] md:order-1 md:px-0 md:pb-0">
             <ChatComposer
               mode="hero"
+              isConfigured={isConfigured}
               language={language}
               draft={draft}
               busy={busy}
