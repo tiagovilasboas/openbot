@@ -1,13 +1,9 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { chatCopy } from "@/features/chat/chat-copy.ts";
 import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
-import {
-  clearStoredGitHubToken,
-  loadStoredGitHubToken,
-  saveStoredGitHubToken,
-} from "@/features/github/github-config.ts";
+import { clearStoredGitHubToken } from "@/features/github/github-config.ts";
 import { SheetFooter } from "@/shared/ui/ResponsiveSheet.tsx";
 import {
   clearStoredModelConfig,
@@ -16,22 +12,18 @@ import {
   type ClientModelConfig,
   type ModelProviderType,
 } from "./model-config.ts";
-import {
-  clearProviderKeys,
-  loadProviderKeys,
-  saveProviderKey,
-  seedKeysFromConfig,
-} from "./provider-keys.ts";
+import { clearProviderKeys } from "./provider-keys.ts";
 import { lacksRequiredRouterKey } from "./router-key.ts";
 import {
   ConnectionTest,
   type ConnectionTestResult,
 } from "./ConnectionTest.tsx";
+import { MissingKeyNotice } from "./MissingKeyNotice.tsx";
 import { getSettingsCopy } from "./settings-copy.ts";
-import { SettingsGitHubSection } from "./SettingsGitHubSection.tsx";
 import { SettingsProviderFields } from "./SettingsProviderFields.tsx";
 import { SettingsProviderSelector } from "./SettingsProviderSelector.tsx";
 import { testModelConnection } from "./test-model-connection.ts";
+import { useProviderKeys } from "./use-provider-keys.ts";
 
 export interface SettingsFormProps {
   language: ChatLanguage;
@@ -41,6 +33,8 @@ export interface SettingsFormProps {
   onClose: () => void;
   onSave?: (config: ClientModelConfig) => void;
   onReset?: () => void;
+  /** Opens the Connections tab, where keys are added. */
+  onOpenConnections?: () => void;
 }
 
 export function SettingsForm({
@@ -50,9 +44,11 @@ export function SettingsForm({
   onClose,
   onSave,
   onReset,
+  onOpenConnections,
 }: SettingsFormProps) {
   const content = chatCopy[language];
   const s = getSettingsCopy(language);
+  const keys = useProviderKeys();
   const [isConfirmingReset, setIsConfirmingReset] = useState(false);
   const [provider, setProvider] = useState<ModelProviderType>(
     currentConfig?.provider ?? "router",
@@ -66,12 +62,6 @@ export function SettingsForm({
   const [routerModel, setRouterModel] = useState(
     currentConfig?.provider === "router" ? currentConfig.model : "o3-mini",
   );
-  const [savedKeys] = useState(() =>
-    seedKeysFromConfig(loadProviderKeys(), currentConfig),
-  );
-  const [routerApiKey, setRouterApiKey] = useState(savedKeys.router ?? "");
-  const routerKeyRef = useRef<HTMLInputElement>(null);
-  const [wasKeyFlagged, setWasKeyFlagged] = useState(false);
 
   const [localUrl, setLocalUrl] = useState(
     currentConfig?.provider === "local"
@@ -82,15 +72,10 @@ export function SettingsForm({
     currentConfig?.provider === "local" ? currentConfig.model : "llama3",
   );
 
-  const [anthropicKey, setAnthropicKey] = useState(savedKeys.anthropic ?? "");
   const [anthropicModel, setAnthropicModel] = useState(
     currentConfig?.provider === "anthropic"
       ? currentConfig.model
       : "claude-3-5-sonnet-20241022",
-  );
-
-  const [gitHubToken, setGitHubToken] = useState(
-    () => loadStoredGitHubToken() ?? "",
   );
 
   const [isTesting, setIsTesting] = useState(false);
@@ -106,7 +91,7 @@ export function SettingsForm({
         provider: "router",
         baseUrl: routerUrl,
         model: routerModel,
-        ...(routerApiKey ? { apiKey: routerApiKey } : {}),
+        ...(keys.router ? { apiKey: keys.router } : {}),
       });
     }
     if (provider === "local") {
@@ -119,7 +104,7 @@ export function SettingsForm({
     if (provider === "anthropic") {
       return validateClientModelConfig({
         provider: "anthropic",
-        apiKey: anthropicKey,
+        apiKey: keys.anthropic,
         model: anthropicModel,
       });
     }
@@ -127,25 +112,20 @@ export function SettingsForm({
   }
 
   // OpenRouter answers 401 to every call without a key, free models included.
-  const isRouterKeyMissing =
-    provider === "router" && lacksRequiredRouterKey(routerUrl, routerApiKey);
-
-  /** Points at the key field instead of calling a model that will refuse. */
-  function flagMissingRouterKey(): boolean {
-    if (!isRouterKeyMissing) return false;
-    setTestResult(null);
-    setWasKeyFlagged(true);
-    routerKeyRef.current?.focus();
-    return true;
-  }
+  const missingKeyProvider =
+    provider === "router" && lacksRequiredRouterKey(routerUrl, keys.router)
+      ? "OpenRouter"
+      : provider === "anthropic" && !keys.anthropic
+        ? "Anthropic"
+        : null;
 
   async function handleTest() {
+    if (missingKeyProvider) return;
     const candidate = getCandidateConfig();
     if (!candidate) {
       setTestResult({ ok: false, error: "invalid_fields" });
       return;
     }
-    if (flagMissingRouterKey()) return;
     setIsTesting(true);
     setTestResult(null);
     const result = await testModelConnection(candidate);
@@ -158,20 +138,13 @@ export function SettingsForm({
   }
 
   function handleSave() {
+    if (missingKeyProvider) return;
     const candidate = getCandidateConfig();
     if (!candidate) {
       setTestResult({ ok: false, error: "invalid_fields" });
       return;
     }
-    if (flagMissingRouterKey()) return;
     saveStoredModelConfig(candidate);
-    saveProviderKey("router", routerApiKey);
-    saveProviderKey("anthropic", anthropicKey);
-    if (gitHubToken.trim()) {
-      saveStoredGitHubToken(gitHubToken.trim());
-    } else {
-      clearStoredGitHubToken();
-    }
     onSave?.(candidate);
     onClose();
   }
@@ -221,21 +194,21 @@ export function SettingsForm({
           setRouterUrl={setRouterUrl}
           routerModel={routerModel}
           setRouterModel={setRouterModel}
-          routerApiKey={routerApiKey}
-          setRouterApiKey={setRouterApiKey}
-          routerApiKeyError={
-            wasKeyFlagged && isRouterKeyMissing ? s.missingKey : null
-          }
-          routerApiKeyRef={routerKeyRef}
           localUrl={localUrl}
           setLocalUrl={setLocalUrl}
           localModel={localModel}
           setLocalModel={setLocalModel}
-          anthropicKey={anthropicKey}
-          setAnthropicKey={setAnthropicKey}
           anthropicModel={anthropicModel}
           setAnthropicModel={setAnthropicModel}
         />
+
+        {missingKeyProvider && (
+          <MissingKeyNotice
+            provider={missingKeyProvider}
+            language={language}
+            onConnect={onOpenConnections}
+          />
+        )}
 
         <section className="flex flex-col gap-3">
           <h3 className="text-[15px] font-semibold text-foreground">
@@ -250,12 +223,6 @@ export function SettingsForm({
             onTest={() => void handleTest()}
           />
         </section>
-
-        <SettingsGitHubSection
-          language={language}
-          token={gitHubToken}
-          onTokenChange={setGitHubToken}
-        />
       </div>
 
       {isActive && (
