@@ -13,9 +13,18 @@ function isMessage(value: unknown): value is ModelMessage {
   return (
     (role === "user" || role === "assistant") &&
     typeof text === "string" &&
-    text.trim().length > 0 &&
-    text.length <= maxTextLength
+    text.trim().length > 0
   );
+}
+
+/**
+ * A long earlier reply must not break every later turn, so each message is
+ * cut to the limit instead of rejecting the whole conversation.
+ */
+function clampMessage(message: ModelMessage): ModelMessage {
+  return message.text.length <= maxTextLength
+    ? message
+    : { role: message.role, text: message.text.slice(0, maxTextLength) };
 }
 
 export function parseChatRequest(payload: unknown): ParsedChatRequest {
@@ -54,7 +63,7 @@ export function parseChatRequest(payload: unknown): ParsedChatRequest {
     ok: true,
     request: {
       language,
-      messages,
+      messages: messages.map(clampMessage),
       ...(validatedConfig ? { config: validatedConfig } : {}),
       ...(validatedFallbackConfig
         ? { fallbackConfig: validatedFallbackConfig }

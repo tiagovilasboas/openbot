@@ -1,5 +1,8 @@
+import { buildBotSystemPrompt } from "@/features/bots/bot-system-prompt.ts";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
+import { crewCopy } from "@/features/crew/crew-copy.ts";
 import { buildCrewRoster, isChiefBot } from "@/features/crew/crew-roster.ts";
+import { runCrewTurn } from "@/features/crew/run-crew-turn.ts";
 import { detectGitHubRequest } from "@/features/github/detect-github-request.ts";
 import type {
   GitHubItem,
@@ -26,6 +29,11 @@ export interface ChatReplyOutcome {
   failover?: { fromModel: string; toModel: string; reason: string };
   /** Set when the turn reached the model, so the header dot can follow it. */
   modelCall?: ModelCallResult;
+  /** Set when the Chief delegated: its kickoff and each specialist's reply. */
+  crew?: {
+    kickoff: string;
+    specialists: Array<{ bot: BotProfile; text: string }>;
+  };
 }
 
 export async function executeChatMessage({
@@ -36,6 +44,7 @@ export async function executeChatMessage({
   bots = [],
   gitHubToken,
   modelConfig,
+  onBotWorking,
 }: {
   text: string;
   language: ChatLanguage;
@@ -44,6 +53,8 @@ export async function executeChatMessage({
   bots?: BotProfile[];
   gitHubToken: string | null;
   modelConfig: ClientModelConfig | null;
+  /** Follows which bot is working while the Chief's crew answers. */
+  onBotWorking?: (bot: BotProfile) => void;
 }): Promise<ChatReplyOutcome> {
   const content = chatCopy[language];
   const isPt = language === "pt";
@@ -55,23 +66,7 @@ export async function executeChatMessage({
   const delegatedBot =
     mentionedBot && mentionedBot.id !== activeBot.id ? mentionedBot : undefined;
 
-  const baseDescription =
-    (executingBot.id === "chief-of-staff" || executingBot.id === "default") &&
-    !isPt &&
-    executingBot.description.includes("Você é o Chief of Staff")
-      ? "You are the Chief of Staff, the general coordinator of the bot team. Your role is to plan, synthesize repository/calendar information, and coordinate/delegate tasks to specialist bots when needed."
-      : executingBot.description;
-
-  // Build system prompt from executing bot + workspace context + enabled skills
-  const workspaceSnippet = executingBot.workspaceContext
-    ? `\n\n${isPt ? "Contexto de Workspace:" : "Workspace Context:"}\n${executingBot.workspaceContext}`
-    : "";
-  const skillSnippets = executingBot.skills
-    .map((s) => `[Skill ${s.name} (${s.command})]: ${s.instructions}`)
-    .join("\n");
-  const botPrompt = skillSnippets
-    ? `${baseDescription}${workspaceSnippet}\n\n${isPt ? "Skills Habilitadas:" : "Enabled Skills:"}\n${skillSnippets}`
-    : `${baseDescription}${workspaceSnippet}`;
+  const botPrompt = buildBotSystemPrompt(executingBot, language);
   const crewRoster = isChiefBot(executingBot)
     ? buildCrewRoster(executingBot, bots, language)
     : "";
@@ -142,8 +137,45 @@ export async function executeChatMessage({
     fullSystemPrompt,
   );
   if (outcome.kind === "text") {
+    const crewTurn = isChiefBot(executingBot)
+      ? await runCrewTurn({
+          chief: executingBot,
+          chiefPrompt: botPrompt,
+          chiefReply: outcome.text,
+          bots,
+          history,
+          userText: text,
+          language,
+          onBotWorking,
+          askModel: async ({ systemPrompt, messages }) => {
+            const reply = await requestModelReply(
+              language,
+              messages,
+              fetch,
+              modelConfig,
+              systemPrompt,
+            );
+            return reply.kind === "text"
+              ? { ok: true, text: reply.text }
+              : { ok: false };
+          },
+        })
+      : null;
     return {
-      text: outcome.text,
+      text: crewTurn
+        ? (crewTurn.synthesis ?? crewCopy[language].synthesisFailed)
+        : outcome.text,
+      ...(crewTurn
+        ? {
+            crew: {
+              kickoff: crewTurn.kickoff,
+              specialists: crewTurn.specialists.map(({ bot, text }) => ({
+                bot,
+                text,
+              })),
+            },
+          }
+        : {}),
       delegatedBot,
       modelCall: "ok",
       ...(outcome.failover ? { failover: outcome.failover } : {}),

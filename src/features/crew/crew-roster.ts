@@ -38,7 +38,8 @@ export function crewRole(bot: Pick<BotProfile, "description">): string {
 
 /**
  * The roster appended to the Chief's system prompt: every other bot with its
- * handle, role and skill names. Empty when the Chief works alone.
+ * handle, role and skill names, then how to delegate to them. Empty when
+ * the Chief works alone.
  */
 export function buildCrewRoster(
   chief: Pick<BotProfile, "id">,
@@ -57,5 +58,5 @@ export function buildCrewRoster(
       : copy.noSkills;
     return `- ${bot.name} ${crewHandle(bot)}${title}: ${role} [skills: ${skills}]`;
   });
-  return `${copy.rosterHeader}\n${lines.join("\n")}`;
+  return `${copy.rosterHeader}\n${lines.join("\n")}\n\n${copy.delegationRules(crew[0]?.name ?? "")}`;
 }
