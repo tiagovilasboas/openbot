@@ -1,6 +1,7 @@
 import { createAnthropicAdapter } from "./anthropic-adapter.ts";
 import { createLocalAdapter } from "./local-adapter.ts";
 import { createRouterAdapter } from "./router-adapter.ts";
+import type { ModelNetworkOptions } from "./guarded-model-fetch.ts";
 import type { FetchLike, ModelAdapter } from "./model-adapter.ts";
 import type { ClientModelConfig } from "./model-config.ts";
 
@@ -24,6 +25,7 @@ export function selectAdapter(
   env: Env,
   customConfig?: ClientModelConfig | null,
   fetchImpl?: FetchLike,
+  network: ModelNetworkOptions = {},
 ): ModelAdapter | null {
   if (customConfig) {
     if (customConfig.provider === "local") {
@@ -31,6 +33,8 @@ export function selectAdapter(
         baseUrl: customConfig.baseUrl,
         model: customConfig.model,
         fetchImpl,
+        guardUrl: true,
+        ...network,
       });
     }
     if (customConfig.provider === "router") {
@@ -39,6 +43,8 @@ export function selectAdapter(
         model: customConfig.model,
         apiKey: customConfig.apiKey,
         fetchImpl,
+        guardUrl: true,
+        ...network,
       });
     }
     if (customConfig.provider === "anthropic") {
@@ -46,6 +52,7 @@ export function selectAdapter(
         apiKey: customConfig.apiKey,
         model: customConfig.model,
         fetchImpl,
+        ...network,
       });
     }
   }
@@ -57,6 +64,7 @@ export function selectAdapter(
       baseUrl: localUrl,
       model: localModel,
       fetchImpl,
+      ...network,
     });
   }
 
@@ -69,6 +77,7 @@ export function selectAdapter(
       model: routerModel,
       apiKey: routerApiKey,
       fetchImpl,
+      ...network,
     });
   }
 
@@ -79,6 +88,7 @@ export function selectAdapter(
       apiKey,
       model: anthropicModel,
       fetchImpl,
+      ...network,
     });
   }
 

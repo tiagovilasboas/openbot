@@ -1,5 +1,6 @@
-import { validateClientModelConfig } from "@/features/model/model-config";
-import { selectAdapter } from "@/features/model/select-adapter";
+import { TEST_TIMEOUT_MS } from "../../../../features/model/guarded-model-fetch.ts";
+import { validateClientModelConfig } from "../../../../features/model/model-config.ts";
+import { selectAdapter } from "../../../../features/model/select-adapter.ts";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +17,9 @@ export async function POST(request: Request) {
     );
   }
 
-  const adapter = selectAdapter(process.env, customConfig);
+  const adapter = selectAdapter(process.env, customConfig, undefined, {
+    timeoutMs: TEST_TIMEOUT_MS,
+  });
   if (!adapter) {
     return Response.json(
       { ok: false, error: "no_provider_configured" },
@@ -37,7 +40,7 @@ export async function POST(request: Request) {
         provider: result.provider,
         ...(result.detail ? { detail: result.detail } : {}),
       },
-      { status: 502 },
+      { status: result.code === "blocked_base_url" ? 400 : 502 },
     );
   }
 
