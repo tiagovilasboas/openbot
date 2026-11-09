@@ -1,58 +1,34 @@
 "use client";
 
-import { Button, ButtonGroup } from "@heroui/react";
 import { BotAvatar } from "@/features/bots/BotAvatar.tsx";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
 import { ModelStatusBadge } from "@/features/model/ModelStatusBadge.tsx";
 import { chatCopy } from "./chat-copy.ts";
+import { LanguageToggle } from "./LanguageToggle.tsx";
 import type { ChatLanguage } from "./respond-to-message.ts";
+import { BrandMark, MenuIcon, NewChatIcon } from "./ShellIcons.tsx";
 
 interface ChatHeaderProps {
   language: ChatLanguage;
   onLanguageChange: (language: ChatLanguage) => void;
   activeModelLabel: string;
   isConfigured: boolean;
-  onOpenSettings: () => void;
+  onOpenSettings?: () => void;
   hasMessages?: boolean;
   onNewChat?: () => void;
   activeBot?: BotProfile;
   onOpenMobileSidebar?: () => void;
   onOpenBotEdit?: () => void;
+  /** Whether the phone sidebar drawer is open (for aria-expanded). */
+  isMobileSidebarOpen?: boolean;
 }
 
-function GearIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      aria-hidden="true"
-      className={className ?? "size-4"}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      viewBox="0 0 24 24"
-    >
-      <circle cx="12" cy="12" r="3" />
-      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-    </svg>
-  );
-}
+const ICON_BUTTON =
+  "flex size-11 shrink-0 items-center justify-center rounded-full text-muted transition-[background-color,color,transform] duration-150 ease-out-expo hover:bg-surface hover:text-foreground active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40";
 
-function PlusIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      aria-hidden="true"
-      className={className ?? "size-4"}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      viewBox="0 0 24 24"
-    >
-      <path d="M12 5v14M5 12h14" />
-    </svg>
-  );
+/** The phone status line only has room for the model id's last segment. */
+function compactModelLabel(label: string): string {
+  return label.split("/").pop()?.trim() || label;
 }
 
 export function ChatHeader({
@@ -66,104 +42,100 @@ export function ChatHeader({
   activeBot,
   onOpenMobileSidebar,
   onOpenBotEdit,
+  isMobileSidebarOpen,
 }: ChatHeaderProps) {
   const content = chatCopy[language];
 
+  const identity = (
+    <>
+      {activeBot ? (
+        <BotAvatar
+          shape={activeBot.avatarShape}
+          color={activeBot.avatarColor}
+          size={28}
+        />
+      ) : (
+        <BrandMark />
+      )}
+      <span className="flex min-w-0 flex-col">
+        <span className="truncate text-[15px] leading-5 font-medium text-foreground">
+          {activeBot ? activeBot.name : content.brandName}
+        </span>
+        <span className="flex min-w-0 items-center gap-1.5 text-xs leading-4 text-subtle md:hidden">
+          <span
+            aria-hidden="true"
+            className={`size-1.5 shrink-0 rounded-full ${
+              isConfigured ? "bg-success" : "bg-warning"
+            }`}
+          />
+          <span className="truncate">
+            {compactModelLabel(activeModelLabel)}
+          </span>
+        </span>
+      </span>
+    </>
+  );
+
   return (
-    <header className="sticky top-0 z-30 flex min-h-14 items-center justify-between gap-2 border-b border-white/5 bg-black/80 px-3 backdrop-blur-xl sm:gap-3 sm:px-6">
-      <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+    <header className="sticky top-0 z-30 shrink-0 border-b border-separator bg-background pt-safe pr-safe pl-safe md:pl-0">
+      <div className="flex h-14 items-center gap-1 px-1.5 md:gap-3 md:px-4">
         {onOpenMobileSidebar && (
           <button
             type="button"
-            aria-label="Menu"
+            aria-label={content.sidebarOpen}
+            aria-expanded={isMobileSidebarOpen}
             onClick={onOpenMobileSidebar}
-            className="flex size-8 shrink-0 md:hidden items-center justify-center rounded-xl bg-zinc-900 border border-white/10 text-white font-mono text-xs font-bold shadow-sm"
+            className={`${ICON_BUTTON} md:hidden`}
           >
-            ☰
+            <MenuIcon />
           </button>
         )}
-        <div
-          role={onOpenBotEdit ? "button" : undefined}
-          onClick={onOpenBotEdit}
-          className={`flex min-w-0 items-center gap-2 rounded-xl py-0.5 px-1 transition-all ${
-            onOpenBotEdit ? "cursor-pointer hover:bg-zinc-900/60" : ""
-          }`}
-        >
-          {activeBot ? (
-            <BotAvatar
-              shape={activeBot.avatarShape}
-              color={activeBot.avatarColor}
-              size={26}
-            />
+
+        <h1 className="flex min-w-0 flex-1">
+          {onOpenBotEdit ? (
+            <button
+              type="button"
+              onClick={onOpenBotEdit}
+              className="flex min-h-11 max-w-full min-w-0 items-center gap-2.5 rounded-xl px-2 text-left transition-[background-color,transform] duration-150 ease-out-expo hover:bg-surface active:scale-[0.99]"
+            >
+              {identity}
+              <span className="sr-only">, {content.headerEditBot}</span>
+            </button>
           ) : (
-            <div
-              aria-hidden="true"
-              className="flex size-7 shrink-0 items-center justify-center rounded-xl bg-zinc-900 border border-white/10 text-white font-mono text-xs font-bold shadow-sm"
-            >
-              &gt;_
-            </div>
+            <span className="flex min-h-11 min-w-0 items-center gap-2.5 px-2">
+              {identity}
+            </span>
           )}
-          <h1 className="shrink-0 text-sm sm:text-base font-semibold tracking-tight text-white">
-            {activeBot ? activeBot.name : content.title}
-          </h1>
+        </h1>
+
+        <div className="hidden min-w-0 md:flex">
+          <ModelStatusBadge
+            label={activeModelLabel}
+            isConfigured={isConfigured}
+            onPress={onOpenSettings}
+            actionLabel={
+              onOpenSettings ? content.headerModelSettings : undefined
+            }
+          />
         </div>
-        <ModelStatusBadge
-          label={activeModelLabel}
-          isConfigured={isConfigured}
-          onPress={onOpenSettings}
-        />
-      </div>
 
-      <nav
-        aria-label={content.mainNavLabel}
-        className="flex shrink-0 items-center gap-1 sm:gap-2"
-      >
-        {hasMessages && onNewChat && (
-          <Button
-            size="sm"
-            variant="secondary"
+        <div className="hidden md:block">
+          <LanguageToggle language={language} onChange={onLanguageChange} />
+        </div>
+
+        {onNewChat && (
+          <button
+            type="button"
             aria-label={content.newChat}
-            onPress={onNewChat}
-            className="gap-1 border border-white/10 bg-zinc-900/70 text-zinc-300 hover:border-white/20 hover:bg-zinc-800 hover:text-white px-2 sm:px-3"
+            title={content.newChat}
+            disabled={!hasMessages}
+            onClick={onNewChat}
+            className={ICON_BUTTON}
           >
-            <PlusIcon />
-            <span className="hidden sm:inline">{content.newChat}</span>
-          </Button>
+            <NewChatIcon />
+          </button>
         )}
-
-        <Button
-          size="sm"
-          variant="secondary"
-          aria-label={content.settings}
-          onPress={onOpenSettings}
-          className="gap-1.5 border border-white/10 bg-zinc-900/70 text-zinc-300 hover:border-white/20 hover:bg-zinc-800 hover:text-white px-2 sm:px-3"
-        >
-          <GearIcon />
-          <span className="hidden sm:inline">{content.settings}</span>
-        </Button>
-
-        <ButtonGroup
-          aria-label={content.languageLabel}
-          className="scale-90 sm:scale-100 origin-right"
-        >
-          {(["pt", "en"] as const).map((option) => (
-            <Button
-              key={option}
-              size="sm"
-              variant={language === option ? "secondary" : "ghost"}
-              aria-pressed={language === option}
-              onPress={() => onLanguageChange(option)}
-              className={
-                language === option
-                  ? "border border-white/10 bg-zinc-800 text-white font-semibold"
-                  : "text-zinc-400 hover:text-white"
-              }
-            >
-              {option.toUpperCase()}
-            </Button>
-          ))}
-        </ButtonGroup>
-      </nav>
+      </div>
     </header>
   );
 }

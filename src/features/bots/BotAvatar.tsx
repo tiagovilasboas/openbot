@@ -3,23 +3,22 @@
 import { useId } from "react";
 
 import { blinkDelay } from "./avatar-blink.ts";
-import {
-  GUIDE_OPACITY,
-  avatarSwatch,
-  headTones,
-  strokeBoost,
-} from "./avatar-colors.ts";
+import { GUIDE_OPACITY, headTones, strokeBoost } from "./avatar-colors.ts";
+import { botAccent } from "./bot-accent.ts";
 import type { AvatarColor, AvatarShape } from "./bot-types.ts";
 import { HEAD_ART } from "./head-art-data.ts";
-
-export { avatarSwatch };
 
 interface BotAvatarProps {
   shape: AvatarShape;
   color: AvatarColor;
   size?: number | string;
   className?: string;
+  /** Marks the active bot: an accent ring, offset from the ground. */
+  active?: boolean;
 }
+
+const ACTIVE_RING =
+  "rounded-full ring-2 ring-current ring-offset-2 ring-offset-background";
 
 /** Colored-pencil crew head: any shape in any palette colour. */
 export function BotAvatar({
@@ -27,6 +26,7 @@ export function BotAvatar({
   color,
   size = 32,
   className = "",
+  active,
 }: BotAvatarProps) {
   const clipId = `head-clip-${useId().replace(/:/g, "")}`;
   const art = HEAD_ART[shape] ?? HEAD_ART.hexagon;
@@ -40,8 +40,10 @@ export function BotAvatar({
     <svg
       aria-hidden="true"
       viewBox="0 0 100 100"
-      style={{ width: dimension, height: dimension }}
-      className={`shrink-0 select-none transition-transform duration-150 ${className}`}
+      style={{ width: dimension, height: dimension, color: botAccent(color) }}
+      className={`shrink-0 select-none transition-[box-shadow,transform] duration-150 ease-out-expo ${
+        active ? ACTIVE_RING : ""
+      } ${className}`}
     >
       <clipPath id={clipId}>
         <path d={art.body} />

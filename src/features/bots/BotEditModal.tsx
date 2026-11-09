@@ -1,12 +1,22 @@
 "use client";
 
-import { Button, Input, Modal } from "@heroui/react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
 import type { SkillDefinition } from "@/features/skills/skill-types.ts";
+import {
+  FormField,
+  FIELD_CLASS,
+  TEXTAREA_CLASS,
+} from "@/shared/ui/FormField.tsx";
+import { ResponsiveSheet, SheetFooter } from "@/shared/ui/ResponsiveSheet.tsx";
 import { BotAvatar } from "./BotAvatar.tsx";
 import { BotAvatarPickers } from "./BotAvatarPickers.tsx";
+import { BotDeleteControl } from "./BotDeleteControl.tsx";
+import { BotSkillsSelector } from "./BotSkillsSelector.tsx";
+import { BotTemplatePicker } from "./BotTemplatePicker.tsx";
+import type { BotTemplate } from "./bot-templates.ts";
 import type { AvatarColor, AvatarShape, BotProfile } from "./bot-types.ts";
+import { getBotsCopy } from "./bots-copy.ts";
 
 interface BotEditModalProps {
   isOpen: boolean;
@@ -19,14 +29,42 @@ interface BotEditModalProps {
   onDelete?: (id: string) => void;
 }
 
-interface BotEditFormProps {
-  bot: BotProfile | null;
-  allSkills: SkillDefinition[];
-  language: ChatLanguage;
-  canDelete: boolean;
-  onClose: () => void;
-  onSave: (bot: BotProfile) => void;
-  onDelete?: (id: string) => void;
+type BotEditFormProps = Omit<BotEditModalProps, "isOpen">;
+
+/** Textarea that grows with its content (sheet body scrolls, not the field). */
+function AutoTextarea({
+  value,
+  onChange,
+  ...rest
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  id?: string;
+  placeholder?: string;
+  "aria-describedby"?: string;
+  minRows: number;
+}) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+  const { minRows, ...props } = rest;
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }, [value]);
+
+  return (
+    <textarea
+      {...props}
+      ref={ref}
+      rows={minRows}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className={TEXTAREA_CLASS}
+      style={{ minHeight: `${minRows * 1.625 + 1.5}rem` }}
+    />
+  );
 }
 
 function BotEditForm({
@@ -40,10 +78,14 @@ function BotEditForm({
 }: BotEditFormProps) {
   const isEditing = Boolean(bot?.id && bot.id !== "new");
   const isPt = language === "pt";
+  const copy = getBotsCopy(isPt);
 
   const [name, setName] = useState(bot?.name || "");
   const [title, setTitle] = useState(bot?.title || "");
   const [description, setDescription] = useState(bot?.description || "");
+  const [workspaceContext, setWorkspaceContext] = useState(
+    bot?.workspaceContext || "",
+  );
   const [avatarShape, setAvatarShape] = useState<AvatarShape>(
     bot?.avatarShape || "hexagon",
   );
@@ -51,11 +93,26 @@ function BotEditForm({
     bot?.avatarColor || "cyan",
   );
   const [selectedSkills, setSelectedSkills] = useState<string[]>(
-    bot?.skills || ["github", "calendar", "summary"],
+    bot?.skills || [],
   );
+  const [templateId, setTemplateId] = useState<string | null>(null);
+
+  const isValid = name.trim().length > 0;
+
+  function handleSelectTemplate(tmpl: BotTemplate) {
+    setTemplateId(tmpl.id);
+    setName(tmpl.name);
+    setTitle(tmpl.title);
+    setDescription(tmpl.description);
+    if (tmpl.workspaceContext) {
+      setWorkspaceContext(tmpl.workspaceContext);
+    }
+    setAvatarShape(tmpl.avatarShape);
+    setAvatarColor(tmpl.avatarColor);
+  }
 
   function handleSave() {
-    if (!name.trim()) return;
+    if (!isValid) return;
     const now = new Date().toISOString();
     const updated: BotProfile = {
       id:
@@ -69,6 +126,7 @@ function BotEditForm({
         (isPt
           ? "Você é um assistente conciso e prestativo."
           : "You are a concise, helpful assistant."),
+      workspaceContext: workspaceContext.trim() || undefined,
       avatarShape,
       avatarColor,
       skills: selectedSkills,
@@ -88,177 +146,156 @@ function BotEditForm({
   }
 
   return (
-    <>
-      <Modal.Header className="flex items-center justify-between border-b border-white/10 pb-4">
-        <div className="flex items-center gap-3">
-          <BotAvatar shape={avatarShape} color={avatarColor} size={36} />
-          <div>
-            <Modal.Heading className="text-lg font-bold text-white">
-              {isEditing
-                ? isPt
-                  ? `Editar ${name || "Bot"}`
-                  : `Edit ${name || "Bot"}`
-                : isPt
-                  ? "Criar Novo Bot"
-                  : "Create New Bot"}
-            </Modal.Heading>
-            <p className="text-xs text-zinc-400">
-              {isPt
-                ? "Personalize o avatar geométrico, prompt e skills do seu bot."
-                : "Customize geometric avatar, instructions and skills."}
-            </p>
-          </div>
+    <form
+      className="flex flex-col gap-6"
+      onSubmit={(e) => {
+        e.preventDefault();
+        handleSave();
+      }}
+    >
+      <div className="flex items-center gap-4">
+        <BotAvatar
+          shape={avatarShape}
+          color={avatarColor}
+          size={64}
+          className="shrink-0"
+        />
+        <div className="min-w-0">
+          <p
+            className={`truncate text-lg font-semibold ${name.trim() ? "text-foreground" : "text-subtle"}`}
+          >
+            {name.trim() || copy.previewNamePlaceholder}
+          </p>
+          <p className="truncate text-[13px] text-muted">
+            {title.trim() || copy.previewRolePlaceholder}
+          </p>
         </div>
-        <Modal.CloseTrigger />
-      </Modal.Header>
+      </div>
 
-      <Modal.Body className="flex flex-col gap-5 py-5">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-zinc-400">
-              {isPt ? "Nome do Bot *" : "Bot Name *"}
-            </label>
-            <Input
-              placeholder={isPt ? "ex: Dev Bot, Inbox..." : "e.g. Dev Bot..."}
+      {!isEditing && (
+        <BotTemplatePicker
+          language={language}
+          selectedId={templateId}
+          onSelectTemplate={handleSelectTemplate}
+        />
+      )}
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <FormField label={copy.nameLabel}>
+          {(control) => (
+            <input
+              {...control}
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full bg-zinc-900 border-white/10 text-white rounded-xl"
+              placeholder={copy.namePlaceholder}
+              autoComplete="off"
+              className={FIELD_CLASS}
             />
-          </div>
-          <div>
-            <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-zinc-400">
-              {isPt ? "Especialidade / Título" : "Title / Specialty"}
-            </label>
-            <Input
-              placeholder={
-                isPt ? "ex: Especialista GitHub" : "e.g. GitHub Specialist"
-              }
+          )}
+        </FormField>
+        <FormField label={copy.roleLabel}>
+          {(control) => (
+            <input
+              {...control}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full bg-zinc-900 border-white/10 text-white rounded-xl"
+              placeholder={copy.rolePlaceholder}
+              autoComplete="off"
+              className={FIELD_CLASS}
             />
-          </div>
-        </div>
-
-        <BotAvatarPickers
-          avatarShape={avatarShape}
-          avatarColor={avatarColor}
-          isPt={isPt}
-          onSelectShape={setAvatarShape}
-          onSelectColor={setAvatarColor}
-        />
-
-        <div>
-          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-zinc-400">
-            {isPt
-              ? "Instruções do Sistema (Prompt do Bot)"
-              : "System Instructions (Bot Prompt)"}
-          </label>
-          <textarea
-            rows={3}
-            placeholder={
-              isPt
-                ? "Defina o comportamento e prompt do modelo para este Bot..."
-                : "Define personality, goals, and behavior..."
-            }
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="w-full rounded-xl border border-white/10 bg-zinc-900 px-3 py-2 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-white/30 resize-none leading-relaxed"
-          />
-        </div>
-
-        <div>
-          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-400">
-            {isPt
-              ? "Skills Habilitadas neste Bot"
-              : "Skills Enabled on this Bot"}
-          </label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {allSkills.map((skill) => {
-              const isSelected = selectedSkills.includes(skill.id);
-              return (
-                <button
-                  key={skill.id}
-                  type="button"
-                  onClick={() => toggleSkill(skill.id)}
-                  className={`flex items-start gap-2.5 p-2.5 rounded-xl border text-left transition-all ${
-                    isSelected
-                      ? "border-emerald-500/40 bg-emerald-500/10 text-white"
-                      : "border-white/5 bg-zinc-900/40 text-zinc-400 hover:border-white/15"
-                  }`}
-                >
-                  <span
-                    className={`size-3 rounded-full mt-1 shrink-0 ${
-                      isSelected
-                        ? "bg-emerald-400 shadow-sm"
-                        : "border border-zinc-600"
-                    }`}
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-semibold text-white">
-                      {skill.name}
-                    </p>
-                    <p className="text-[11px] text-zinc-400 truncate">
-                      {skill.description}
-                    </p>
-                    <span className="font-mono text-[10px] text-zinc-500">
-                      {skill.command}
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </Modal.Body>
-
-      <Modal.Footer className="flex items-center justify-between border-t border-white/10 pt-4">
-        <div>
-          {isEditing && canDelete && onDelete && bot && (
-            <Button
-              size="sm"
-              variant="ghost"
-              className="text-xs text-rose-400 hover:bg-rose-500/10"
-              onPress={() => {
-                onDelete(bot.id);
-                onClose();
-              }}
-            >
-              {isPt ? "Excluir Bot" : "Delete Bot"}
-            </Button>
           )}
+        </FormField>
+      </div>
+
+      <BotAvatarPickers
+        avatarShape={avatarShape}
+        avatarColor={avatarColor}
+        isPt={isPt}
+        onSelectShape={setAvatarShape}
+        onSelectColor={setAvatarColor}
+      />
+
+      <FormField label={copy.instructionsLabel}>
+        {(control) => (
+          <AutoTextarea
+            {...control}
+            minRows={5}
+            value={description}
+            onChange={setDescription}
+            placeholder={copy.instructionsPlaceholder}
+          />
+        )}
+      </FormField>
+
+      <FormField label={copy.workspaceLabel}>
+        {(control) => (
+          <AutoTextarea
+            {...control}
+            minRows={3}
+            value={workspaceContext}
+            onChange={setWorkspaceContext}
+            placeholder={copy.workspacePlaceholder}
+          />
+        )}
+      </FormField>
+
+      <BotSkillsSelector
+        allSkills={allSkills}
+        selectedSkills={selectedSkills}
+        isPt={isPt}
+        onToggleSkill={toggleSkill}
+      />
+
+      <SheetFooter>
+        <div className="flex items-center justify-between gap-2">
+          <div>
+            {isEditing && canDelete && onDelete && bot && (
+              <BotDeleteControl
+                isPt={isPt}
+                onConfirm={() => {
+                  onDelete(bot.id);
+                  onClose();
+                }}
+              />
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="min-h-11 rounded-full border border-border bg-surface px-5 text-[15px] font-medium text-foreground transition-colors hover:bg-surface-secondary active:scale-[0.97] md:text-sm"
+            >
+              {copy.cancel}
+            </button>
+            <button
+              type="button"
+              disabled={!isValid}
+              onClick={handleSave}
+              className="min-h-11 rounded-full bg-foreground px-5 text-[15px] font-semibold text-background transition-transform active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40 md:text-sm"
+            >
+              {copy.save}
+            </button>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Button size="sm" variant="secondary" onPress={onClose}>
-            {isPt ? "Cancelar" : "Cancel"}
-          </Button>
-          <Button
-            size="sm"
-            variant="primary"
-            isDisabled={!name.trim()}
-            onPress={handleSave}
-            className="bg-white text-black font-semibold hover:bg-zinc-200"
-          >
-            {isPt ? "Salvar Bot" : "Save Bot"}
-          </Button>
-        </div>
-      </Modal.Footer>
-    </>
+      </SheetFooter>
+    </form>
   );
 }
 
 export function BotEditModal(props: BotEditModalProps) {
   const { isOpen, bot, onClose } = props;
+  const isEditing = Boolean(bot?.id && bot.id !== "new");
+  const copy = getBotsCopy(props.language === "pt");
 
   return (
-    <Modal.Root isOpen={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <Modal.Backdrop variant="blur">
-        <Modal.Container placement="center" size="lg">
-          <Modal.Dialog className="max-h-[92vh] overflow-y-auto rounded-3xl border border-white/10 bg-zinc-950 p-6 shadow-2xl text-zinc-100">
-            {isOpen && <BotEditForm key={bot?.id || "new-bot"} {...props} />}
-          </Modal.Dialog>
-        </Modal.Container>
-      </Modal.Backdrop>
-    </Modal.Root>
+    <ResponsiveSheet
+      isOpen={isOpen}
+      onClose={onClose}
+      title={isEditing ? copy.titleEdit : copy.titleNew}
+      closeLabel={copy.closeLabel}
+      size="lg"
+    >
+      {isOpen && <BotEditForm key={bot?.id || "new-bot"} {...props} />}
+    </ResponsiveSheet>
   );
 }

@@ -1,6 +1,8 @@
 "use client";
 
-import { BotAvatar, avatarSwatch } from "./BotAvatar.tsx";
+import { useId, useRef, type KeyboardEvent } from "react";
+import { BotAvatar } from "./BotAvatar.tsx";
+import { getBotsCopy } from "./bots-copy.ts";
 import {
   AVATAR_COLORS,
   AVATAR_SHAPES,
@@ -16,6 +18,79 @@ interface BotAvatarPickersProps {
   onSelectColor: (color: AvatarColor) => void;
 }
 
+interface SwatchGroupProps<T extends string> {
+  label: string;
+  options: readonly T[];
+  value: T;
+  names: Record<T, string>;
+  onSelect: (value: T) => void;
+  renderSwatch: (option: T) => React.ReactNode;
+}
+
+function SwatchGroup<T extends string>({
+  label,
+  options,
+  value,
+  names,
+  onSelect,
+  renderSwatch,
+}: SwatchGroupProps<T>) {
+  const refs = useRef<(HTMLButtonElement | null)[]>([]);
+  const labelId = useId();
+
+  function handleKeyDown(e: KeyboardEvent, index: number) {
+    const forward = e.key === "ArrowRight" || e.key === "ArrowDown";
+    const backward = e.key === "ArrowLeft" || e.key === "ArrowUp";
+    if (!forward && !backward) return;
+    e.preventDefault();
+    const next = (index + (forward ? 1 : -1) + options.length) % options.length;
+    onSelect(options[next]);
+    refs.current[next]?.focus();
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <span
+        id={labelId}
+        className="text-[15px] font-medium text-foreground md:text-sm"
+      >
+        {label}
+      </span>
+      <div
+        role="radiogroup"
+        aria-labelledby={labelId}
+        className="grid grid-cols-[repeat(auto-fill,minmax(2.75rem,1fr))] gap-2 p-1"
+      >
+        {options.map((option, index) => {
+          const selected = option === value;
+          return (
+            <button
+              key={option}
+              ref={(el) => {
+                refs.current[index] = el;
+              }}
+              type="button"
+              role="radio"
+              aria-checked={selected}
+              aria-label={names[option]}
+              tabIndex={selected ? 0 : -1}
+              onClick={() => onSelect(option)}
+              onKeyDown={(e) => handleKeyDown(e, index)}
+              className={`flex size-11 items-center justify-center justify-self-center rounded-xl transition-[background-color,transform] duration-[140ms] active:scale-[0.97] ${
+                selected
+                  ? "bg-surface-tertiary ring-2 ring-foreground ring-offset-2 ring-offset-overlay"
+                  : "bg-surface hover:bg-surface-secondary"
+              }`}
+            >
+              {renderSwatch(option)}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export function BotAvatarPickers({
   avatarShape,
   avatarColor,
@@ -23,60 +98,30 @@ export function BotAvatarPickers({
   onSelectShape,
   onSelectColor,
 }: BotAvatarPickersProps) {
-  return (
-    <>
-      <div>
-        <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-400">
-          {isPt ? "Forma Geométrica (Avatar)" : "Geometric Avatar Shape"}
-        </label>
-        <div className="grid grid-cols-9 gap-2 p-2 rounded-2xl bg-zinc-900/60 border border-white/5">
-          {AVATAR_SHAPES.map((shape) => (
-            <button
-              key={shape}
-              type="button"
-              aria-label={`Shape ${shape}`}
-              onClick={() => onSelectShape(shape)}
-              className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all ${
-                avatarShape === shape
-                  ? "bg-zinc-800 ring-2 ring-white/40 scale-105"
-                  : "hover:bg-zinc-800/50 opacity-70 hover:opacity-100"
-              }`}
-            >
-              <BotAvatar shape={shape} color={avatarColor} size={28} />
-              <span className="mt-1 text-[9px] uppercase tracking-tighter text-zinc-400 truncate">
-                {shape}
-              </span>
-            </button>
-          ))}
-        </div>
-      </div>
+  const copy = getBotsCopy(isPt);
 
-      <div>
-        <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-400">
-          {isPt ? "Cor do Avatar" : "Avatar Color"}
-        </label>
-        <div className="flex flex-wrap gap-2.5 p-2 rounded-2xl bg-zinc-900/60 border border-white/5">
-          {AVATAR_COLORS.map((col) => (
-            <button
-              key={col}
-              type="button"
-              aria-label={`Color ${col}`}
-              onClick={() => onSelectColor(col)}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border text-xs font-medium transition-all ${
-                avatarColor === col
-                  ? "border-white/40 bg-zinc-800 text-white shadow-sm ring-1 ring-white/30"
-                  : "border-white/5 bg-zinc-900/80 text-zinc-400 hover:text-white"
-              }`}
-            >
-              <span
-                className="size-2.5 rounded-full"
-                style={{ backgroundColor: avatarSwatch(col) }}
-              />
-              <span className="capitalize">{col}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-    </>
+  return (
+    <div className="flex flex-col gap-4">
+      <SwatchGroup
+        label={copy.shapeLabel}
+        options={AVATAR_SHAPES}
+        value={avatarShape}
+        names={copy.shapes}
+        onSelect={onSelectShape}
+        renderSwatch={(shape) => (
+          <BotAvatar shape={shape} color={avatarColor} size={28} />
+        )}
+      />
+      <SwatchGroup
+        label={copy.colorLabel}
+        options={AVATAR_COLORS}
+        value={avatarColor}
+        names={copy.colors}
+        onSelect={onSelectColor}
+        renderSwatch={(color) => (
+          <BotAvatar shape={avatarShape} color={color} size={28} />
+        )}
+      />
+    </div>
   );
 }

@@ -11,6 +11,7 @@ export type ModelRequest = {
   language: ModelLanguage;
   messages: ModelMessage[];
   config?: ClientModelConfig;
+  fallbackConfig?: ClientModelConfig;
   systemPrompt?: string;
 };
 
@@ -20,8 +21,14 @@ export type ModelErrorCode =
   | "provider_rejected"
   | "invalid_provider_response";
 
+export type FailoverInfo = {
+  fromModel: string;
+  toModel: string;
+  reason: string;
+};
+
 export type ModelResult =
-  | { ok: true; provider: string; text: string }
+  | { ok: true; provider: string; text: string; failover?: FailoverInfo }
   | {
       ok: false;
       code: ModelErrorCode;

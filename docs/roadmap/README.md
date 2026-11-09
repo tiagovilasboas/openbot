@@ -1,17 +1,17 @@
 # Roadmap
 
-[Roadmap detalhado em português](roadmap.pt-BR.md)
+- **[Roadmap Master: Do MVP ao Produto Completo](full-product-roadmap.md):** Planejamento executivo em 6 fases para paridade total com o `openbot.run` em PWA.
+- **[Rastreabilidade de Features & Tasks](features-and-tasks.md):** Decomposição técnica em tarefas de 1 a 5 Story Points.
+- **[Roadmap Detalhado em Português](roadmap.pt-BR.md):** Metas de engenharia e contratos de entrega inicial para desenvolvedores.
+- **[Especificações de Casos de Uso](../specs/use-cases-openbot-run.md):** Especificação completa de cada caso de uso (UC-01 a UC-12).
 
-Status: in progress. The repository foundation (Milestone 0), initial mobile chat UI prototype with HeroUI React (Milestones 1.1 partial and 1.5), PWA Service Worker (`sw.js`) with cache-first caching for immutable assets, offline app-shell navigation fallback, and strict `/api/*` isolation (Milestone 1.1 partial), and model settings interface with active status indicator in the UI (Milestone 2.5) are implemented or in progress. Upcoming work focuses on real-device mobile installation (Milestone 1.1) and model integration (Milestone 1.2). Each increment is limited to five story points, independently reviewable and subject to real verification. The Portuguese roadmap contains the full dependencies and acceptance criteria.
+---
 
-The first milestone targets developers using a phone paired with a server on their computer: chat and read-only issues/PRs for one authorized GitHub repository. See the [developer-first delivery contract](developer-first.md) in Portuguese for operational limits, decision gates, acceptance targets and pilot requirements. Calendar and daily briefing follow acceptance of this milestone. The wider MVP targets one person using their own server. They can choose a local Liquid endpoint, Anthropic API, or a validated free cloud route via optional 9Router, connect GitHub and calendar for read access, and request a sourced daily briefing. The product is not implemented yet.
+## Fases do Produto
 
-The mobile UI is dark-only, with its own identity inspired by Grok Bot. The current Next.js prototype uses public HeroUI React components and an app-shell Service Worker (`sw.js`) with cache-first immutable caching, offline shell navigation fallback, and strict `/api/*` isolation; Apple design guidance informs the experience while Android behavior is also checked. PWA installability on physical devices, keyboard behavior and accessibility still need validation on real screens.
-
-1. **Foundation:** maintain repository guidance, verify Codex and Claude Code skill discovery, and align proposed stack documentation.
-2. **Feasibility:** validate the Next.js + HeroUI PWA on mobile (Service Worker with offline shell fallback and `/api/*` isolation implemented; physical device installation and HTTPS pending), secure local access, local and cloud models, mock tool calls and optional 9Router. Record results before confirming the stack.
-3. **Onboarding and chat:** local HTTPS, device pairing and revocation, conversations, model configuration, language and setup.
-4. **Tools and briefing:** bounded tool execution, skill loading, MCP, read-only GitHub and calendar connections, and a briefing with sources and partial errors.
-5. **After MVP:** confirmed writes, voice, remote access, schedules, multiple users and additional providers, subject to separate decisions.
-
-When nothing is configured, offer a validated free cloud route with explicit activation, provider and data disclosure, account requirements and limits. 9Router is a router, not a model provider; no shared key or unlimited availability is assumed. Automatic fallback to cloud or paid services requires explicit configuration and consent. Skills do not grant permissions. Store credentials server-side, define their lifecycle, and verify authentication and tool policies. Evaluate Portuguese and English cases on comparable settings; no quality or cost baseline exists yet. See [the spike plan](../spikes/mobile-agent.md) and [MVP architecture](../architecture/mvp.md).
+1. **Fase 1 — MVP Core Parity (Concluído):** Auth offline PBKDF2, roteamento dinâmico OpenRouter Free, Provider Failover Engine, fila FIFO não-bloqueante, templates de bots e contexto de workspace.
+2. **Fase 2 — Soberania de Contexto & Arquivos (Próxima):** Anexo e drag-and-drop de arquivos locais para o workspace do bot e Auto-Compaction de histórico.
+3. **Fase 3 — Canais de Equipe & Multi-Agente:** Shared channels, atribuição de Task Owner e proteção anti-looping entre bots.
+4. **Fase 4 — Rotinas & Automação:** Web Workers para rotinas silenciosas (`[[no-update]]`) e Loopback API local em `127.0.0.1`.
+5. **Fase 5 — Navegação & Ferramentas Web:** Extração de conteúdo web e inspeção headless via CDP sem janelas paralelas.
+6. **Fase 6 — Polimento de Produto:** Backup de dados locais e temas customizados.

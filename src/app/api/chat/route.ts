@@ -1,3 +1,4 @@
+import { executeWithFailover } from "@/features/model/failover-runner";
 import { parseChatRequest } from "@/features/model/parse-chat-request";
 import { selectAdapter } from "@/features/model/select-adapter";
 
@@ -10,17 +11,31 @@ export async function POST(request: Request) {
     return Response.json({ error: "invalid_request" }, { status: 400 });
   }
 
-  const adapter = selectAdapter(process.env, parsed.request.config);
-  if (!adapter) {
+  const primaryAdapter = selectAdapter(process.env, parsed.request.config);
+  if (!primaryAdapter) {
     return Response.json({ error: "no_provider_configured" }, { status: 503 });
   }
 
-  const result = await adapter.generateReply(parsed.request);
+  const fallbackAdapter = parsed.request.fallbackConfig
+    ? selectAdapter(process.env, parsed.request.fallbackConfig)
+    : null;
+
+  const result = await executeWithFailover({
+    request: parsed.request,
+    primaryAdapter,
+    fallbackAdapter,
+    env: process.env,
+  });
+
   if (!result.ok) {
     return Response.json(
-      { error: result.code, provider: result.provider },
+      { error: result.code, provider: result.provider, detail: result.detail },
       { status: 502 },
     );
   }
-  return Response.json({ provider: result.provider, text: result.text });
+  return Response.json({
+    provider: result.provider,
+    text: result.text,
+    ...(result.failover ? { failover: result.failover } : {}),
+  });
 }

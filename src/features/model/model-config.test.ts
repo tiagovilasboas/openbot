@@ -112,7 +112,7 @@ test("rejects malformed or unknown provider inputs", () => {
   assert.equal(validateClientModelConfig({ provider: "unknown" }), null);
 });
 
-test("formatModelBadge formats label for providers and demo mode", () => {
+test("formatModelBadge formats label for providers and unconfigured state", () => {
   assert.equal(
     formatModelBadge({ provider: "router", model: "o3-mini" }, false, "pt"),
     "Router: o3-mini",
@@ -129,9 +129,9 @@ test("formatModelBadge formats label for providers and demo mode", () => {
     ),
     "Anthropic: claude-3-5-sonnet",
   );
-  assert.equal(formatModelBadge(null, true, "pt"), "Modo Demo");
-  assert.equal(formatModelBadge(null, true, "en"), "Demo Mode");
-  assert.equal(formatModelBadge(null, false, "pt"), "Modo Demo");
+  assert.equal(formatModelBadge(null, true, "pt"), "Sem modelo");
+  assert.equal(formatModelBadge(null, true, "en"), "No model");
+  assert.equal(formatModelBadge(null, false, "pt"), "Sem modelo");
 });
 
 test("validates all OpenRouter free tier models and presets", () => {

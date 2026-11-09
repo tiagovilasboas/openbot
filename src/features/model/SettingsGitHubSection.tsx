@@ -1,9 +1,12 @@
 "use client";
 
-import { Button, Chip, Input, Label } from "@heroui/react";
 import { useState } from "react";
 import { chatCopy } from "@/features/chat/chat-copy";
 import type { ChatLanguage } from "@/features/chat/respond-to-message";
+import { FormField } from "@/shared/ui/FormField.tsx";
+import { SecretInput } from "@/shared/ui/SecretInput.tsx";
+import { ConnectionTest } from "./ConnectionTest.tsx";
+import { fillCopy, getSettingsCopy } from "./settings-copy.ts";
 
 interface SettingsGitHubSectionProps {
   language: ChatLanguage;
@@ -17,6 +20,7 @@ export function SettingsGitHubSection({
   onTokenChange,
 }: SettingsGitHubSectionProps) {
   const content = chatCopy[language];
+  const s = getSettingsCopy(language);
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<{
     ok: boolean;
@@ -43,7 +47,10 @@ export function SettingsGitHubSection({
       if (response.ok && data?.ok) {
         const detail = data.authenticated
           ? `${content.gitHubSuccess} (@${data.user ?? ""}, ${data.rateLimit?.remaining ?? 5000}/${data.rateLimit?.limit ?? 5000} req/h)`
-          : `API Pública (${data.rateLimit?.remaining ?? 60}/${data.rateLimit?.limit ?? 60} req/h)`;
+          : fillCopy(s.githubPublicApi, {
+              remaining: data.rateLimit?.remaining ?? 60,
+              limit: data.rateLimit?.limit ?? 60,
+            });
         setTestResult({ ok: true, message: detail });
       } else {
         const errorKey = data?.error;
@@ -62,57 +69,53 @@ export function SettingsGitHubSection({
     }
   }
 
+  const hasToken = token.trim().length > 0;
+
   return (
-    <div className="border-t border-separator pt-4">
-      <div className="mb-2 flex items-center justify-between">
-        <Label className="block text-xs font-semibold uppercase tracking-wider text-muted">
-          {content.connections} · GitHub
-        </Label>
+    <section className="flex flex-col gap-4">
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="text-[15px] font-semibold text-foreground">
+          {s.sectionGitHub}
+        </h3>
+        <span
+          className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+            hasToken ? "bg-success-soft text-success" : "bg-surface text-subtle"
+          }`}
+        >
+          {hasToken ? s.githubTokenSet : s.githubTokenUnset}
+        </span>
       </div>
 
-      <div className="flex flex-col gap-2">
-        <div>
-          <Label className="mb-1 block text-xs font-medium">
-            {content.githubTokenLabel}
-          </Label>
-          <Input
-            fullWidth
-            type="password"
+      <FormField
+        label={content.githubTokenLabel}
+        helper={content.githubTokenHint}
+      >
+        {(control) => (
+          <SecretInput
+            {...control}
             value={token}
-            onChange={(e) => {
-              onTokenChange(e.target.value);
+            onChange={(value) => {
+              onTokenChange(value);
               setTestResult(null);
             }}
-            placeholder="ghp_... (ou github_pat_...)"
+            placeholder={s.githubTokenPlaceholder}
+            showLabel={s.showSecret}
+            hideLabel={s.hideSecret}
           />
-          <p className="mt-1 text-xs text-muted">{content.githubTokenHint}</p>
-        </div>
+        )}
+      </FormField>
 
-        <div className="pt-1">
-          <Button
-            size="sm"
-            variant="secondary"
-            className="w-full"
-            isDisabled={isTesting}
-            onPress={() => void handleTest()}
-          >
-            {isTesting ? content.testingGitHub : content.testGitHubToken}
-          </Button>
-
-          {testResult && (
-            <div className="mt-2 flex justify-center">
-              <Chip
-                size="sm"
-                variant="soft"
-                color={testResult.ok ? "success" : "danger"}
-                className="max-w-full truncate"
-              >
-                {testResult.message}
-              </Chip>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+      <ConnectionTest
+        label={content.testGitHubToken}
+        loadingLabel={content.testingGitHub}
+        isTesting={isTesting}
+        result={
+          testResult
+            ? { ok: testResult.ok, message: testResult.message ?? "" }
+            : null
+        }
+        onTest={() => void handleTest()}
+      />
+    </section>
   );
 }

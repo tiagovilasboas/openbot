@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { BotAvatar } from "@/features/bots/BotAvatar.tsx";
+import { LockScreen } from "@/features/auth/LockScreen.tsx";
+import { useLocalAuth } from "@/features/auth/use-local-auth.ts";
 import { BotEditModal } from "@/features/bots/BotEditModal.tsx";
+import { botAccent } from "@/features/bots/bot-accent.ts";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
 import { useBots } from "@/features/bots/use-bots.ts";
 import { useGitHubToken } from "@/features/github/use-github-token.ts";
@@ -14,20 +16,22 @@ import {
 } from "@/features/model/test-model-connection.ts";
 import { useModelConfig } from "@/features/model/use-model-config.ts";
 import { useSkills } from "@/features/skills/use-skills.ts";
-import { chatCopy } from "./chat-copy.ts";
-import { ChatComposer } from "./ChatComposer.tsx";
 import { ChatEmptyState } from "./ChatEmptyState.tsx";
 import { ChatHeader } from "./ChatHeader.tsx";
-import { ChatMessageItem, type MessageData } from "./ChatMessageItem.tsx";
+import type { MessageData } from "./ChatMessageItem.tsx";
 import { ChatSidebar } from "./ChatSidebar.tsx";
+import { ConversationView } from "./ConversationView.tsx";
 import { executeChatMessage } from "./execute-chat-message.ts";
 import type { ChatLanguage } from "./respond-to-message.ts";
 import { useBotMessages } from "./use-bot-messages.ts";
+import { useMessageQueue } from "./use-message-queue.ts";
 
 export function ChatExperience() {
   const [language, setLanguage] = useState<ChatLanguage>("pt");
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
+  const auth = useLocalAuth();
+  const { queueCount, enqueue, dequeue, clearQueue } = useMessageQueue();
 
   // Dots / Grok Bot systems
   const {
@@ -62,11 +66,21 @@ export function ChatExperience() {
 
   const conversationIdRef = useRef(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const content = chatCopy[language];
 
   useEffect(() => {
     document.documentElement.lang = language === "pt" ? "pt-BR" : "en";
   }, [language]);
+
+  // The active bot's accent drives focus rings, caret, selection and the
+  // bot's own chrome, including portaled sheets, so it lives on <html>.
+  const activeAccent = botAccent(activeBot.avatarColor);
+  useEffect(() => {
+    const root = document.documentElement;
+    root.style.setProperty("--bot-accent", activeAccent);
+    return () => {
+      root.style.removeProperty("--bot-accent");
+    };
+  }, [activeAccent]);
 
   useEffect(() => {
     void fetchActiveServerModel().then((server) => setServerModel(server));
@@ -83,25 +97,21 @@ export function ChatExperience() {
     ? formatModelBadge(modelConfig, false, language)
     : serverModel?.configured
       ? formatModelBadge(serverModel, false, language)
-      : formatModelBadge(null, true, language);
+      : formatModelBadge(null, false, language);
 
-  async function sendMessage(value = draft) {
-    const text = value.trim();
-    if (!text || busy) return;
-    const conversationId = conversationIdRef.current;
-    const history = [...messages, { role: "user" as const, text }].map(
-      ({ role, text: msgText }) => ({ role, text: msgText }),
-    );
-    const updatedMessages: MessageData[] = [
-      ...messages,
-      { id: getNextId(), role: "user", language, text },
-    ];
-    persistMessages(updatedMessages);
-    setDraft("");
+  async function processTurn(
+    turnText: string,
+    currentHistory: MessageData[],
+    conversationId: number,
+  ) {
     setBusy(true);
+    const history = currentHistory.map((m) => ({
+      role: m.role,
+      text: m.text,
+    }));
 
     const reply = await executeChatMessage({
-      text,
+      text: turnText,
       language,
       history,
       activeBot,
@@ -111,42 +121,84 @@ export function ChatExperience() {
       modelConfig,
     });
 
-    if (conversationIdRef.current !== conversationId) return;
-    persistMessages([
-      ...updatedMessages,
+    if (conversationIdRef.current !== conversationId) {
+      setBusy(false);
+      return;
+    }
+
+    const updatedWithAssistant: MessageData[] = [
+      ...currentHistory,
       {
         id: getNextId(),
         role: "assistant",
         language,
         text: reply.text,
         delegatedBot: reply.delegatedBot,
-        isDemo: !isConfigured,
         modelBadge: isConfigured ? activeModelLabel : undefined,
-        ...(reply.events ? { events: reply.events } : {}),
         ...(reply.github ? { github: reply.github } : {}),
+        ...(reply.failover ? { failover: reply.failover } : {}),
       },
-    ]);
+    ];
+    persistMessages(updatedWithAssistant);
     setBusy(false);
+
+    // If another message was queued in the meantime, process it sequentially
+    const nextQueued = dequeue();
+    if (nextQueued && nextQueued.conversationId === conversationIdRef.current) {
+      void processTurn(nextQueued.text, updatedWithAssistant, conversationId);
+    }
+  }
+
+  function sendMessage(value = draft) {
+    const text = value.trim();
+    if (!text) return;
+    const conversationId = conversationIdRef.current;
+    const userMsgId = getNextId();
+    const updatedMessages: MessageData[] = [
+      ...messages,
+      { id: userMsgId, role: "user", language, text },
+    ];
+    persistMessages(updatedMessages);
+    setDraft("");
+
+    if (busy) {
+      enqueue({ id: userMsgId, text, conversationId });
+      return;
+    }
+
+    void processTurn(text, updatedMessages, conversationId);
   }
 
   function startNewChat() {
     conversationIdRef.current += 1;
+    clearQueue();
     clearMessages();
     setDraft("");
     setBusy(false);
   }
 
+  if (auth.hasPassword && auth.isLocked) {
+    return (
+      <LockScreen language={language} hint={auth.hint} onUnlock={auth.unlock} />
+    );
+  }
+
   return (
-    <div className="dark flex h-dvh max-h-dvh w-full overflow-hidden bg-black text-zinc-100 font-sans selection:bg-zinc-800 selection:text-white">
+    <div className="flex h-dvh w-full overflow-hidden bg-background text-foreground">
       <ChatSidebar
         language={language}
         bots={bots}
         activeBotId={activeBotId}
         isMobileOpen={isMobileSidebarOpen}
         isDesktopCollapsed={isDesktopCollapsed}
+        hasPassword={auth.hasPassword}
+        onLock={auth.lock}
         onToggleDesktopCollapse={() => setIsDesktopCollapsed((v) => !v)}
         onCloseMobile={() => setIsMobileSidebarOpen(false)}
-        onSelectBot={(id) => setActiveBotId(id)}
+        onSelectBot={(id) => {
+          clearQueue();
+          setActiveBotId(id);
+        }}
         onCreateBot={() => {
           setBotToEdit(null);
           setIsBotModalOpen(true);
@@ -156,9 +208,12 @@ export function ChatExperience() {
           setIsBotModalOpen(true);
         }}
         onOpenSettings={() => setIsSettingsOpen(true)}
+        onNewChat={startNewChat}
+        canStartNewChat={messages.length > 0}
+        onLanguageChange={setLanguage}
       />
 
-      <main className="flex flex-1 min-w-0 flex-col h-full overflow-hidden bg-black">
+      <main className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
         <ChatHeader
           language={language}
           onLanguageChange={setLanguage}
@@ -169,6 +224,7 @@ export function ChatExperience() {
           onNewChat={startNewChat}
           activeBot={activeBot}
           onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
+          isMobileSidebarOpen={isMobileSidebarOpen}
           onOpenBotEdit={() => {
             setBotToEdit(activeBot);
             setIsBotModalOpen(true);
@@ -190,59 +246,20 @@ export function ChatExperience() {
             onSelectPrompt={(prompt) => void sendMessage(prompt)}
           />
         ) : (
-          <div className="flex flex-1 min-h-0 flex-col overflow-hidden">
-            <div className="flex-1 overflow-y-auto min-h-0 px-4 py-4 sm:px-6">
-              <section
-                aria-label={content.conversationLabel}
-                aria-live="polite"
-                className="mx-auto flex w-full max-w-3xl flex-col gap-5"
-              >
-                {messages.map((message) => (
-                  <ChatMessageItem
-                    key={message.id}
-                    message={message}
-                    activeBot={activeBot}
-                    onOpenSettings={() => setIsSettingsOpen(true)}
-                  />
-                ))}
-                {busy && (
-                  <div
-                    className="flex w-full items-center gap-3 pt-1 animate-in fade-in duration-200"
-                    role="status"
-                  >
-                    <BotAvatar
-                      shape={activeBot.avatarShape}
-                      color={activeBot.avatarColor}
-                      size={28}
-                      className="animate-pulse"
-                    />
-                    <div className="flex items-center gap-1.5 rounded-full border border-white/10 bg-zinc-900/60 px-3 py-1.5 shadow-sm">
-                      <span className="size-1.5 rounded-full bg-zinc-400 animate-bounce [animation-delay:-0.3s]" />
-                      <span className="size-1.5 rounded-full bg-zinc-400 animate-bounce [animation-delay:-0.15s]" />
-                      <span className="size-1.5 rounded-full bg-zinc-400 animate-bounce" />
-                      <span className="sr-only">{content.thinking}</span>
-                    </div>
-                  </div>
-                )}
-                <div ref={messagesEndRef} className="h-2" />
-              </section>
-            </div>
-
-            <footer className="shrink-0 border-t border-white/5 bg-black/90 p-3 sm:px-6 backdrop-blur-xl">
-              <div className="mx-auto w-full max-w-3xl">
-                <ChatComposer
-                  mode="docked"
-                  language={language}
-                  draft={draft}
-                  busy={busy}
-                  skills={activeBotSkills}
-                  bots={bots}
-                  onDraftChange={setDraft}
-                  onSend={() => void sendMessage()}
-                />
-              </div>
-            </footer>
-          </div>
+          <ConversationView
+            language={language}
+            messages={messages}
+            activeBot={activeBot}
+            busy={busy}
+            draft={draft}
+            queueCount={queueCount}
+            activeBotSkills={activeBotSkills}
+            bots={bots}
+            messagesEndRef={messagesEndRef}
+            onDraftChange={setDraft}
+            onSend={() => void sendMessage()}
+            onOpenSettings={() => setIsSettingsOpen(true)}
+          />
         )}
       </main>
 
@@ -251,9 +268,14 @@ export function ChatExperience() {
         language={language}
         currentConfig={modelConfig}
         skills={allSkills}
+        hasPassword={auth.hasPassword}
+        authHint={auth.hint}
         onClose={() => setIsSettingsOpen(false)}
-        onAddSkill={(input) => addCustomSkill(input)}
-        onRemoveSkill={(id) => removeCustomSkill(id)}
+        onAddSkill={addCustomSkill}
+        onRemoveSkill={removeCustomSkill}
+        onSetupPassword={auth.setupPassword}
+        onRemovePassword={auth.removePassword}
+        onChangePassword={auth.changePassword}
       />
 
       <BotEditModal
@@ -266,14 +288,10 @@ export function ChatExperience() {
           setIsBotModalOpen(false);
           setBotToEdit(null);
         }}
-        onSave={(updated) => {
-          if (botToEdit) {
-            saveBot(updated);
-          } else {
-            createAndActivateBot(updated);
-          }
-        }}
-        onDelete={(id) => removeBot(id)}
+        onSave={(updated) =>
+          botToEdit ? saveBot(updated) : createAndActivateBot(updated)
+        }
+        onDelete={removeBot}
       />
     </div>
   );

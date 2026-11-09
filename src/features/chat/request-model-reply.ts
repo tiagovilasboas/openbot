@@ -3,8 +3,16 @@ import type { ChatLanguage } from "./respond-to-message.ts";
 
 export type HistoryMessage = { role: "assistant" | "user"; text: string };
 
+export type FailoverDetail = {
+  fromModel: string;
+  toModel: string;
+  reason: string;
+};
+
 export type ModelReplyOutcome =
-  { kind: "text"; text: string } | { kind: "unavailable" } | { kind: "error" };
+  | { kind: "text"; text: string; failover?: FailoverDetail }
+  | { kind: "unavailable" }
+  | { kind: "error" };
 
 /**
  * Asks the server chat route for a model reply. "unavailable" means the server
@@ -35,13 +43,21 @@ export async function requestModelReply(
   }
 
   const payload: unknown = await response.json().catch(() => null);
-  const body = (payload ?? {}) as { error?: unknown; text?: unknown };
+  const body = (payload ?? {}) as {
+    error?: unknown;
+    text?: unknown;
+    failover?: FailoverDetail;
+  };
 
   if (response.status === 503 && body.error === "no_provider_configured") {
     return { kind: "unavailable" };
   }
   if (response.ok && typeof body.text === "string" && body.text.trim()) {
-    return { kind: "text", text: body.text };
+    return {
+      kind: "text",
+      text: body.text,
+      ...(body.failover ? { failover: body.failover } : {}),
+    };
   }
   return { kind: "error" };
 }
