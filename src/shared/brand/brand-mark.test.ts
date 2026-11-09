@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import {
+  GRAPHITE,
   STATIC_ICON,
   brandMarkLayers,
   brandMarkSvg,
@@ -20,23 +21,34 @@ test("public/openbot-icon.svg matches the drawn mark", () => {
   );
 });
 
-test("the in-app mark drops construction lines and takes the tile class", () => {
-  const withGuides = brandMarkLayers({ tile: "rounded", guides: true });
-  const layers = brandMarkLayers({
-    tile: "rounded",
-    guides: false,
-    tileClassName: "fill-surface",
-  });
-  assert.ok(layers.length < withGuides.length);
-  assert.equal(layers[0].attrs.className, "fill-surface");
-  assert.equal(layers[0].attrs.fill, undefined);
+test("the sketch is lines only: nothing is filled", () => {
+  const layers = brandMarkLayers({ tile: "none", guides: true });
+  assert.ok(layers.length > 0);
+  for (const node of layers) {
+    assert.equal(node.tag, "path");
+    assert.equal(node.attrs.fill, "none");
+  }
 });
 
-test("the head is graphite only: every paint is a grey", () => {
+test("the in-app sketch draws in the text colour without guides", () => {
+  const withGuides = brandMarkLayers({ tile: "none", guides: true });
+  const layers = brandMarkLayers({ tile: "none", guides: false });
+  assert.ok(layers.length < withGuides.length);
+  assert.ok(layers.every((node) => node.attrs.stroke === "currentColor"));
+});
+
+test("the static icon picks a graphite for the viewer's scheme", () => {
   const svg = brandMarkSvg(STATIC_ICON);
-  const paints = [...svg.matchAll(/(?:fill|stroke)="(#[0-9a-fA-F]{6})"/g)];
-  assert.ok(paints.length > 0);
-  for (const [, hex] of paints) {
+  assert.doesNotMatch(svg, /<rect/);
+  assert.match(svg, new RegExp(`color:${GRAPHITE.onLight}`));
+  assert.match(
+    svg,
+    new RegExp(`prefers-color-scheme:dark\\)\\{svg\\{color:${GRAPHITE.onDark}`),
+  );
+});
+
+test("every pencil tone is a grey", () => {
+  for (const hex of Object.values(GRAPHITE)) {
     const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
     assert.ok(
       Math.max(r, g, b) - Math.min(r, g, b) <= 10,
@@ -45,18 +57,22 @@ test("the head is graphite only: every paint is a grey", () => {
   }
 });
 
-test("a heavier weight only thickens the outline", () => {
-  const plain = brandMarkLayers({ tile: "none", guides: false });
-  const heavy = brandMarkLayers({ tile: "none", guides: false, weight: 2 });
-  assert.equal(plain.length, heavy.length);
-  const outline = (nodes: typeof plain) =>
-    nodes.find((node) => node.attrs.stroke === "#E5E5E5")?.attrs.strokeWidth;
-  assert.ok(Number(outline(heavy)) > Number(outline(plain)));
+test("a heavier weight presses the outline harder", () => {
+  const widest = (weight: number) =>
+    Math.max(
+      ...brandMarkLayers({ tile: "none", guides: false, weight }).map((node) =>
+        Number(node.attrs.strokeWidth),
+      ),
+    );
+  assert.ok(widest(2) > widest(1));
 });
 
-test("a maskable mark has no tile and no clip paths or filters", () => {
-  const svg = brandMarkSvg({ ...STATIC_ICON, tile: "none" });
-  assert.doesNotMatch(svg, /<rect/);
-  assert.doesNotMatch(svg, /clip-path|filter/);
+test("an install icon has an explicit ink and no clip paths or filters", () => {
+  const svg = brandMarkSvg({
+    tile: "none",
+    guides: true,
+    ink: GRAPHITE.onDark,
+  });
+  assert.doesNotMatch(svg, /<style|currentColor|clip-path|filter/);
   assert.match(svg, /^<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg"/);
 });

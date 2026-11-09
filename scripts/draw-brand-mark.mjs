@@ -1,5 +1,6 @@
-// Draws the Open Bot mark as one of the crew heads, in graphite pencil with no
-// colour: a round head with the crew's hatching, outline passes, pill eyes and
+// Draws the Open Bot mark as one of the crew heads, the way a graphite pencil
+// sketch would: no fill and no colour, only pencil lines. Outline passes,
+// hatching on the shadow side, pill eyes filled in with a scribble, and faint
 // construction lines. The random generator is seeded, so the drawing is the
 // same on every run. It writes the art data and the static icon:
 //   npm run brand:draw
@@ -9,8 +10,8 @@ import * as prettier from "prettier";
 
 const SEED = 20261109;
 // The crew heads sit on a 100 box with a radius of 32; this one sits on a
-// 64 tile, so every crew measure is scaled by HEAD.r / 32.
-const HEAD = { cx: 32, cy: 32.5, r: 19 };
+// 64 box, so every crew measure is scaled by HEAD.r / 32.
+const HEAD = { cx: 32, cy: 32, r: 19 };
 const SCALE = HEAD.r / 32;
 
 function seeded(seed) {
@@ -70,8 +71,11 @@ function pencilPass({ r, amp, start, sweep = 372, drift = 0.4, step = 8 }) {
   return smooth(points);
 }
 
-/** Long strokes across the head, one per chord, like the crew's hatching. */
-function hatch({ angle, spacing, phase = 0, from, inset = 0.5 }) {
+/**
+ * Parallel pencil strokes across the head, one per chord, kept to the band
+ * of offsets [from, to] measured along the strokes' normal.
+ */
+function hatch({ angle, spacing, from, to, inset = 0.8 }) {
   const { cx, cy } = HEAD;
   const r = HEAD.r - inset;
   const a = radians(angle);
@@ -79,13 +83,13 @@ function hatch({ angle, spacing, phase = 0, from, inset = 0.5 }) {
   const [nx, ny] = [-dy, dx];
   const at = (o, s) => [cx + nx * o + dx * s, cy + ny * o + dy * s];
   let d = "";
-  for (let t = (from ?? -r) + phase; t < r; t += spacing) {
-    const o = t + between(-0.2, 0.2);
-    if (Math.abs(o) >= r - 1) continue;
+  for (let t = from ?? -r; t <= (to ?? r); t += spacing) {
+    const o = t + between(-0.15, 0.15);
+    if (Math.abs(o) >= r - 0.6) continue;
     const half = Math.sqrt(r * r - o * o);
-    const s = -half + between(0, 0.6);
-    const e = half - between(0, 0.6);
-    const mid = at(o + between(-0.5, 0.5), (s + e) / 2);
+    const s = -half + between(0.1, 0.9);
+    const e = half - between(0.1, 0.9);
+    const mid = at(o + between(-0.3, 0.3), (s + e) / 2);
     d += `M${point(at(o, s))}Q${point(mid)} ${point(at(o, e))}`;
   }
   return d;
@@ -108,98 +112,113 @@ function arc(r, fromDeg, toDeg) {
   return `M${point(at(fromDeg))}A${num(r)} ${num(r)} 0 ${large} 1 ${point(at(toDeg))}`;
 }
 
-function circlePath(r) {
-  const { cx, cy } = HEAD;
-  return `M${num(cx + r)} ${num(cy)}a${r} ${r} 0 1 0 ${num(-2 * r)} 0a${r} ${r} 0 1 0 ${num(2 * r)} 0Z`;
+/** A pill eye leaning right like the crew's: its frame and axis. */
+function eyeFrame(x, y) {
+  const t = radians(7.5);
+  return {
+    c: [x, y],
+    u: [Math.sin(t), -Math.cos(t)],
+    p: [Math.cos(t), Math.sin(t)],
+    r: 4.1 * SCALE * 1.08,
+    half: 5.7 * SCALE,
+  };
 }
 
-/** A pill eye, leaning right by `tilt` degrees like the crew's eyes. */
-function eye(x, y) {
-  const r = 4.1 * SCALE * 1.08;
-  const half = 5.7 * SCALE;
-  const t = radians(7.5);
-  const [ux, uy] = [Math.sin(t), -Math.cos(t)];
-  const [px, py] = [Math.cos(t), Math.sin(t)];
-  const top = [x + ux * half, y + uy * half];
-  const bottom = [x - ux * half, y - uy * half];
-  const side = (c, k) => [c[0] + px * r * k, c[1] + py * r * k];
-  const R = num(r);
+const along = (f, s, w) => [
+  f.c[0] + f.u[0] * s + f.p[0] * w,
+  f.c[1] + f.u[1] * s + f.p[1] * w,
+];
+
+/** The pill's outline. */
+function eyeOutline(f) {
+  const R = num(f.r);
   return (
-    `M${point(side(top, -1))}L${point(side(bottom, -1))}` +
-    `A${R} ${R} 0 0 0 ${point(side(bottom, 1))}` +
-    `L${point(side(top, 1))}A${R} ${R} 0 0 0 ${point(side(top, -1))}Z`
+    `M${point(along(f, f.half, -f.r))}L${point(along(f, -f.half, -f.r))}` +
+    `A${R} ${R} 0 0 0 ${point(along(f, -f.half, f.r))}` +
+    `L${point(along(f, f.half, f.r))}A${R} ${R} 0 0 0 ${point(along(f, f.half, -f.r))}Z`
   );
+}
+
+/** The pill filled in the way a pencil does it: a tight back-and-forth. */
+function eyeScribble(f, step, phase) {
+  const end = f.half + f.r - 0.35;
+  const points = [];
+  let side = 1;
+  for (let s = -end + phase; s <= end; s += step) {
+    const cap = Math.max(0, Math.abs(s) - f.half);
+    const w = Math.sqrt(Math.max(0, f.r * f.r - cap * cap)) - 0.35;
+    points.push(along(f, s, side * w + between(-0.12, 0.12)));
+    side = -side;
+  }
+  return `M${points.map(point).join("L")}`;
 }
 
 const { cx, cy, r } = HEAD;
 const k = SCALE;
+const eyes = [
+  eyeFrame(cx - 0.3 * r, cy + 0.02 * r),
+  eyeFrame(cx + 0.31 * r, cy - 0.04 * r),
+];
 const art = {
-  body: circlePath(r),
   guides: [
-    { d: line(4, cy + 2.4, 60, cy - 2.4), width: 0.6 * k, opacity: 0.82 },
-    { d: line(cx - 2.6, 4, cx + 2.4, 60), width: 0.6 * k, opacity: 0.72 },
+    { d: line(5, cy + 2.4, 59, cy - 2.4), width: 0.35, opacity: 0.3 },
+    { d: line(cx - 2.6, 5, cx + 2.4, 59), width: 0.35, opacity: 0.26 },
     {
       d: line(cx - 16, cy + 20, cx + 17, cy - 20.5),
-      width: 0.6 * k,
-      opacity: 0.8,
-    },
-    { d: arc(r * 1.2, 205, 375), width: 0.6 * k, opacity: 0.4 },
-  ],
-  hatch: [
-    {
-      d: hatch({ angle: -38, spacing: 4.2, phase: 1 }),
-      tone: "light",
-      width: 1.5 * k,
-      opacity: 0.55,
-    },
-    {
-      d: hatch({ angle: -38, spacing: 3.4, phase: 2.6 }),
-      tone: "light",
-      width: 1.5 * k,
-      opacity: 0.35,
-    },
-    {
-      d: hatch({ angle: 28, spacing: 4.6, phase: 0.8 }),
-      tone: "dark",
-      width: 1.2 * k,
-      opacity: 0.35,
-    },
-    {
-      d: hatch({ angle: 28, spacing: 6, phase: 3 }),
-      tone: "dark",
-      width: 1.2 * k,
-      opacity: 0.2,
-    },
-    {
-      d: hatch({ angle: -45, spacing: 2.6, from: 5 }),
-      tone: "shade",
-      width: 1.5 * k,
+      width: 0.35,
       opacity: 0.3,
     },
+    { d: arc(r * 1.2, 205, 375), width: 0.35, opacity: 0.2 },
+  ],
+  // Light from the upper left: the shadow side is drawn, the rest stays paper.
+  hatch: [
     {
-      d: hatch({ angle: -45, spacing: 1.8, from: 3, phase: 0.9 }),
-      tone: "shade",
-      width: 1.5 * k,
-      opacity: 0.18,
+      d: hatch({ angle: -45, spacing: 1.25, from: 8.5 }),
+      width: 0.42,
+      opacity: 0.5,
+    },
+    {
+      d: hatch({ angle: 80, spacing: 1.5, to: -11 }),
+      width: 0.36,
+      opacity: 0.32,
+    },
+    {
+      d: hatch({ angle: -45, spacing: 2.4, from: 2, to: 8 }),
+      width: 0.32,
+      opacity: 0.22,
     },
   ],
   ink: [
-    { d: pencilPass({ r, amp: 0.22 }), width: 1.7 * k, opacity: 0.83 },
+    { d: pencilPass({ r, amp: 0.22 }), width: 1.7 * k, opacity: 0.9 },
     {
-      d: pencilPass({ r: r - 0.3, amp: 0.2, start: 300, sweep: 200, step: 10 }),
+      d: pencilPass({
+        r: r - 0.4,
+        amp: 0.25,
+        start: 300,
+        sweep: 220,
+        step: 10,
+      }),
       width: 0.9 * k,
-      opacity: 0.38,
+      opacity: 0.45,
     },
     {
-      d: pencilPass({ r: r + 0.3, amp: 0.2, start: -10, sweep: 120, step: 10 }),
+      d: pencilPass({
+        r: r + 0.5,
+        amp: 0.25,
+        start: -15,
+        sweep: 140,
+        drift: 0.6,
+        step: 10,
+      }),
       width: 1.1 * k,
-      opacity: 0.49,
+      opacity: 0.5,
     },
   ],
-  eyes: [
-    { d: eye(cx - 0.3 * r, cy + 0.02 * r), fillOpacity: 0.96 },
-    { d: eye(cx + 0.31 * r, cy - 0.04 * r), fillOpacity: 0.93 },
-  ],
+  eyes: eyes.flatMap((f) => [
+    { d: eyeScribble(f, 0.42, 0), width: 0.8, opacity: 0.92 },
+    { d: eyeScribble(f, 0.6, 0.21), width: 0.6, opacity: 0.6 },
+    { d: eyeOutline(f), width: 0.6, opacity: 0.85 },
+  ]),
 };
 
 const root = new URL("../", import.meta.url);
@@ -207,8 +226,8 @@ const artFile = fileURLToPath(
   new URL("src/shared/brand/brand-mark-art.ts", root),
 );
 const source = `// Generated by scripts/draw-brand-mark.mjs, not hand-edited. The Open Bot mark:
-// a crew head drawn in graphite pencil on a 0 0 64 64 viewBox. Colours are
-// applied by brand-mark-layers.ts.
+// a crew head sketched in graphite pencil on a 0 0 64 64 viewBox, lines only.
+// The pencil colour is applied by brand-mark-layers.ts.
 
 export const BRAND_MARK_ART = ${JSON.stringify(art)} as const;
 `;
