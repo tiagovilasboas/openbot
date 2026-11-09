@@ -1,6 +1,7 @@
 "use client";
 
 import type { SkillDefinition } from "@/features/skills/skill-types.ts";
+import { getBotsCopy } from "./bots-copy.ts";
 
 export interface BotSkillsSelectorProps {
   allSkills: SkillDefinition[];
@@ -15,55 +16,61 @@ export function BotSkillsSelector({
   isPt,
   onToggleSkill,
 }: BotSkillsSelectorProps) {
+  const copy = getBotsCopy(isPt);
+
   return (
-    <div>
-      <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-400">
-        {isPt ? "Skills Habilitadas neste Bot" : "Skills Enabled on this Bot"}
-      </label>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-        {allSkills.length === 0 ? (
-          <p className="text-xs text-zinc-500 italic col-span-1 sm:col-span-2 py-3 text-center border border-dashed border-white/10 rounded-xl">
-            {isPt
-              ? "Nenhuma skill cadastrada ainda. Crie suas skills em Configurações > Skills."
-              : "No skills configured yet. Create your skills in Settings > Skills."}
-          </p>
-        ) : (
-          allSkills.map((skill) => {
-            const isSelected = selectedSkills.includes(skill.id);
+    <section aria-labelledby="bot-skills-label" className="flex flex-col gap-2">
+      <h3
+        id="bot-skills-label"
+        className="text-[15px] font-medium text-foreground md:text-sm"
+      >
+        {copy.skillsLabel}
+      </h3>
+      {allSkills.length === 0 ? (
+        <p className="rounded-xl border border-dashed border-border px-3.5 py-3 text-[13px] text-muted">
+          {copy.skillsEmpty}
+        </p>
+      ) : (
+        <ul className="divide-y divide-separator rounded-xl border border-border bg-surface">
+          {allSkills.map((skill) => {
+            const checked = selectedSkills.includes(skill.id);
             return (
-              <button
-                key={skill.id}
-                type="button"
-                onClick={() => onToggleSkill(skill.id)}
-                className={`flex items-start gap-2.5 p-2.5 rounded-xl border text-left transition-all ${
-                  isSelected
-                    ? "border-emerald-500/40 bg-emerald-500/10 text-white"
-                    : "border-white/5 bg-zinc-900/40 text-zinc-400 hover:border-white/15"
-                }`}
-              >
-                <span
-                  className={`size-3 rounded-full mt-1 shrink-0 ${
-                    isSelected
-                      ? "bg-emerald-400 shadow-sm"
-                      : "border border-zinc-600"
-                  }`}
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs font-semibold text-white">
-                    {skill.name}
-                  </p>
-                  <p className="text-[11px] text-zinc-400 truncate">
-                    {skill.description}
-                  </p>
-                  <span className="font-mono text-[10px] text-zinc-500">
-                    {skill.command}
+              <li key={skill.id}>
+                <label className="flex min-h-12 cursor-pointer items-center gap-3 px-3.5 py-2.5">
+                  <span className="min-w-0 flex-1">
+                    <span className="flex flex-wrap items-baseline gap-x-2">
+                      <span className="text-[15px] font-medium text-foreground md:text-sm">
+                        {skill.name}
+                      </span>
+                      <span className="font-mono text-[13px] text-subtle">
+                        {skill.command}
+                      </span>
+                    </span>
+                    {skill.description && (
+                      <span className="block truncate text-[13px] text-muted">
+                        {skill.description}
+                      </span>
+                    )}
                   </span>
-                </div>
-              </button>
+                  <input
+                    type="checkbox"
+                    role="switch"
+                    checked={checked}
+                    onChange={() => onToggleSkill(skill.id)}
+                    className="peer sr-only"
+                  />
+                  <span
+                    aria-hidden="true"
+                    className="relative h-6 w-10 shrink-0 rounded-full bg-surface-tertiary transition-colors duration-[140ms] peer-checked:bg-foreground peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-bot-accent peer-checked:[&>span]:translate-x-4 peer-checked:[&>span]:bg-background"
+                  >
+                    <span className="absolute start-1 top-1 size-4 rounded-full bg-muted transition-transform duration-[140ms]" />
+                  </span>
+                </label>
+              </li>
             );
-          })
-        )}
-      </div>
-    </div>
+          })}
+        </ul>
+      )}
+    </section>
   );
 }

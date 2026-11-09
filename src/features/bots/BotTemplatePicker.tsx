@@ -1,65 +1,75 @@
 "use client";
 
+import { CheckIcon } from "@/shared/ui/FieldIcons.tsx";
 import { BotAvatar } from "./BotAvatar.tsx";
 import { BOT_TEMPLATES, type BotTemplate } from "./bot-templates.ts";
+import { getBotsCopy } from "./bots-copy.ts";
 import type { ChatLanguage } from "../chat/respond-to-message.ts";
 
 export interface BotTemplatePickerProps {
   language: ChatLanguage;
+  selectedId?: string | null;
   onSelectTemplate: (template: BotTemplate) => void;
 }
 
 export function BotTemplatePicker({
   language,
+  selectedId = null,
   onSelectTemplate,
 }: BotTemplatePickerProps) {
-  const isPt = language === "pt";
+  const copy = getBotsCopy(language === "pt");
 
   return (
-    <div className="flex flex-col gap-2.5">
-      <div className="flex items-center justify-between">
-        <label className="text-xs font-medium text-zinc-300">
-          {isPt ? "Modelos Pré-definidos (Templates)" : "Pre-defined Templates"}
-        </label>
-        <span className="text-[10px] font-mono text-cyan-400">
-          {BOT_TEMPLATES.length} {isPt ? "arquétipos" : "archetypes"}
-        </span>
+    <section
+      aria-labelledby="bot-templates-label"
+      className="flex flex-col gap-2"
+    >
+      <div>
+        <h3
+          id="bot-templates-label"
+          className="text-[15px] font-medium text-foreground md:text-sm"
+        >
+          {copy.templatesLabel}
+        </h3>
+        <p className="text-[13px] text-subtle">{copy.templatesHint}</p>
       </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1 [scrollbar-width:thin]">
-        {BOT_TEMPLATES.map((tmpl) => (
-          <button
-            key={tmpl.id}
-            type="button"
-            onClick={() => onSelectTemplate(tmpl)}
-            className="group flex items-start gap-2.5 rounded-xl border border-white/10 bg-zinc-900/60 p-2.5 text-left transition-all hover:border-cyan-500/40 hover:bg-zinc-800/80 active:scale-[0.98]"
-          >
-            <div className="mt-0.5 shrink-0">
-              <BotAvatar
-                shape={tmpl.avatarShape}
-                color={tmpl.avatarColor}
-                size={24}
-              />
-            </div>
-            <div className="flex min-w-0 flex-1 flex-col">
-              <div className="flex items-center justify-between gap-1">
-                <span className="truncate text-xs font-semibold text-zinc-200 group-hover:text-cyan-300">
-                  {tmpl.name}
+      <ul className="-mx-5 flex snap-x gap-2 overflow-x-auto px-5 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:mx-0 md:grid md:grid-cols-2 md:overflow-visible md:px-0 lg:grid-cols-3">
+        {BOT_TEMPLATES.map((tmpl) => {
+          const selected = tmpl.id === selectedId;
+          return (
+            <li key={tmpl.id} className="w-60 shrink-0 snap-start md:w-auto">
+              <button
+                type="button"
+                aria-pressed={selected}
+                onClick={() => onSelectTemplate(tmpl)}
+                className={`flex min-h-14 w-full items-center gap-3 rounded-xl border px-3 py-2 text-start transition-[background-color,transform] duration-[140ms] active:scale-[0.97] ${
+                  selected
+                    ? "border-border bg-surface-tertiary"
+                    : "border-border bg-surface hover:bg-surface-secondary"
+                }`}
+              >
+                <BotAvatar
+                  shape={tmpl.avatarShape}
+                  color={tmpl.avatarColor}
+                  size={32}
+                  className="shrink-0"
+                />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[15px] font-medium text-foreground md:text-sm">
+                    {tmpl.name}
+                  </span>
+                  <span className="block truncate text-[13px] text-muted">
+                    {tmpl.title}
+                  </span>
                 </span>
-                <span className="shrink-0 text-[10px] text-zinc-500 group-hover:text-zinc-400">
-                  {isPt ? "Aplicar" : "Apply"}
-                </span>
-              </div>
-              <span className="truncate text-[10px] text-zinc-400">
-                {tmpl.title}
-              </span>
-              <p className="mt-1 line-clamp-1 text-[10px] text-zinc-500">
-                {tmpl.description}
-              </p>
-            </div>
-          </button>
-        ))}
-      </div>
-    </div>
+                {selected && (
+                  <CheckIcon className="size-4 shrink-0 text-foreground" />
+                )}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }
