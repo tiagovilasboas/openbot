@@ -2,6 +2,7 @@
 
 import { useId } from "react";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
+import { AuthorCredit } from "@/shared/brand/AuthorCredit.tsx";
 import { chatCopy } from "./chat-copy.ts";
 import { LanguageToggle } from "./LanguageToggle.tsx";
 import type { ChatLanguage } from "./respond-to-message.ts";
@@ -113,11 +114,20 @@ export function SidebarPanel({
             onPress={onLock}
           />
         )}
-        <SidebarActionRow
-          icon={<SettingsIcon />}
-          label={content.settings}
-          onPress={onOpenSettings}
-        />
+        <div className="flex items-center gap-1">
+          <div className="min-w-0 flex-1">
+            <SidebarActionRow
+              icon={<SettingsIcon />}
+              label={content.settings}
+              onPress={onOpenSettings}
+            />
+          </div>
+          <AuthorCredit
+            profileTitle={content.authorProfileTitle}
+            sponsorLabel={content.authorSponsorLabel}
+            className="shrink-0 pr-1"
+          />
+        </div>
       </div>
     </>
   );
