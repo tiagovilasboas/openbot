@@ -1,6 +1,7 @@
 import {
   AVATAR_COLORS,
   AVATAR_SHAPES,
+  BOT_NAME_MAX_LENGTH,
   DEFAULT_BOT,
   LEGACY_SHAPES,
   type AvatarColor,
@@ -60,7 +61,7 @@ export function sanitizeBotProfile(
   if (typeof obj.name !== "string" || !obj.name.trim()) return null;
 
   const rawId = obj.id.trim();
-  const rawName = obj.name.trim();
+  const rawName = obj.name.trim().slice(0, BOT_NAME_MAX_LENGTH).trim();
 
   // Canonical upgrade for legacy default bot
   const isLegacyDefault =
@@ -255,7 +256,7 @@ export function createBotProfile(input: {
 
   return {
     id,
-    name: input.name.trim() || "Novo Bot",
+    name: input.name.trim().slice(0, BOT_NAME_MAX_LENGTH) || "Novo Bot",
     title: input.title?.trim() || undefined,
     description:
       input.description?.trim() ||
