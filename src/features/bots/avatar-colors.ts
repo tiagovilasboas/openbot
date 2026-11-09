@@ -1,73 +1,44 @@
 import type { AvatarColor } from "./bot-types.ts";
 
-/** Flat palette colour for each avatar colour (also used by the pickers). */
+/** Body colour for each avatar colour: bright, flat fills (also the pickers). */
 export const COLOR_MAP: Record<AvatarColor, string> = {
-  cyan: "#06b6d4",
-  blue: "#3b82f6",
-  violet: "#8b5cf6",
-  magenta: "#d946ef",
-  green: "#10b981",
-  yellow: "#f59e0b",
-  orange: "#f97316",
-  red: "#ef4444",
-  black: "#27272a",
-  teal: "#2DD4BF",
-  sky: "#0EA5E9",
-  pink: "#EC4899",
-  gold: "#EAB308",
+  cyan: "#1EC8E6",
+  blue: "#4D7CFF",
+  violet: "#7C5CFF",
+  magenta: "#C85CFF",
+  green: "#38D46A",
+  yellow: "#FFD43F",
+  orange: "#FF7A3D",
+  red: "#FF5A5F",
+  black: "#5B5E69",
+  teal: "#22C9A0",
+  sky: "#2EA8FF",
+  pink: "#FF5EA8",
+  gold: "#FFAE1F",
 };
 
-// Never pure black or white heads (avoids the xAI logo look): "black" is a
-// dark grey head with light eyes.
-const BLACK_HEAD = "#3F3F46";
-const DARK_EYES = "#0A0A0A";
+/** The pencil line around every head: graphite, as in the Open Bot mark. */
+export const OUTLINE = "#24242B";
+
+// Never a pure black head (it reads as the xAI logo): "black" is a graphite
+// blob, so its eyes are light and their catchlight takes the body colour.
+const DARK_EYES = "#16161B";
 const LIGHT_EYES = "#F5F5F5";
+const CATCHLIGHT = "#FFFFFF";
 
 export interface HeadTones {
   base: string;
-  light: string;
-  dark: string;
-  shade: string;
-  ink: string;
-  guide: string;
   eyes: string;
+  catchlight: string;
 }
 
-// Runtime tokens for the dark UI (the default): graphite ink and construction.
-export const INK_DARK = "#E5E5E5";
-export const INK_LIGHT = "#2A2A2A";
-export const GUIDE_COLOR = "#5A5A5A";
-export const GUIDE_OPACITY = 0.85;
-
-/** Blend hex toward another hex by k (0 = hex, 1 = other). */
-export function mix(hex: string, other: string, k: number): string {
-  const a = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
-  const b = [1, 3, 5].map((i) => parseInt(other.slice(i, i + 2), 16));
-  return `#${a
-    .map((x, i) =>
-      Math.round(x + (b[i]! - x) * k)
-        .toString(16)
-        .padStart(2, "0")
-        .toUpperCase(),
-    )
-    .join("")}`;
-}
-
-export function avatarSwatch(color: AvatarColor): string {
-  return COLOR_MAP[color] ?? COLOR_MAP.cyan;
-}
-
-export function headTones(color: AvatarColor, light = false): HeadTones {
-  const isBlack = color === "black";
-  const base = isBlack ? BLACK_HEAD : avatarSwatch(color);
+export function headTones(color: AvatarColor): HeadTones {
+  const base = COLOR_MAP[color] ?? COLOR_MAP.cyan;
+  const graphite = color === "black";
   return {
     base,
-    light: mix(base, "#FFFFFF", 0.35),
-    dark: mix(base, "#000000", 0.22),
-    shade: mix(base, "#000000", 0.35),
-    ink: light ? INK_LIGHT : INK_DARK,
-    guide: GUIDE_COLOR,
-    eyes: isBlack ? LIGHT_EYES : DARK_EYES,
+    eyes: graphite ? LIGHT_EYES : DARK_EYES,
+    catchlight: graphite ? base : CATCHLIGHT,
   };
 }
 
