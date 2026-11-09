@@ -18,22 +18,16 @@ import { useModelConfig } from "@/features/model/use-model-config.ts";
 import { useModelStatus } from "@/features/model/use-model-status.ts";
 import { ChatEmptyState } from "./ChatEmptyState.tsx";
 import { ChatHeader } from "./ChatHeader.tsx";
-import type { MessageData } from "./ChatMessageItem.tsx";
 import { ChatSidebar } from "./ChatSidebar.tsx";
 import { ConversationView } from "./ConversationView.tsx";
-import { executeChatMessage } from "./execute-chat-message.ts";
-import { buildReplyMessages } from "./reply-messages.ts";
-import type { ChatLanguage } from "./respond-to-message.ts";
-import { insertReplyAfter, threadUpTo } from "./thread-sequencing.ts";
-import { useBotMessages, loadBotMessages } from "./use-bot-messages.ts";
+import { useBotMessages } from "./use-bot-messages.ts";
+import { useChatTurns } from "./use-chat-turns.ts";
+import { useLanguage } from "./use-language.ts";
 import { useMessageQueue } from "./use-message-queue.ts";
 
 export function ChatExperience() {
-  const [language, setLanguage] = useState<ChatLanguage>("pt");
+  const [language, setLanguage] = useLanguage();
   const [draft, setDraft] = useState("");
-  const [busy, setBusy] = useState(false);
-  // While the Chief's crew answers, the thinking row follows the working bot.
-  const [workingBot, setWorkingBot] = useState<BotProfile | null>(null);
   const auth = useLocalAuth();
   const { queueCount, enqueue, dequeue, clearQueue } = useMessageQueue();
 
@@ -67,7 +61,6 @@ export function ChatExperience() {
   const [serverModel, setServerModel] =
     useState<ActiveServerModelOutcome | null>(null);
 
-  const conversationIdRef = useRef(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -89,12 +82,6 @@ export function ChatExperience() {
     void fetchActiveServerModel().then((server) => setServerModel(server));
   }, []);
 
-  useEffect(() => {
-    if (messages.length > 0) {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [messages, busy]);
-
   const isConfigured = Boolean(modelConfig || serverModel?.configured);
   const { status: modelStatus, recordModelCall } = useModelStatus(
     modelConfig,
@@ -106,89 +93,39 @@ export function ChatExperience() {
       ? formatModelBadge(serverModel, false, language)
       : formatModelBadge(null, false, language);
 
-  async function processTurn(
-    turnText: string,
-    userMessageId: number,
-    conversationId: number,
-  ) {
-    setBusy(true);
-    // Read the stored thread, not a render closure, so queued messages stay.
-    const history = threadUpTo(
-      loadBotMessages(activeBot.id),
-      userMessageId,
-    ).map((m) => ({
-      role: m.role,
-      text: m.text,
-    }));
+  const { busy, workingBot, sendText, resetConversation } = useChatTurns({
+    language,
+    activeBot,
+    bots,
+    mainBotId,
+    gitHubToken,
+    modelConfig,
+    modelBadge: isConfigured ? activeModelLabel : undefined,
+    recordModelCall,
+    persistMessages,
+    getNextId,
+    clearMessages,
+    enqueue,
+    dequeue,
+    clearQueue,
+  });
 
-    const reply = await executeChatMessage({
-      text: turnText,
-      language,
-      history,
-      activeBot,
-      bots,
-      mainBotId,
-      gitHubToken,
-      modelConfig,
-      onBotWorking: setWorkingBot,
-    });
-    recordModelCall(reply.modelCall);
-    setWorkingBot(null);
-
-    if (conversationIdRef.current !== conversationId) {
-      setBusy(false);
-      return;
+  useEffect(() => {
+    if (messages.length > 0) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
-
-    const replyMessages = buildReplyMessages(reply, {
-      language,
-      modelBadge: isConfigured ? activeModelLabel : undefined,
-      nextId: getNextId,
-    });
-    persistMessages(
-      insertReplyAfter(
-        loadBotMessages(activeBot.id),
-        userMessageId,
-        replyMessages,
-      ),
-    );
-    setBusy(false);
-
-    // If another message was queued in the meantime, process it sequentially
-    const nextQueued = dequeue();
-    if (nextQueued && nextQueued.conversationId === conversationIdRef.current) {
-      void processTurn(nextQueued.text, nextQueued.id, conversationId);
-    }
-  }
+  }, [messages, busy]);
 
   function sendMessage(value = draft) {
     const text = value.trim();
     if (!text) return;
-    const conversationId = conversationIdRef.current;
-    const userMsgId = getNextId();
-    const userMessage: MessageData = {
-      id: userMsgId,
-      role: "user",
-      language,
-      text,
-    };
-    persistMessages([...loadBotMessages(activeBot.id), userMessage]);
+    sendText(text);
     setDraft("");
-
-    if (busy) {
-      enqueue({ id: userMsgId, text, conversationId });
-      return;
-    }
-
-    void processTurn(text, userMsgId, conversationId);
   }
 
   function startNewChat() {
-    conversationIdRef.current += 1;
-    clearQueue();
-    clearMessages();
+    resetConversation();
     setDraft("");
-    setBusy(false);
   }
 
   if (auth.hasPassword && auth.isLocked) {

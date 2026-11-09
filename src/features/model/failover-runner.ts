@@ -52,6 +52,8 @@ function resolveAutoFallbackAdapter(
         model: targetModel,
         apiKey,
         fetchImpl,
+        // A client-supplied base URL must pass the guard on the fallback too.
+        guardUrl: routerConfig !== null,
       });
     }
   }
@@ -67,7 +69,7 @@ export async function executeWithFailover({
   fetchImpl,
 }: FailoverRunnerOptions): Promise<ModelResult> {
   const primaryResult = await primaryAdapter.generateReply(request);
-  if (primaryResult.ok) {
+  if (primaryResult.ok || primaryResult.code === "blocked_base_url") {
     return primaryResult;
   }
 

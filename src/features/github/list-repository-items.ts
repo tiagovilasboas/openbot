@@ -1,3 +1,4 @@
+import { withApiHeaders } from "../server-guard/api-request-init.ts";
 import type { GitHubItemsResult, GitHubRepoRef } from "./github-types.ts";
 
 export async function listRepositoryItems(
@@ -6,15 +7,18 @@ export async function listRepositoryItems(
   fetchImpl: typeof fetch = fetch,
 ): Promise<GitHubItemsResult> {
   try {
-    const response = await fetchImpl("/api/github/items", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        owner: repo.owner,
-        repo: repo.repo,
-        ...(token ? { token } : {}),
+    const response = await fetchImpl(
+      "/api/github/items",
+      withApiHeaders({
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          owner: repo.owner,
+          repo: repo.repo,
+          ...(token ? { token } : {}),
+        }),
       }),
-    });
+    );
 
     const data = (await response
       .json()

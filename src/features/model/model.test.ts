@@ -242,7 +242,7 @@ test("adapters map failures to typed errors", async () => {
   );
 });
 
-test("router adapter captures upstream error detail when available", async () => {
+test("router adapter reports the status with a fixed tag, not upstream text", async () => {
   const router = createRouterAdapter({
     baseUrl: "https://openrouter.ai/api/v1",
     model: "meta-llama/llama-3.3-70b-instruct:free",
@@ -252,7 +252,7 @@ test("router adapter captures upstream error detail when available", async () =>
   assert.equal(result.ok, false);
   if (!result.ok) {
     assert.equal(result.code, "provider_rejected");
-    assert.equal(result.detail, "401: Invalid API key");
+    assert.equal(result.detail, "401: unauthorized");
   }
 });
 

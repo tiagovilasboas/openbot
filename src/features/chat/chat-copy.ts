@@ -26,6 +26,8 @@ export const chatCopy = {
       "O provedor atingiu o limite de pedidos (por minuto ou a cota diária gratuita). Espere um pouco ou escolha outro modelo em **Configurações**.",
     modelErrorModel:
       "Este modelo não está mais disponível no provedor. Escolha outro em **Configurações**.",
+    modelErrorBlockedUrl:
+      "Esse endereço de modelo não é permitido (rede privada, link-local ou metadados de nuvem). Use um endereço público ou localhost em **Configurações**.",
     settings: "Configurações",
     settingsTitle: "Configurações do OpenBot",
     settingsSubtitle:
@@ -146,6 +148,8 @@ export const chatCopy = {
       "The provider hit its request limit (per minute or the free daily quota). Wait a moment or pick another model in **Settings**.",
     modelErrorModel:
       "This model is no longer available from the provider. Pick another one in **Settings**.",
+    modelErrorBlockedUrl:
+      "That model address is not allowed (private network, link-local or cloud metadata). Use a public address or localhost in **Settings**.",
     settings: "Settings",
     settingsTitle: "OpenBot Settings",
     settingsSubtitle: "Configure your AI model and external tool connections.",

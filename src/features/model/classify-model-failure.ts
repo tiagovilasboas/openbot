@@ -4,7 +4,12 @@
  * "HTTP 429". The status decides the kind; the upstream text is never shown.
  */
 export type ModelFailureKind =
-  "auth" | "rate_limit" | "model_unavailable" | "unreachable" | "unknown";
+  | "auth"
+  | "rate_limit"
+  | "model_unavailable"
+  | "blocked_url"
+  | "unreachable"
+  | "unknown";
 
 export interface ModelFailure {
   kind: ModelFailureKind;
@@ -21,6 +26,7 @@ export function classifyModelFailure(
   code: unknown,
   detail: unknown,
 ): ModelFailure {
+  if (code === "blocked_base_url") return { kind: "blocked_url" };
   if (code === "provider_unreachable") return { kind: "unreachable" };
   const text = typeof detail === "string" ? detail : undefined;
   const status = statusOf(text);

@@ -103,7 +103,7 @@ Você também pode escolher o provedor em Configurações, na aba Modelo. As cha
 
 O service worker guarda só a casca do app. Ele nunca guarda chamadas a `/api`, respostas do modelo ou credenciais.
 
-O servidor não tem login. Qualquer pessoa que alcance o endereço dele pode usar as chaves do `.env.local`; mantenha-o na sua máquina ou atrás de um controle de acesso em que você confie.
+Por padrão o servidor não tem login, o que serve para localhost. Toda chamada a `/api` é checada por um `Origin` do mesmo site (ou pelo header `x-openbot-client: 1`), limitada a 64 KB e a 60 requisições por minuto por IP (`OPENBOT_RATE_LIMIT`). Para expor além da sua máquina, defina `OPENBOT_ACCESS_TOKEN` no `.env.local`: toda chamada a `/api` passa a exigir `Authorization: Bearer <token>`. No navegador, salve o token uma vez com `localStorage.setItem("openbot_access_token", "<token>")` no console do desenvolvedor. Mantenha atrás de HTTPS e de um controle de acesso em que você confie.
 
 ## Status e limites
 
@@ -111,7 +111,7 @@ O Open Bot é um projeto inicial, na versão 0.1.0.
 
 - Os testes automatizados usam provedores simulados. Nenhum teste roda contra um modelo de verdade.
 - A instalação num iPhone ou Android físico ainda não foi verificada.
-- Bots, conversas, skills e Configurações ficam no `localStorage` deste navegador. Ainda não há sincronização nem backup.
+- Bots, conversas, skills e Configurações ficam no `localStorage` deste navegador. Não há sincronização, mas você pode exportar e importar um arquivo de backup em Configurações (ele deixa de fora chaves, tokens e senhas).
 - As descrições da equipe ainda estão só em português, mesmo com a interface em inglês.
 - A delegação só rodou à mão contra um modelo gratuito. Nenhum teste automatizado chama um modelo real.
 - Ainda não existe integração com calendário.

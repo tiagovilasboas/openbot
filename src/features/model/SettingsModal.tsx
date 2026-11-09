@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ConnectionsPanel } from "@/features/connections/ConnectionsPanel.tsx";
 import { SettingsSecuritySection } from "@/features/auth/SettingsSecuritySection.tsx";
+import { BackupSection } from "@/features/backup/BackupSection.tsx";
 import { chatCopy } from "@/features/chat/chat-copy.ts";
 import { LanguageToggle } from "@/features/chat/LanguageToggle.tsx";
 import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
@@ -126,6 +127,9 @@ export function SettingsModal({
             onRemovePassword={onRemovePassword || (async () => false)}
             onChangePassword={onChangePassword || (async () => false)}
           />
+          <div className="mt-6">
+            <BackupSection language={language} />
+          </div>
         </div>
       </div>
     </ResponsiveSheet>
