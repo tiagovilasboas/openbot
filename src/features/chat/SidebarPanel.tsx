@@ -114,15 +114,20 @@ export function SidebarPanel({
             onPress={onLock}
           />
         )}
-        <SidebarActionRow
-          icon={<SettingsIcon />}
-          label={content.settings}
-          onPress={onOpenSettings}
-        />
-        <AuthorCredit
-          profileTitle={content.authorProfileTitle}
-          sponsorLabel={content.authorSponsorLabel}
-        />
+        <div className="flex items-center gap-1">
+          <div className="min-w-0 flex-1">
+            <SidebarActionRow
+              icon={<SettingsIcon />}
+              label={content.settings}
+              onPress={onOpenSettings}
+            />
+          </div>
+          <AuthorCredit
+            profileTitle={content.authorProfileTitle}
+            sponsorLabel={content.authorSponsorLabel}
+            className="shrink-0 pr-1"
+          />
+        </div>
       </div>
     </>
   );

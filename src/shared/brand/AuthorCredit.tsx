@@ -23,7 +23,7 @@ export function AuthorCredit({
   className = "",
 }: AuthorCreditProps) {
   return (
-    <div className={`flex items-center gap-0.5 px-1.5 ${className}`}>
+    <div className={`flex items-center gap-0.5 ${className}`}>
       <CreditLink
         href={PROFILE_URL}
         label={`${AUTHOR}, ${profileTitle}`}
