@@ -6,6 +6,7 @@ import {
   type AvatarShape,
   type BotProfile,
 } from "./bot-types.ts";
+import { CREW_PRESETS } from "./crew-presets.ts";
 
 export const BOTS_STORAGE_KEY = "openbot_bots";
 export const ACTIVE_BOT_STORAGE_KEY = "openbot_active_bot_id";
@@ -95,7 +96,7 @@ export function sanitizeBotProfile(raw: unknown): BotProfile | null {
   };
 }
 
-const DEFAULT_BOTS_LIST: BotProfile[] = [DEFAULT_BOT];
+const DEFAULT_BOTS_LIST: BotProfile[] = [...CREW_PRESETS];
 let cachedBotsRaw: string | null = null;
 let cachedBots: BotProfile[] = DEFAULT_BOTS_LIST;
 let botListeners: Array<() => void> = [];

@@ -12,6 +12,7 @@ import {
   updateBotInList,
 } from "./bot-storage.ts";
 import { DEFAULT_BOT } from "./bot-types.ts";
+import { CREW_PRESETS } from "./crew-presets.ts";
 
 function createMockStorage(): Storage {
   const store = new Map<string, string>();
@@ -29,13 +30,35 @@ function createMockStorage(): Storage {
   };
 }
 
-test("loadBotsFromStorage returns default bot on empty storage", () => {
+test("loadBotsFromStorage returns the crew presets on empty storage", () => {
   const storage = createMockStorage();
   const bots = loadBotsFromStorage(storage);
-  assert.equal(bots.length, 1);
+  assert.equal(bots.length, 9);
+  assert.equal(bots[0]?.id, "chief-of-staff");
   assert.equal(bots[0]?.name, DEFAULT_BOT.name);
+  assert.ok(bots.every((b) => b.avatarShape === "head"));
+  assert.equal(new Set(bots.map((b) => b.id)).size, 9);
   assert.equal(bots[0]?.avatarShape, "head");
   assert.equal(bots[0]?.avatarColor, "teal");
+});
+
+test("loadBotsFromStorage preserves stored bots without adding presets", () => {
+  const storage = createMockStorage();
+  const mine = createBotProfile({ name: "Mine" });
+  saveBotsToStorage([mine], storage);
+  const bots = loadBotsFromStorage(storage);
+  assert.equal(bots.length, 1);
+  assert.equal(bots[0]?.id, mine.id);
+});
+
+test("crew preset skills all resolve to built-in skills", () => {
+  const valid = new Set(["github", "calendar", "summary"]);
+  for (const bot of CREW_PRESETS) {
+    assert.ok(
+      bot.skills.every((s) => valid.has(s)),
+      bot.id,
+    );
+  }
 });
 
 test("sanitizeBotProfile upgrades legacy OpenBot default to Chief of Staff", () => {
