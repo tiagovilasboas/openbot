@@ -1,5 +1,6 @@
 "use client";
 
+import type { Ref } from "react";
 import type { chatCopy } from "@/features/chat/chat-copy.ts";
 import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
 import { FIELD_CLASS, FormField } from "@/shared/ui/FormField.tsx";
@@ -18,6 +19,9 @@ interface SettingsProviderFieldsProps {
   setRouterModel: (val: string) => void;
   routerApiKey: string;
   setRouterApiKey: (val: string) => void;
+  /** Shown under the key field when the router needs a key it lacks. */
+  routerApiKeyError?: string | null;
+  routerApiKeyRef?: Ref<HTMLInputElement>;
   localUrl: string;
   setLocalUrl: (val: string) => void;
   localModel: string;
@@ -70,6 +74,8 @@ interface SecretRowProps {
   onChange: (value: string) => void;
   placeholder: string;
   language: ChatLanguage;
+  error?: string | null;
+  inputRef?: Ref<HTMLInputElement>;
 }
 
 function SecretRow({
@@ -78,13 +84,16 @@ function SecretRow({
   onChange,
   placeholder,
   language,
+  error,
+  inputRef,
 }: SecretRowProps) {
   const s = getSettingsCopy(language);
   return (
-    <FormField label={label}>
+    <FormField label={label} error={error}>
       {(control) => (
         <SecretInput
           {...control}
+          ref={inputRef}
           value={value}
           onChange={onChange}
           placeholder={placeholder}
@@ -106,6 +115,8 @@ export function SettingsProviderFields({
   setRouterModel,
   routerApiKey,
   setRouterApiKey,
+  routerApiKeyError,
+  routerApiKeyRef,
   localUrl,
   setLocalUrl,
   localModel,
@@ -155,6 +166,8 @@ export function SettingsProviderFields({
             onChange={setRouterApiKey}
             placeholder="sk-or-v1-..."
             language={language}
+            error={routerApiKeyError}
+            inputRef={routerApiKeyRef}
           />
         </div>
       </div>

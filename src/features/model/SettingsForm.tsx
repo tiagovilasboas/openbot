@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { chatCopy } from "@/features/chat/chat-copy.ts";
 import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
 import {
@@ -16,6 +16,7 @@ import {
   type ClientModelConfig,
   type ModelProviderType,
 } from "./model-config.ts";
+import { lacksRequiredRouterKey } from "./router-key.ts";
 import {
   ConnectionTest,
   type ConnectionTestResult,
@@ -62,6 +63,8 @@ export function SettingsForm({
   const [routerApiKey, setRouterApiKey] = useState(
     currentConfig?.provider === "router" ? (currentConfig.apiKey ?? "") : "",
   );
+  const routerKeyRef = useRef<HTMLInputElement>(null);
+  const [wasKeyFlagged, setWasKeyFlagged] = useState(false);
 
   const [localUrl, setLocalUrl] = useState(
     currentConfig?.provider === "local"
@@ -118,12 +121,26 @@ export function SettingsForm({
     return null;
   }
 
+  // OpenRouter answers 401 to every call without a key, free models included.
+  const isRouterKeyMissing =
+    provider === "router" && lacksRequiredRouterKey(routerUrl, routerApiKey);
+
+  /** Points at the key field instead of calling a model that will refuse. */
+  function flagMissingRouterKey(): boolean {
+    if (!isRouterKeyMissing) return false;
+    setTestResult(null);
+    setWasKeyFlagged(true);
+    routerKeyRef.current?.focus();
+    return true;
+  }
+
   async function handleTest() {
     const candidate = getCandidateConfig();
     if (!candidate) {
       setTestResult({ ok: false, error: "invalid_fields" });
       return;
     }
+    if (flagMissingRouterKey()) return;
     setIsTesting(true);
     setTestResult(null);
     const result = await testModelConnection(candidate);
@@ -141,6 +158,7 @@ export function SettingsForm({
       setTestResult({ ok: false, error: "invalid_fields" });
       return;
     }
+    if (flagMissingRouterKey()) return;
     saveStoredModelConfig(candidate);
     if (gitHubToken.trim()) {
       saveStoredGitHubToken(gitHubToken.trim());
@@ -197,6 +215,10 @@ export function SettingsForm({
           setRouterModel={setRouterModel}
           routerApiKey={routerApiKey}
           setRouterApiKey={setRouterApiKey}
+          routerApiKeyError={
+            wasKeyFlagged && isRouterKeyMissing ? s.missingKey : null
+          }
+          routerApiKeyRef={routerKeyRef}
           localUrl={localUrl}
           setLocalUrl={setLocalUrl}
           localModel={localModel}

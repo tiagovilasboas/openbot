@@ -1,8 +1,19 @@
 "use client";
 
+import type { ModelStatus } from "./model-status.ts";
+
+/** Dot colour per model status: ready, not set up, failing. */
+export const MODEL_STATUS_DOT: Record<ModelStatus, string> = {
+  ready: "bg-success",
+  unconfigured: "bg-warning",
+  failing: "bg-danger",
+};
+
 interface ModelStatusBadgeProps {
   label: string;
-  isConfigured: boolean;
+  status: ModelStatus;
+  /** Spoken after the label, e.g. that the connection is failing. */
+  statusNote?: string;
   onPress?: () => void;
   /** Names what pressing the pill does, for assistive tech. */
   actionLabel?: string;
@@ -14,7 +25,8 @@ const PILL =
 
 export function ModelStatusBadge({
   label,
-  isConfigured,
+  status,
+  statusNote,
   onPress,
   actionLabel,
   className = "",
@@ -23,11 +35,10 @@ export function ModelStatusBadge({
     <>
       <span
         aria-hidden="true"
-        className={`size-1.5 shrink-0 rounded-full ${
-          isConfigured ? "bg-success" : "bg-warning"
-        }`}
+        className={`size-1.5 shrink-0 rounded-full ${MODEL_STATUS_DOT[status]}`}
       />
       <span className="truncate">{label}</span>
+      {statusNote && <span className="sr-only">, {statusNote}</span>}
       {actionLabel && <span className="sr-only">, {actionLabel}</span>}
     </>
   );
