@@ -1,13 +1,13 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/readme/banner-dark.svg">
-  <img alt="Open Bot: uma equipe de nove bots" src="docs/assets/readme/banner-light.svg" width="100%">
+  <img alt="Open Bot: uma equipe de nove bots, liderada pelo Chief of Staff" src="docs/assets/readme/banner-light.svg" width="100%">
 </picture>
 
 # Open Bot
 
-> Um assistente pessoal de IA open source, feito para o celular. Um bot por conversa, o modelo que você escolher e chaves de API que ficam no seu próprio servidor.
+> Uma equipe de bots de IA que mora no seu celular. Um Chief of Staff lidera e delega, você escolhe o modelo e as chaves de API ficam no seu próprio servidor.
 
-[English](README.md) · [Por onde começar](#por-onde-começar) · [Telas](#como-ele-é) · [Um bot, uma conversa](#um-bot-uma-conversa) · [Modelos](#escolha-o-modelo) · [Instale no celular](#instale-no-celular) · [Status](#status-e-limites)
+[English](README.md) · [Por onde começar](#por-onde-começar) · [Telas](#como-ele-é) · [A equipe](#a-equipe) · [Modelos](#escolha-o-modelo) · [Instale no celular](#instale-no-celular) · [Status](#status-e-limites)
 
 ```mermaid
 flowchart LR
@@ -29,31 +29,54 @@ O app no navegador fala só com o seu servidor. O servidor guarda as chaves e ch
 
 ## Como ele é
 
-![Três telas de celular: o início vazio do Chief of Staff, uma conversa sobre os pull requests que entraram hoje e a gaveta com os nove bots](docs/assets/readme/phones-pt.webp)
+![Três telas de celular: o início vazio do Chief of Staff, uma conversa em que o Chief passa tarefas à Engineering e à Security e a gaveta com os nove bots](docs/assets/readme/phones-pt.webp)
 
 ![Layout de desktop com a lista de bots numa barra lateral e a conversa numa coluna de leitura](docs/assets/readme/desktop-pt.webp)
 
 No celular, a lista de bots é uma gaveta e o campo de mensagem fica ao alcance do polegar. A partir da largura de tablet, ela vira uma barra lateral que você pode recolher.
 
-## Um bot, uma conversa
+## A equipe
 
 Cada bot tem a própria conversa, prompt, avatar e skills. Trocar de bot troca a conversa, e cada histórico fica neste aparelho. Digite `@` para passar uma mensagem a outro bot e `/` para rodar uma das suas skills.
 
 O Open Bot começa com uma equipe de nove. O prompt de cada um pede sua aprovação explícita antes de qualquer alteração externa.
 
-| Bot            | Cuida de                                             |
-| -------------- | ---------------------------------------------------- |
-| Chief of Staff | Planeja, resume e delega aos outros. É o bot padrão. |
-| Engineering    | Código, pull requests e CI                           |
-| Publishing     | Docs e conteúdo público                              |
-| Security       | AppSec e privacidade                                 |
-| Inbox          | Triagem e rascunhos                                  |
-| Career         | Triagem de oportunidades                             |
-| Finance        | Rascunhos de conciliação                             |
-| Product        | Requisitos e previews                                |
-| Hobby          | Pesquisa e shortlists                                |
+| Bot            | Cuida de                                                          |
+| -------------- | ----------------------------------------------------------------- |
+| Chief of Staff | Planeja, resume e delega aos outros. É o bot principal no início. |
+| Engineering    | Código, pull requests e CI                                        |
+| Publishing     | Docs e conteúdo público                                           |
+| Security       | AppSec e privacidade                                              |
+| Inbox          | Triagem e rascunhos                                               |
+| Career         | Triagem de oportunidades                                          |
+| Finance        | Rascunhos de conciliação                                          |
+| Product        | Requisitos e previews                                             |
+| Hobby          | Pesquisa e shortlists                                             |
 
 Você pode editar qualquer um deles ou criar o seu, do zero ou a partir de um modelo: Architect, Code Reviewer, AppSec Lead, Platform Engineer, Technical Writer ou Bug Hunter.
+
+### O bot principal lidera
+
+Um bot é o principal. Ele faz o papel de Chief of Staff: fica no topo da lista, conhece todos os outros bots e não pode ser excluído. Qualquer bot pode assumir o papel: abra o bot, escolha Tornar principal e a equipe passa a segui-lo. Nada na equipe é fixo. O Chief lê os bots que você tem, as funções e as skills deles, a cada mensagem que você envia.
+
+### Como a delegação funciona
+
+```mermaid
+flowchart LR
+  U[Você] --> C[Bot principal: Chief of Staff]
+  C -->|delega| B1[Bot especialista]
+  C -->|delega| B2[Outro especialista]
+  B1 --> C
+  B2 --> C
+  C -->|um resumo| U
+```
+
+Peça ao Chief algo que precise de mais de um especialista e ele escreve uma linha `@delegar` por tarefa. Cada especialista responde na sua vez, com o próprio nome e avatar, e depois o Chief escreve um resumo só para você.
+
+- No máximo três delegações por mensagem, respondidas uma após a outra, para não sobrecarregar os modelos gratuitos.
+- Um salto só. Um especialista nunca delega de novo, então não há ciclos.
+- Nomes que o Chief inventa, ele mesmo e repetições são descartados. Um especialista que falha não quebra a resposta.
+- Você ainda pode falar com qualquer bot direto, ou passar uma mensagem avulsa com `@`.
 
 ## O que ele faz hoje
 
@@ -62,6 +85,7 @@ Você pode editar qualquer um deles ou criar o seu, do zero ou a partir de um mo
 | Conversa com um modelo | O servidor chama o provedor que você configurou. Veja [Escolha o modelo](#escolha-o-modelo).                                                                                                           |
 | Issues e PRs do GitHub | Peça `dono/repo` ou cole um link do GitHub. Repositórios públicos funcionam sem token. Para os privados, conecte o GitHub em Configurações, na aba Conexões, ou defina `GITHUB_TOKEN` no `.env.local`. |
 | Briefing               | Resume dados reais do repositório. Sem modelo, monta o resumo com os mesmos dados.                                                                                                                     |
+| Delegação              | O bot principal passa trabalho aos seus outros bots e traz um resumo só. Veja [Como a delegação funciona](#como-a-delegação-funciona).                                                                 |
 | Failover               | Quando o modelo do router falha, o servidor tenta uma vez um modelo reserva, por padrão um modelo gratuito do OpenRouter, e a resposta mostra a troca.                                                 |
 | Fila de mensagens      | O que você envia enquanto um bot responde espera a vez, na ordem.                                                                                                                                      |
 | Skills                 | Cada bot guarda as próprias skills. Escreva uma ao editar o bot, ou cole um `SKILL.md`, e rode como `/comando`.                                                                                        |
@@ -70,11 +94,11 @@ Você pode editar qualquer um deles ou criar o seu, do zero ou a partir de um mo
 
 ## Escolha o modelo
 
-| Provedor  | Variáveis no `.env.local`                               | Observações                                                                                                                                    |
-| --------- | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| Router    | `ROUTER_URL`, `ROUTER_MODEL`, `ROUTER_API_KEY` opcional | Qualquer endpoint compatível com OpenAI, como OpenRouter, 9Router ou OmniRoute. Configurações lista os modelos gratuitos atuais do OpenRouter. |
-| Local     | `LOCAL_MODEL_URL`, `LOCAL_MODEL_NAME`                   | Um servidor `/api/chat` compatível com Ollama, rodando na sua máquina.                                                                         |
-| Anthropic | `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`                  | Uso pago da API.                                                                                                                               |
+| Provedor  | Variáveis no `.env.local`                               | Observações                                                                                                                                                       |
+| --------- | ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Router    | `ROUTER_URL`, `ROUTER_MODEL`, `ROUTER_API_KEY` opcional | Qualquer endpoint compatível com OpenAI, como OpenRouter, 9Router ou OmniRoute. Configurações lista os modelos gratuitos do OpenRouter que a sua chave pode usar. |
+| Local     | `LOCAL_MODEL_URL`, `LOCAL_MODEL_NAME`                   | Um servidor `/api/chat` compatível com Ollama, rodando na sua máquina.                                                                                            |
+| Anthropic | `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`                  | Uso pago da API.                                                                                                                                                  |
 
 As variáveis do `.env.local` ficam no servidor. Nunca use o prefixo `NEXT_PUBLIC_`, que as envia para o navegador.
 
@@ -98,6 +122,7 @@ O Open Bot é um projeto inicial, na versão 0.1.0.
 - A instalação num iPhone ou Android físico ainda não foi verificada.
 - Bots, conversas, skills e Configurações ficam no `localStorage` deste navegador. Ainda não há sincronização nem backup.
 - As descrições da equipe ainda estão só em português, mesmo com a interface em inglês.
+- A delegação só rodou à mão contra um modelo gratuito. Nenhum teste automatizado chama um modelo real.
 - Ainda não existe integração com calendário.
 
 O [roadmap](docs/roadmap/roadmap.pt-BR.md) e o [plano de entrega para devs](docs/roadmap/developer-first.md) mostram o que vem a seguir.
