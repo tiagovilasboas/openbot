@@ -69,6 +69,22 @@ test("parser accepts a valid request and rejects malformed ones", () => {
   }
 });
 
+test("a long earlier reply is cut, not a reason to refuse the turn", () => {
+  const parsed = parseChatRequest({
+    ...request,
+    messages: [
+      { role: "user", text: "resumo" },
+      { role: "assistant", text: "x".repeat(5500) },
+      { role: "user", text: "e agora?" },
+    ],
+  });
+  assert.equal(parsed.ok, true);
+  if (parsed.ok) {
+    assert.equal(parsed.request.messages[1]?.text.length, 4000);
+    assert.equal(parsed.request.messages[2]?.text, "e agora?");
+  }
+});
+
 test("selectAdapter returns null without explicit configuration", () => {
   assert.equal(selectAdapter({}), null);
   assert.equal(selectAdapter({ ANTHROPIC_API_KEY: "k" }), null);

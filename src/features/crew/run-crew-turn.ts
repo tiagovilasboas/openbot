@@ -6,6 +6,8 @@ import { parseDelegations, type Delegation } from "./parse-delegations.ts";
 
 /** Most specialists the Chief may call in one user turn. */
 export const MAX_DELEGATIONS_PER_TURN = 3;
+/** Keeps three answers inside one chat message for the synthesis call. */
+const MAX_ANSWER_IN_REPORT = 1200;
 
 export type CrewMessage = { role: "assistant" | "user"; text: string };
 export type CrewModelReply = { ok: true; text: string } | { ok: false };
@@ -71,7 +73,7 @@ async function synthesize(
 ): Promise<string | null> {
   const copy = crewCopy[input.language];
   const report = answers
-    .map((a) => `### ${a.bot.name}\n${a.text}`)
+    .map((a) => `### ${a.bot.name}\n${a.text.slice(0, MAX_ANSWER_IN_REPORT)}`)
     .join("\n\n");
   try {
     const reply = await input.askModel({
