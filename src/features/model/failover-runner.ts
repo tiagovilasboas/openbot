@@ -90,6 +90,7 @@ export async function executeWithFailover({
       ok: true,
       provider: fallbackResult.provider,
       text: fallbackResult.text,
+      ...(fallbackResult.usage ? { usage: fallbackResult.usage } : {}),
       failover: {
         fromModel: modelId ?? primaryAdapter.model ?? primaryAdapter.provider,
         toModel: secondaryAdapter.model ?? secondaryAdapter.provider,

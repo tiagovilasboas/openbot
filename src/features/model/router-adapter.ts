@@ -3,6 +3,7 @@ import type { ModelNetworkOptions } from "./guarded-model-fetch.ts";
 import type { FetchLike, ModelRequest } from "./model-adapter.ts";
 import { openModelStream } from "./open-model-stream.ts";
 import { parseRouterStream } from "./router-stream.ts";
+import { openAiUsage } from "./token-usage.ts";
 import type { StreamingModelAdapter } from "./stream-adapter.ts";
 import { toWireMessages } from "./wire-messages.ts";
 import { providerErrorDetail } from "./provider-error-detail.ts";
@@ -125,7 +126,13 @@ export function createRouterAdapter(
           provider: "router",
         };
       }
-      return { ok: true, provider: "router", text: content };
+      const usage = openAiUsage(payload);
+      return {
+        ok: true,
+        provider: "router",
+        text: content,
+        ...(usage ? { usage } : {}),
+      };
     },
   };
 }
