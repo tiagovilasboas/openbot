@@ -71,17 +71,18 @@ Ask the Chief for something that needs more than one specialist and it writes on
 
 ## What it does today
 
-| Capability            | How it works                                                                                                                                                                                   |
-| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Chat with a model     | The server calls the provider you configured. See [Choose a model](#choose-a-model).                                                                                                           |
-| GitHub issues and PRs | Ask for `owner/repo` or paste a GitHub link. Public repositories work without a token. For private ones, connect GitHub in Settings, under Connections, or set `GITHUB_TOKEN` in `.env.local`. |
-| Briefing              | Summarizes real repository data. Without a model, it falls back to a summary built from the same data.                                                                                         |
-| Delegation            | The main bot hands work to your other bots and brings back one summary. See [How delegation works](#how-delegation-works).                                                                     |
-| Failover              | When the router model fails, the server retries once on a fallback model, by default a free OpenRouter model, and the reply shows the switch.                                                  |
-| Message queue         | Messages you send while a bot is replying wait their turn, in order.                                                                                                                           |
-| Skills                | Each bot keeps its own skills. Write one when you edit the bot, or paste a `SKILL.md`, and run it as a `/command`.                                                                             |
-| Local lock            | Optional password that locks the app on this device. It is a screen lock, not authentication; only a PBKDF2 hash is stored.                                                                    |
-| Two languages         | Brazilian Portuguese and English, switchable at any time.                                                                                                                                      |
+| Capability            | How it works                                                                                                                                                                                           |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Chat with a model     | The server calls the provider you configured. See [Choose a model](#choose-a-model).                                                                                                                   |
+| GitHub issues and PRs | Ask for `owner/repo` or paste a GitHub link. Public repositories work without a token. For private ones, connect GitHub in Settings, under Connections, or set `GITHUB_TOKEN` in `.env.local`.         |
+| Briefing              | Summarizes real repository data. Without a model, it falls back to a summary built from the same data.                                                                                                 |
+| Delegation            | The main bot hands work to your other bots and brings back one summary. See [How delegation works](#how-delegation-works).                                                                             |
+| Failover              | When the router model fails, the server retries once on a fallback model, by default a free OpenRouter model, and the reply shows the switch.                                                          |
+| Message queue         | Messages you send while a bot is replying wait their turn, in order.                                                                                                                                   |
+| Skills                | Each bot keeps its own skills. Write one when you edit the bot, or paste a `SKILL.md`, and run it as a `/command`.                                                                                     |
+| Bot as a file         | Export one bot to a JSON file with its name, instructions, look and skills, and fill a new bot's form from one. No chats, keys or password go in the file, and imported skills are marked as imported. |
+| Local lock            | Optional password that locks the app on this device. It is a screen lock, not authentication; only a PBKDF2 hash is stored.                                                                            |
+| Two languages         | Brazilian Portuguese and English, switchable at any time.                                                                                                                                              |
 
 ## Choose a model
 

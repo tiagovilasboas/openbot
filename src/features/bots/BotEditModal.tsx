@@ -2,6 +2,11 @@
 
 import { useState } from "react";
 import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
+import {
+  BotTemplateExport,
+  BotTemplateImport,
+} from "@/features/bot-sharing/BotTemplateFileControls.tsx";
+import type { BotTemplateDraft } from "@/features/bot-sharing/bot-template-file-types.ts";
 import { BotSkillsEditor } from "@/features/skills/BotSkillsEditor.tsx";
 import type { SkillDefinition } from "@/features/skills/skill-types.ts";
 import { FormField, FIELD_CLASS } from "@/shared/ui/FormField.tsx";
@@ -79,6 +84,17 @@ function BotEditForm({
     setAvatarColor(tmpl.avatarColor);
   }
 
+  function handleImportFile(draft: BotTemplateDraft) {
+    setTemplateId(null);
+    setName(draft.name);
+    setTitle(draft.title ?? "");
+    setDescription(draft.description);
+    setWorkspaceContext(draft.workspaceContext ?? "");
+    setAvatarShape(draft.avatarShape);
+    setAvatarColor(draft.avatarColor);
+    setSkills(draft.skills);
+  }
+
   function handleSave() {
     if (!isValid) return;
     const now = new Date().toISOString();
@@ -138,6 +154,10 @@ function BotEditForm({
           selectedId={templateId}
           onSelectTemplate={handleSelectTemplate}
         />
+      )}
+
+      {!isEditing && (
+        <BotTemplateImport language={language} onImport={handleImportFile} />
       )}
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -213,6 +233,8 @@ function BotEditForm({
           onMakeMain={() => onMakeMain(bot.id)}
         />
       )}
+
+      {isEditing && bot && <BotTemplateExport bot={bot} language={language} />}
 
       <SheetFooter>
         <div className="flex items-center justify-between gap-2">
