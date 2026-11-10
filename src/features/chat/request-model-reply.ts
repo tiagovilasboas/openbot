@@ -4,6 +4,7 @@ import {
   classifyModelFailure,
   type ModelFailure,
 } from "../model/classify-model-failure.ts";
+import type { AttachmentPayload } from "../attachments/parse-attachments.ts";
 import type { ClientModelConfig } from "../model/model-config.ts";
 import { readTokenUsage, type TokenUsage } from "../model/token-usage.ts";
 import { createCallSignal } from "./call-timeout.ts";
@@ -18,6 +19,8 @@ export interface ModelReplyOptions {
   modelId?: string;
   /** The bot's memory notes, raw: the server delimits them as data. */
   memory?: string[];
+  /** Files of this turn, raw: the server delimits them as data. */
+  attachments?: AttachmentPayload[];
   /** Tells offline from unreachable; defaults to navigator.onLine. */
   isOnline?: () => boolean;
 }
@@ -76,6 +79,7 @@ export async function requestModelReply(
       failureOfThrow,
       options.modelId,
       options.memory,
+      options.attachments,
     );
   } finally {
     call.dispose();
@@ -92,6 +96,7 @@ async function fetchReply(
   failureOfThrow: () => ModelFailure,
   modelId?: string,
   memory?: string[],
+  attachments?: AttachmentPayload[],
 ): Promise<ModelReplyOutcome> {
   let response: Response;
   try {
@@ -108,6 +113,7 @@ async function fetchReply(
           ...(systemPrompt ? { systemPrompt } : {}),
           ...(modelId ? { modelId } : {}),
           ...(memory && memory.length > 0 ? { memory } : {}),
+          ...(attachments && attachments.length > 0 ? { attachments } : {}),
         }),
       }),
     );

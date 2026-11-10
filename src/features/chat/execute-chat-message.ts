@@ -1,3 +1,5 @@
+import type { AttachmentPayload } from "@/features/attachments/parse-attachments.ts";
+import { historyByteBudget } from "@/features/attachments/request-size.ts";
 import { buildBotSystemPrompt } from "@/features/bots/bot-system-prompt.ts";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
 import { chiefPlainReply } from "@/features/crew/chief-plain-reply.ts";
@@ -25,7 +27,7 @@ import { chatCopy } from "./chat-copy.ts";
 import { describeModelFailure } from "./describe-model-failure.ts";
 import { findMentionedBot } from "./find-mentioned-bot.ts";
 import { createLiveBoard, type LiveEntry } from "./live-board.ts";
-import { limitHistory } from "./request-history.ts";
+import { fitHistoryToBytes, limitHistory } from "./request-history.ts";
 import { requestModelReply } from "./request-model-reply.ts";
 import { requestModelStream } from "./request-model-stream.ts";
 import {
@@ -67,6 +69,7 @@ export async function executeChatMessage({
   onLive,
   signal,
   memoryFor = memoryTextsForRequest,
+  attachments = [],
   onUsage = recordUsageCall,
 }: {
   text: string;
@@ -89,11 +92,21 @@ export async function executeChatMessage({
   signal?: AbortSignal;
   /** A bot's memory notes; defaults to what the user saved on this device. */
   memoryFor?: (botId: string) => string[];
+  /**
+   * Files for this turn, raw name and text. Only the first model call gets
+   * them: a delegated specialist is not sent the user's files.
+   */
+  attachments?: AttachmentPayload[];
   /** Hears each finished reply of a bot; defaults to the device's usage log. */
   onUsage?: (botId: string, usage: TokenUsage | undefined) => void;
 }): Promise<ChatReplyOutcome> {
-  // The server caps the history; send only the newest messages.
-  const history = limitHistory(fullHistory);
+  // The server caps the history; send only the newest messages, and fewer
+  // when files take room in the request body.
+  const limited = limitHistory(fullHistory);
+  const history =
+    attachments.length > 0
+      ? fitHistoryToBytes(limited, historyByteBudget(attachments))
+      : limited;
   const content = chatCopy[language];
   const isPt = language === "pt";
 
@@ -185,8 +198,9 @@ export async function executeChatMessage({
     memory: string[] | undefined,
     speaker: BotProfile | undefined,
     shape: (text: string) => string = (text) => text,
+    files?: AttachmentPayload[],
   ) => {
-    const options = { signal, modelId, memory };
+    const options = { signal, modelId, memory, attachments: files };
     if (!board) {
       return requestModelReply(
         language,
@@ -235,6 +249,7 @@ export async function executeChatMessage({
     memoryFor(executingBot.id),
     undefined,
     isChief ? (t) => liveChiefText(t, bots, executingBot.id) : undefined,
+    attachments,
   );
   if (outcome.kind === "partial") {
     // Keep what arrived; a Chief's delegation lines are not part of it.

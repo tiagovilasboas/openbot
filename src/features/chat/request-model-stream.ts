@@ -93,6 +93,9 @@ export async function requestModelStream(
             ...(options.memory && options.memory.length > 0
               ? { memory: options.memory }
               : {}),
+            ...(options.attachments && options.attachments.length > 0
+              ? { attachments: options.attachments }
+              : {}),
           }),
         }),
       );
