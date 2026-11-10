@@ -1,4 +1,6 @@
 import type { ModelMessage, ModelRequest } from "./model-adapter.ts";
+import { appendAttachmentBlock } from "../attachments/attachment-block.ts";
+import { parseAttachments } from "../attachments/parse-attachments.ts";
 import { appendMemoryBlock } from "../memory/memory-block.ts";
 import { validateClientModelConfig } from "./model-config.ts";
 import { parseModelId } from "./model-id.ts";
@@ -39,6 +41,7 @@ export function parseChatRequest(payload: unknown): ParsedChatRequest {
     systemPrompt,
     modelId,
     memory,
+    attachments,
   } = payload as Record<string, unknown>;
   if (language !== "pt" && language !== "en") return { ok: false };
   if (!Array.isArray(messages)) return { ok: false };
@@ -48,6 +51,8 @@ export function parseChatRequest(payload: unknown): ParsedChatRequest {
   if (!messages.every(isMessage)) return { ok: false };
   if (memory !== undefined && !Array.isArray(memory)) return { ok: false };
   if (messages[messages.length - 1].role !== "user") return { ok: false };
+  const parsedAttachments = parseAttachments(attachments);
+  if (!parsedAttachments.ok) return { ok: false };
 
   let validatedConfig: ModelRequest["config"];
   if (config !== undefined) {
@@ -83,7 +88,13 @@ export function parseChatRequest(payload: unknown): ParsedChatRequest {
     ok: true,
     request: {
       language,
-      messages: messages.map(clampMessage),
+      // Files are untrusted data: this is the one place that delimits them,
+      // at the end of the last user turn, after that turn is clamped.
+      messages: appendAttachmentBlock(
+        messages.map(clampMessage),
+        parsedAttachments.attachments,
+        language,
+      ),
       ...(validatedConfig ? { config: validatedConfig } : {}),
       ...(validatedFallbackConfig
         ? { fallbackConfig: validatedFallbackConfig }
