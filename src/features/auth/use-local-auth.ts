@@ -10,7 +10,11 @@ import {
   setSessionUnlocked,
   subscribeAuth,
 } from "./auth-storage.ts";
-import { createCredentials, verifyPassword } from "./local-auth.ts";
+import {
+  createCredentials,
+  upgradeCredentials,
+  verifyPassword,
+} from "./local-auth.ts";
 
 export function useLocalAuth() {
   const snapshot = useSyncExternalStore(
@@ -31,6 +35,13 @@ export function useLocalAuth() {
     const isValid = await verifyPassword(password, creds);
     if (isValid) {
       setSessionUnlocked(true);
+      // Older credentials were hashed with fewer iterations: re-hash now.
+      try {
+        const stronger = await upgradeCredentials(password, creds);
+        if (stronger) saveCredentials(stronger);
+      } catch {
+        // The unlock already worked; the upgrade retries next time.
+      }
       return true;
     }
 

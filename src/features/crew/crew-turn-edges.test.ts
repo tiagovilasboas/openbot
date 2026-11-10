@@ -1,3 +1,7 @@
+import {
+  externalDataRule,
+  wrapExternalText,
+} from "../untrusted-text/wrap-external-text.ts";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createBotProfile } from "../bots/bot-storage.ts";
@@ -240,7 +244,7 @@ test("the synthesis call carries the history, the kickoff and the specialists' r
   assert.equal(last?.role, "user");
   assert.equal(
     last?.text,
-    `${crewCopy.en.synthesisRequest}\n\n### Engineering\nspec says\n\n### Security\nspec says`,
+    `${crewCopy.en.synthesisRequest}\n${externalDataRule("en")}\n\n### Engineering\n${wrapExternalText("spec says")}\n\n### Security\n${wrapExternalText("spec says")}`,
   );
   assert.equal(synthesis.messages.length, 5);
   // The caller's history array is not extended.

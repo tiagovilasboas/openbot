@@ -23,7 +23,7 @@ const PT: LockCopy = {
   unlock: "Desbloquear",
   unlocking: "Desbloqueando...",
   showHint: "Ver dica de senha",
-  offline: "100% offline. Criptografia local PBKDF2.",
+  offline: "100% offline. Bloqueio de tela local (hash PBKDF2).",
 };
 
 const EN: LockCopy = {
@@ -37,7 +37,7 @@ const EN: LockCopy = {
   unlock: "Unlock",
   unlocking: "Unlocking...",
   showHint: "Show password hint",
-  offline: "100% offline. Local PBKDF2 encryption.",
+  offline: "100% offline. Local screen lock (PBKDF2 hash).",
 };
 
 export function getLockCopy(isPt: boolean): LockCopy {
