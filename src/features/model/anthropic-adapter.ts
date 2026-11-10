@@ -27,9 +27,10 @@ export function createAnthropicAdapter(
     provider: "anthropic",
     model: config.model,
     streamReply(request, signal) {
+      const model = request.modelId ?? config.model;
       return openModelStream({
         provider: "anthropic",
-        model: config.model,
+        model: model,
         fetchImpl,
         url: endpoint,
         headers: {
@@ -37,11 +38,7 @@ export function createAnthropicAdapter(
           "x-api-key": config.apiKey,
           "anthropic-version": "2023-06-01",
         },
-        body: anthropicStreamBody(
-          config.model,
-          config.maxTokens ?? 1024,
-          request,
-        ),
+        body: anthropicStreamBody(model, config.maxTokens ?? 1024, request),
         network: config,
         signal,
         parse: parseAnthropicStream,
@@ -61,7 +58,7 @@ export function createAnthropicAdapter(
               "anthropic-version": "2023-06-01",
             },
             body: JSON.stringify({
-              model: config.model,
+              model: request.modelId ?? config.model,
               max_tokens: config.maxTokens ?? 1024,
               ...(request.systemPrompt ? { system: request.systemPrompt } : {}),
               messages: request.messages.map((message) => ({

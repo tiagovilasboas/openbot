@@ -13,7 +13,11 @@ export type AvatarShape =
   | "triangle"
   | "pentagon"
   | "egg"
-  | "cloud";
+  | "cloud"
+  | "star"
+  | "heart"
+  | "gear"
+  | "cat";
 
 export type AvatarColor =
   | "black"
@@ -36,6 +40,8 @@ export interface BotProfile {
   title?: string;
   description: string;
   workspaceContext?: string;
+  /** This bot's own model id; empty means the global model setting. */
+  modelId?: string;
   avatarShape: AvatarShape;
   avatarColor: AvatarColor;
   /** Skills this bot owns: they enter its prompt and its / palette only. */
@@ -58,6 +64,10 @@ export const AVATAR_SHAPES: readonly AvatarShape[] = [
   "pentagon",
   "egg",
   "cloud",
+  "star",
+  "heart",
+  "gear",
+  "cat",
 ] as const;
 
 export const AVATAR_COLORS: readonly AvatarColor[] = [

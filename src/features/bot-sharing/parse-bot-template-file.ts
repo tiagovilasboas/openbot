@@ -56,6 +56,8 @@ function readBot(raw: unknown): BotTemplateDraft | null {
     title: text(raw.title, MAX_LABEL_LENGTH) || undefined,
     description,
     workspaceContext: text(raw.workspaceContext, MAX_TEXT_LENGTH) || undefined,
+    // The sanitizer drops an id that is not a plain model id.
+    modelId: raw.modelId,
     avatarShape: raw.avatarShape,
     avatarColor: raw.avatarColor,
   });
@@ -65,6 +67,7 @@ function readBot(raw: unknown): BotTemplateDraft | null {
     ...(bot.title ? { title: bot.title } : {}),
     description: bot.description,
     ...(bot.workspaceContext ? { workspaceContext: bot.workspaceContext } : {}),
+    ...(bot.modelId ? { modelId: bot.modelId } : {}),
     avatarShape: bot.avatarShape,
     avatarColor: bot.avatarColor,
     skills,
