@@ -17,6 +17,8 @@ import type { ModelFailure } from "@/features/model/classify-model-failure.ts";
 import type { ClientModelConfig } from "@/features/model/model-config.ts";
 import { memoryTextsForRequest } from "@/features/memory/memory-request.ts";
 import type { ModelCallResult } from "@/features/model/model-status.ts";
+import type { TokenUsage } from "@/features/model/token-usage.ts";
+import { recordUsageCall } from "@/features/usage/usage-storage.ts";
 import { detectSummaryRequest } from "@/features/summary/detect-summary-request.ts";
 import { executeSummary } from "@/features/summary/execute-summary.ts";
 import { chatCopy } from "./chat-copy.ts";
@@ -65,6 +67,7 @@ export async function executeChatMessage({
   onLive,
   signal,
   memoryFor = memoryTextsForRequest,
+  onUsage = recordUsageCall,
 }: {
   text: string;
   language: ChatLanguage;
@@ -86,6 +89,8 @@ export async function executeChatMessage({
   signal?: AbortSignal;
   /** A bot's memory notes; defaults to what the user saved on this device. */
   memoryFor?: (botId: string) => string[];
+  /** Hears each finished reply of a bot; defaults to the device's usage log. */
+  onUsage?: (botId: string, usage: TokenUsage | undefined) => void;
 }): Promise<ChatReplyOutcome> {
   // The server caps the history; send only the newest messages.
   const history = limitHistory(fullHistory);
@@ -198,6 +203,24 @@ export async function executeChatMessage({
       onText: (text) => show(shape(text)),
     });
   };
+  /**
+   * `ask`, plus the usage log: a reply counts for the bot that wrote it (the
+   * Chief's own synthesis counts for the Chief). A reply cut off midway has no
+   * provider counts, so it is logged as a reply without usage data.
+   */
+  const askAndCount = async (...args: Parameters<typeof ask>) => {
+    const outcome = await ask(...args);
+    if (outcome.kind === "text" || outcome.kind === "partial") {
+      const usage = outcome.kind === "text" ? outcome.usage : undefined;
+      const speaker: BotProfile | undefined = args[4];
+      try {
+        onUsage((speaker ?? executingBot).id, usage);
+      } catch {
+        // Counting must never break the turn.
+      }
+    }
+    return outcome;
+  };
   const failedReply = (failure: ModelFailure): ChatReplyOutcome => ({
     text: describeModelFailure(failure, language),
     delegatedBot,
@@ -205,7 +228,7 @@ export async function executeChatMessage({
     ...(failure.kind === "cancelled" ? {} : { modelCall: "failed" as const }),
   });
 
-  const outcome = await ask(
+  const outcome = await askAndCount(
     fullSystemPrompt,
     history,
     executingBot.modelId,
@@ -245,7 +268,7 @@ export async function executeChatMessage({
             memory,
             speaker,
           }) => {
-            const reply = await ask(
+            const reply = await askAndCount(
               systemPrompt,
               messages,
               modelId,

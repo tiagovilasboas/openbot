@@ -44,6 +44,7 @@ export async function POST(request: Request) {
   return Response.json({
     provider: result.provider,
     text: result.text,
+    ...(result.usage ? { usage: result.usage } : {}),
     ...(result.failover ? { failover: result.failover } : {}),
   });
 }
