@@ -6,6 +6,7 @@ import type { SkillDefinition } from "@/features/skills/skill-types.ts";
 import { chatCopy } from "./chat-copy.ts";
 import { ChatComposer } from "./ChatComposer.tsx";
 import { ChatMessageItem, type MessageData } from "./ChatMessageItem.tsx";
+import { userMessageBefore } from "./retry-partial-reply.ts";
 import type { ChatLanguage } from "./respond-to-message.ts";
 import type { RollbackBlock } from "./roll-back-thread.ts";
 import { ThinkingIndicator } from "./ThinkingIndicator.tsx";
@@ -13,6 +14,8 @@ import { ThinkingIndicator } from "./ThinkingIndicator.tsx";
 export interface ConversationViewProps {
   language: ChatLanguage;
   messages: MessageData[];
+  /** Replies still arriving; shown after the stored ones, never stored. */
+  liveMessages: MessageData[];
   activeBot: BotProfile;
   busy: boolean;
   /** The bot shown as thinking; a crew member while it answers the Chief. */
@@ -38,6 +41,7 @@ export interface ConversationViewProps {
 export function ConversationView({
   language,
   messages,
+  liveMessages,
   activeBot,
   busy,
   thinkingBot,
@@ -68,21 +72,40 @@ export function ConversationView({
         <section
           aria-label={content.conversationLabel}
           aria-live="polite"
+          aria-busy={busy}
           className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 pb-6 pt-4 md:px-6"
         >
-          {messages.map((message, index) => (
-            <ChatMessageItem
-              key={message.id}
-              message={message}
-              activeBot={activeBot}
-              onOpenSettings={onOpenSettings}
-              rollback={{
-                messagesAfter: messages.length - index - 1,
-                blocked: rollbackBlocked,
-                onRollBack,
-              }}
-            />
-          ))}
+          {messages.map((message, index) => {
+            const answered = userMessageBefore(messages, index);
+            return (
+              <ChatMessageItem
+                key={message.id}
+                message={message}
+                activeBot={activeBot}
+                onOpenSettings={onOpenSettings}
+                onRetry={
+                  busy || !answered ? undefined : () => onRetry(answered.id)
+                }
+                rollback={{
+                  messagesAfter: messages.length - index - 1,
+                  blocked: rollbackBlocked,
+                  onRollBack,
+                }}
+              />
+            );
+          })}
+          {liveMessages.length > 0 && (
+            // Growing text is not announced; the finished reply is, once.
+            <div aria-live="off" className="flex flex-col gap-6">
+              {liveMessages.map((message) => (
+                <ChatMessageItem
+                  key={message.id}
+                  message={message}
+                  activeBot={activeBot}
+                />
+              ))}
+            </div>
+          )}
           {busy && (
             <ThinkingIndicator
               bot={thinkingBot ?? activeBot}

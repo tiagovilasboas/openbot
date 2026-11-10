@@ -98,6 +98,7 @@ export function ChatExperience() {
 
   const {
     busy,
+    liveMessages,
     workingBot,
     workingBotIds,
     sendText,
@@ -123,9 +124,12 @@ export function ChatExperience() {
 
   useEffect(() => {
     if (messages.length > 0) {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      // Smooth scrolling would queue up behind every frame of a streaming reply.
+      messagesEndRef.current?.scrollIntoView({
+        behavior: liveMessages.length > 0 ? "auto" : "smooth",
+      });
     }
-  }, [messages, busy]);
+  }, [messages, liveMessages, busy]);
 
   function sendMessage(value = draft) {
     const text = value.trim();
@@ -229,6 +233,7 @@ export function ChatExperience() {
           <ConversationView
             language={language}
             messages={messages}
+            liveMessages={liveMessages}
             activeBot={activeBot}
             busy={busy}
             thinkingBot={workingBot ?? activeBot}

@@ -22,6 +22,8 @@ export type AskCrewModel = (request: {
   messages: CrewMessage[];
   /** The model of the bot answering; empty means the global model. */
   modelId?: string;
+  /** The specialist answering; absent for the Chief's own synthesis. */
+  speaker?: BotProfile;
   /** The answering bot's memory notes, raw; the server delimits them. */
   memory?: string[];
 }) => Promise<CrewModelReply>;
@@ -55,6 +57,8 @@ interface CrewTurnInput {
   memoryFor?: (botId: string) => string[];
   /** Called with whichever bot is working now, for the thinking indicator. */
   onBotWorking?: (bot: BotProfile) => void;
+  /** Called once the Chief's kickoff is known, before the specialists run. */
+  onKickoff?: (kickoff: string) => void;
 }
 
 async function askSpecialist(
@@ -69,6 +73,7 @@ async function askSpecialist(
       systemPrompt,
       messages: [{ role: "user", text: request }],
       modelId: bot.modelId,
+      speaker: bot,
       memory: memoryFor?.(bot.id),
     });
     if (reply.ok) return { bot, task, ok: true, text: reply.text };
@@ -127,6 +132,7 @@ export async function runCrewTurn(
   const kickoff = parsed.visibleText
     ? `${parsed.visibleText}\n\n${delegating}`
     : delegating;
+  input.onKickoff?.(kickoff);
 
   // One at a time: free model tiers rate-limit parallel bursts.
   const specialists: SpecialistAnswer[] = [];

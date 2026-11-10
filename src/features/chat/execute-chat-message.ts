@@ -3,6 +3,8 @@ import type { BotProfile } from "@/features/bots/bot-types.ts";
 import { chiefPlainReply } from "@/features/crew/chief-plain-reply.ts";
 import { crewCopy } from "@/features/crew/crew-copy.ts";
 import { buildCrewRoster } from "@/features/crew/crew-roster.ts";
+import { liveChiefText } from "@/features/crew/live-chief-text.ts";
+import { parseDelegations } from "@/features/crew/parse-delegations.ts";
 import { runCrewTurn } from "@/features/crew/run-crew-turn.ts";
 import { detectGitHubRequest } from "@/features/github/detect-github-request.ts";
 import type {
@@ -10,6 +12,7 @@ import type {
   GitHubRepoRef,
 } from "@/features/github/github-types.ts";
 import { listRepositoryItems } from "@/features/github/list-repository-items.ts";
+import type { ModelFailure } from "@/features/model/classify-model-failure.ts";
 import type { ClientModelConfig } from "@/features/model/model-config.ts";
 import { memoryTextsForRequest } from "@/features/memory/memory-request.ts";
 import type { ModelCallResult } from "@/features/model/model-status.ts";
@@ -18,8 +21,10 @@ import { executeSummary } from "@/features/summary/execute-summary.ts";
 import { chatCopy } from "./chat-copy.ts";
 import { describeModelFailure } from "./describe-model-failure.ts";
 import { findMentionedBot } from "./find-mentioned-bot.ts";
+import { createLiveBoard, type LiveEntry } from "./live-board.ts";
 import { limitHistory } from "./request-history.ts";
 import { requestModelReply } from "./request-model-reply.ts";
+import { requestModelStream } from "./request-model-stream.ts";
 import {
   getUnconfiguredModelMessage,
   type ChatLanguage,
@@ -30,6 +35,8 @@ export interface ChatReplyOutcome {
   delegatedBot?: BotProfile;
   github?: { repo: GitHubRepoRef; items: GitHubItem[] };
   failover?: { fromModel: string; toModel: string; reason: string };
+  /** The text is what arrived before the reply broke off or was cancelled. */
+  incomplete?: "error" | "cancelled";
   /** Set when the turn reached the model, so the header dot can follow it. */
   modelCall?: ModelCallResult;
   /** Set when the Chief delegated: its kickoff and each specialist's reply. */
@@ -49,6 +56,7 @@ export async function executeChatMessage({
   gitHubToken,
   modelConfig,
   onBotWorking,
+  onLive,
   signal,
   memoryFor = memoryTextsForRequest,
 }: {
@@ -63,6 +71,11 @@ export async function executeChatMessage({
   modelConfig: ClientModelConfig | null;
   /** Follows which bot is working while the Chief's crew answers. */
   onBotWorking?: (bot: BotProfile) => void;
+  /**
+   * Streams the model replies and reports the replies in progress. Without
+   * it the turn uses the plain, non-stream route.
+   */
+  onLive?: (entries: LiveEntry[]) => void;
   /** The user's cancel signal; each model call also has its own time limit. */
   signal?: AbortSignal;
   /** A bot's memory notes; defaults to what the user saved on this device. */
@@ -152,18 +165,60 @@ export async function executeChatMessage({
   }
 
   // 3. Model Reply with Bot System Prompt
-  const outcome = await requestModelReply(
-    language,
-    history,
-    fetch,
-    modelConfig,
+  const board = onLive ? createLiveBoard(onLive) : null;
+  /** One model call; with a live board its text shows as it arrives. */
+  const ask = (
+    system: string,
+    messages: typeof history,
+    modelId: string | undefined,
+    memory: string[] | undefined,
+    speaker: BotProfile | undefined,
+    shape: (text: string) => string = (text) => text,
+  ) => {
+    const options = { signal, modelId, memory };
+    if (!board) {
+      return requestModelReply(
+        language,
+        messages,
+        fetch,
+        modelConfig,
+        system,
+        options,
+      );
+    }
+    const show = board.stream(speaker ?? delegatedBot);
+    return requestModelStream(language, messages, fetch, modelConfig, system, {
+      ...options,
+      onText: (text) => show(shape(text)),
+    });
+  };
+  const failedReply = (failure: ModelFailure): ChatReplyOutcome => ({
+    text: describeModelFailure(failure, language),
+    delegatedBot,
+    // A cancel is the user's choice, not the model failing: no failed status.
+    ...(failure.kind === "cancelled" ? {} : { modelCall: "failed" as const }),
+  });
+
+  const outcome = await ask(
     fullSystemPrompt,
-    {
-      signal,
-      modelId: executingBot.modelId,
-      memory: memoryFor(executingBot.id),
-    },
+    history,
+    executingBot.modelId,
+    memoryFor(executingBot.id),
+    undefined,
+    isChief ? (t) => liveChiefText(t, bots, executingBot.id) : undefined,
   );
+  if (outcome.kind === "partial") {
+    // Keep what arrived; a Chief's delegation lines are not part of it.
+    const kept = isChief
+      ? parseDelegations(outcome.text, bots, executingBot.id).visibleText
+      : outcome.text;
+    if (!kept) return failedReply(outcome.failure);
+    return {
+      ...failedReply(outcome.failure),
+      text: kept,
+      incomplete: outcome.failure.kind === "cancelled" ? "cancelled" : "error",
+    };
+  }
   if (outcome.kind === "text") {
     const crewTurn = isChief
       ? await runCrewTurn({
@@ -176,18 +231,27 @@ export async function executeChatMessage({
           language,
           onBotWorking,
           memoryFor,
-          askModel: async ({ systemPrompt, messages, modelId, memory }) => {
-            const reply = await requestModelReply(
-              language,
-              messages,
-              fetch,
-              modelConfig,
+          onKickoff: (kickoff) => board?.settle(kickoff),
+          askModel: async ({
+            systemPrompt,
+            messages,
+            modelId,
+            memory,
+            speaker,
+          }) => {
+            const reply = await ask(
               systemPrompt,
-              { signal, modelId, memory },
+              messages,
+              modelId,
+              memory,
+              speaker,
             );
-            return reply.kind === "text"
-              ? { ok: true, text: reply.text }
-              : { ok: false };
+            if (reply.kind !== "text") {
+              board?.drop();
+              return { ok: false };
+            }
+            board?.keep();
+            return { ok: true, text: reply.text };
           },
         })
       : null;
@@ -216,12 +280,5 @@ export async function executeChatMessage({
   if (outcome.kind === "unavailable") {
     return { text: getUnconfiguredModelMessage(language), delegatedBot };
   }
-  // A cancel is the user's choice, not the model failing: no failed status.
-  return {
-    text: describeModelFailure(outcome.failure, language),
-    delegatedBot,
-    ...(outcome.failure.kind === "cancelled"
-      ? {}
-      : { modelCall: "failed" as const }),
-  };
+  return failedReply(outcome.failure);
 }

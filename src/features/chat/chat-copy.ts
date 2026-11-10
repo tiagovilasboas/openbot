@@ -37,6 +37,8 @@ export const chatCopy = {
     modelErrorUnreachable:
       "Não consegui chegar ao modelo. Confira o endereço em **Configurações** e sua conexão, e tente novamente.",
     cancelledNote: "Resposta cancelada.",
+    interruptedNote:
+      "Resposta interrompida: o modelo parou antes de terminar. O texto acima é o que chegou.",
     cancelLabel: "Cancelar resposta",
     retryHint: "Sem resposta para esta mensagem.",
     retryAction: "Tentar de novo",
@@ -187,6 +189,8 @@ export const chatCopy = {
     modelErrorUnreachable:
       "I could not reach the model. Check the address in **Settings** and your connection, then try again.",
     cancelledNote: "Reply cancelled.",
+    interruptedNote:
+      "Reply interrupted: the model stopped before it finished. The text above is what arrived.",
     cancelLabel: "Cancel reply",
     retryHint: "No reply to this message.",
     retryAction: "Try again",
