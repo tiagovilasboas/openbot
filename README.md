@@ -110,7 +110,18 @@ You can also choose the provider in Settings, under Model. Keys go under Connect
 
 The service worker caches the app shell only. It never caches `/api` calls, model replies or credentials.
 
-By default the server has no login, which is fine on localhost. Every `/api` call is checked for a same-site `Origin` (or the `x-openbot-client: 1` header), capped at 64 KB and limited to 60 requests per minute per IP (`OPENBOT_RATE_LIMIT`). To expose it beyond your machine, set `OPENBOT_ACCESS_TOKEN` in `.env.local`: every `/api` call then needs `Authorization: Bearer <token>`. In the browser, save the token once with `localStorage.setItem("openbot_access_token", "<token>")` in the developer console. Keep it behind HTTPS and access control you trust.
+By default the server has no login, which is fine on localhost. Every `/api` call is checked for a same-site `Origin` (or the `x-openbot-client: 1` header), capped at 64 KB and limited to 60 requests per minute per caller (`OPENBOT_RATE_LIMIT`). To expose it beyond your machine, set `OPENBOT_ACCESS_TOKEN` in `.env.local`: every `/api` call then needs `Authorization: Bearer <token>`. In the browser, save the token once with `localStorage.setItem("openbot_access_token", "<token>")` in the developer console. Keep it behind HTTPS and access control you trust.
+
+These variables tune the guard on `/api`. Set them in `.env.local`:
+
+| Variable                     | Effect                                                                                                                                                                                                                                                                                                                                                                               |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `OPENBOT_RATE_LIMIT`         | Requests per minute per caller (default 60).                                                                                                                                                                                                                                                                                                                                         |
+| `OPENBOT_TRUST_PROXY`        | Set to `1` only behind a reverse proxy you control that always sets or appends `X-Forwarded-For` and is the only way in. The caller is then the last hop of that header. Unset (default), every caller shares one rate-limit bucket and one set of stream slots, because Next does not expose a peer address the caller cannot forge. Fine for one person, too tight for many users. |
+| `OPENBOT_STREAMS_PER_CLIENT` | Streamed replies one caller may have open at once (default 4). Over it, `/api/chat/stream` answers `429 too_many_streams`.                                                                                                                                                                                                                                                           |
+| `OPENBOT_STREAMS_GLOBAL`     | Streamed replies open at once on the whole server (default 20).                                                                                                                                                                                                                                                                                                                      |
+
+A single reply is also capped at 200,000 characters. Past that it is cut and the chat says so.
 
 ## Status and limits
 

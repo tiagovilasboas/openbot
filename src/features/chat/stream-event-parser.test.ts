@@ -53,3 +53,10 @@ test("an unknown error code becomes unknown and an odd failover is ignored", () 
     { type: "done", provider: "p" },
   );
 });
+
+test("the response_too_long code survives instead of becoming unknown", () => {
+  assert.deepEqual(
+    parseStreamEvent('{"type":"error","code":"response_too_long"}'),
+    { type: "error", code: "response_too_long", provider: null },
+  );
+});

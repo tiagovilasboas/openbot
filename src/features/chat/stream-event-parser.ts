@@ -13,6 +13,7 @@ const FAILURE_KINDS: readonly ModelFailureKind[] = [
   "timeout",
   "cancelled",
   "server",
+  "response_too_long",
   "unknown",
 ];
 
