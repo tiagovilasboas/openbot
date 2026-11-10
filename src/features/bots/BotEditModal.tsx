@@ -7,6 +7,7 @@ import {
   BotTemplateImport,
 } from "@/features/bot-sharing/BotTemplateFileControls.tsx";
 import type { BotTemplateDraft } from "@/features/bot-sharing/bot-template-file-types.ts";
+import { MemorySection } from "@/features/memory/MemorySection.tsx";
 import { BotSkillsEditor } from "@/features/skills/BotSkillsEditor.tsx";
 import type { SkillDefinition } from "@/features/skills/skill-types.ts";
 import { FormField, FIELD_CLASS } from "@/shared/ui/FormField.tsx";
@@ -231,6 +232,8 @@ function BotEditForm({
         skills={skills}
         onChange={setSkills}
       />
+
+      {isEditing && bot && <MemorySection botId={bot.id} isPt={isPt} />}
 
       {isEditing && bot && onMakeMain && (
         <BotMainControl
