@@ -80,7 +80,7 @@ Peça ao Chief algo que precise de mais de um especialista e ele escreve uma lin
 | Failover               | Quando o modelo do router falha, o servidor tenta uma vez um modelo reserva, por padrão um modelo gratuito do OpenRouter, e a resposta mostra a troca.                                                 |
 | Fila de mensagens      | O que você envia enquanto um bot responde espera a vez, na ordem.                                                                                                                                      |
 | Skills                 | Cada bot guarda as próprias skills. Escreva uma ao editar o bot, ou cole um `SKILL.md`, e rode como `/comando`.                                                                                        |
-| Bloqueio local         | Senha opcional que bloqueia o app neste aparelho. O hash é feito com PBKDF2 no navegador.                                                                                                              |
+| Bloqueio local         | Senha opcional que bloqueia o app neste aparelho. É um bloqueio de tela, não autenticação; só um hash PBKDF2 fica salvo.                                                                               |
 | Dois idiomas           | Português brasileiro e inglês, com troca a qualquer momento.                                                                                                                                           |
 
 ## Escolha o modelo

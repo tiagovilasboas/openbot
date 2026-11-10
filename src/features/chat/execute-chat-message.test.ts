@@ -339,7 +339,7 @@ test("the Chief delegates: specialists answer one at a time and the Chief synthe
   assert.equal(synthesis?.messages[0]?.text, "ship it");
   assert.match(
     synthesis?.messages.at(-1)?.text ?? "",
-    /### Engineering\nCI is green/,
+    /### Engineering\n<external-data>\nCI is green/,
   );
 });
 
