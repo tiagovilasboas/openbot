@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { messageFitsRequest } from "@/features/attachments/request-size.ts";
+import { toPayloads } from "@/features/attachments/attachment-summary.ts";
+import { useComposerAttachments } from "@/features/attachments/use-composer-attachments.ts";
 import { LockScreen } from "@/features/auth/LockScreen.tsx";
 import { useLocalAuth } from "@/features/auth/use-local-auth.ts";
 import { BotEditModal } from "@/features/bots/BotEditModal.tsx";
@@ -30,6 +33,7 @@ import { useMessageQueue } from "./use-message-queue.ts";
 export function ChatExperience() {
   const [language, setLanguage] = useLanguage();
   const [draft, setDraft] = useState("");
+  const attachments = useComposerAttachments();
   const auth = useLocalAuth();
   const { queueCount, enqueue, dequeue, clearQueue } = useMessageQueue();
 
@@ -134,7 +138,11 @@ export function ChatExperience() {
   function sendMessage(value = draft) {
     const text = value.trim();
     if (!text) return;
-    sendText(text);
+    if (!messageFitsRequest(text, toPayloads(attachments.items))) {
+      attachments.reportTooBig();
+      return;
+    }
+    sendText(text, attachments.take());
     setDraft("");
   }
 
@@ -156,6 +164,7 @@ export function ChatExperience() {
   function startNewChat() {
     resetConversation();
     setDraft("");
+    attachments.clear();
   }
 
   if (auth.hasPassword && auth.isLocked) {
@@ -224,6 +233,7 @@ export function ChatExperience() {
             activeBot={activeBot}
             mainBotId={mainBotId}
             isConfigured={isConfigured}
+            attachments={attachments}
             onOpenSettings={() => setIsSettingsOpen(true)}
             onDraftChange={setDraft}
             onSend={() => void sendMessage()}
@@ -242,6 +252,7 @@ export function ChatExperience() {
             isConfigured={isConfigured}
             activeBotSkills={activeBotSkills}
             bots={bots}
+            attachments={attachments}
             messagesEndRef={messagesEndRef}
             onDraftChange={setDraft}
             onSend={() => void sendMessage()}

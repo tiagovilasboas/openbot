@@ -1,5 +1,7 @@
 "use client";
 
+import type { AttachmentSummary } from "@/features/attachments/attachment-summary.ts";
+import { SentAttachments } from "@/features/attachments/SentAttachments.tsx";
 import { BotAvatar } from "@/features/bots/BotAvatar.tsx";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
 import type { CrewRoomView } from "@/features/crew/crew-room-view.ts";
@@ -31,6 +33,8 @@ export interface MessageData {
     items: GitHubItem[];
   };
   modelBadge?: string;
+  /** Names and sizes of the files sent with this user message; never text. */
+  attachments?: AttachmentSummary[];
   /** The text is partial: the reply broke off or the user cancelled it. */
   incomplete?: "error" | "cancelled";
   failover?: {
@@ -72,6 +76,12 @@ export function ChatMessageItem({
       <article className="group flex w-full flex-col items-end gap-1 animate-enter">
         <div className="max-w-[85%] rounded-2xl rounded-br-md bg-surface px-4 py-2.5 text-base leading-[1.55] text-foreground md:text-[15px]">
           <p className="whitespace-pre-wrap break-words">{message.text}</p>
+          {message.attachments && message.attachments.length > 0 && (
+            <SentAttachments
+              language={message.language}
+              files={message.attachments}
+            />
+          )}
         </div>
         {rollback && (
           <div className="-mt-1 pointer-fine:opacity-0 pointer-fine:transition-opacity pointer-fine:group-hover:opacity-100 pointer-fine:focus-within:opacity-100">

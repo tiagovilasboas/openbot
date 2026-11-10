@@ -38,11 +38,11 @@ export async function readAttachment(
   file: AttachableFile,
   remainingChars: number = MAX_TOTAL_CHARS,
 ): Promise<ReadAttachmentResult> {
-  if (remainingChars <= 0) return { ok: false, reason: "too_many" };
   if (!looksLikeTextFile(file.name, file.type)) {
     return { ok: false, reason: "not_text" };
   }
   if (file.size > MAX_FILE_BYTES) return { ok: false, reason: "too_large" };
+  if (remainingChars <= 0) return { ok: false, reason: "too_many" };
 
   let bytes: Uint8Array;
   try {

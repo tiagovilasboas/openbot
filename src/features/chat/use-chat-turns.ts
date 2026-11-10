@@ -1,6 +1,16 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
+import {
+  recallAttachments,
+  rememberAttachments,
+} from "@/features/attachments/attachment-stash.ts";
+import {
+  toPayloads,
+  toSummaries,
+} from "@/features/attachments/attachment-summary.ts";
+import type { AttachmentPayload } from "@/features/attachments/parse-attachments.ts";
+import type { Attachment } from "@/features/attachments/read-attachment.ts";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
 import type { ClientModelConfig } from "@/features/model/model-config.ts";
 import type { ModelCallResult } from "@/features/model/model-status.ts";
@@ -72,6 +82,7 @@ export function useChatTurns(input: ChatTurnsInput) {
     turnText: string,
     userMessageId: number,
     conversationId: number,
+    attachments: AttachmentPayload[] = [],
   ) {
     setBusy(true);
     setTurnBotId(activeBot.id);
@@ -104,6 +115,7 @@ export function useChatTurns(input: ChatTurnsInput) {
         mainBotId,
         gitHubToken,
         modelConfig,
+        attachments,
         onBotWorking: setWorkingBot,
         onLive: (entries) => {
           // After a cancel the abandoned work may still report (a dropped
@@ -150,28 +162,36 @@ export function useChatTurns(input: ChatTurnsInput) {
     // If another message was queued in the meantime, process it sequentially
     const nextQueued = dequeue();
     if (nextQueued && nextQueued.conversationId === conversationIdRef.current) {
-      void processTurn(nextQueued.text, nextQueued.id, conversationId);
+      void processTurn(
+        nextQueued.text,
+        nextQueued.id,
+        conversationId,
+        nextQueued.attachments,
+      );
     }
   }
 
   /** Stores the user's message and answers it now, or queues it while busy. */
-  function sendText(text: string) {
+  function sendText(text: string, files: Attachment[] = []) {
     const conversationId = conversationIdRef.current;
     const userMsgId = getNextId();
+    const attachments = toPayloads(files);
+    rememberAttachments(activeBot.id, userMsgId, attachments);
     const userMessage: MessageData = {
       id: userMsgId,
       role: "user",
       language,
       text,
+      ...(files.length > 0 ? { attachments: toSummaries(files) } : {}),
     };
     persistMessages([...loadBotMessages(activeBot.id), userMessage]);
 
     if (busy) {
-      enqueue({ id: userMsgId, text, conversationId });
+      enqueue({ id: userMsgId, text, conversationId, attachments });
       return;
     }
 
-    void processTurn(text, userMsgId, conversationId);
+    void processTurn(text, userMsgId, conversationId, attachments);
   }
 
   /** Stops the reply in flight; the queue then moves on to the next message. */
@@ -190,7 +210,16 @@ export function useChatTurns(input: ChatTurnsInput) {
       // A partial reply is replaced by the new answer, not kept beside it.
       const rest = dropRepliesTo(stored, userMessageId);
       if (rest.length !== stored.length) persistMessages(rest);
-      void processTurn(message.text, message.id, conversationIdRef.current);
+      // The file text is not stored: a retry sends it only while it is still
+      // in memory from this session.
+      void processTurn(
+        message.text,
+        message.id,
+        conversationIdRef.current,
+        message.attachments?.length
+          ? recallAttachments(activeBot.id, message.id)
+          : [],
+      );
     }
   }
 

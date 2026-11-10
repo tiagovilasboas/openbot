@@ -2,6 +2,7 @@
 
 import { useMemo, type RefObject } from "react";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
+import type { ComposerAttachments } from "@/features/attachments/use-composer-attachments.ts";
 import { crewRoomsBySynthesisId } from "@/features/crew/crew-room-view.ts";
 import type { SkillDefinition } from "@/features/skills/skill-types.ts";
 import { chatCopy } from "./chat-copy.ts";
@@ -26,6 +27,7 @@ export interface ConversationViewProps {
   isConfigured: boolean;
   activeBotSkills: SkillDefinition[];
   bots: BotProfile[];
+  attachments?: ComposerAttachments;
   messagesEndRef: RefObject<HTMLDivElement | null>;
   onDraftChange: (val: string) => void;
   onSend: () => void;
@@ -51,6 +53,7 @@ export function ConversationView({
   isConfigured,
   activeBotSkills,
   bots,
+  attachments,
   messagesEndRef,
   onDraftChange,
   onSend,
@@ -157,6 +160,7 @@ export function ConversationView({
             queueCount={queueCount}
             skills={activeBotSkills}
             bots={bots}
+            attachments={attachments}
             onDraftChange={onDraftChange}
             onSend={onSend}
           />

@@ -1,7 +1,11 @@
+import type { AttachmentPayload } from "../attachments/parse-attachments.ts";
+
 export interface QueuedMessage {
   id: number;
   text: string;
   conversationId: number;
+  /** The files sent with this message; they wait in the queue with it. */
+  attachments?: AttachmentPayload[];
 }
 
 export interface MessageQueue {

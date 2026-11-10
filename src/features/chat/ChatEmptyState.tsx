@@ -2,6 +2,7 @@
 
 import { BotAvatar } from "@/features/bots/BotAvatar.tsx";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
+import type { ComposerAttachments } from "@/features/attachments/use-composer-attachments.ts";
 import type { SkillDefinition } from "@/features/skills/skill-types.ts";
 import { chatCopy } from "./chat-copy.ts";
 import { ChatComposer } from "./ChatComposer.tsx";
@@ -18,6 +19,7 @@ export interface ChatEmptyStateProps {
   activeBot?: BotProfile;
   mainBotId?: string;
   isConfigured?: boolean;
+  attachments?: ComposerAttachments;
   onOpenSettings?: () => void;
   onDraftChange: (value: string) => void;
   onSend: () => void;
@@ -55,6 +57,7 @@ export function ChatEmptyState({
   activeBot,
   mainBotId,
   isConfigured,
+  attachments,
   onOpenSettings,
   onDraftChange,
   onSend,
@@ -115,6 +118,7 @@ export function ChatEmptyState({
               busy={busy}
               skills={skills}
               bots={bots}
+              attachments={attachments}
               onDraftChange={onDraftChange}
               onSend={onSend}
             />

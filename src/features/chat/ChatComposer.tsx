@@ -2,6 +2,10 @@
 
 import { useId, useLayoutEffect, useRef } from "react";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
+import { AttachButton } from "@/features/attachments/AttachButton.tsx";
+import { AttachmentChips } from "@/features/attachments/AttachmentChips.tsx";
+import { useFileDrop } from "@/features/attachments/use-file-drop.ts";
+import type { ComposerAttachments } from "@/features/attachments/use-composer-attachments.ts";
 import type { SkillDefinition } from "@/features/skills/skill-types.ts";
 import { BotMentionPalette } from "./BotMentionPalette.tsx";
 import { chatCopy } from "./chat-copy.ts";
@@ -24,6 +28,8 @@ interface ChatComposerProps {
   isConfigured?: boolean;
   skills?: SkillDefinition[];
   bots?: BotProfile[];
+  /** The files waiting on the message; without it the composer has no attach. */
+  attachments?: ComposerAttachments;
   onDraftChange: (value: string) => void;
   onSend: () => void;
 }
@@ -36,6 +42,7 @@ export function ChatComposer({
   isConfigured = true,
   skills = [],
   bots = [],
+  attachments,
   onDraftChange,
   onSend,
 }: ChatComposerProps) {
@@ -44,6 +51,7 @@ export function ChatComposer({
   const isCoarsePointer = useCoarsePointer();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const paletteId = useId();
+  const drop = useFileDrop((files) => void attachments?.addFiles(files));
   const palette = useComposerPalette({ draft, skills, bots, onDraftChange });
   const activeOption =
     palette.kind && palette.activeIndex >= 0
@@ -95,12 +103,23 @@ export function ChatComposer({
       )}
 
       <div
-        className="flex w-full cursor-text flex-col rounded-3xl border border-border bg-surface transition-colors duration-(--duration-ui) ease-out-expo focus-within:border-[color:color-mix(in_oklab,var(--bot-accent)_45%,var(--border))]"
+        className={`flex w-full cursor-text flex-col rounded-3xl border bg-surface transition-colors duration-(--duration-ui) ease-out-expo focus-within:border-[color:color-mix(in_oklab,var(--bot-accent)_45%,var(--border))] ${
+          drop.dragging ? "border-dashed border-bot-accent" : "border-border"
+        }`}
+        {...(attachments ? drop.handlers : {})}
         onClick={(event) => {
           const target = event.target as HTMLElement;
           if (!target.closest("button, textarea")) textareaRef.current?.focus();
         }}
       >
+        {attachments && (
+          <AttachmentChips
+            language={language}
+            items={attachments.items}
+            notice={attachments.notice}
+            onRemove={attachments.remove}
+          />
+        )}
         <textarea
           ref={textareaRef}
           rows={1}
@@ -135,6 +154,14 @@ export function ChatComposer({
           openPalette={palette.kind}
           busy={busy}
           canSend={canSend}
+          actions={
+            attachments && (
+              <AttachButton
+                language={language}
+                onFiles={(files) => void attachments.addFiles(files)}
+              />
+            )
+          }
           onTogglePalette={(kind) => {
             palette.toggle(kind);
             textareaRef.current?.focus();
