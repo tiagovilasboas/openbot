@@ -8,6 +8,7 @@ import { ChatComposer } from "./ChatComposer.tsx";
 import { ChatMessageItem, type MessageData } from "./ChatMessageItem.tsx";
 import { userMessageBefore } from "./retry-partial-reply.ts";
 import type { ChatLanguage } from "./respond-to-message.ts";
+import type { RollbackBlock } from "./roll-back-thread.ts";
 import { ThinkingIndicator } from "./ThinkingIndicator.tsx";
 
 export interface ConversationViewProps {
@@ -31,6 +32,10 @@ export interface ConversationViewProps {
   onCancel: () => void;
   /** Resends a user message that has no reply. */
   onRetry: (userMessageId: number) => void;
+  /** Why going back is off right now, or null when it is allowed. */
+  rollbackBlocked: RollbackBlock | null;
+  /** Cuts the thread before a user message and restores its text. */
+  onRollBack: (userMessageId: number) => void;
 }
 
 export function ConversationView({
@@ -51,6 +56,8 @@ export function ConversationView({
   onOpenSettings,
   onCancel,
   onRetry,
+  rollbackBlocked,
+  onRollBack,
 }: ConversationViewProps) {
   const content = chatCopy[language];
   const lastMessage = messages[messages.length - 1];
@@ -79,6 +86,11 @@ export function ConversationView({
                 onRetry={
                   busy || !answered ? undefined : () => onRetry(answered.id)
                 }
+                rollback={{
+                  messagesAfter: messages.length - index - 1,
+                  blocked: rollbackBlocked,
+                  onRollBack,
+                }}
               />
             );
           })}

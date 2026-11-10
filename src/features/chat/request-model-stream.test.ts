@@ -67,6 +67,22 @@ test("sends the guard header, the body and the bot's model id", async () => {
   });
 });
 
+test("sends the bot's raw memory notes, and none when there are none", async () => {
+  const { calls, fetchImpl } = router({
+    stream: () => fakeStreamResponse([ndjson(delta("x"), done)]),
+  });
+  await requestModelStream("en", history, fetchImpl, null, "SYSTEM", {
+    memory: ["Prefers short answers"],
+  });
+  await requestModelStream("en", history, fetchImpl, null, "SYSTEM", {
+    memory: [],
+  });
+  assert.deepEqual(JSON.parse(String(calls[0]?.init?.body)).memory, [
+    "Prefers short answers",
+  ]);
+  assert.ok(!("memory" in JSON.parse(String(calls[1]?.init?.body))));
+});
+
 test("done carries the failover notice into the outcome", async () => {
   const failover = { fromModel: "a/x", toModel: "b/y", reason: "rate_limit" };
   const { fetchImpl } = router({

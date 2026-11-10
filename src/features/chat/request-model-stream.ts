@@ -89,6 +89,9 @@ export async function requestModelStream(
             ...(config ? { config } : {}),
             ...(systemPrompt ? { systemPrompt } : {}),
             ...(options.modelId ? { modelId: options.modelId } : {}),
+            ...(options.memory && options.memory.length > 0
+              ? { memory: options.memory }
+              : {}),
           }),
         }),
       );

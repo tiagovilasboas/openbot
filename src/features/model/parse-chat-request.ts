@@ -1,4 +1,5 @@
 import type { ModelMessage, ModelRequest } from "./model-adapter.ts";
+import { appendMemoryBlock } from "../memory/memory-block.ts";
 import { validateClientModelConfig } from "./model-config.ts";
 import { parseModelId } from "./model-id.ts";
 
@@ -30,14 +31,22 @@ function clampMessage(message: ModelMessage): ModelMessage {
 
 export function parseChatRequest(payload: unknown): ParsedChatRequest {
   if (typeof payload !== "object" || payload === null) return { ok: false };
-  const { language, messages, config, fallbackConfig, systemPrompt, modelId } =
-    payload as Record<string, unknown>;
+  const {
+    language,
+    messages,
+    config,
+    fallbackConfig,
+    systemPrompt,
+    modelId,
+    memory,
+  } = payload as Record<string, unknown>;
   if (language !== "pt" && language !== "en") return { ok: false };
   if (!Array.isArray(messages)) return { ok: false };
   if (messages.length === 0 || messages.length > maxMessages) {
     return { ok: false };
   }
   if (!messages.every(isMessage)) return { ok: false };
+  if (memory !== undefined && !Array.isArray(memory)) return { ok: false };
   if (messages[messages.length - 1].role !== "user") return { ok: false };
 
   let validatedConfig: ModelRequest["config"];
@@ -62,6 +71,13 @@ export function parseChatRequest(payload: unknown): ParsedChatRequest {
     typeof systemPrompt === "string" && systemPrompt.trim()
       ? systemPrompt.trim().slice(0, maxTextLength)
       : undefined;
+  // The memory notes are capped and delimited as data here, whatever the
+  // client sent, so there is one implementation of the block.
+  const fullSystemPrompt = appendMemoryBlock(
+    validSystemPrompt,
+    memory,
+    language,
+  );
 
   return {
     ok: true,
@@ -72,7 +88,7 @@ export function parseChatRequest(payload: unknown): ParsedChatRequest {
       ...(validatedFallbackConfig
         ? { fallbackConfig: validatedFallbackConfig }
         : {}),
-      ...(validSystemPrompt ? { systemPrompt: validSystemPrompt } : {}),
+      ...(fullSystemPrompt ? { systemPrompt: fullSystemPrompt } : {}),
       ...(parsedModelId.modelId ? { modelId: parsedModelId.modelId } : {}),
     },
   };

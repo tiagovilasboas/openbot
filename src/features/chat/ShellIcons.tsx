@@ -26,6 +26,14 @@ function ShellIcon({
   );
 }
 
+export function GripIcon(props: IconProps) {
+  return (
+    <ShellIcon {...props}>
+      <path d="M9 6.5h.01M15 6.5h.01M9 12h.01M15 12h.01M9 17.5h.01M15 17.5h.01" />
+    </ShellIcon>
+  );
+}
+
 export function MenuIcon(props: IconProps) {
   return (
     <ShellIcon {...props}>

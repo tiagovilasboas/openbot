@@ -20,6 +20,8 @@ import { ChatEmptyState } from "./ChatEmptyState.tsx";
 import { ChatHeader } from "./ChatHeader.tsx";
 import { ChatSidebar } from "./ChatSidebar.tsx";
 import { ConversationView } from "./ConversationView.tsx";
+import { focusComposer } from "./focus-composer.ts";
+import { rollBackThread, rollbackBlock } from "./roll-back-thread.ts";
 import { useBotMessages } from "./use-bot-messages.ts";
 import { useChatTurns } from "./use-chat-turns.ts";
 import { useLanguage } from "./use-language.ts";
@@ -40,6 +42,7 @@ export function ChatExperience() {
     saveBot,
     createAndActivateBot,
     removeBot,
+    reorderBot,
     mainBotId,
     makeMainBot,
   } = useBots();
@@ -97,6 +100,7 @@ export function ChatExperience() {
     busy,
     liveMessages,
     workingBot,
+    workingBotIds,
     sendText,
     cancelTurn,
     retryMessage,
@@ -134,6 +138,21 @@ export function ChatExperience() {
     setDraft("");
   }
 
+  const blockedRollback = rollbackBlock(
+    workingBotIds.includes(activeBot.id),
+    queueCount,
+  );
+
+  /** Cuts the thread before a user message and puts its text back to edit. */
+  function rollBack(messageId: number) {
+    if (blockedRollback) return;
+    const result = rollBackThread(messages, messageId);
+    if (!result) return;
+    persistMessages(result.messages);
+    setDraft(result.text);
+    focusComposer(language);
+  }
+
   function startNewChat() {
     resetConversation();
     setDraft("");
@@ -152,6 +171,8 @@ export function ChatExperience() {
         bots={bots}
         activeBotId={activeBotId}
         mainBotId={mainBotId}
+        workingBotIds={workingBotIds}
+        onReorderBot={reorderBot}
         isMobileOpen={isMobileSidebarOpen}
         isDesktopCollapsed={isDesktopCollapsed}
         hasPassword={auth.hasPassword}
@@ -227,6 +248,8 @@ export function ChatExperience() {
             onOpenSettings={() => setIsSettingsOpen(true)}
             onCancel={cancelTurn}
             onRetry={retryMessage}
+            rollbackBlocked={blockedRollback}
+            onRollBack={rollBack}
           />
         )}
       </main>

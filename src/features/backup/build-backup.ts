@@ -1,4 +1,6 @@
 import { loadActiveBotId, loadBotsFromStorage } from "../bots/bot-storage.ts";
+import type { MemoryEntry } from "../memory/memory-entries.ts";
+import { loadMemoryEntries } from "../memory/memory-storage.ts";
 import type { MessageData } from "../chat/ChatMessageItem.tsx";
 import type { ChatLanguage } from "../chat/respond-to-message.ts";
 import {
@@ -35,6 +37,11 @@ export function buildBackup(
     const list = readMessages(storage, bot.id);
     if (list.length > 0) messages[bot.id] = list;
   }
+  const memory: Record<string, MemoryEntry[]> = Object.create(null);
+  for (const bot of bots) {
+    const notes = loadMemoryEntries(bot.id, storage);
+    if (notes.length > 0) memory[bot.id] = notes;
+  }
   const mainBotId = storage.getItem(BACKUP_ALLOWED_KEYS.mainBotId);
   return {
     app: BACKUP_APP,
@@ -46,6 +53,7 @@ export function buildBackup(
       ...(mainBotId ? { mainBotId } : {}),
       ...(language ? { language } : {}),
       messages,
+      memory,
     },
   };
 }

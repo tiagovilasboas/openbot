@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
 import type { ClientModelConfig } from "@/features/model/model-config.ts";
 import type { ModelCallResult } from "@/features/model/model-status.ts";
@@ -20,6 +20,7 @@ import type { ChatLanguage } from "./respond-to-message.ts";
 import { insertReplyAfter, threadUpTo } from "./thread-sequencing.ts";
 import { loadBotMessages } from "./use-bot-messages.ts";
 import type { QueuedMessage } from "./use-message-queue.ts";
+import { workingBotIds } from "./working-bots.ts";
 
 interface ChatTurnsInput {
   language: ChatLanguage;
@@ -62,6 +63,8 @@ export function useChatTurns(input: ChatTurnsInput) {
   const [workingBot, setWorkingBot] = useState<BotProfile | null>(null);
   // Replies still arriving. Only the finished or partial reply is stored.
   const [live, setLive] = useState<MessageData[]>([]);
+  // The bot that took the message in flight, even if the user moves to another.
+  const [turnBotId, setTurnBotId] = useState<string | null>(null);
   const conversationIdRef = useRef(0);
   const turnAbortRef = useRef<AbortController | null>(null);
 
@@ -71,6 +74,7 @@ export function useChatTurns(input: ChatTurnsInput) {
     conversationId: number,
   ) {
     setBusy(true);
+    setTurnBotId(activeBot.id);
     const controller = new AbortController();
     turnAbortRef.current = controller;
     // Deltas repaint at most once per frame; the latest entries are kept
@@ -199,10 +203,16 @@ export function useChatTurns(input: ChatTurnsInput) {
     setBusy(false);
   }
 
+  const workingIds = useMemo(
+    () => workingBotIds(busy, turnBotId, workingBot?.id),
+    [busy, turnBotId, workingBot],
+  );
+
   return {
     busy,
     liveMessages: live,
     workingBot,
+    workingBotIds: workingIds,
     sendText,
     cancelTurn,
     retryMessage,

@@ -14,6 +14,7 @@ import type {
 import { listRepositoryItems } from "@/features/github/list-repository-items.ts";
 import type { ModelFailure } from "@/features/model/classify-model-failure.ts";
 import type { ClientModelConfig } from "@/features/model/model-config.ts";
+import { memoryTextsForRequest } from "@/features/memory/memory-request.ts";
 import type { ModelCallResult } from "@/features/model/model-status.ts";
 import { detectSummaryRequest } from "@/features/summary/detect-summary-request.ts";
 import { executeSummary } from "@/features/summary/execute-summary.ts";
@@ -57,6 +58,7 @@ export async function executeChatMessage({
   onBotWorking,
   onLive,
   signal,
+  memoryFor = memoryTextsForRequest,
 }: {
   text: string;
   language: ChatLanguage;
@@ -76,6 +78,8 @@ export async function executeChatMessage({
   onLive?: (entries: LiveEntry[]) => void;
   /** The user's cancel signal; each model call also has its own time limit. */
   signal?: AbortSignal;
+  /** A bot's memory notes; defaults to what the user saved on this device. */
+  memoryFor?: (botId: string) => string[];
 }): Promise<ChatReplyOutcome> {
   // The server caps the history; send only the newest messages.
   const history = limitHistory(fullHistory);
@@ -167,10 +171,11 @@ export async function executeChatMessage({
     system: string,
     messages: typeof history,
     modelId: string | undefined,
+    memory: string[] | undefined,
     speaker: BotProfile | undefined,
     shape: (text: string) => string = (text) => text,
   ) => {
-    const options = { signal, modelId };
+    const options = { signal, modelId, memory };
     if (!board) {
       return requestModelReply(
         language,
@@ -198,6 +203,7 @@ export async function executeChatMessage({
     fullSystemPrompt,
     history,
     executingBot.modelId,
+    memoryFor(executingBot.id),
     undefined,
     isChief ? (t) => liveChiefText(t, bots, executingBot.id) : undefined,
   );
@@ -224,9 +230,22 @@ export async function executeChatMessage({
           userText: text,
           language,
           onBotWorking,
+          memoryFor,
           onKickoff: (kickoff) => board?.settle(kickoff),
-          askModel: async ({ systemPrompt, messages, modelId, speaker }) => {
-            const reply = await ask(systemPrompt, messages, modelId, speaker);
+          askModel: async ({
+            systemPrompt,
+            messages,
+            modelId,
+            memory,
+            speaker,
+          }) => {
+            const reply = await ask(
+              systemPrompt,
+              messages,
+              modelId,
+              memory,
+              speaker,
+            );
             if (reply.kind !== "text") {
               board?.drop();
               return { ok: false };

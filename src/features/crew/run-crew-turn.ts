@@ -24,6 +24,8 @@ export type AskCrewModel = (request: {
   modelId?: string;
   /** The specialist answering; absent for the Chief's own synthesis. */
   speaker?: BotProfile;
+  /** The answering bot's memory notes, raw; the server delimits them. */
+  memory?: string[];
 }) => Promise<CrewModelReply>;
 
 export interface SpecialistAnswer {
@@ -51,6 +53,8 @@ interface CrewTurnInput {
   userText: string;
   language: ChatLanguage;
   askModel: AskCrewModel;
+  /** Each bot's own memory notes; a specialist never sees another's. */
+  memoryFor?: (botId: string) => string[];
   /** Called with whichever bot is working now, for the thinking indicator. */
   onBotWorking?: (bot: BotProfile) => void;
   /** Called once the Chief's kickoff is known, before the specialists run. */
@@ -59,7 +63,7 @@ interface CrewTurnInput {
 
 async function askSpecialist(
   { bot, task }: Delegation,
-  { userText, language, askModel }: CrewTurnInput,
+  { userText, language, askModel, memoryFor }: CrewTurnInput,
 ): Promise<SpecialistAnswer> {
   const copy = crewCopy[language];
   const systemPrompt = `${buildBotSystemPrompt(bot, language)}\n\n${copy.antiLoopRule}`;
@@ -70,6 +74,7 @@ async function askSpecialist(
       messages: [{ role: "user", text: request }],
       modelId: bot.modelId,
       speaker: bot,
+      memory: memoryFor?.(bot.id),
     });
     if (reply.ok) return { bot, task, ok: true, text: reply.text };
   } catch {
@@ -102,6 +107,7 @@ async function synthesize(
         },
       ],
       modelId: input.chief.modelId,
+      memory: input.memoryFor?.(input.chief.id),
     });
     return reply.ok ? reply.text : null;
   } catch {
