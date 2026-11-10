@@ -42,14 +42,15 @@ export function createRouterAdapter(
     provider: "router",
     model: config.model,
     streamReply(request, signal) {
+      const model = request.modelId ?? config.model;
       return openModelStream({
         provider: "router",
-        model: config.model,
+        model: model,
         fetchImpl,
         url: endpoint,
         headers: requestHeaders(config.apiKey),
         body: {
-          model: config.model,
+          model: model,
           stream: true,
           messages: toWireMessages(request),
         },

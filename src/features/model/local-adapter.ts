@@ -24,14 +24,15 @@ export function createLocalAdapter(
     provider: "local",
     model: config.model,
     streamReply(request, signal) {
+      const model = request.modelId ?? config.model;
       return openModelStream({
         provider: "local",
-        model: config.model,
+        model: model,
         fetchImpl,
         url: endpoint,
         headers: { "content-type": "application/json" },
         body: {
-          model: config.model,
+          model: model,
           stream: true,
           messages: toWireMessages(request),
         },
