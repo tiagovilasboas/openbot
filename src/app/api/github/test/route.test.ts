@@ -90,11 +90,11 @@ test("the body token wins over the env token, and env is the fallback", async ()
   );
 });
 
-test("401 maps to unauthorized, 403 and 429 to a 502 rate_limited, others to network_error", async () => {
+test("401 maps to unauthorized, 403 and 429 to a 429 rate_limited, others to network_error", async () => {
   const cases: Array<[number, number, string]> = [
     [401, 401, "unauthorized"],
-    [403, 502, "rate_limited"],
-    [429, 502, "rate_limited"],
+    [403, 429, "rate_limited"],
+    [429, 429, "rate_limited"],
     [500, 502, "network_error"],
   ];
   for (const [upstream, status, error] of cases) {

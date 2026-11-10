@@ -1,6 +1,20 @@
 import { withApiHeaders } from "../server-guard/api-request-init.ts";
 import type { GitHubItemsResult, GitHubRepoRef } from "./github-types.ts";
 
+function isSuccessResult(
+  data: unknown,
+): data is Extract<GitHubItemsResult, { ok: true }> {
+  const body = data as { ok?: unknown; items?: unknown } | null;
+  return body?.ok === true && Array.isArray(body.items);
+}
+
+function isErrorResult(
+  data: unknown,
+): data is Extract<GitHubItemsResult, { ok: false }> {
+  const body = data as { ok?: unknown; error?: unknown } | null;
+  return body?.ok === false && typeof body.error === "string";
+}
+
 export async function listRepositoryItems(
   repo: GitHubRepoRef,
   token?: string | null,
@@ -20,15 +34,13 @@ export async function listRepositoryItems(
       }),
     );
 
-    const data = (await response
-      .json()
-      .catch(() => null)) as GitHubItemsResult | null;
+    const data: unknown = await response.json().catch(() => null);
 
-    if (response.ok && data?.ok) {
+    if (response.ok && isSuccessResult(data)) {
       return data;
     }
 
-    if (data && !data.ok) {
+    if (isErrorResult(data)) {
       return data;
     }
 

@@ -210,7 +210,7 @@ test("updateBotInList and deleteBotFromList maintain integrity", () => {
   assert.equal(list.find((b) => b.id === b2.id)?.name, "Second Bot Updated");
 
   // Deleting one bot
-  const delResult = deleteBotFromList(list, b2.id);
+  const delResult = deleteBotFromList(list, b2.id, undefined, b2.id);
   assert.equal(delResult.bots.length, 1);
   assert.equal(delResult.newActiveId, b1.id);
 

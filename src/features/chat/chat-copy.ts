@@ -54,8 +54,11 @@ export const chatCopy = {
     close: "Fechar",
     githubSource: "Fonte oficial: GitHub API v3 (somente leitura)",
     githubOpenItems: "itens abertos",
+    githubOpenItem: "item aberto",
     githubIssues: "issues",
+    githubIssue: "issue",
     githubPRs: "pull requests",
+    githubPR: "pull request",
     githubNoItems:
       "Nenhuma issue ou pull request aberta encontrada neste repositório.",
     githubRepoNotFound:
@@ -175,8 +178,11 @@ export const chatCopy = {
     close: "Close",
     githubSource: "Official source: GitHub API v3 (read-only)",
     githubOpenItems: "open items",
+    githubOpenItem: "open item",
     githubIssues: "issues",
+    githubIssue: "issue",
     githubPRs: "pull requests",
+    githubPR: "pull request",
     githubNoItems: "No open issues or pull requests found in this repository.",
     githubRepoNotFound:
       "Repository not found or inaccessible. Check the name (e.g. owner/repo) and make sure it is public.",
