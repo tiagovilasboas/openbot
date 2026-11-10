@@ -71,17 +71,18 @@ Peça ao Chief algo que precise de mais de um especialista e ele escreve uma lin
 
 ## O que ele faz hoje
 
-| Recurso                | Como funciona                                                                                                                                                                                          |
-| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Conversa com um modelo | O servidor chama o provedor que você configurou. Veja [Escolha o modelo](#escolha-o-modelo).                                                                                                           |
-| Issues e PRs do GitHub | Peça `dono/repo` ou cole um link do GitHub. Repositórios públicos funcionam sem token. Para os privados, conecte o GitHub em Configurações, na aba Conexões, ou defina `GITHUB_TOKEN` no `.env.local`. |
-| Briefing               | Resume dados reais do repositório. Sem modelo, monta o resumo com os mesmos dados.                                                                                                                     |
-| Delegação              | O bot principal passa trabalho aos seus outros bots e traz um resumo só. Veja [Como a delegação funciona](#como-a-delegação-funciona).                                                                 |
-| Failover               | Quando o modelo do router falha, o servidor tenta uma vez um modelo reserva, por padrão um modelo gratuito do OpenRouter, e a resposta mostra a troca.                                                 |
-| Fila de mensagens      | O que você envia enquanto um bot responde espera a vez, na ordem.                                                                                                                                      |
-| Skills                 | Cada bot guarda as próprias skills. Escreva uma ao editar o bot, ou cole um `SKILL.md`, e rode como `/comando`.                                                                                        |
-| Bloqueio local         | Senha opcional que bloqueia o app neste aparelho. É um bloqueio de tela, não autenticação; só um hash PBKDF2 fica salvo.                                                                               |
-| Dois idiomas           | Português brasileiro e inglês, com troca a qualquer momento.                                                                                                                                           |
+| Recurso                | Como funciona                                                                                                                                                                                                          |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Conversa com um modelo | O servidor chama o provedor que você configurou. Veja [Escolha o modelo](#escolha-o-modelo).                                                                                                                           |
+| Issues e PRs do GitHub | Peça `dono/repo` ou cole um link do GitHub. Repositórios públicos funcionam sem token. Para os privados, conecte o GitHub em Configurações, na aba Conexões, ou defina `GITHUB_TOKEN` no `.env.local`.                 |
+| Briefing               | Resume dados reais do repositório. Sem modelo, monta o resumo com os mesmos dados.                                                                                                                                     |
+| Delegação              | O bot principal passa trabalho aos seus outros bots e traz um resumo só. Veja [Como a delegação funciona](#como-a-delegação-funciona).                                                                                 |
+| Failover               | Quando o modelo do router falha, o servidor tenta uma vez um modelo reserva, por padrão um modelo gratuito do OpenRouter, e a resposta mostra a troca.                                                                 |
+| Fila de mensagens      | O que você envia enquanto um bot responde espera a vez, na ordem.                                                                                                                                                      |
+| Skills                 | Cada bot guarda as próprias skills. Escreva uma ao editar o bot, ou cole um `SKILL.md`, e rode como `/comando`.                                                                                                        |
+| Bot como arquivo       | Exporte um bot para um arquivo JSON com nome, instruções, visual e skills, e preencha o formulário de um bot novo com um arquivo. Conversas, chaves e senha não vão no arquivo, e as skills importadas ficam marcadas. |
+| Bloqueio local         | Senha opcional que bloqueia o app neste aparelho. É um bloqueio de tela, não autenticação; só um hash PBKDF2 fica salvo.                                                                                               |
+| Dois idiomas           | Português brasileiro e inglês, com troca a qualquer momento.                                                                                                                                                           |
 
 ## Escolha o modelo
 
