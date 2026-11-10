@@ -82,3 +82,13 @@ test("a blocked model address explains the restriction in both languages", () =>
     chatCopy.en.modelErrorBlockedUrl,
   );
 });
+
+test("a reply cut for length has its own sentence with an action, in both languages", () => {
+  for (const language of ["pt", "en"] as const) {
+    const c = chatCopy[language];
+    const text = describeModelFailure({ kind: "response_too_long" }, language);
+    assert.equal(text, c.modelErrorTooLong);
+    assert.notEqual(text, c.modelError);
+    assert.ok(text.length > 20);
+  }
+});

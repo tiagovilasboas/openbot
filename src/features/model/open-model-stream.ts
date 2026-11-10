@@ -7,7 +7,7 @@ import {
 import type { FetchLike } from "./model-adapter.ts";
 import { providerErrorDetail } from "./provider-error-detail.ts";
 import type { ModelStreamChunk, ModelStreamOpen } from "./stream-adapter.ts";
-import { asRecord, readLines } from "./stream-lines.ts";
+import { asRecord, readLines, StreamTooLargeError } from "./stream-lines.ts";
 
 export type OpenModelStreamInput = {
   provider: string;
@@ -29,11 +29,16 @@ async function* chunksOf(
 ): AsyncGenerator<ModelStreamChunk> {
   try {
     yield* parse(readLines(body));
-  } catch {
+  } catch (error) {
     // An abort ends the stream quietly; the caller knows why it aborted.
-    if (!signal?.aborted) {
-      yield { type: "failed", code: "provider_unreachable" };
-    }
+    if (signal?.aborted) return;
+    yield {
+      type: "failed",
+      code:
+        error instanceof StreamTooLargeError
+          ? "response_too_long"
+          : "provider_unreachable",
+    };
   }
 }
 

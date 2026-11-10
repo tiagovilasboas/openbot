@@ -4,7 +4,8 @@ import {
   type ModelFailure,
 } from "../model/classify-model-failure.ts";
 import type { ClientModelConfig } from "../model/model-config.ts";
-import { readLines } from "../model/stream-lines.ts";
+import { fitReplyChunk, MAX_REPLY_CHARS } from "../model/reply-limit.ts";
+import { readLines, StreamTooLargeError } from "../model/stream-lines.ts";
 import type { TokenUsage } from "../model/token-usage.ts";
 import { createCallSignal } from "./call-timeout.ts";
 import {
@@ -21,6 +22,8 @@ import { parseStreamEvent } from "./stream-event-parser.ts";
 export interface ModelStreamOptions extends ModelReplyOptions {
   /** Called with the whole reply so far each time more text arrives. */
   onText?: (textSoFar: string) => void;
+  /** Most characters kept from one reply; defaults to MAX_REPLY_CHARS. */
+  maxReplyChars?: number;
 }
 
 /**
@@ -125,8 +128,19 @@ export async function requestModelStream(
       for await (const line of readLines(body)) {
         const event = parseStreamEvent(line);
         if (event?.type === "delta") {
-          text += event.text;
-          options.onText?.(text);
+          // The server caps replies too; this keeps a hostile upstream from
+          // filling memory and localStorage through a proxy that does not.
+          const fit = fitReplyChunk(
+            text.length,
+            event.text,
+            options.maxReplyChars ?? MAX_REPLY_CHARS,
+          );
+          text += fit.text;
+          if (fit.text) options.onText?.(text);
+          if (fit.exceeded) {
+            failure = { kind: "response_too_long" };
+            break;
+          }
         } else if (event?.type === "done") {
           finished = true;
           failover = event.failover;
@@ -140,8 +154,11 @@ export async function requestModelStream(
           break;
         }
       }
-    } catch {
-      failure = failureOfThrow();
+    } catch (error) {
+      failure =
+        error instanceof StreamTooLargeError
+          ? { kind: "response_too_long" }
+          : failureOfThrow();
     }
     const hasText = text.trim() !== "";
     if (finished) {

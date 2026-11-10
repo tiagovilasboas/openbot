@@ -45,8 +45,3 @@ export function createRequestGuard(
     return { ok: true };
   };
 }
-
-/** First X-Forwarded-For hop when a reverse proxy sets it, else one shared bucket. */
-export function clientIp(headers: Headers): string {
-  return headers.get("x-forwarded-for")?.split(",")[0].trim() || "local";
-}

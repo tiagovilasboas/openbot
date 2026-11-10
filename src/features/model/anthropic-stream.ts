@@ -67,7 +67,12 @@ export async function* parseAnthropicStream(
       return;
     } else if (event.type === "error") {
       const kind = asRecord(event.error)?.type;
-      const status = (typeof kind === "string" && errorStatus[kind]) || 500;
+      // `kind` comes from the stream: "constructor" or "__proto__" must not
+      // reach the inherited members of the table.
+      const status =
+        typeof kind === "string" && Object.hasOwn(errorStatus, kind)
+          ? errorStatus[kind]
+          : 500;
       yield {
         type: "failed",
         code: "provider_rejected",

@@ -1,8 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
-import {
-  clientIp,
-  createRequestGuard,
-} from "./features/server-guard/guard-request.ts";
+import { clientKey } from "./features/server-guard/client-key.ts";
+import { createRequestGuard } from "./features/server-guard/guard-request.ts";
 
 // Next 16 "proxy" (the renamed middleware) runs before every /api route and
 // uses the Node runtime. It can reject on headers such as Content-Length, but
@@ -15,7 +13,7 @@ export function proxy(request: NextRequest) {
   const decision = guard({
     method: request.method,
     headers: request.headers,
-    ip: clientIp(request.headers),
+    ip: clientKey(request.headers, process.env),
   });
   if (decision.ok) return NextResponse.next();
   return NextResponse.json(

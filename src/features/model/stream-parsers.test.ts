@@ -133,3 +133,32 @@ test("a local error line or a missing done marker is a failure", async () => {
   ]);
   assert.equal(cut[1].type, "failed");
 });
+
+test("the anthropic parser ignores error kinds that are inherited object members", async () => {
+  for (const kind of [
+    "constructor",
+    "__proto__",
+    "toString",
+    "hasOwnProperty",
+  ]) {
+    const chunks = await collect(parseAnthropicStream, [
+      `data: {"type":"error","error":{"type":"${kind}"}}`,
+    ]);
+    assert.deepEqual(chunks, [
+      {
+        type: "failed",
+        code: "provider_rejected",
+        detail: "500: upstream_error",
+      },
+    ]);
+  }
+});
+
+test("the anthropic parser still maps its documented error kinds", async () => {
+  const chunks = await collect(parseAnthropicStream, [
+    'data: {"type":"error","error":{"type":"rate_limit_error"}}',
+  ]);
+  assert.deepEqual(chunks, [
+    { type: "failed", code: "provider_rejected", detail: "429: rate_limited" },
+  ]);
+});
