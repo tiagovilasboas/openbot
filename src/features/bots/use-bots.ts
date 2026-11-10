@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useSyncExternalStore } from "react";
+import { deleteBotMemory } from "@/features/memory/memory-storage.ts";
 import type { SkillDefinition } from "@/features/skills/skill-types.ts";
 import {
   createBotProfile,
@@ -124,6 +125,8 @@ export function useBots() {
       loadActiveBotId(),
     );
     saveBotsToStorage(result.bots);
+    // A deleted bot's notes go with it; nothing keeps them behind.
+    deleteBotMemory(id);
     if (result.newActiveId) {
       saveActiveBotId(result.newActiveId);
     }

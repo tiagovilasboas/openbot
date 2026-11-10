@@ -15,6 +15,8 @@ export interface ModelReplyOptions {
   timeoutMs?: number;
   /** The bot's own model; empty means the global model setting. */
   modelId?: string;
+  /** The bot's memory notes, raw: the server delimits them as data. */
+  memory?: string[];
   /** Tells offline from unreachable; defaults to navigator.onLine. */
   isOnline?: () => boolean;
 }
@@ -66,6 +68,7 @@ export async function requestModelReply(
       call.signal,
       failureOfThrow,
       options.modelId,
+      options.memory,
     );
   } finally {
     call.dispose();
@@ -81,6 +84,7 @@ async function fetchReply(
   signal: AbortSignal,
   failureOfThrow: () => ModelFailure,
   modelId?: string,
+  memory?: string[],
 ): Promise<ModelReplyOutcome> {
   let response: Response;
   try {
@@ -96,6 +100,7 @@ async function fetchReply(
           ...(config ? { config } : {}),
           ...(systemPrompt ? { systemPrompt } : {}),
           ...(modelId ? { modelId } : {}),
+          ...(memory && memory.length > 0 ? { memory } : {}),
         }),
       }),
     );

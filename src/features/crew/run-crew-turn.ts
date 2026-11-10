@@ -22,6 +22,8 @@ export type AskCrewModel = (request: {
   messages: CrewMessage[];
   /** The model of the bot answering; empty means the global model. */
   modelId?: string;
+  /** The answering bot's memory notes, raw; the server delimits them. */
+  memory?: string[];
 }) => Promise<CrewModelReply>;
 
 export interface SpecialistAnswer {
@@ -49,13 +51,15 @@ interface CrewTurnInput {
   userText: string;
   language: ChatLanguage;
   askModel: AskCrewModel;
+  /** Each bot's own memory notes; a specialist never sees another's. */
+  memoryFor?: (botId: string) => string[];
   /** Called with whichever bot is working now, for the thinking indicator. */
   onBotWorking?: (bot: BotProfile) => void;
 }
 
 async function askSpecialist(
   { bot, task }: Delegation,
-  { userText, language, askModel }: CrewTurnInput,
+  { userText, language, askModel, memoryFor }: CrewTurnInput,
 ): Promise<SpecialistAnswer> {
   const copy = crewCopy[language];
   const systemPrompt = `${buildBotSystemPrompt(bot, language)}\n\n${copy.antiLoopRule}`;
@@ -65,6 +69,7 @@ async function askSpecialist(
       systemPrompt,
       messages: [{ role: "user", text: request }],
       modelId: bot.modelId,
+      memory: memoryFor?.(bot.id),
     });
     if (reply.ok) return { bot, task, ok: true, text: reply.text };
   } catch {
@@ -97,6 +102,7 @@ async function synthesize(
         },
       ],
       modelId: input.chief.modelId,
+      memory: input.memoryFor?.(input.chief.id),
     });
     return reply.ok ? reply.text : null;
   } catch {

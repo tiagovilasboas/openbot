@@ -1,6 +1,7 @@
 import type { MessageData } from "../chat/ChatMessageItem.tsx";
 import type { ChatLanguage } from "../chat/respond-to-message.ts";
 import type { BotProfile } from "../bots/bot-types.ts";
+import type { MemoryEntry } from "../memory/memory-entries.ts";
 
 export const BACKUP_APP = "openbot";
 export const BACKUP_VERSION = 1;
@@ -13,6 +14,7 @@ export const BACKUP_ALLOWED_KEYS = {
   mainBotId: "openbot_main_bot_id",
   language: "openbot_language",
   messagesPrefix: "openbot_msgs_",
+  memoryPrefix: "openbot_memory_",
 } as const;
 
 /** The slice of Storage that backup needs; localStorage satisfies it. */
@@ -25,6 +27,8 @@ export interface BackupData {
   language?: ChatLanguage;
   /** Conversation per bot id. Has no prototype, so any id is a plain key. */
   messages: Record<string, MessageData[]>;
+  /** Memory notes per bot id, capped on read. Also has no prototype. */
+  memory: Record<string, MemoryEntry[]>;
 }
 
 export interface Backup {

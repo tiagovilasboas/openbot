@@ -11,6 +11,7 @@ import type {
 } from "@/features/github/github-types.ts";
 import { listRepositoryItems } from "@/features/github/list-repository-items.ts";
 import type { ClientModelConfig } from "@/features/model/model-config.ts";
+import { memoryTextsForRequest } from "@/features/memory/memory-request.ts";
 import type { ModelCallResult } from "@/features/model/model-status.ts";
 import { detectSummaryRequest } from "@/features/summary/detect-summary-request.ts";
 import { executeSummary } from "@/features/summary/execute-summary.ts";
@@ -49,6 +50,7 @@ export async function executeChatMessage({
   modelConfig,
   onBotWorking,
   signal,
+  memoryFor = memoryTextsForRequest,
 }: {
   text: string;
   language: ChatLanguage;
@@ -63,6 +65,8 @@ export async function executeChatMessage({
   onBotWorking?: (bot: BotProfile) => void;
   /** The user's cancel signal; each model call also has its own time limit. */
   signal?: AbortSignal;
+  /** A bot's memory notes; defaults to what the user saved on this device. */
+  memoryFor?: (botId: string) => string[];
 }): Promise<ChatReplyOutcome> {
   // The server caps the history; send only the newest messages.
   const history = limitHistory(fullHistory);
@@ -154,7 +158,11 @@ export async function executeChatMessage({
     fetch,
     modelConfig,
     fullSystemPrompt,
-    { signal, modelId: executingBot.modelId },
+    {
+      signal,
+      modelId: executingBot.modelId,
+      memory: memoryFor(executingBot.id),
+    },
   );
   if (outcome.kind === "text") {
     const crewTurn = isChief
@@ -167,14 +175,15 @@ export async function executeChatMessage({
           userText: text,
           language,
           onBotWorking,
-          askModel: async ({ systemPrompt, messages, modelId }) => {
+          memoryFor,
+          askModel: async ({ systemPrompt, messages, modelId, memory }) => {
             const reply = await requestModelReply(
               language,
               messages,
               fetch,
               modelConfig,
               systemPrompt,
-              { signal, modelId },
+              { signal, modelId, memory },
             );
             return reply.kind === "text"
               ? { ok: true, text: reply.text }

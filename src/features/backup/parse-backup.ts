@@ -2,6 +2,10 @@ import { sanitizeBotProfile } from "../bots/bot-storage.ts";
 import type { BotProfile } from "../bots/bot-types.ts";
 import type { MessageData } from "../chat/ChatMessageItem.tsx";
 import {
+  sanitizeMemoryEntries,
+  type MemoryEntry,
+} from "../memory/memory-entries.ts";
+import {
   BACKUP_APP,
   BACKUP_MAX_BYTES,
   BACKUP_VERSION,
@@ -99,6 +103,21 @@ function sanitizeMessages(
   return messages;
 }
 
+function sanitizeMemory(
+  raw: unknown,
+  botIds: Set<string>,
+): Record<string, MemoryEntry[]> {
+  const memory: Record<string, MemoryEntry[]> = Object.create(null);
+  if (!isRecord(raw)) return memory;
+  for (const key of Object.keys(raw)) {
+    const id = sanitizeBotProfile({ id: key, name: "x" })?.id ?? key;
+    if (!botIds.has(id) || RESERVED_IDS.has(id)) continue;
+    const notes = sanitizeMemoryEntries(raw[key]);
+    if (notes.length > 0) memory[id] = notes;
+  }
+  return memory;
+}
+
 function knownId(value: unknown, ids: Set<string>): string | undefined {
   return typeof value === "string" && ids.has(value) ? value : undefined;
 }
@@ -118,6 +137,7 @@ function sanitizeData(raw: unknown): BackupData | null {
       ? { language: raw.language }
       : {}),
     messages: sanitizeMessages(raw.messages, ids),
+    memory: sanitizeMemory(raw.memory, ids),
   };
 }
 
