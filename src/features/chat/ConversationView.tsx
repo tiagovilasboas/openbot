@@ -7,6 +7,7 @@ import { chatCopy } from "./chat-copy.ts";
 import { ChatComposer } from "./ChatComposer.tsx";
 import { ChatMessageItem, type MessageData } from "./ChatMessageItem.tsx";
 import type { ChatLanguage } from "./respond-to-message.ts";
+import type { RollbackBlock } from "./roll-back-thread.ts";
 import { ThinkingIndicator } from "./ThinkingIndicator.tsx";
 
 export interface ConversationViewProps {
@@ -28,6 +29,10 @@ export interface ConversationViewProps {
   onCancel: () => void;
   /** Resends a user message that has no reply. */
   onRetry: (userMessageId: number) => void;
+  /** Why going back is off right now, or null when it is allowed. */
+  rollbackBlocked: RollbackBlock | null;
+  /** Cuts the thread before a user message and restores its text. */
+  onRollBack: (userMessageId: number) => void;
 }
 
 export function ConversationView({
@@ -47,6 +52,8 @@ export function ConversationView({
   onOpenSettings,
   onCancel,
   onRetry,
+  rollbackBlocked,
+  onRollBack,
 }: ConversationViewProps) {
   const content = chatCopy[language];
   const lastMessage = messages[messages.length - 1];
@@ -63,12 +70,17 @@ export function ConversationView({
           aria-live="polite"
           className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 pb-6 pt-4 md:px-6"
         >
-          {messages.map((message) => (
+          {messages.map((message, index) => (
             <ChatMessageItem
               key={message.id}
               message={message}
               activeBot={activeBot}
               onOpenSettings={onOpenSettings}
+              rollback={{
+                messagesAfter: messages.length - index - 1,
+                blocked: rollbackBlocked,
+                onRollBack,
+              }}
             />
           ))}
           {busy && (
