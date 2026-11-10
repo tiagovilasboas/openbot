@@ -13,7 +13,11 @@ export type AvatarShape =
   | "triangle"
   | "pentagon"
   | "egg"
-  | "cloud";
+  | "cloud"
+  | "star"
+  | "heart"
+  | "gear"
+  | "cat";
 
 export type AvatarColor =
   | "black"
@@ -60,6 +64,10 @@ export const AVATAR_SHAPES: readonly AvatarShape[] = [
   "pentagon",
   "egg",
   "cloud",
+  "star",
+  "heart",
+  "gear",
+  "cat",
 ] as const;
 
 export const AVATAR_COLORS: readonly AvatarColor[] = [
