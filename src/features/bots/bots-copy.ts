@@ -72,6 +72,10 @@ const PT: BotsCopy = {
     pentagon: "Pentágono",
     egg: "Ovo",
     cloud: "Nuvem",
+    star: "Estrela",
+    heart: "Coração",
+    gear: "Engrenagem",
+    cat: "Gato",
   },
   colors: {
     cyan: "Ciano",
@@ -130,6 +134,10 @@ const EN: BotsCopy = {
     pentagon: "Pentagon",
     egg: "Egg",
     cloud: "Cloud",
+    star: "Star",
+    heart: "Heart",
+    gear: "Gear",
+    cat: "Cat",
   },
   colors: {
     cyan: "Cyan",
