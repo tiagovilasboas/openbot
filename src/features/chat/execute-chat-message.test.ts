@@ -144,7 +144,7 @@ test("the GitHub token is forwarded to the items route", async () => {
 test("a GitHub request lists only issues, only PRs, or everything, in English", async () => {
   stub({ items: okItems() });
   const issues = await run("issues of acme/app");
-  assert.equal(issues.text, "Found 1 issues in acme/app:");
+  assert.equal(issues.text, "Found 1 issue in acme/app:");
   assert.deepEqual(
     issues.github?.items.map((i) => i.number),
     [1],
@@ -165,7 +165,7 @@ test("a GitHub request lists only issues, only PRs, or everything, in English", 
 test("a GitHub request answers in Portuguese when the language is pt", async () => {
   stub({ items: okItems() });
   const out = await run("issues de acme/app", { language: "pt" });
-  assert.equal(out.text, "Encontrei 1 issues em acme/app:");
+  assert.equal(out.text, "Encontrei 1 issue em acme/app:");
 });
 
 test("a GitHub request never reaches the model", async () => {

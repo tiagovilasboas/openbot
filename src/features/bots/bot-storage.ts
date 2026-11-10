@@ -153,9 +153,11 @@ export function parseBots(
   try {
     const parsed: unknown = JSON.parse(raw);
     if (!Array.isArray(parsed)) return DEFAULT_BOTS_LIST;
+    const seen = new Set<string>();
     const sanitized = parsed
       .map((bot) => sanitizeBotProfile(bot, library))
-      .filter((b): b is BotProfile => b !== null);
+      .filter((b): b is BotProfile => b !== null)
+      .filter((b) => !seen.has(b.id) && Boolean(seen.add(b.id)));
     return sanitized.length > 0 ? sanitized : DEFAULT_BOTS_LIST;
   } catch {
     return DEFAULT_BOTS_LIST;
@@ -284,14 +286,16 @@ export function deleteBotFromList(
   bots: BotProfile[],
   idToDelete: string,
   mainBotId?: string,
+  activeBotId?: string,
 ): { bots: BotProfile[]; newActiveId?: string } {
   // The main bot leads the crew, so it stays; the last bot stays too.
   if (bots.length <= 1 || idToDelete === mainBotId) {
     return { bots };
   }
   const nextBots = bots.filter((b) => b.id !== idToDelete);
-  return {
-    bots: nextBots,
-    newActiveId: nextBots[0]?.id,
-  };
+  if (nextBots.length === bots.length) return { bots };
+  // Only deleting the active bot moves the user: to the main bot, else the first.
+  if (activeBotId !== idToDelete) return { bots: nextBots };
+  const fallback = nextBots.find((b) => b.id === mainBotId) ?? nextBots[0];
+  return { bots: nextBots, newActiveId: fallback?.id };
 }

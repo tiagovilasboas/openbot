@@ -88,20 +88,14 @@ test("listRepositoryItems treats a 200 with an empty body as a network error", a
   }
 });
 
-test(
-  "listRepositoryItems treats a 200 with a foreign JSON object as a network error",
-  {
-    todo: "bug: a body like {} is returned as the result (ok undefined, no error) because only data.ok is checked",
-  },
-  async () => {
-    const { fetchImpl } = stubFetch(() => Response.json({}));
-    assert.deepEqual(await listRepositoryItems(repo, null, fetchImpl), {
-      ok: false,
-      repo,
-      error: "network_error",
-    });
-  },
-);
+test("listRepositoryItems treats a 200 with a foreign JSON object as a network error", async () => {
+  const { fetchImpl } = stubFetch(() => Response.json({}));
+  assert.deepEqual(await listRepositoryItems(repo, null, fetchImpl), {
+    ok: false,
+    repo,
+    error: "network_error",
+  });
+});
 
 test("listRepositoryItems turns a thrown fetch into a network error", async () => {
   assert.deepEqual(await listRepositoryItems(repo, null, throwing), {
