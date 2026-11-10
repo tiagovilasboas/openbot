@@ -11,7 +11,7 @@ test("a 502 from the model shows a readable error and the composer stays usable"
   await app.send("Are you there?");
   const thread = page.getByRole("region", { name: "Conversa" });
   await expect(
-    thread.getByText(/Não consegui falar com o modelo configurado/),
+    thread.getByText(/O servidor do modelo teve um problema/),
   ).toBeVisible();
   // No raw stack, JSON or stub internals leak into the chat.
   await expect(thread.getByText("provider_error")).toHaveCount(0);
