@@ -2,6 +2,7 @@ import { buildBotSystemPrompt } from "@/features/bots/bot-system-prompt.ts";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
 import { chiefPlainReply } from "@/features/crew/chief-plain-reply.ts";
 import { crewCopy } from "@/features/crew/crew-copy.ts";
+import type { CrewStepRecord } from "@/features/crew/crew-step-record.ts";
 import { buildCrewRoster } from "@/features/crew/crew-roster.ts";
 import { liveChiefText } from "@/features/crew/live-chief-text.ts";
 import { parseDelegations } from "@/features/crew/parse-delegations.ts";
@@ -42,7 +43,12 @@ export interface ChatReplyOutcome {
   /** Set when the Chief delegated: its kickoff and each specialist's reply. */
   crew?: {
     kickoff: string;
-    specialists: Array<{ bot: BotProfile; text: string }>;
+    specialists: Array<{
+      bot: BotProfile;
+      text: string;
+      /** What the Chief asked and how it went; the team room reads this. */
+      step?: CrewStepRecord;
+    }>;
   };
 }
 
@@ -265,10 +271,13 @@ export async function executeChatMessage({
         ? {
             crew: {
               kickoff: crewTurn.kickoff,
-              specialists: crewTurn.specialists.map(({ bot, text }) => ({
-                bot,
-                text,
-              })),
+              specialists: crewTurn.specialists.map(
+                ({ bot, text, task, ok, durationMs }) => ({
+                  bot,
+                  text,
+                  step: { task, ok, durationMs },
+                }),
+              ),
             },
           }
         : {}),

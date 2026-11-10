@@ -144,7 +144,9 @@ export async function* streamWithFailover(
       );
     if (secondary) {
       const first = attempt;
-      const second = await startAttempt(secondary, request, signal);
+      // The bot's model id belongs to the primary provider, not the fallback.
+      const { modelId: _primaryModelId, ...fallbackRequest } = request;
+      const second = await startAttempt(secondary, fallbackRequest, signal);
       if (second.kind === "ready") {
         failover = {
           fromModel: primary.model ?? primary.provider,

@@ -1,6 +1,7 @@
 import { sanitizeBotProfile } from "../bots/bot-storage.ts";
 import type { BotProfile } from "../bots/bot-types.ts";
 import type { MessageData } from "../chat/ChatMessageItem.tsx";
+import { sanitizeCrewStep } from "../crew/crew-step-record.ts";
 import {
   sanitizeMemoryEntries,
   type MemoryEntry,
@@ -67,6 +68,8 @@ function sanitizeMessage(raw: unknown): MessageData | null {
   if (delegated && !RESERVED_IDS.has(delegated.id)) {
     message.delegatedBot = delegated;
   }
+  const crewStep = sanitizeCrewStep(raw.crewStep);
+  if (crewStep && message.delegatedBot) message.crewStep = crewStep;
   return message;
 }
 
