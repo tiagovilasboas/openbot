@@ -25,6 +25,9 @@ export interface ConversationViewProps {
   onDraftChange: (val: string) => void;
   onSend: () => void;
   onOpenSettings: () => void;
+  onCancel: () => void;
+  /** Resends a user message that has no reply. */
+  onRetry: (userMessageId: number) => void;
 }
 
 export function ConversationView({
@@ -42,8 +45,15 @@ export function ConversationView({
   onDraftChange,
   onSend,
   onOpenSettings,
+  onCancel,
+  onRetry,
 }: ConversationViewProps) {
   const content = chatCopy[language];
+  const lastMessage = messages[messages.length - 1];
+  const unanswered =
+    !busy && queueCount === 0 && lastMessage?.role === "user"
+      ? lastMessage
+      : null;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -65,7 +75,20 @@ export function ConversationView({
             <ThinkingIndicator
               bot={thinkingBot ?? activeBot}
               language={language}
+              onCancel={onCancel}
             />
+          )}
+          {unanswered && (
+            <div className="flex flex-wrap items-center gap-2 text-[13px] text-muted">
+              <span>{content.retryHint}</span>
+              <button
+                type="button"
+                onClick={() => onRetry(unanswered.id)}
+                className="min-h-11 rounded-full border border-border bg-surface px-4 font-medium text-foreground transition-colors duration-(--duration-micro) ease-out-expo hover:bg-surface-secondary"
+              >
+                {content.retryAction}
+              </button>
+            </div>
           )}
           <div ref={messagesEndRef} className="h-px" />
         </section>

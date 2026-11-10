@@ -32,7 +32,7 @@ test("reports unavailable only for no_provider_configured", async () => {
       history,
       respond({ error: "provider_rejected" }, 502),
     ),
-    { kind: "error", failure: { kind: "unknown" } },
+    { kind: "error", failure: { kind: "server", status: 502 } },
   );
   assert.deepEqual(
     await requestModelReply(
@@ -98,4 +98,95 @@ test("sends language and history to the server route", async () => {
     config: customConfig,
     systemPrompt: "System Instructions",
   });
+});
+
+/** A fetch that never answers, but rejects like the browser when aborted. */
+const hanging: typeof fetch = (_url, init) =>
+  new Promise((_resolve, reject) => {
+    init?.signal?.addEventListener("abort", () =>
+      reject(new DOMException("aborted", "AbortError")),
+    );
+    if (init?.signal?.aborted)
+      reject(new DOMException("aborted", "AbortError"));
+  });
+
+test("a call that never answers times out", async () => {
+  const outcome = await requestModelReply(
+    "en",
+    history,
+    hanging,
+    null,
+    undefined,
+    { timeoutMs: 10 },
+  );
+  assert.deepEqual(outcome, { kind: "error", failure: { kind: "timeout" } });
+});
+
+test("the user's signal cancels the in-flight call", async () => {
+  const user = new AbortController();
+  const pending = requestModelReply("en", history, hanging, null, undefined, {
+    signal: user.signal,
+  });
+  user.abort();
+  assert.deepEqual(await pending, {
+    kind: "error",
+    failure: { kind: "cancelled" },
+  });
+});
+
+test("an already-cancelled signal fails at once as cancelled", async () => {
+  const user = new AbortController();
+  user.abort();
+  const outcome = await requestModelReply(
+    "en",
+    history,
+    hanging,
+    null,
+    undefined,
+    { signal: user.signal },
+  );
+  assert.deepEqual(outcome, { kind: "error", failure: { kind: "cancelled" } });
+});
+
+test("a thrown fetch is offline only when the browser says so", async () => {
+  const down: typeof fetch = async () => {
+    throw new TypeError("Failed to fetch");
+  };
+  const offline = await requestModelReply(
+    "pt",
+    history,
+    down,
+    null,
+    undefined,
+    {
+      isOnline: () => false,
+    },
+  );
+  assert.deepEqual(offline, { kind: "error", failure: { kind: "offline" } });
+  const online = await requestModelReply("pt", history, down, null, undefined, {
+    isOnline: () => true,
+  });
+  assert.deepEqual(online, { kind: "error", failure: { kind: "unreachable" } });
+});
+
+test("each call gets its own time limit", async () => {
+  const user = new AbortController();
+  const first = requestModelReply("en", history, hanging, null, undefined, {
+    signal: user.signal,
+    timeoutMs: 10,
+  });
+  const second = requestModelReply("en", history, hanging, null, undefined, {
+    signal: user.signal,
+    timeoutMs: 40,
+  });
+  assert.equal((await first).kind, "error");
+  assert.deepEqual(await second, {
+    kind: "error",
+    failure: { kind: "timeout" },
+  });
+  assert.equal(
+    user.signal.aborted,
+    false,
+    "a timeout does not cancel the turn",
+  );
 });
