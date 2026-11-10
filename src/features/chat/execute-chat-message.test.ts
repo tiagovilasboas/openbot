@@ -144,7 +144,7 @@ test("the GitHub token is forwarded to the items route", async () => {
 test("a GitHub request lists only issues, only PRs, or everything, in English", async () => {
   stub({ items: okItems() });
   const issues = await run("issues of acme/app");
-  assert.equal(issues.text, "Found 1 issues in acme/app:");
+  assert.equal(issues.text, "Found 1 issue in acme/app:");
   assert.deepEqual(
     issues.github?.items.map((i) => i.number),
     [1],
@@ -165,7 +165,7 @@ test("a GitHub request lists only issues, only PRs, or everything, in English", 
 test("a GitHub request answers in Portuguese when the language is pt", async () => {
   stub({ items: okItems() });
   const out = await run("issues de acme/app", { language: "pt" });
-  assert.equal(out.text, "Encontrei 1 issues em acme/app:");
+  assert.equal(out.text, "Encontrei 1 issue em acme/app:");
 });
 
 test("a GitHub request never reaches the model", async () => {
@@ -292,8 +292,23 @@ test("a provider failure becomes a described error with modelCall failed", async
     throw new TypeError("offline");
   }) as typeof fetch;
   const offline = await run("hello", { language: "pt" });
-  assert.equal(offline.text, chatCopy.pt.modelError);
+  assert.equal(offline.text, chatCopy.pt.modelErrorUnreachable);
   assert.equal(offline.modelCall, "failed");
+});
+
+test("a cancelled turn shows the cancelled note, not an error", async () => {
+  globalThis.fetch = ((_url: string, init?: RequestInit) =>
+    new Promise((_resolve, reject) => {
+      init?.signal?.addEventListener("abort", () =>
+        reject(new DOMException("aborted", "AbortError")),
+      );
+    })) as typeof fetch;
+  const controller = new AbortController();
+  const pending = run("hello", { signal: controller.signal });
+  controller.abort();
+  const out = await pending;
+  assert.equal(out.text, chatCopy.en.cancelledNote);
+  assert.equal(out.modelCall, undefined);
 });
 
 test("the Chief's prompt carries the crew roster, a specialist's does not", async () => {

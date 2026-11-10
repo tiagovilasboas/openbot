@@ -48,6 +48,7 @@ export async function executeChatMessage({
   gitHubToken,
   modelConfig,
   onBotWorking,
+  signal,
 }: {
   text: string;
   language: ChatLanguage;
@@ -60,6 +61,8 @@ export async function executeChatMessage({
   modelConfig: ClientModelConfig | null;
   /** Follows which bot is working while the Chief's crew answers. */
   onBotWorking?: (bot: BotProfile) => void;
+  /** The user's cancel signal; each model call also has its own time limit. */
+  signal?: AbortSignal;
 }): Promise<ChatReplyOutcome> {
   // The server caps the history; send only the newest messages.
   const history = limitHistory(fullHistory);
@@ -111,12 +114,19 @@ export async function executeChatMessage({
       } else if (githubDetected.itemType === "issues") {
         items = items.filter((item) => !item.isPullRequest);
       }
+      const one = items.length === 1;
       const labelKind =
         githubDetected.itemType === "prs"
-          ? content.githubPRs
+          ? one
+            ? content.githubPR
+            : content.githubPRs
           : githubDetected.itemType === "issues"
-            ? content.githubIssues
-            : content.githubOpenItems;
+            ? one
+              ? content.githubIssue
+              : content.githubIssues
+            : one
+              ? content.githubOpenItem
+              : content.githubOpenItems;
       const summaryText = isPt
         ? `Encontrei ${items.length} ${labelKind} em ${githubDetected.repo.owner}/${githubDetected.repo.repo}:`
         : `Found ${items.length} ${labelKind} in ${githubDetected.repo.owner}/${githubDetected.repo.repo}:`;
@@ -144,6 +154,7 @@ export async function executeChatMessage({
     fetch,
     modelConfig,
     fullSystemPrompt,
+    { signal },
   );
   if (outcome.kind === "text") {
     const crewTurn = isChief
@@ -163,6 +174,7 @@ export async function executeChatMessage({
               fetch,
               modelConfig,
               systemPrompt,
+              { signal },
             );
             return reply.kind === "text"
               ? { ok: true, text: reply.text }
@@ -195,9 +207,12 @@ export async function executeChatMessage({
   if (outcome.kind === "unavailable") {
     return { text: getUnconfiguredModelMessage(language), delegatedBot };
   }
+  // A cancel is the user's choice, not the model failing: no failed status.
   return {
     text: describeModelFailure(outcome.failure, language),
     delegatedBot,
-    modelCall: "failed",
+    ...(outcome.failure.kind === "cancelled"
+      ? {}
+      : { modelCall: "failed" as const }),
   };
 }
