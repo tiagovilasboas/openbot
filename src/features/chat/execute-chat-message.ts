@@ -117,12 +117,20 @@ export async function executeChatMessage({
   const delegatedBot =
     mentionedBot && mentionedBot.id !== activeBot.id ? mentionedBot : undefined;
 
-  const botPrompt = buildBotSystemPrompt(executingBot, language);
   // The main bot plays the Chief: it knows the crew and can delegate.
   const isChief = executingBot.id === mainBotId;
   const crewRoster = isChief
     ? buildCrewRoster(executingBot, bots, language)
     : "";
+  // The roster and the synthesis rule come after the bot's own text, so the
+  // bot's text is built to leave them room instead of being cut ahead of them.
+  const botPrompt = buildBotSystemPrompt(
+    executingBot,
+    language,
+    isChief
+      ? Math.max(crewRoster.length, crewCopy[language].synthesisRule.length) + 2
+      : 0,
+  );
   const fullSystemPrompt = crewRoster
     ? `${botPrompt}\n\n${crewRoster}`
     : botPrompt;

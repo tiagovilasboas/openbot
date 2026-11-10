@@ -3,6 +3,7 @@ import { appendAttachmentBlock } from "../attachments/attachment-block.ts";
 import { parseAttachments } from "../attachments/parse-attachments.ts";
 import { appendMemoryBlock } from "../memory/memory-block.ts";
 import { validateClientModelConfig } from "./model-config.ts";
+import { MAX_SYSTEM_PROMPT_CHARS } from "./system-prompt-limit.ts";
 import { parseModelId } from "./model-id.ts";
 
 const maxMessages = 50;
@@ -72,10 +73,14 @@ export function parseChatRequest(payload: unknown): ParsedChatRequest {
   const parsedModelId = parseModelId(modelId);
   if (!parsedModelId.ok) return { ok: false };
 
-  const validSystemPrompt =
-    typeof systemPrompt === "string" && systemPrompt.trim()
-      ? systemPrompt.trim().slice(0, maxTextLength)
-      : undefined;
+  const trimmedSystemPrompt =
+    typeof systemPrompt === "string" ? systemPrompt.trim() : "";
+  // A prompt that is too long is refused, not cut: its tail holds the team
+  // roster and the delegation rules, and a silent cut would drop them.
+  if (trimmedSystemPrompt.length > MAX_SYSTEM_PROMPT_CHARS) {
+    return { ok: false };
+  }
+  const validSystemPrompt = trimmedSystemPrompt || undefined;
   // The memory notes are capped and delimited as data here, whatever the
   // client sent, so there is one implementation of the block.
   const fullSystemPrompt = appendMemoryBlock(

@@ -68,7 +68,7 @@ async function askSpecialist(
   { userText, language, askModel, memoryFor }: CrewTurnInput,
 ): Promise<SpecialistAnswer> {
   const copy = crewCopy[language];
-  const systemPrompt = `${buildBotSystemPrompt(bot, language)}\n\n${copy.antiLoopRule}`;
+  const systemPrompt = `${buildBotSystemPrompt(bot, language, copy.antiLoopRule.length + 2)}\n\n${copy.antiLoopRule}`;
   const request = `${copy.userAsked}:\n${userText}\n\n${copy.yourTask}:\n${task}`;
   const startedAt = Date.now();
   const elapsed = () => Math.max(0, Date.now() - startedAt);
