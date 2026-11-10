@@ -79,13 +79,18 @@ test("the main bot is protected even when it is not first", () => {
   assert.equal(result.newActiveId, undefined);
 });
 
-test("deleting the first bot activates the next one and keeps the order", () => {
-  const result = deleteBotFromList([bot("a"), bot("b"), bot("c")], "a", "c");
+test("deleting the first bot activates the main bot and keeps the order", () => {
+  const result = deleteBotFromList(
+    [bot("a"), bot("b"), bot("c")],
+    "a",
+    "c",
+    "a",
+  );
   assert.deepEqual(
     result.bots.map((b) => b.id),
     ["b", "c"],
   );
-  assert.equal(result.newActiveId, "b");
+  assert.equal(result.newActiveId, "c");
 });
 
 test("deleting a bot does not mutate the input list", () => {
@@ -94,30 +99,27 @@ test("deleting a bot does not mutate the input list", () => {
   assert.equal(list.length, 2);
 });
 
-test(
-  "deleting an id that is not in the list leaves the active bot alone",
-  {
-    todo: "bug: deleteBotFromList(list, 'ghost') still returns newActiveId = first bot, so removeBot switches the active bot without deleting anything",
-  },
-  () => {
-    const result = deleteBotFromList([bot("a"), bot("b")], "ghost");
-    assert.equal(result.bots.length, 2);
-    assert.equal(result.newActiveId, undefined);
-  },
-);
+test("deleting an id that is not in the list leaves the active bot alone", () => {
+  const result = deleteBotFromList([bot("a"), bot("b")], "ghost");
+  assert.equal(result.bots.length, 2);
+  assert.equal(result.newActiveId, undefined);
+});
 
-test(
-  "deleting a bot that is not the active one keeps the active bot",
-  {
-    todo: "bug: use-bots removeBot activates nextBots[0] for every delete, so deleting any bot jumps the user to the first bot",
-  },
-  () => {
-    // The pure function has no notion of the active bot; the contract the UI
-    // needs is that deleting 'c' while 'b' is active must not report 'a'.
-    const result = deleteBotFromList([bot("a"), bot("b"), bot("c")], "c");
-    assert.notEqual(result.newActiveId, "a");
-  },
-);
+test("deleting a bot that is not the active one keeps the active bot", () => {
+  const list = [bot("a"), bot("b"), bot("c")];
+  const result = deleteBotFromList(list, "c", undefined, "b");
+  assert.deepEqual(
+    result.bots.map((b) => b.id),
+    ["a", "b"],
+  );
+  assert.equal(result.newActiveId, undefined);
+});
+
+test("deleting the active bot activates the main bot, else the first", () => {
+  const list = [bot("a"), bot("b"), bot("c")];
+  assert.equal(deleteBotFromList(list, "c", "b", "c").newActiveId, "b");
+  assert.equal(deleteBotFromList(list, "c", undefined, "c").newActiveId, "a");
+});
 
 // --- updateBotInList / ordering -------------------------------------------
 
@@ -218,27 +220,18 @@ test("legacy ids are upgraded on load: default and OpenBot become the Chief", ()
   const loaded = parseBots(raw);
   assert.deepEqual(
     loaded.map((b) => [b.id, b.name]),
-    [
-      [DEFAULT_BOT.id, DEFAULT_BOT.name],
-      [DEFAULT_BOT.id, DEFAULT_BOT.name],
-    ],
+    [[DEFAULT_BOT.id, DEFAULT_BOT.name]],
   );
 });
 
-test(
-  "loaded bots keep unique ids after the legacy upgrade",
-  {
-    todo: "bug: parseBots does not dedupe, so a stored list with 'default' plus any bot named 'OpenBot' yields two bots with id chief-of-staff",
-  },
-  () => {
-    const raw = JSON.stringify([
-      { id: "default", name: "A" },
-      { id: "custom", name: "OpenBot" },
-    ]);
-    const ids = parseBots(raw).map((b) => b.id);
-    assert.equal(new Set(ids).size, ids.length);
-  },
-);
+test("loaded bots keep unique ids after the legacy upgrade", () => {
+  const raw = JSON.stringify([
+    { id: "default", name: "A" },
+    { id: "custom", name: "OpenBot" },
+  ]);
+  const ids = parseBots(raw).map((b) => b.id);
+  assert.equal(new Set(ids).size, ids.length);
+});
 
 test("an active id of 'default' is read as the Chief's id", () => {
   const { storage } = fakeStorage({ [ACTIVE_BOT_STORAGE_KEY]: "default" });

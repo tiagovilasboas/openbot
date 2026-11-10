@@ -111,12 +111,19 @@ export async function executeChatMessage({
       } else if (githubDetected.itemType === "issues") {
         items = items.filter((item) => !item.isPullRequest);
       }
+      const one = items.length === 1;
       const labelKind =
         githubDetected.itemType === "prs"
-          ? content.githubPRs
+          ? one
+            ? content.githubPR
+            : content.githubPRs
           : githubDetected.itemType === "issues"
-            ? content.githubIssues
-            : content.githubOpenItems;
+            ? one
+              ? content.githubIssue
+              : content.githubIssues
+            : one
+              ? content.githubOpenItem
+              : content.githubOpenItems;
       const summaryText = isPt
         ? `Encontrei ${items.length} ${labelKind} em ${githubDetected.repo.owner}/${githubDetected.repo.repo}:`
         : `Found ${items.length} ${labelKind} in ${githubDetected.repo.owner}/${githubDetected.repo.repo}:`;
