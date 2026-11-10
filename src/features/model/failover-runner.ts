@@ -1,5 +1,6 @@
 import { createRouterAdapter } from "./router-adapter.ts";
 import { selectAdapter } from "./select-adapter.ts";
+import type { StreamingModelAdapter } from "./stream-adapter.ts";
 import type {
   FetchLike,
   ModelAdapter,
@@ -22,20 +23,20 @@ const DEFAULT_ROUTER_FALLBACKS: Record<string, string> = {
   "google/gemma-4-31b-it:free": "openrouter/free",
 };
 
-function resolveAutoFallbackAdapter(
+export function resolveAutoFallbackAdapter(
   primaryAdapter: ModelAdapter,
   request: ModelRequest,
   env: Record<string, string | undefined> = {},
   fetchImpl?: FetchLike,
-): ModelAdapter | null {
+): StreamingModelAdapter | null {
   if (request.fallbackConfig) {
     const custom = selectAdapter(env, request.fallbackConfig, fetchImpl);
     if (custom) return custom;
   }
 
   // If primary is router, pick an automatic alternative router model
-  if (primaryAdapter.provider === "router" && primaryAdapter.model) {
-    const currentModel = primaryAdapter.model;
+  const currentModel = request.modelId ?? primaryAdapter.model;
+  if (primaryAdapter.provider === "router" && currentModel) {
     const targetModel =
       DEFAULT_ROUTER_FALLBACKS[currentModel] ?? "openrouter/free";
 
@@ -81,14 +82,16 @@ export async function executeWithFailover({
     return primaryResult;
   }
 
-  const fallbackResult = await secondaryAdapter.generateReply(request);
+  // The per-call model just failed: the fallback uses its own model.
+  const { modelId, ...fallbackRequest } = request;
+  const fallbackResult = await secondaryAdapter.generateReply(fallbackRequest);
   if (fallbackResult.ok) {
     return {
       ok: true,
       provider: fallbackResult.provider,
       text: fallbackResult.text,
       failover: {
-        fromModel: primaryAdapter.model ?? primaryAdapter.provider,
+        fromModel: modelId ?? primaryAdapter.model ?? primaryAdapter.provider,
         toModel: secondaryAdapter.model ?? secondaryAdapter.provider,
         reason: primaryResult.detail ?? primaryResult.code,
       },

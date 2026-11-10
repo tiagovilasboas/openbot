@@ -33,6 +33,8 @@ export async function modelFetch(
   return fetchImpl(url, {
     ...init,
     redirect: "error",
-    signal: AbortSignal.timeout(options.timeoutMs ?? CHAT_TIMEOUT_MS),
+    // A caller-supplied signal (streaming) owns the deadline.
+    signal:
+      init.signal ?? AbortSignal.timeout(options.timeoutMs ?? CHAT_TIMEOUT_MS),
   });
 }
