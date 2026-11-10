@@ -18,6 +18,10 @@ interface BotsCopy {
   instructionsPlaceholder: string;
   workspaceLabel: string;
   workspacePlaceholder: string;
+  modelLabel: string;
+  modelPlaceholder: string;
+  modelHelper: string;
+  modelInvalid: string;
   save: string;
   cancel: string;
   deleteBot: string;
@@ -50,6 +54,12 @@ const PT: BotsCopy = {
   workspaceLabel: "Contexto de projeto (opcional)",
   workspacePlaceholder:
     "Diretrizes de repositório, caminhos ou escopo deste bot.",
+  modelLabel: "Modelo deste bot (opcional)",
+  modelPlaceholder: "ex: google/gemma-4-31b-it:free",
+  modelHelper:
+    "Vazio usa o modelo global das Configurações. O servidor pode limitar os modelos permitidos.",
+  modelInvalid:
+    "Use só letras, números e os símbolos . _ : / - (até 100 caracteres).",
   save: "Salvar bot",
   cancel: "Cancelar",
   deleteBot: "Excluir bot",
@@ -112,6 +122,12 @@ const EN: BotsCopy = {
   instructionsPlaceholder: "Define this bot's behavior, tone and goals.",
   workspaceLabel: "Project context (optional)",
   workspacePlaceholder: "Repository guidelines, paths or scope for this bot.",
+  modelLabel: "This bot's model (optional)",
+  modelPlaceholder: "e.g. google/gemma-4-31b-it:free",
+  modelHelper:
+    "Empty uses the global model from Settings. The server may limit the allowed models.",
+  modelInvalid:
+    "Use only letters, numbers and the symbols . _ : / - (up to 100 characters).",
   save: "Save bot",
   cancel: "Cancel",
   deleteBot: "Delete bot",

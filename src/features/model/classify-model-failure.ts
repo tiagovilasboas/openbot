@@ -43,6 +43,10 @@ export function classifyModelFailure(
   httpStatus?: number,
 ): ModelFailure {
   if (code === "blocked_base_url") return { kind: "blocked_url" };
+  // The server's allow-list refused this bot's model id.
+  if (code === "model_not_allowed") {
+    return { kind: "model_unavailable", status: 400 };
+  }
   if (code === "provider_unreachable" || code === "network_error") {
     return { kind: "unreachable" };
   }

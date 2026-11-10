@@ -20,6 +20,8 @@ export type CrewModelReply = { ok: true; text: string } | { ok: false };
 export type AskCrewModel = (request: {
   systemPrompt: string;
   messages: CrewMessage[];
+  /** The model of the bot answering; empty means the global model. */
+  modelId?: string;
 }) => Promise<CrewModelReply>;
 
 export interface SpecialistAnswer {
@@ -62,6 +64,7 @@ async function askSpecialist(
     const reply = await askModel({
       systemPrompt,
       messages: [{ role: "user", text: request }],
+      modelId: bot.modelId,
     });
     if (reply.ok) return { bot, task, ok: true, text: reply.text };
   } catch {
@@ -93,6 +96,7 @@ async function synthesize(
           text: `${copy.synthesisRequest}\n${externalDataRule(input.language)}\n\n${report}`,
         },
       ],
+      modelId: input.chief.modelId,
     });
     return reply.ok ? reply.text : null;
   } catch {

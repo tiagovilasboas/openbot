@@ -15,6 +15,7 @@ import { AutoTextarea } from "./AutoTextarea.tsx";
 import { BotAvatar } from "./BotAvatar.tsx";
 import { BotAvatarPickers } from "./BotAvatarPickers.tsx";
 import { BotDeleteControl } from "./BotDeleteControl.tsx";
+import { BotModelField, isBotModelIdValid } from "./BotModelField.tsx";
 import { BotMainControl } from "./BotMainControl.tsx";
 import { BotTemplatePicker } from "./BotTemplatePicker.tsx";
 import type { BotTemplate } from "./bot-templates.ts";
@@ -61,6 +62,7 @@ function BotEditForm({
   const [workspaceContext, setWorkspaceContext] = useState(
     bot?.workspaceContext || "",
   );
+  const [modelId, setModelId] = useState(bot?.modelId || "");
   const [avatarShape, setAvatarShape] = useState<AvatarShape>(
     bot?.avatarShape || "hexagon",
   );
@@ -70,7 +72,7 @@ function BotEditForm({
   const [skills, setSkills] = useState<SkillDefinition[]>(bot?.skills ?? []);
   const [templateId, setTemplateId] = useState<string | null>(null);
 
-  const isValid = name.trim().length > 0;
+  const isValid = name.trim().length > 0 && isBotModelIdValid(modelId);
 
   function handleSelectTemplate(tmpl: BotTemplate) {
     setTemplateId(tmpl.id);
@@ -90,6 +92,7 @@ function BotEditForm({
     setTitle(draft.title ?? "");
     setDescription(draft.description);
     setWorkspaceContext(draft.workspaceContext ?? "");
+    setModelId(draft.modelId ?? "");
     setAvatarShape(draft.avatarShape);
     setAvatarColor(draft.avatarColor);
     setSkills(draft.skills);
@@ -111,6 +114,7 @@ function BotEditForm({
           ? "Você é um assistente conciso e prestativo."
           : "You are a concise, helpful assistant."),
       workspaceContext: workspaceContext.trim() || undefined,
+      modelId: modelId.trim() || undefined,
       avatarShape,
       avatarColor,
       skills,
@@ -219,6 +223,8 @@ function BotEditForm({
           />
         )}
       </FormField>
+
+      <BotModelField value={modelId} isPt={isPt} onChange={setModelId} />
 
       <BotSkillsEditor
         language={language}
