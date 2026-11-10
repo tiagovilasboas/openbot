@@ -1,5 +1,6 @@
 import { createRouterAdapter } from "./router-adapter.ts";
 import { selectAdapter } from "./select-adapter.ts";
+import type { StreamingModelAdapter } from "./stream-adapter.ts";
 import type {
   FetchLike,
   ModelAdapter,
@@ -22,12 +23,12 @@ const DEFAULT_ROUTER_FALLBACKS: Record<string, string> = {
   "google/gemma-4-31b-it:free": "openrouter/free",
 };
 
-function resolveAutoFallbackAdapter(
+export function resolveAutoFallbackAdapter(
   primaryAdapter: ModelAdapter,
   request: ModelRequest,
   env: Record<string, string | undefined> = {},
   fetchImpl?: FetchLike,
-): ModelAdapter | null {
+): StreamingModelAdapter | null {
   if (request.fallbackConfig) {
     const custom = selectAdapter(env, request.fallbackConfig, fetchImpl);
     if (custom) return custom;
