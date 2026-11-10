@@ -17,6 +17,8 @@ interface ComposerToolbarProps {
   openPalette: PaletteKind | null;
   busy: boolean;
   canSend: boolean;
+  /** Extra actions after the palette toggles, e.g. the attach button. */
+  actions?: ReactNode;
   onTogglePalette: (kind: PaletteKind) => void;
 }
 
@@ -57,6 +59,7 @@ export function ComposerToolbar({
   openPalette,
   busy,
   canSend,
+  actions,
   onTogglePalette,
 }: ComposerToolbarProps) {
   const content = chatCopy[language];
@@ -80,6 +83,7 @@ export function ComposerToolbar({
       >
         <MentionIcon />
       </PaletteToggle>
+      {actions}
 
       <p className="ml-1.5 hidden select-none text-xs text-subtle md:pointer-fine:block">
         {content.composerHint}

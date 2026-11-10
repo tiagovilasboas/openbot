@@ -27,3 +27,9 @@ export function looksLikeTextFile(name: string, mimeType: string): boolean {
   }
   return TEXT_NAMES.has(name.toLowerCase()) || TEXT_MIME.test(mimeType);
 }
+
+/** The `accept` of the file picker: a hint to the OS, checked again on read. */
+export const TEXT_FILE_ACCEPT = [...TEXT_EXTENSIONS]
+  .map((extension) => `.${extension}`)
+  .concat("text/*")
+  .join(",");
