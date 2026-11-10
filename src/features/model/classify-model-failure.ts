@@ -9,6 +9,10 @@ export type ModelFailureKind =
   | "model_unavailable"
   | "blocked_url"
   | "unreachable"
+  | "offline"
+  | "timeout"
+  | "cancelled"
+  | "server"
   | "unknown";
 
 export interface ModelFailure {
@@ -22,12 +26,26 @@ function statusOf(detail: string | undefined): number | undefined {
   return match ? Number(match[1]) : undefined;
 }
 
+/** What a thrown fetch means: the user cancelled, time ran out, or no network. */
+export function classifyFetchError(state: {
+  cancelled: boolean;
+  timedOut: boolean;
+  online: boolean;
+}): ModelFailure {
+  if (state.cancelled) return { kind: "cancelled" };
+  if (state.timedOut) return { kind: "timeout" };
+  return { kind: state.online ? "unreachable" : "offline" };
+}
+
 export function classifyModelFailure(
   code: unknown,
   detail: unknown,
+  httpStatus?: number,
 ): ModelFailure {
   if (code === "blocked_base_url") return { kind: "blocked_url" };
-  if (code === "provider_unreachable") return { kind: "unreachable" };
+  if (code === "provider_unreachable" || code === "network_error") {
+    return { kind: "unreachable" };
+  }
   const text = typeof detail === "string" ? detail : undefined;
   const status = statusOf(text);
   if (status === 401 || status === 403) return { kind: "auth", status };
@@ -36,5 +54,10 @@ export function classifyModelFailure(
   if (status === 404 || (status === 400 && /model/i.test(text ?? ""))) {
     return { kind: "model_unavailable", status };
   }
-  return status ? { kind: "unknown", status } : { kind: "unknown" };
+  if (status && status >= 500) return { kind: "server", status };
+  if (status) return { kind: "unknown", status };
+  if (httpStatus && httpStatus >= 500) {
+    return { kind: "server", status: httpStatus };
+  }
+  return { kind: "unknown" };
 }

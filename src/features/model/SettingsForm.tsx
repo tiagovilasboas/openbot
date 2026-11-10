@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { chatCopy } from "@/features/chat/chat-copy.ts";
+import { describeModelFailurePlain } from "@/features/chat/describe-model-failure.ts";
 import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
 import { clearStoredGitHubToken } from "@/features/github/github-config.ts";
 import { SheetFooter } from "@/shared/ui/ResponsiveSheet.tsx";
@@ -13,6 +14,7 @@ import {
   type ModelProviderType,
 } from "./model-config.ts";
 import { clearProviderKeys } from "./provider-keys.ts";
+import { classifyModelFailure } from "./classify-model-failure.ts";
 import { lacksRequiredRouterKey } from "./router-key.ts";
 import {
   ConnectionTest,
@@ -166,7 +168,10 @@ export function SettingsForm({
           message:
             testResult.error === "invalid_fields"
               ? s.testInvalid
-              : `${content.testFailed}: ${testResult.detail ? `${testResult.error} (${testResult.detail})` : testResult.error}`,
+              : `${content.testFailed}: ${describeModelFailurePlain(
+                  classifyModelFailure(testResult.error, testResult.detail),
+                  language,
+                )}`,
         };
 
   return (

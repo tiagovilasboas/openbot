@@ -43,6 +43,7 @@ test("the roster lists every other bot with handle, role and skills", () => {
         instructions: "",
         command: "/code-review",
         isBuiltin: false,
+        source: "created",
         createdAt: "",
       },
     ],

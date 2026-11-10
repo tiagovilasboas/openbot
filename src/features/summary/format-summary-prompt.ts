@@ -1,3 +1,7 @@
+import {
+  externalDataRule,
+  wrapExternalText,
+} from "../untrusted-text/wrap-external-text.ts";
 import type { ChatLanguage } from "../chat/respond-to-message.ts";
 import type { SummaryDataSource, SummaryRequestKind } from "./summary-types.ts";
 
@@ -60,24 +64,28 @@ export function formatSummaryPrompt(
     contextLines.push(
       `GitHub: ${items.length} itens abertos (${prs.length} PRs, ${issues.length} issues)`,
     );
+    // Titles, authors and labels are written by strangers: data, not orders.
+    const external: string[] = [];
     if (prs.length > 0) {
-      contextLines.push(`Pull Requests:`);
+      external.push(`Pull Requests:`);
       for (const pr of prs.slice(0, 10)) {
-        contextLines.push(
+        external.push(
           `- PR #${pr.number}: "${pr.title}" por @${pr.author} (${pr.commentsCount} comentários)`,
         );
       }
     }
     if (issues.length > 0) {
-      contextLines.push(`Issues:`);
+      external.push(`Issues:`);
       for (const issue of issues.slice(0, 10)) {
         const labels =
           issue.labels.length > 0 ? ` [${issue.labels.join(", ")}]` : "";
-        contextLines.push(
+        external.push(
           `- Issue #${issue.number}: "${issue.title}" por @${issue.author}${labels}`,
         );
       }
     }
+    contextLines.push(externalDataRule(language));
+    contextLines.push(wrapExternalText(external.join("\n")));
   } else if (data.repo) {
     contextLines.push(`GitHub: Repositório sem issues ou PRs abertos.`);
   }

@@ -80,7 +80,7 @@ Ask the Chief for something that needs more than one specialist and it writes on
 | Failover              | When the router model fails, the server retries once on a fallback model, by default a free OpenRouter model, and the reply shows the switch.                                                  |
 | Message queue         | Messages you send while a bot is replying wait their turn, in order.                                                                                                                           |
 | Skills                | Each bot keeps its own skills. Write one when you edit the bot, or paste a `SKILL.md`, and run it as a `/command`.                                                                             |
-| Local lock            | Optional password that locks the app on this device. It is hashed with PBKDF2 in the browser.                                                                                                  |
+| Local lock            | Optional password that locks the app on this device. It is a screen lock, not authentication; only a PBKDF2 hash is stored.                                                                    |
 | Two languages         | Brazilian Portuguese and English, switchable at any time.                                                                                                                                      |
 
 ## Choose a model

@@ -9,6 +9,7 @@ import { FormField } from "@/shared/ui/FormField.tsx";
 import { SecretInput } from "@/shared/ui/SecretInput.tsx";
 import type { ConnectionEntry } from "./connection-catalog.ts";
 import { getConnectionsCopy } from "./connections-copy.ts";
+import { describeKeyFailure } from "./describe-key-failure.ts";
 import {
   checkConnectionKey,
   connectKey,
@@ -42,17 +43,9 @@ export function ConnectionDetail({
   );
 
   function describeFailure(outcome: Extract<KeyCheckOutcome, { ok: false }>) {
-    const reason =
-      outcome.error === "unauthorized"
-        ? c.unauthorized
-        : outcome.error === "rate_limited"
-          ? c.rateLimited
-          : outcome.error === "network_error"
-            ? c.network
-            : outcome.detail
-              ? `${outcome.error} (${outcome.detail})`
-              : outcome.error;
-    return fillCopy(c.rejected, { reason });
+    return fillCopy(c.rejected, {
+      reason: describeKeyFailure(entry.id, outcome, language),
+    });
   }
 
   async function handleConnect() {

@@ -2,7 +2,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { chatCopy } from "./chat-copy.ts";
-import { describeModelFailure } from "./describe-model-failure.ts";
+import {
+  describeModelFailure,
+  describeModelFailurePlain,
+} from "./describe-model-failure.ts";
 
 test("each actionable failure gets its own message", () => {
   assert.equal(
@@ -21,12 +24,51 @@ test("each actionable failure gets its own message", () => {
 
 test("other failures keep the generic message, with the status if known", () => {
   assert.equal(
-    describeModelFailure({ kind: "unreachable" }, "en"),
+    describeModelFailure({ kind: "unknown" }, "en"),
     chatCopy.en.modelError,
   );
   assert.equal(
-    describeModelFailure({ kind: "unknown", status: 502 }, "pt"),
-    `${chatCopy.pt.modelError} (HTTP 502)`,
+    describeModelFailure({ kind: "unknown", status: 418 }, "pt"),
+    `${chatCopy.pt.modelError} (HTTP 418)`,
+  );
+});
+
+test("offline, timeout, server and cancel each read differently in both languages", () => {
+  for (const language of ["pt", "en"] as const) {
+    const c = chatCopy[language];
+    assert.equal(
+      describeModelFailure({ kind: "offline" }, language),
+      c.modelErrorOffline,
+    );
+    assert.equal(
+      describeModelFailure({ kind: "timeout" }, language),
+      c.modelErrorTimeout,
+    );
+    assert.equal(
+      describeModelFailure({ kind: "cancelled" }, language),
+      c.cancelledNote,
+    );
+    assert.equal(
+      describeModelFailure({ kind: "unreachable" }, language),
+      c.modelErrorUnreachable,
+    );
+    assert.equal(
+      describeModelFailure({ kind: "server", status: 502 }, language),
+      `${c.modelErrorServer} (HTTP 502)`,
+    );
+    const texts = new Set(
+      (["offline", "timeout", "server", "unreachable"] as const).map((kind) =>
+        describeModelFailure({ kind }, language),
+      ),
+    );
+    assert.equal(texts.size, 4, "no two failure kinds share a sentence");
+  }
+});
+
+test("plain text drops the markdown emphasis", () => {
+  assert.equal(
+    describeModelFailurePlain({ kind: "timeout" }, "en").includes("**"),
+    false,
   );
 });
 

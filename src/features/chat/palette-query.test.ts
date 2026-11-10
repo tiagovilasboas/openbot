@@ -18,6 +18,7 @@ const skill: SkillDefinition = {
   instructions: "",
   command: "/github",
   isBuiltin: false,
+  source: "created",
   createdAt: "2026-01-01T00:00:00.000Z",
 };
 

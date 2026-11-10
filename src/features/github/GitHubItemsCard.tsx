@@ -2,6 +2,7 @@
 
 import { chatCopy } from "@/features/chat/chat-copy";
 import type { ChatLanguage } from "@/features/chat/respond-to-message";
+import { safeGithubUrl } from "./safe-github-url.ts";
 import type { GitHubItem, GitHubRepoRef } from "./github-types.ts";
 
 interface GitHubItemsCardProps {
@@ -71,46 +72,57 @@ function ItemRow({
     ? content.githubItemPR
     : content.githubItemIssue;
 
-  return (
-    <li>
-      <a
-        href={item.url}
-        target="_blank"
-        rel="noreferrer"
-        className="flex min-h-14 items-start gap-3 px-4 py-3 transition-colors duration-140 hover:bg-surface-secondary active:bg-surface-tertiary"
-      >
-        <span className="mt-0.5" title={kind}>
-          {item.isPullRequest ? <PRIcon /> : <IssueIcon />}
-          <span className="sr-only">{kind}</span>
+  const href = safeGithubUrl(item.url);
+  const body = (
+    <>
+      <span className="mt-0.5" title={kind}>
+        {item.isPullRequest ? <PRIcon /> : <IssueIcon />}
+        <span className="sr-only">{kind}</span>
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="line-clamp-2 text-[15px] font-medium leading-snug text-foreground">
+          {item.title}
         </span>
-        <span className="min-w-0 flex-1">
-          <span className="line-clamp-2 text-[15px] font-medium leading-snug text-foreground">
-            {item.title}
-          </span>
-          <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[13px] text-muted">
-            <span className="tabular-nums">#{item.number}</span>
-            <span>@{item.author}</span>
-            {date && <span className="tabular-nums">{date}</span>}
-            {item.commentsCount > 0 && (
-              <span className="tabular-nums">
-                {item.commentsCount} {content.githubComments}
-              </span>
-            )}
-          </span>
-          {item.labels.length > 0 && (
-            <span className="mt-1.5 flex flex-wrap gap-1.5">
-              {item.labels.slice(0, 4).map((label) => (
-                <span
-                  key={label}
-                  className="rounded-full bg-surface-secondary px-2 py-0.5 text-xs font-medium text-muted"
-                >
-                  {label}
-                </span>
-              ))}
+        <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[13px] text-muted">
+          <span className="tabular-nums">#{item.number}</span>
+          <span>@{item.author}</span>
+          {date && <span className="tabular-nums">{date}</span>}
+          {item.commentsCount > 0 && (
+            <span className="tabular-nums">
+              {item.commentsCount} {content.githubComments}
             </span>
           )}
         </span>
-      </a>
+        {item.labels.length > 0 && (
+          <span className="mt-1.5 flex flex-wrap gap-1.5">
+            {item.labels.slice(0, 4).map((label) => (
+              <span
+                key={label}
+                className="rounded-full bg-surface-secondary px-2 py-0.5 text-xs font-medium text-muted"
+              >
+                {label}
+              </span>
+            ))}
+          </span>
+        )}
+      </span>
+    </>
+  );
+
+  return (
+    <li>
+      {href ? (
+        <a
+          href={href}
+          target="_blank"
+          rel="noreferrer"
+          className="flex min-h-14 items-start gap-3 px-4 py-3 transition-colors duration-140 hover:bg-surface-secondary active:bg-surface-tertiary"
+        >
+          {body}
+        </a>
+      ) : (
+        <div className="flex min-h-14 items-start gap-3 px-4 py-3">{body}</div>
+      )}
     </li>
   );
 }

@@ -107,7 +107,12 @@ export function useBots() {
   const removeBot = useCallback((id: string) => {
     const currentBots = loadBotsFromStorage();
     const mainId = resolveMainBotId(loadStoredMainBotId(), currentBots);
-    const result = deleteBotFromList(currentBots, id, mainId);
+    const result = deleteBotFromList(
+      currentBots,
+      id,
+      mainId,
+      loadActiveBotId(),
+    );
     saveBotsToStorage(result.bots);
     if (result.newActiveId) {
       saveActiveBotId(result.newActiveId);

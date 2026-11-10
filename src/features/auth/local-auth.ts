@@ -1,6 +1,9 @@
 import type { LocalAuthCredentials } from "./auth-types.ts";
 
-export const DEFAULT_PBKDF2_ITERATIONS = 100_000;
+/** Iterations for new passwords (OWASP guidance for PBKDF2-HMAC-SHA256). */
+export const DEFAULT_PBKDF2_ITERATIONS = 600_000;
+/** What credentials saved before the count was raised were hashed with. */
+export const LEGACY_PBKDF2_ITERATIONS = 100_000;
 
 export function bytesToHex(bytes: Uint8Array): string {
   let hex = "";
@@ -91,11 +94,31 @@ export async function verifyPassword(
     const candidateHashBytes = await deriveKey(
       password,
       saltBytes,
-      credentials.iterations || DEFAULT_PBKDF2_ITERATIONS,
+      credentials.iterations || LEGACY_PBKDF2_ITERATIONS,
     );
 
     return constantTimeEqual(candidateHashBytes, expectedHashBytes);
   } catch {
     return false;
   }
+}
+
+/**
+ * Fresh credentials for the same password at the current iteration count,
+ * or null when the stored ones are already strong enough. Call it only
+ * after the password was verified.
+ */
+export async function upgradeCredentials(
+  password: string,
+  credentials: LocalAuthCredentials,
+  targetIterations = DEFAULT_PBKDF2_ITERATIONS,
+): Promise<LocalAuthCredentials | null> {
+  const current = credentials.iterations || LEGACY_PBKDF2_ITERATIONS;
+  if (current >= targetIterations) return null;
+  const upgraded = await createCredentials(
+    password,
+    credentials.hint,
+    targetIterations,
+  );
+  return { ...upgraded, createdAt: credentials.createdAt };
 }

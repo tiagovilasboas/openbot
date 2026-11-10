@@ -6,7 +6,7 @@ export const securityCopy = {
     title: "Bloqueio local",
     description: "Proteja o OpenBot com uma senha ou PIN neste dispositivo.",
     offlineNote:
-      "A senha nunca sai do navegador. Ela é protegida localmente com Web Crypto (PBKDF2, 100.000 iterações SHA-256).",
+      "É um bloqueio de tela neste dispositivo, não autenticação nem criptografia dos seus dados. A senha nunca sai do navegador; só um hash (PBKDF2, 600.000 iterações SHA-256) fica salvo aqui.",
     setupTitle: "Definir senha ou PIN",
     passwordLabel: "Senha ou PIN",
     passwordHelper: "Mínimo de 4 caracteres.",
@@ -52,7 +52,7 @@ export const securityCopy = {
     title: "Local lock",
     description: "Protect OpenBot with a password or PIN on this device.",
     offlineNote:
-      "Your password never leaves the browser. It is protected locally with Web Crypto (PBKDF2, 100,000 SHA-256 iterations).",
+      "This is a screen lock on this device, not authentication or encryption of your data. The password never leaves the browser; only a hash (PBKDF2, 600,000 SHA-256 iterations) is stored here.",
     setupTitle: "Set a password or PIN",
     passwordLabel: "Password or PIN",
     passwordHelper: "At least 4 characters.",

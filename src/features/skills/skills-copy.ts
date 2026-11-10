@@ -30,6 +30,9 @@ export const skillsCopy = {
     removeAria: "Remover skill {name}",
     removeConfirm: "Remover {name}?",
     removeConfirmAction: "Remover",
+    importedBadge: "Importada",
+    importedWarning:
+      "Veio de um SKILL.md colado: leia as instruções antes de usar.",
     cancel: "Cancelar",
     removed: "Skill removida. Salve o bot para confirmar.",
   },
@@ -60,6 +63,9 @@ export const skillsCopy = {
     removeAria: "Remove skill {name}",
     removeConfirm: "Remove {name}?",
     removeConfirmAction: "Remove",
+    importedBadge: "Imported",
+    importedWarning:
+      "Came from a pasted SKILL.md: read the instructions before using it.",
     cancel: "Cancel",
     removed: "Skill removed. Save the bot to confirm.",
   },

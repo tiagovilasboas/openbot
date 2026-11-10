@@ -28,6 +28,18 @@ export const chatCopy = {
       "Este modelo não está mais disponível no provedor. Escolha outro em **Configurações**.",
     modelErrorBlockedUrl:
       "Esse endereço de modelo não é permitido (rede privada, link-local ou metadados de nuvem). Use um endereço público ou localhost em **Configurações**.",
+    modelErrorOffline:
+      "Você está sem internet. Verifique sua conexão e envie a mensagem de novo.",
+    modelErrorTimeout:
+      "O modelo demorou demais para responder (mais de 2 minutos). Tente novamente ou escolha outro modelo em **Configurações**.",
+    modelErrorServer:
+      "O servidor do modelo teve um problema. Tente novamente em instantes.",
+    modelErrorUnreachable:
+      "Não consegui chegar ao modelo. Confira o endereço em **Configurações** e sua conexão, e tente novamente.",
+    cancelledNote: "Resposta cancelada.",
+    cancelLabel: "Cancelar resposta",
+    retryHint: "Sem resposta para esta mensagem.",
+    retryAction: "Tentar de novo",
     settings: "Configurações",
     settingsTitle: "Configurações do OpenBot",
     settingsSubtitle:
@@ -54,8 +66,11 @@ export const chatCopy = {
     close: "Fechar",
     githubSource: "Fonte oficial: GitHub API v3 (somente leitura)",
     githubOpenItems: "itens abertos",
+    githubOpenItem: "item aberto",
     githubIssues: "issues",
+    githubIssue: "issue",
     githubPRs: "pull requests",
+    githubPR: "pull request",
     githubNoItems:
       "Nenhuma issue ou pull request aberta encontrada neste repositório.",
     githubRepoNotFound:
@@ -150,6 +165,17 @@ export const chatCopy = {
       "This model is no longer available from the provider. Pick another one in **Settings**.",
     modelErrorBlockedUrl:
       "That model address is not allowed (private network, link-local or cloud metadata). Use a public address or localhost in **Settings**.",
+    modelErrorOffline:
+      "You are offline. Check your connection and send the message again.",
+    modelErrorTimeout:
+      "The model took too long to answer (over 2 minutes). Try again or pick another model in **Settings**.",
+    modelErrorServer: "The model server had a problem. Try again in a moment.",
+    modelErrorUnreachable:
+      "I could not reach the model. Check the address in **Settings** and your connection, then try again.",
+    cancelledNote: "Reply cancelled.",
+    cancelLabel: "Cancel reply",
+    retryHint: "No reply to this message.",
+    retryAction: "Try again",
     settings: "Settings",
     settingsTitle: "OpenBot Settings",
     settingsSubtitle: "Configure your AI model and external tool connections.",
@@ -175,8 +201,11 @@ export const chatCopy = {
     close: "Close",
     githubSource: "Official source: GitHub API v3 (read-only)",
     githubOpenItems: "open items",
+    githubOpenItem: "open item",
     githubIssues: "issues",
+    githubIssue: "issue",
     githubPRs: "pull requests",
+    githubPR: "pull request",
     githubNoItems: "No open issues or pull requests found in this repository.",
     githubRepoNotFound:
       "Repository not found or inaccessible. Check the name (e.g. owner/repo) and make sure it is public.",
