@@ -20,7 +20,10 @@ export interface SidebarNavProps {
   bots: BotProfile[];
   activeBotId: string;
   mainBotId?: string;
+  /** Bots answering a message right now. */
+  workingBotIds?: readonly string[];
   onSelectBot: (botId: string) => void;
+  onReorderBot?: (botId: string, toIndex: number) => void;
   onCreateBot: () => void;
   onEditBot: (bot: BotProfile) => void;
   onOpenSettings: () => void;
@@ -44,7 +47,9 @@ export function SidebarPanel({
   bots,
   activeBotId,
   mainBotId,
+  workingBotIds,
   onSelectBot,
+  onReorderBot,
   onCreateBot,
   onEditBot,
   onOpenSettings,
@@ -84,8 +89,10 @@ export function SidebarPanel({
             bots={bots}
             activeBotId={activeBotId}
             mainBotId={mainBotId}
+            workingBotIds={workingBotIds}
             onSelectBot={onSelectBot}
             onEditBot={onEditBot}
+            onReorderBot={onReorderBot}
           />
           <div className="mt-0.5">
             <SidebarActionRow

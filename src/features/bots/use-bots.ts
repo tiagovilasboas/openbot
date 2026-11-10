@@ -21,6 +21,7 @@ import {
 } from "./bot-types.ts";
 import { migrateCrewShapes } from "./crew-shapes-migration.ts";
 import { migrateLegacySkills } from "./legacy-skills-migration.ts";
+import { reorderBots } from "./reorder-bots.ts";
 import {
   loadStoredMainBotId,
   mainBotFirst,
@@ -104,6 +105,15 @@ export function useBots() {
     saveMainBotId(id);
   }, []);
 
+  /** Moves a bot to a position of the list as shown, and saves that order. */
+  const reorderBot = useCallback((id: string, toIndex: number) => {
+    const currentBots = loadBotsFromStorage();
+    const mainId = resolveMainBotId(loadStoredMainBotId(), currentBots);
+    const next = reorderBots(currentBots, id, toIndex, mainId);
+    const changed = next.some((bot, i) => bot !== currentBots[i]);
+    if (changed) saveBotsToStorage(next);
+  }, []);
+
   const removeBot = useCallback((id: string) => {
     const currentBots = loadBotsFromStorage();
     const mainId = resolveMainBotId(loadStoredMainBotId(), currentBots);
@@ -130,6 +140,7 @@ export function useBots() {
     saveBot,
     createAndActivateBot,
     removeBot,
+    reorderBot,
     mainBotId,
     makeMainBot,
   };

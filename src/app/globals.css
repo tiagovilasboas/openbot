@@ -20,6 +20,29 @@
   }
 }
 
+/* A bot answering: a dot that pings once a beat; still when motion is off. */
+@keyframes bot-working-ping {
+  0% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .bot-working-dot::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: currentColor;
+    animation: bot-working-ping 1.5s ease-out infinite;
+  }
+}
+
 /*
  * Open Bot design tokens. DESIGN.md is the contract; this file is its source.
  * HeroUI semantic variables are re-tuned here so every HeroUI component and

@@ -3,6 +3,7 @@
 import { Focusable, Tooltip } from "@heroui/react";
 import type { ReactNode } from "react";
 import { BotAvatar } from "@/features/bots/BotAvatar.tsx";
+import { BotWorkingDot } from "./BotWorkingDot.tsx";
 import { chatCopy } from "./chat-copy.ts";
 import { CreateBotGlyph, type SidebarNavProps } from "./SidebarPanel.tsx";
 import { LockIcon, NewChatIcon, SettingsIcon } from "./ShellIcons.tsx";
@@ -58,6 +59,7 @@ export function SidebarRail({
   language,
   bots,
   activeBotId,
+  workingBotIds = [],
   onSelectBot,
   onCreateBot,
   onOpenSettings,
@@ -90,19 +92,25 @@ export function SidebarRail({
         >
           {bots.map((bot) => {
             const isActive = bot.id === activeBotId;
+            const isWorking = workingBotIds.includes(bot.id);
             return (
               <li key={bot.id}>
                 <RailButton
-                  label={bot.name}
+                  label={
+                    isWorking ? `${bot.name}, ${content.botWorking}` : bot.name
+                  }
                   isCurrent={isActive}
                   onPress={() => onSelectBot(bot.id)}
                 >
-                  <BotAvatar
-                    shape={bot.avatarShape}
-                    color={bot.avatarColor}
-                    size={34}
-                    active={isActive}
-                  />
+                  <span className="relative">
+                    <BotAvatar
+                      shape={bot.avatarShape}
+                      color={bot.avatarColor}
+                      size={34}
+                      active={isActive}
+                    />
+                    {isWorking && <BotWorkingDot color={bot.avatarColor} />}
+                  </span>
                 </RailButton>
               </li>
             );
