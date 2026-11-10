@@ -6,6 +6,8 @@ import { fillCopy } from "@/features/model/settings-copy.ts";
 import { CheckIcon, PlusIcon } from "@/shared/ui/FieldIcons.tsx";
 import { SkillCreatePanel } from "./SkillCreatePanel.tsx";
 import { SkillListItem } from "./SkillListItem.tsx";
+import { SkillSuggestionPanel } from "./SkillSuggestionPanel.tsx";
+import { acceptSuggestion } from "./accept-suggestion.ts";
 import type { SkillDefinition } from "./skill-types.ts";
 import { getSkillsCopy } from "./skills-copy.ts";
 
@@ -14,6 +16,10 @@ export interface BotSkillsEditorProps {
   /** The bot's skills in the sheet's draft; saved with the bot. */
   skills: readonly SkillDefinition[];
   onChange: (skills: SkillDefinition[]) => void;
+  /** A saved bot, whose chats a skill can be suggested from. */
+  botId?: string;
+  /** The model picked in the sheet, used for the suggestion call. */
+  modelId?: string;
 }
 
 const ADD_BUTTON =
@@ -24,6 +30,8 @@ export function BotSkillsEditor({
   language,
   skills,
   onChange,
+  botId,
+  modelId,
 }: BotSkillsEditorProps) {
   const c = getSkillsCopy(language);
   const [isCreating, setIsCreating] = useState(false);
@@ -112,6 +120,15 @@ export function BotSkillsEditor({
             />
           ))}
         </ul>
+      )}
+
+      {botId && !isCreating && (
+        <SkillSuggestionPanel
+          botId={botId}
+          language={language}
+          modelId={modelId}
+          onAccept={(draft) => add(acceptSuggestion(draft, skills))}
+        />
       )}
 
       {isCreating ? (
