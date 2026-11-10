@@ -24,6 +24,8 @@ export interface MessageData {
     items: GitHubItem[];
   };
   modelBadge?: string;
+  /** The text is partial: the reply broke off or the user cancelled it. */
+  incomplete?: "error" | "cancelled";
   failover?: {
     fromModel: string;
     toModel: string;
@@ -35,9 +37,15 @@ interface ChatMessageItemProps {
   message: MessageData;
   activeBot?: BotProfile;
   onOpenSettings?: () => void;
+  /** Resends the user message this partial reply answered. */
+  onRetry?: () => void;
 }
 
-export function ChatMessageItem({ message, activeBot }: ChatMessageItemProps) {
+export function ChatMessageItem({
+  message,
+  activeBot,
+  onRetry,
+}: ChatMessageItemProps) {
   const content = chatCopy[message.language];
 
   if (message.role === "user") {
@@ -78,6 +86,25 @@ export function ChatMessageItem({ message, activeBot }: ChatMessageItemProps) {
       </header>
 
       <FormattedMessage content={message.text} language={message.language} />
+
+      {message.incomplete && (
+        <div className="flex flex-wrap items-center gap-2 text-[13px] text-muted">
+          <span>
+            {message.incomplete === "cancelled"
+              ? content.cancelledNote
+              : content.interruptedNote}
+          </span>
+          {message.incomplete === "error" && onRetry && (
+            <button
+              type="button"
+              onClick={onRetry}
+              className="min-h-11 rounded-full border border-border bg-surface px-4 font-medium text-foreground transition-colors duration-(--duration-micro) ease-out-expo hover:bg-surface-secondary"
+            >
+              {content.retryAction}
+            </button>
+          )}
+        </div>
+      )}
 
       {message.github && (
         <div className="w-full">

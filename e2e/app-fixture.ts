@@ -4,6 +4,7 @@ import {
   type BrowserContext,
   type Page,
 } from "@playwright/test";
+import { stubStream, type StreamStub } from "./stream-stub.ts";
 
 /** One scripted answer of the stubbed model, shaped like the real routes. */
 export interface StubbedReply {
@@ -18,14 +19,18 @@ export interface ModelStub {
   queue: (...replies: StubbedReply[]) => void;
   /** Bodies of the /api/chat calls received so far. */
   chatRequests: () => unknown[];
+  /** The streaming route; unscripted, it answers 503 and the app falls back
+   * to /api/chat, so every spec above keeps using `queue`. */
+  stream: StreamStub;
 }
 
 const DEFAULT_REPLY = "Stub reply";
 
-/** Stubs /api/chat and /api/model/test on a context; nothing leaves the box. */
+/** Stubs /api/chat, /api/chat/stream and /api/model/test; nothing leaves the box. */
 export async function stubModel(context: BrowserContext): Promise<ModelStub> {
   const scripted: StubbedReply[] = [];
   const received: unknown[] = [];
+  const stream = await stubStream(context);
 
   await context.route("**/api/chat", async (route) => {
     received.push(route.request().postDataJSON());
@@ -51,6 +56,7 @@ export async function stubModel(context: BrowserContext): Promise<ModelStub> {
   return {
     queue: (...replies) => void scripted.push(...replies),
     chatRequests: () => received,
+    stream,
   };
 }
 
@@ -74,7 +80,9 @@ export function appPage(page: Page) {
 export const test = base.extend<{ model: ModelStub }>({
   // Named `provide`, not `use`: eslint-plugin-react-hooks reads `use(` as a hook.
   model: async ({ context }, provide) => {
-    await provide(await stubModel(context));
+    const model = await stubModel(context);
+    await provide(model);
+    await model.stream.close();
   },
 });
 

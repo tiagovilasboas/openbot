@@ -19,7 +19,7 @@ export interface ModelReplyOptions {
   isOnline?: () => boolean;
 }
 
-function browserIsOnline(): boolean {
+export function browserIsOnline(): boolean {
   return typeof navigator === "undefined" || navigator.onLine !== false;
 }
 
