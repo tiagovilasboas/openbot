@@ -20,6 +20,8 @@ import { ChatEmptyState } from "./ChatEmptyState.tsx";
 import { ChatHeader } from "./ChatHeader.tsx";
 import { ChatSidebar } from "./ChatSidebar.tsx";
 import { ConversationView } from "./ConversationView.tsx";
+import { focusComposer } from "./focus-composer.ts";
+import { rollBackThread, rollbackBlock } from "./roll-back-thread.ts";
 import { useBotMessages } from "./use-bot-messages.ts";
 import { useChatTurns } from "./use-chat-turns.ts";
 import { useLanguage } from "./use-language.ts";
@@ -96,6 +98,7 @@ export function ChatExperience() {
 
   const {
     busy,
+    liveMessages,
     workingBot,
     workingBotIds,
     sendText,
@@ -121,15 +124,33 @@ export function ChatExperience() {
 
   useEffect(() => {
     if (messages.length > 0) {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      // Smooth scrolling would queue up behind every frame of a streaming reply.
+      messagesEndRef.current?.scrollIntoView({
+        behavior: liveMessages.length > 0 ? "auto" : "smooth",
+      });
     }
-  }, [messages, busy]);
+  }, [messages, liveMessages, busy]);
 
   function sendMessage(value = draft) {
     const text = value.trim();
     if (!text) return;
     sendText(text);
     setDraft("");
+  }
+
+  const blockedRollback = rollbackBlock(
+    workingBotIds.includes(activeBot.id),
+    queueCount,
+  );
+
+  /** Cuts the thread before a user message and puts its text back to edit. */
+  function rollBack(messageId: number) {
+    if (blockedRollback) return;
+    const result = rollBackThread(messages, messageId);
+    if (!result) return;
+    persistMessages(result.messages);
+    setDraft(result.text);
+    focusComposer(language);
   }
 
   function startNewChat() {
@@ -212,6 +233,7 @@ export function ChatExperience() {
           <ConversationView
             language={language}
             messages={messages}
+            liveMessages={liveMessages}
             activeBot={activeBot}
             busy={busy}
             thinkingBot={workingBot ?? activeBot}
@@ -226,6 +248,8 @@ export function ChatExperience() {
             onOpenSettings={() => setIsSettingsOpen(true)}
             onCancel={cancelTurn}
             onRetry={retryMessage}
+            rollbackBlocked={blockedRollback}
+            onRollBack={rollBack}
           />
         )}
       </main>

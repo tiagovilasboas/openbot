@@ -32,6 +32,7 @@ export function buildReplyMessages(
     ...message(reply.text),
     ...(reply.github ? { github: reply.github } : {}),
     ...(reply.failover ? { failover: reply.failover } : {}),
+    ...(reply.incomplete ? { incomplete: reply.incomplete } : {}),
   });
   if (!reply.crew) return [finalMessage()];
 
