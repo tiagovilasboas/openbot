@@ -13,6 +13,8 @@ export interface ModelReplyOptions {
   signal?: AbortSignal;
   /** Time limit for this one call; defaults to 120 s. */
   timeoutMs?: number;
+  /** The bot's own model; empty means the global model setting. */
+  modelId?: string;
   /** Tells offline from unreachable; defaults to navigator.onLine. */
   isOnline?: () => boolean;
 }
@@ -63,6 +65,7 @@ export async function requestModelReply(
       systemPrompt,
       call.signal,
       failureOfThrow,
+      options.modelId,
     );
   } finally {
     call.dispose();
@@ -77,6 +80,7 @@ async function fetchReply(
   systemPrompt: string | undefined,
   signal: AbortSignal,
   failureOfThrow: () => ModelFailure,
+  modelId?: string,
 ): Promise<ModelReplyOutcome> {
   let response: Response;
   try {
@@ -91,6 +95,7 @@ async function fetchReply(
           messages,
           ...(config ? { config } : {}),
           ...(systemPrompt ? { systemPrompt } : {}),
+          ...(modelId ? { modelId } : {}),
         }),
       }),
     );

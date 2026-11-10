@@ -94,6 +94,12 @@ Ask the Chief for something that needs more than one specialist and it writes on
 
 Variables in `.env.local` stay on the server. Never prefix them with `NEXT_PUBLIC_`, which would ship them to the browser.
 
+Each bot can also carry its own model id (in the bot's edit form, empty means the global model). The server can limit which ids are accepted:
+
+| Variable                 | Effect                                                                                                                                    |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `OPENBOT_ALLOWED_MODELS` | Optional, comma separated. When set, a bot model id outside the list gets `400 model_not_allowed`. When unset, any well-formed id passes. |
+
 You can also choose the provider in Settings, under Model. Keys go under Connections: each service has its own key, tested before it is saved. That choice overrides `.env.local`. It is saved in this browser's `localStorage` and travels to your own server with each message, so prefer `.env.local` for keys on a shared device.
 
 ## Install on your phone

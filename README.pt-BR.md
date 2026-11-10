@@ -94,6 +94,12 @@ Peça ao Chief algo que precise de mais de um especialista e ele escreve uma lin
 
 As variáveis do `.env.local` ficam no servidor. Nunca use o prefixo `NEXT_PUBLIC_`, que as envia para o navegador.
 
+Cada bot também pode ter o próprio id de modelo (no formulário de edição do bot; vazio usa o modelo global). O servidor pode limitar os ids aceitos:
+
+| Variável                 | Efeito                                                                                                                                                         |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `OPENBOT_ALLOWED_MODELS` | Opcional, separada por vírgulas. Quando definida, um id de modelo de bot fora da lista recebe `400 model_not_allowed`. Sem ela, qualquer id bem formado passa. |
+
 Você também pode escolher o provedor em Configurações, na aba Modelo. As chaves ficam na aba Conexões: cada serviço tem a sua, testada antes de ser salva. Essa escolha tem prioridade sobre o `.env.local`. Ela fica salva no `localStorage` deste navegador e vai para o seu servidor a cada mensagem; num aparelho compartilhado, prefira guardar as chaves no `.env.local`.
 
 ## Instale no celular

@@ -1,3 +1,4 @@
+import { isModelAllowed } from "../../../features/model/allowed-models.ts";
 import { executeWithFailover } from "../../../features/model/failover-runner.ts";
 import { parseChatRequest } from "../../../features/model/parse-chat-request.ts";
 import { selectAdapter } from "../../../features/model/select-adapter.ts";
@@ -9,6 +10,11 @@ export async function POST(request: Request) {
   const parsed = parseChatRequest(payload);
   if (!parsed.ok) {
     return Response.json({ error: "invalid_request" }, { status: 400 });
+  }
+
+  const { modelId } = parsed.request;
+  if (modelId && !isModelAllowed(process.env, modelId)) {
+    return Response.json({ error: "model_not_allowed" }, { status: 400 });
   }
 
   const primaryAdapter = selectAdapter(process.env, parsed.request.config);

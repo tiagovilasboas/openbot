@@ -50,7 +50,7 @@ export function createLocalAdapter(
             method: "POST",
             headers: { "content-type": "application/json" },
             body: JSON.stringify({
-              model: config.model,
+              model: request.modelId ?? config.model,
               stream: false,
               messages: [
                 ...(request.systemPrompt

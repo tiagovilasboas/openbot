@@ -154,7 +154,7 @@ export async function executeChatMessage({
     fetch,
     modelConfig,
     fullSystemPrompt,
-    { signal },
+    { signal, modelId: executingBot.modelId },
   );
   if (outcome.kind === "text") {
     const crewTurn = isChief
@@ -167,14 +167,14 @@ export async function executeChatMessage({
           userText: text,
           language,
           onBotWorking,
-          askModel: async ({ systemPrompt, messages }) => {
+          askModel: async ({ systemPrompt, messages, modelId }) => {
             const reply = await requestModelReply(
               language,
               messages,
               fetch,
               modelConfig,
               systemPrompt,
-              { signal },
+              { signal, modelId },
             );
             return reply.kind === "text"
               ? { ok: true, text: reply.text }

@@ -173,4 +173,63 @@ export const SPECS: Record<AvatarShape, BlobSpec> = {
     soft: 0.5,
     eyeY: 56,
   },
+  star: {
+    // Five rounded tips with shallow notches, so it stays a friendly face.
+    points: ring(10, [50, 55], [46, 44], -Math.PI / 2, (_, i) =>
+      i % 2 ? [0.6, 0.6] : [1, 1],
+    ),
+    soft: [0.42, 0.5, 0.42, 0.5, 0.42, 0.5, 0.42, 0.5, 0.42, 0.5],
+    eyeY: 57,
+    eyeHeight: 16,
+  },
+  heart: {
+    // Two round lobes over a soft point.
+    points: [
+      [50, 30],
+      [68, 13],
+      [91, 28],
+      [87, 57],
+      [50, 91],
+      [13, 57],
+      [9, 28],
+      [32, 13],
+    ],
+    soft: [0.3, 0.5, 0.5, 0.4, 0.3, 0.4, 0.5, 0.5],
+    eyeY: 47,
+    eyeHeight: 16,
+  },
+  gear: {
+    // Eight blunt teeth around a round hub.
+    points: [0, 1, 2, 3, 4, 5, 6, 7].flatMap((k) => {
+      const a = -Math.PI / 2 + (k * Math.PI) / 4;
+      return [
+        polar([50, 54], 33, a - 0.36),
+        polar([50, 54], 42, a - 0.2),
+        polar([50, 54], 42, a + 0.2),
+        polar([50, 54], 33, a + 0.36),
+      ];
+    }),
+    soft: [0, 1, 2, 3, 4, 5, 6, 7].flatMap(() => [0.45, 0.3, 0.3, 0.45]),
+    eyeY: 54,
+    eyeHeight: 16,
+  },
+  cat: {
+    // A round face with two pointed ears.
+    points: [
+      [62, 24],
+      [82, 8],
+      [91, 38],
+      [92, 66],
+      [78, 90],
+      [50, 92],
+      [22, 90],
+      [8, 66],
+      [9, 38],
+      [18, 8],
+      [38, 24],
+    ],
+    soft: [0.4, 0.3, 0.45, 0.5, 0.5, 0.5, 0.5, 0.5, 0.45, 0.3, 0.4],
+    eyeY: 58,
+    eyeHeight: 16,
+  },
 };

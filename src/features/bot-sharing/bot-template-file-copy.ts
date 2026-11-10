@@ -6,7 +6,7 @@ const copy = {
   pt: {
     exportAction: "Exportar este bot",
     exportHint:
-      "O arquivo leva nome, instruções, visual e skills. Não leva conversas, chaves nem senha.",
+      "O arquivo leva nome, instruções, visual, skills e o modelo do bot, se houver. Não leva conversas, chaves nem senha.",
     exported: "Arquivo do bot baixado.",
     importAction: "Importar de um arquivo",
     importHint:
@@ -28,7 +28,7 @@ const copy = {
   en: {
     exportAction: "Export this bot",
     exportHint:
-      "The file carries the name, instructions, look and skills. It has no chats, keys or password.",
+      "The file carries the name, instructions, look, skills and the bot's model, if any. It has no chats, keys or password.",
     exported: "Bot file downloaded.",
     importAction: "Import from a file",
     importHint:
