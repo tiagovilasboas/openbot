@@ -33,6 +33,9 @@ export const skillsCopy = {
     importedBadge: "Importada",
     importedWarning:
       "Veio de um SKILL.md colado: leia as instruções antes de usar.",
+    suggestedBadge: "Sugerida",
+    suggestedWarning:
+      "Rascunhada pelo modelo a partir das suas conversas: leia as instruções antes de usar.",
     cancel: "Cancelar",
     removed: "Skill removida. Salve o bot para confirmar.",
   },
@@ -66,6 +69,9 @@ export const skillsCopy = {
     importedBadge: "Imported",
     importedWarning:
       "Came from a pasted SKILL.md: read the instructions before using it.",
+    suggestedBadge: "Suggested",
+    suggestedWarning:
+      "Drafted by the model from your chats: read the instructions before using it.",
     cancel: "Cancel",
     removed: "Skill removed. Save the bot to confirm.",
   },

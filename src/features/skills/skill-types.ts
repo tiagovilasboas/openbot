@@ -1,5 +1,9 @@
-/** "imported" skills came from pasted SKILL.md text, which is not ours. */
-export type SkillSource = "created" | "imported";
+/**
+ * "imported" skills came from pasted SKILL.md text, which is not ours.
+ * "suggested" ones were drafted by the model from the bot's own chats and
+ * accepted by the user; their text is still model output.
+ */
+export type SkillSource = "created" | "imported" | "suggested";
 
 export interface SkillDefinition {
   id: string;

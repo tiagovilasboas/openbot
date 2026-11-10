@@ -1,6 +1,10 @@
 import type { SkillDefinition, SkillSource } from "./skill-types.ts";
 
-function sanitizeCommand(name: string, explicitCommand?: string): string {
+/** The "/command" for a skill: the explicit one if given, else from the name. */
+export function sanitizeCommand(
+  name: string,
+  explicitCommand?: string,
+): string {
   if (explicitCommand && explicitCommand.trim()) {
     const raw = explicitCommand.trim().replace(/^\/+/, "");
     return `/${raw.toLowerCase().replace(/[^a-z0-9_-]/g, "-")}`;
@@ -33,7 +37,10 @@ export function sanitizeSkill(raw: unknown): SkillDefinition | null {
       typeof obj.command === "string" ? obj.command : undefined,
     ),
     isBuiltin: false,
-    source: obj.source === "imported" ? "imported" : "created",
+    source:
+      obj.source === "imported" || obj.source === "suggested"
+        ? obj.source
+        : "created",
     createdAt:
       typeof obj.createdAt === "string"
         ? obj.createdAt
