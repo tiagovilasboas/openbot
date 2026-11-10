@@ -112,6 +112,11 @@ export const chatCopy = {
     sidebarBotsGroup: "Seus bots",
     sidebarCreateBot: "Criar bot",
     sidebarLock: "Bloquear",
+    reorderBotAria: "Reordenar",
+    reorderHint:
+      "Segure a alça e arraste, ou use as setas para cima e para baixo, para mudar a ordem.",
+    reorderMoved: "{name} na posição {position} de {total}",
+    botWorking: "respondendo",
     authorProfileTitle: "Perfil no GitHub",
     authorSponsorLabel: "Apoiar no GitHub Sponsors",
     headerEditBot: "Editar bot",
@@ -246,6 +251,11 @@ export const chatCopy = {
     sidebarBotsGroup: "Your bots",
     sidebarCreateBot: "Create bot",
     sidebarLock: "Lock",
+    reorderBotAria: "Reorder",
+    reorderHint:
+      "Hold the handle and drag, or use the up and down arrow keys, to change the order.",
+    reorderMoved: "{name} at position {position} of {total}",
+    botWorking: "replying",
     authorProfileTitle: "GitHub profile",
     authorSponsorLabel: "Sponsor on GitHub Sponsors",
     headerEditBot: "Edit bot",

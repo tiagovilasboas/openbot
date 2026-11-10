@@ -40,6 +40,7 @@ export function ChatExperience() {
     saveBot,
     createAndActivateBot,
     removeBot,
+    reorderBot,
     mainBotId,
     makeMainBot,
   } = useBots();
@@ -96,6 +97,7 @@ export function ChatExperience() {
   const {
     busy,
     workingBot,
+    workingBotIds,
     sendText,
     cancelTurn,
     retryMessage,
@@ -148,6 +150,8 @@ export function ChatExperience() {
         bots={bots}
         activeBotId={activeBotId}
         mainBotId={mainBotId}
+        workingBotIds={workingBotIds}
+        onReorderBot={reorderBot}
         isMobileOpen={isMobileSidebarOpen}
         isDesktopCollapsed={isDesktopCollapsed}
         hasPassword={auth.hasPassword}
