@@ -37,6 +37,7 @@ export function SkillCreatePanel({
   const [command, setCommand] = useState("");
   const [description, setDescription] = useState("");
   const [instructions, setInstructions] = useState("");
+  const [imported, setImported] = useState(false);
   const [commandError, setCommandError] = useState<string | null>(null);
 
   // The "New skill" button that opened this panel is gone; start here.
@@ -50,6 +51,7 @@ export function SkillCreatePanel({
   function importMarkdown(text: string) {
     setMarkdown(text);
     const parsed = parseSkillFromMarkdown(text);
+    setImported(parsed !== null);
     if (!parsed) return;
     setName(parsed.name);
     setDescription(parsed.description);
@@ -64,6 +66,7 @@ export function SkillCreatePanel({
       command: command.trim() || undefined,
       description,
       instructions,
+      source: imported ? "imported" : "created",
     });
     if (existing.some((s) => s.command === skill.command)) {
       setCommandError(fillCopy(c.duplicateCommand, { command: skill.command }));

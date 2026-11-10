@@ -55,7 +55,15 @@ export function SkillListItem({
               <span className="shrink-0 font-mono text-[13px] text-subtle">
                 {skill.command}
               </span>
+              {skill.source === "imported" && (
+                <span className="shrink-0 rounded-full bg-warning px-2 text-[12px] font-medium text-warning-foreground">
+                  {c.importedBadge}
+                </span>
+              )}
             </div>
+            {skill.source === "imported" && (
+              <p className="text-[13px] text-muted">{c.importedWarning}</p>
+            )}
             {skill.description && (
               <p className="overflow-hidden text-ellipsis whitespace-nowrap text-[13px] text-muted">
                 {skill.description}

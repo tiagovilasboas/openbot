@@ -1,4 +1,4 @@
-import type { SkillDefinition } from "./skill-types.ts";
+import type { SkillDefinition, SkillSource } from "./skill-types.ts";
 
 function sanitizeCommand(name: string, explicitCommand?: string): string {
   if (explicitCommand && explicitCommand.trim()) {
@@ -33,6 +33,7 @@ export function sanitizeSkill(raw: unknown): SkillDefinition | null {
       typeof obj.command === "string" ? obj.command : undefined,
     ),
     isBuiltin: false,
+    source: obj.source === "imported" ? "imported" : "created",
     createdAt:
       typeof obj.createdAt === "string"
         ? obj.createdAt
@@ -53,6 +54,7 @@ export function createCustomSkill(input: {
   command?: string;
   description?: string;
   instructions: string;
+  source?: SkillSource;
 }): SkillDefinition {
   const id = `skill_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
   return {
@@ -62,6 +64,7 @@ export function createCustomSkill(input: {
     description: input.description?.trim() || "",
     instructions: input.instructions.trim(),
     isBuiltin: false,
+    source: input.source ?? "created",
     createdAt: new Date().toISOString(),
   };
 }
