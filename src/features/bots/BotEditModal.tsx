@@ -231,6 +231,8 @@ function BotEditForm({
         language={language}
         skills={skills}
         onChange={setSkills}
+        botId={isEditing && bot ? bot.id : undefined}
+        modelId={modelId}
       />
 
       {isEditing && bot && <MemorySection botId={bot.id} isPt={isPt} />}

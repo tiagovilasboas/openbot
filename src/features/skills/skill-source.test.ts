@@ -31,3 +31,12 @@ test("the imported badge and warning exist in both languages", () => {
     assert.ok(skillsCopy[lang].importedWarning.length > 0);
   }
 });
+
+test("the suggested source survives storage; unknown sources do not", () => {
+  const base = { id: "s1", name: "S", instructions: "x" };
+  assert.equal(
+    sanitizeSkill({ ...base, source: "suggested" })?.source,
+    "suggested",
+  );
+  assert.equal(sanitizeSkill({ ...base, source: "evil" })?.source, "created");
+});

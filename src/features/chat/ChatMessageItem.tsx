@@ -4,6 +4,9 @@ import type { AttachmentSummary } from "@/features/attachments/attachment-summar
 import { SentAttachments } from "@/features/attachments/SentAttachments.tsx";
 import { BotAvatar } from "@/features/bots/BotAvatar.tsx";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
+import type { CrewRoomView } from "@/features/crew/crew-room-view.ts";
+import { CrewRoomControl } from "@/features/crew/CrewRoomControl.tsx";
+import type { CrewStepRecord } from "@/features/crew/crew-step-record.ts";
 import { GitHubItemsCard } from "@/features/github/GitHubItemsCard.tsx";
 import type {
   GitHubItem,
@@ -23,6 +26,8 @@ export interface MessageData {
   role: "assistant" | "user";
   text: string;
   delegatedBot?: BotProfile;
+  /** On a specialist's reply: the task it was given and how it went. */
+  crewStep?: CrewStepRecord;
   github?: {
     repo: GitHubRepoRef;
     items: GitHubItem[];
@@ -53,6 +58,8 @@ interface ChatMessageItemProps {
   /** Resends the user message this partial reply answered. */
   onRetry?: () => void;
   rollback?: MessageRollback;
+  /** On a delegated turn's final reply: the room that shows how it went. */
+  crewRoom?: CrewRoomView;
 }
 
 export function ChatMessageItem({
@@ -60,6 +67,7 @@ export function ChatMessageItem({
   activeBot,
   onRetry,
   rollback,
+  crewRoom,
 }: ChatMessageItemProps) {
   const content = chatCopy[message.language];
 
@@ -154,6 +162,10 @@ export function ChatMessageItem({
           toModel={message.failover.toModel}
           reason={message.failover.reason}
         />
+      )}
+
+      {crewRoom && (
+        <CrewRoomControl room={crewRoom} language={message.language} />
       )}
 
       <div className="-ml-3 -mt-1 flex items-center pointer-fine:opacity-0 pointer-fine:transition-opacity pointer-fine:group-hover:opacity-100 pointer-fine:focus-within:opacity-100">

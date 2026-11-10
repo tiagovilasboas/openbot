@@ -6,6 +6,7 @@ import {
 } from "../model/classify-model-failure.ts";
 import type { AttachmentPayload } from "../attachments/parse-attachments.ts";
 import type { ClientModelConfig } from "../model/model-config.ts";
+import { readTokenUsage, type TokenUsage } from "../model/token-usage.ts";
 import { createCallSignal } from "./call-timeout.ts";
 import type { ChatLanguage } from "./respond-to-message.ts";
 
@@ -37,7 +38,13 @@ export type FailoverDetail = {
 };
 
 export type ModelReplyOutcome =
-  | { kind: "text"; text: string; failover?: FailoverDetail }
+  | {
+      kind: "text";
+      text: string;
+      failover?: FailoverDetail;
+      /** What the provider reported; absent when it reported nothing. */
+      usage?: TokenUsage;
+    }
   | { kind: "unavailable" }
   | { kind: "error"; failure: ModelFailure };
 
@@ -122,16 +129,19 @@ async function fetchReply(
     detail?: unknown;
     text?: unknown;
     failover?: FailoverDetail;
+    usage?: unknown;
   };
 
   if (response.status === 503 && body.error === "no_provider_configured") {
     return { kind: "unavailable" };
   }
   if (response.ok && typeof body.text === "string" && body.text.trim()) {
+    const usage = readTokenUsage(body.usage);
     return {
       kind: "text",
       text: body.text,
       ...(body.failover ? { failover: body.failover } : {}),
+      ...(usage ? { usage } : {}),
     };
   }
   return {

@@ -4,6 +4,7 @@ import { buildBotSystemPrompt } from "@/features/bots/bot-system-prompt.ts";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
 import { chiefPlainReply } from "@/features/crew/chief-plain-reply.ts";
 import { crewCopy } from "@/features/crew/crew-copy.ts";
+import type { CrewStepRecord } from "@/features/crew/crew-step-record.ts";
 import { buildCrewRoster } from "@/features/crew/crew-roster.ts";
 import { liveChiefText } from "@/features/crew/live-chief-text.ts";
 import { parseDelegations } from "@/features/crew/parse-delegations.ts";
@@ -18,6 +19,8 @@ import type { ModelFailure } from "@/features/model/classify-model-failure.ts";
 import type { ClientModelConfig } from "@/features/model/model-config.ts";
 import { memoryTextsForRequest } from "@/features/memory/memory-request.ts";
 import type { ModelCallResult } from "@/features/model/model-status.ts";
+import type { TokenUsage } from "@/features/model/token-usage.ts";
+import { recordUsageCall } from "@/features/usage/usage-storage.ts";
 import { detectSummaryRequest } from "@/features/summary/detect-summary-request.ts";
 import { executeSummary } from "@/features/summary/execute-summary.ts";
 import { chatCopy } from "./chat-copy.ts";
@@ -44,7 +47,12 @@ export interface ChatReplyOutcome {
   /** Set when the Chief delegated: its kickoff and each specialist's reply. */
   crew?: {
     kickoff: string;
-    specialists: Array<{ bot: BotProfile; text: string }>;
+    specialists: Array<{
+      bot: BotProfile;
+      text: string;
+      /** What the Chief asked and how it went; the team room reads this. */
+      step?: CrewStepRecord;
+    }>;
   };
 }
 
@@ -62,6 +70,7 @@ export async function executeChatMessage({
   signal,
   memoryFor = memoryTextsForRequest,
   attachments = [],
+  onUsage = recordUsageCall,
 }: {
   text: string;
   language: ChatLanguage;
@@ -88,6 +97,8 @@ export async function executeChatMessage({
    * them: a delegated specialist is not sent the user's files.
    */
   attachments?: AttachmentPayload[];
+  /** Hears each finished reply of a bot; defaults to the device's usage log. */
+  onUsage?: (botId: string, usage: TokenUsage | undefined) => void;
 }): Promise<ChatReplyOutcome> {
   // The server caps the history; send only the newest messages, and fewer
   // when files take room in the request body.
@@ -206,6 +217,24 @@ export async function executeChatMessage({
       onText: (text) => show(shape(text)),
     });
   };
+  /**
+   * `ask`, plus the usage log: a reply counts for the bot that wrote it (the
+   * Chief's own synthesis counts for the Chief). A reply cut off midway has no
+   * provider counts, so it is logged as a reply without usage data.
+   */
+  const askAndCount = async (...args: Parameters<typeof ask>) => {
+    const outcome = await ask(...args);
+    if (outcome.kind === "text" || outcome.kind === "partial") {
+      const usage = outcome.kind === "text" ? outcome.usage : undefined;
+      const speaker: BotProfile | undefined = args[4];
+      try {
+        onUsage((speaker ?? executingBot).id, usage);
+      } catch {
+        // Counting must never break the turn.
+      }
+    }
+    return outcome;
+  };
   const failedReply = (failure: ModelFailure): ChatReplyOutcome => ({
     text: describeModelFailure(failure, language),
     delegatedBot,
@@ -213,7 +242,7 @@ export async function executeChatMessage({
     ...(failure.kind === "cancelled" ? {} : { modelCall: "failed" as const }),
   });
 
-  const outcome = await ask(
+  const outcome = await askAndCount(
     fullSystemPrompt,
     history,
     executingBot.modelId,
@@ -254,7 +283,7 @@ export async function executeChatMessage({
             memory,
             speaker,
           }) => {
-            const reply = await ask(
+            const reply = await askAndCount(
               systemPrompt,
               messages,
               modelId,
@@ -280,10 +309,13 @@ export async function executeChatMessage({
         ? {
             crew: {
               kickoff: crewTurn.kickoff,
-              specialists: crewTurn.specialists.map(({ bot, text }) => ({
-                bot,
-                text,
-              })),
+              specialists: crewTurn.specialists.map(
+                ({ bot, text, task, ok, durationMs }) => ({
+                  bot,
+                  text,
+                  step: { task, ok, durationMs },
+                }),
+              ),
             },
           }
         : {}),

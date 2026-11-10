@@ -33,6 +33,8 @@ export interface SpecialistAnswer {
   task: string;
   ok: boolean;
   text: string;
+  /** How long the specialist took to answer or fail, in milliseconds. */
+  durationMs: number;
 }
 
 export interface CrewTurn {
@@ -68,6 +70,8 @@ async function askSpecialist(
   const copy = crewCopy[language];
   const systemPrompt = `${buildBotSystemPrompt(bot, language)}\n\n${copy.antiLoopRule}`;
   const request = `${copy.userAsked}:\n${userText}\n\n${copy.yourTask}:\n${task}`;
+  const startedAt = Date.now();
+  const elapsed = () => Math.max(0, Date.now() - startedAt);
   try {
     const reply = await askModel({
       systemPrompt,
@@ -76,11 +80,19 @@ async function askSpecialist(
       speaker: bot,
       memory: memoryFor?.(bot.id),
     });
-    if (reply.ok) return { bot, task, ok: true, text: reply.text };
+    if (reply.ok) {
+      return { bot, task, ok: true, text: reply.text, durationMs: elapsed() };
+    }
   } catch {
     // A failing specialist must not break the Chief's turn.
   }
-  return { bot, task, ok: false, text: copy.specialistFailed(bot.name) };
+  return {
+    bot,
+    task,
+    ok: false,
+    text: copy.specialistFailed(bot.name),
+    durationMs: elapsed(),
+  };
 }
 
 async function synthesize(

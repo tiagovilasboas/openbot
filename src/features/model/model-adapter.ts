@@ -1,4 +1,5 @@
 import type { ClientModelConfig } from "./model-config.ts";
+import type { TokenUsage } from "./token-usage.ts";
 
 export type ModelLanguage = "pt" | "en";
 
@@ -31,7 +32,14 @@ export type FailoverInfo = {
 };
 
 export type ModelResult =
-  | { ok: true; provider: string; text: string; failover?: FailoverInfo }
+  | {
+      ok: true;
+      provider: string;
+      text: string;
+      failover?: FailoverInfo;
+      /** What the provider reported; absent when it reported nothing. */
+      usage?: TokenUsage;
+    }
   | {
       ok: false;
       code: ModelErrorCode;

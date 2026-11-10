@@ -1,8 +1,9 @@
 "use client";
 
-import type { RefObject } from "react";
+import { useMemo, type RefObject } from "react";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
 import type { ComposerAttachments } from "@/features/attachments/use-composer-attachments.ts";
+import { crewRoomsBySynthesisId } from "@/features/crew/crew-room-view.ts";
 import type { SkillDefinition } from "@/features/skills/skill-types.ts";
 import { chatCopy } from "./chat-copy.ts";
 import { ChatComposer } from "./ChatComposer.tsx";
@@ -63,6 +64,7 @@ export function ConversationView({
   onRollBack,
 }: ConversationViewProps) {
   const content = chatCopy[language];
+  const crewRooms = useMemo(() => crewRoomsBySynthesisId(messages), [messages]);
   const lastMessage = messages[messages.length - 1];
   const unanswered =
     !busy && queueCount === 0 && lastMessage?.role === "user"
@@ -85,6 +87,7 @@ export function ConversationView({
                 key={message.id}
                 message={message}
                 activeBot={activeBot}
+                crewRoom={crewRooms.get(message.id)}
                 onOpenSettings={onOpenSettings}
                 onRetry={
                   busy || !answered ? undefined : () => onRetry(answered.id)
