@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { parseChatRequest } from "../model/parse-chat-request.ts";
+import { MAX_SYSTEM_PROMPT_CHARS } from "../model/system-prompt-limit.ts";
 import {
   MEMORY_MAX_ENTRIES,
   MEMORY_MAX_ENTRY_LENGTH,
@@ -154,16 +155,23 @@ describe("the server request", () => {
     assert.ok(prompt.endsWith(CLOSE));
     const noteLines = prompt.split("\n").filter((l) => l.startsWith("- "));
     assert.ok(noteLines.length <= MEMORY_MAX_ENTRIES);
-    assert.ok(prompt.length < 4000 + MEMORY_MAX_TOTAL_LENGTH + 1500);
+    assert.ok(
+      prompt.length < MAX_SYSTEM_PROMPT_CHARS + MEMORY_MAX_TOTAL_LENGTH + 1500,
+    );
   });
 
   it("does not let memory squeeze the bot's own prompt", () => {
     const parsed = parseChatRequest({
       ...base,
-      systemPrompt: "p".repeat(9000),
+      systemPrompt: "p".repeat(MAX_SYSTEM_PROMPT_CHARS),
       memory: ["note"],
     });
     assert.ok(parsed.ok);
-    assert.ok(parsed.request.systemPrompt!.startsWith("p".repeat(4000) + "\n"));
+    // The bot's own prompt arrives whole; the memory block is added after it.
+    assert.ok(
+      parsed.request.systemPrompt!.startsWith(
+        "p".repeat(MAX_SYSTEM_PROMPT_CHARS) + "\n",
+      ),
+    );
   });
 });
