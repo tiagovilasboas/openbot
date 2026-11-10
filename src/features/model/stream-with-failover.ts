@@ -11,6 +11,7 @@ import type {
   StreamUsage,
   StreamingModelAdapter,
 } from "./stream-adapter.ts";
+import { fitReplyChunk, MAX_REPLY_CHARS } from "./reply-limit.ts";
 import type { ChatStreamEvent } from "./stream-events.ts";
 import { streamAbortKind } from "./stream-signal.ts";
 
@@ -21,6 +22,8 @@ export interface StreamWithFailoverOptions {
   env?: Record<string, string | undefined>;
   fetchImpl?: FetchLike;
   signal: AbortSignal;
+  /** Most characters of one reply; defaults to MAX_REPLY_CHARS. */
+  maxReplyChars?: number;
 }
 
 /** Later counts win, but a missing count never erases an earlier one. */
@@ -172,9 +175,17 @@ export async function* streamWithFailover(
 
   const { adapter, rest } = attempt;
   let usage = attempt.usage;
+  const maxChars = options.maxReplyChars ?? MAX_REPLY_CHARS;
+  let chars = 0;
   try {
     yield { type: "start", provider: adapter.provider, model: adapter.model };
-    yield { type: "delta", text: attempt.firstText };
+    const first = fitReplyChunk(chars, attempt.firstText, maxChars);
+    yield { type: "delta", text: first.text };
+    if (first.exceeded) {
+      yield errorEvent("response_too_long", adapter.provider);
+      return;
+    }
+    chars += first.text.length;
     for (;;) {
       const next = await rest.next();
       if (signal.aborted) {
@@ -184,7 +195,14 @@ export async function* streamWithFailover(
       if (next.done) break;
       const chunk = next.value;
       if (chunk.type === "delta") {
-        yield { type: "delta", text: chunk.text };
+        // Past the cap the reply ends here, with what fits kept as partial.
+        const fit = fitReplyChunk(chars, chunk.text, maxChars);
+        if (fit.text) yield { type: "delta", text: fit.text };
+        if (fit.exceeded) {
+          yield errorEvent("response_too_long", adapter.provider);
+          return;
+        }
+        chars += fit.text.length;
       } else if (chunk.type === "usage") {
         usage = mergeUsage(usage, chunk.usage);
       } else {

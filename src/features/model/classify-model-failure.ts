@@ -13,6 +13,7 @@ export type ModelFailureKind =
   | "timeout"
   | "cancelled"
   | "server"
+  | "response_too_long"
   | "unknown";
 
 export interface ModelFailure {
@@ -43,6 +44,8 @@ export function classifyModelFailure(
   httpStatus?: number,
 ): ModelFailure {
   if (code === "blocked_base_url") return { kind: "blocked_url" };
+  // The reply grew past the character or stream cap and was cut off.
+  if (code === "response_too_long") return { kind: "response_too_long" };
   // The server's allow-list refused this bot's model id.
   if (code === "model_not_allowed") {
     return { kind: "model_unavailable", status: 400 };

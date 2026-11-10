@@ -32,6 +32,8 @@ export const chatCopy = {
       "Você está sem internet. Verifique sua conexão e envie a mensagem de novo.",
     modelErrorTimeout:
       "O modelo demorou demais para responder (mais de 2 minutos). Tente novamente ou escolha outro modelo em **Configurações**.",
+    modelErrorTooLong:
+      "A resposta ficou longa demais e foi cortada. Peça uma resposta mais curta ou divida o pedido em partes.",
     modelErrorServer:
       "O servidor do modelo teve um problema. Tente novamente em instantes.",
     modelErrorUnreachable:
@@ -185,6 +187,8 @@ export const chatCopy = {
       "You are offline. Check your connection and send the message again.",
     modelErrorTimeout:
       "The model took too long to answer (over 2 minutes). Try again or pick another model in **Settings**.",
+    modelErrorTooLong:
+      "The reply got too long and was cut off. Ask for a shorter answer or split the request into parts.",
     modelErrorServer: "The model server had a problem. Try again in a moment.",
     modelErrorUnreachable:
       "I could not reach the model. Check the address in **Settings** and your connection, then try again.",

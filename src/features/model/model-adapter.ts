@@ -23,7 +23,8 @@ export type ModelErrorCode =
   | "provider_unreachable"
   | "provider_rejected"
   | "blocked_base_url"
-  | "invalid_provider_response";
+  | "invalid_provider_response"
+  | "response_too_long";
 
 export type FailoverInfo = {
   fromModel: string;

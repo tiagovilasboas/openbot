@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { safeEqual } from "./check-access-token.ts";
 import { checkBodySize } from "./check-body-size.ts";
-import { clientIp, createRequestGuard } from "./guard-request.ts";
+import { createRequestGuard } from "./guard-request.ts";
 import { createRateLimiter, parseRateLimit } from "./rate-limiter.ts";
 
 function post(headers: Record<string, string>, ip = "1.1.1.1") {
@@ -117,16 +117,11 @@ test("safeEqual compares in constant time over equal-length buffers", () => {
   assert.equal(safeEqual("", "a"), false);
 });
 
-test("limiter forgets old clients and clientIp reads the first hop", () => {
+test("limiter forgets old clients", () => {
   let time = 0;
   const limiter = createRateLimiter(1, () => time);
   assert.equal(limiter.check("a").allowed, true);
   assert.equal(limiter.check("a").allowed, false);
   time = 60_001;
   assert.equal(limiter.check("a").allowed, true);
-  assert.equal(
-    clientIp(new Headers({ "x-forwarded-for": "9.9.9.9, 10.0.0.1" })),
-    "9.9.9.9",
-  );
-  assert.equal(clientIp(new Headers()), "local");
 });

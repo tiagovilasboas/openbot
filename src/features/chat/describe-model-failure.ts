@@ -29,6 +29,8 @@ export function describeModelFailure(
       return content.modelErrorOffline;
     case "timeout":
       return content.modelErrorTimeout;
+    case "response_too_long":
+      return content.modelErrorTooLong;
     case "cancelled":
       return content.cancelledNote;
     case "unreachable":
