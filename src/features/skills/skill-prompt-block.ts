@@ -34,17 +34,11 @@ function skillLine(name: string, command: string, instructions: string) {
   return `[Skill ${name} (${command})]: ${instructions}`;
 }
 
-/** The skills section of a system prompt, or "" when there are no skills. */
-export function buildSkillsBlock(
-  skills: readonly SkillDefinition[],
+function renderSkills(
+  own: readonly string[],
+  thirdParty: readonly string[],
   language: ExternalTextLanguage,
 ): string {
-  const own = skills
-    .filter((skill) => !isThirdParty(skill))
-    .map((s) => skillLine(s.name, s.command, s.instructions));
-  const thirdParty = skills
-    .filter(isThirdParty)
-    .map((s) => skillLine(oneLine(s.name), s.command, s.instructions));
   if (own.length === 0 && thirdParty.length === 0) return "";
   const sections = [HEADING[language], ...own];
   if (thirdParty.length > 0) {
@@ -55,4 +49,29 @@ export function buildSkillsBlock(
     );
   }
   return sections.join("\n");
+}
+
+/**
+ * The skills section of a system prompt, or "" when there are no skills. With
+ * `maxChars`, whole skills are dropped from the end (imported and suggested
+ * ones first) until it fits, so the delimiter is never cut in half.
+ */
+export function buildSkillsBlock(
+  skills: readonly SkillDefinition[],
+  language: ExternalTextLanguage,
+  maxChars = Number.POSITIVE_INFINITY,
+): string {
+  const own = skills
+    .filter((skill) => !isThirdParty(skill))
+    .map((s) => skillLine(s.name, s.command, s.instructions));
+  const thirdParty = skills
+    .filter(isThirdParty)
+    .map((s) => skillLine(oneLine(s.name), s.command, s.instructions));
+  let block = renderSkills(own, thirdParty, language);
+  while (block.length > maxChars && (own.length > 0 || thirdParty.length > 0)) {
+    if (thirdParty.length > 0) thirdParty.pop();
+    else own.pop();
+    block = renderSkills(own, thirdParty, language);
+  }
+  return block;
 }

@@ -1,3 +1,4 @@
+import { MAX_SYSTEM_PROMPT_CHARS } from "../model/system-prompt-limit.ts";
 import { buildSkillsBlock } from "../skills/skill-prompt-block.ts";
 import type { BotProfile } from "./bot-types.ts";
 
@@ -15,17 +16,42 @@ function describeBot(bot: BotProfile, language: PromptLanguage): string {
     : bot.description;
 }
 
-/** A bot's own system prompt: its description, workspace context and skills. */
+const CUT_MARK = "…";
+
+function cut(text: string, max: number): string {
+  if (text.length <= max) return text;
+  return max <= 0 ? "" : `${text.slice(0, Math.max(0, max - 1))}${CUT_MARK}`;
+}
+
+/**
+ * A bot's own system prompt: its description, workspace context and skills.
+ * `reserve` is how many characters the caller will add after it (the team
+ * roster, the delegation or synthesis rule), which must never be cut off, so
+ * the bot's part is built to leave that room. When it does not fit, the skills
+ * go first (whole skills, never half a delimiter), then the workspace context,
+ * and the description last.
+ */
 export function buildBotSystemPrompt(
   bot: BotProfile,
   language: PromptLanguage,
+  reserve = 0,
 ): string {
   const isPt = language === "pt";
+  const budget = Math.max(0, MAX_SYSTEM_PROMPT_CHARS - reserve);
   const description = describeBot(bot, language);
-  const workspace = bot.workspaceContext
-    ? `\n\n${isPt ? "Contexto de Workspace:" : "Workspace Context:"}\n${bot.workspaceContext}`
-    : "";
-  const skills = buildSkillsBlock(bot.skills, language);
+  const workspaceLabel = isPt ? "Contexto de Workspace:" : "Workspace Context:";
+  const workspaceText = bot.workspaceContext ?? "";
+  const workspaceOf = (text: string) =>
+    text ? `\n\n${workspaceLabel}\n${text}` : "";
+
+  if (description.length >= budget) return cut(description, budget);
+  const workspaceRoom = budget - description.length - workspaceLabel.length - 3;
+  const workspace = workspaceOf(
+    workspaceText && workspaceRoom > 0 ? cut(workspaceText, workspaceRoom) : "",
+  );
+  const skillsRoom = budget - description.length - workspace.length - 2;
+  const skills =
+    skillsRoom > 0 ? buildSkillsBlock(bot.skills, language, skillsRoom) : "";
   return skills
     ? `${description}${workspace}\n\n${skills}`
     : `${description}${workspace}`;

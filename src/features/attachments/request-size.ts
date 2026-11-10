@@ -3,10 +3,11 @@ import type { AttachmentPayload } from "./parse-attachments.ts";
 
 /**
  * Room kept in the 64 KB request body for what the files do not control: the
- * envelope, the system prompt (4000 characters at most), the bot's memory
- * (4000) and the model settings.
+ * envelope, the system prompt (12000 characters at most, which can be up to
+ * 36 KB if every character takes three bytes, but is about 13 KB in practice),
+ * the bot's memory (4000) and the model settings.
  */
-export const RESERVED_REQUEST_BYTES = 20_000;
+export const RESERVED_REQUEST_BYTES = 24_000;
 
 /** Bytes of a value as JSON on the wire. */
 export function jsonBytes(value: unknown): number {
