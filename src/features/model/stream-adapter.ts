@@ -3,9 +3,10 @@ import type {
   ModelErrorCode,
   ModelRequest,
 } from "./model-adapter.ts";
+import type { TokenUsage } from "./token-usage.ts";
 
 /** Token counts a provider reported; either side may be missing. */
-export type StreamUsage = { inputTokens?: number; outputTokens?: number };
+export type StreamUsage = TokenUsage;
 
 /**
  * What an adapter yields while a reply streams. `failed` is always the last

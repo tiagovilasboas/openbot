@@ -17,3 +17,16 @@ export function isModelAllowed(env: Env, modelId: string): boolean {
   const allowed = readAllowedModels(env);
   return allowed === null || allowed.has(modelId);
 }
+
+/**
+ * The 400 answer for a model id outside the allow-list, or null when the call
+ * may go on. Both chat routes use this one check so they cannot drift apart.
+ */
+export function modelNotAllowedResponse(
+  env: Env,
+  modelId: string | undefined,
+): Response | null {
+  return modelId && !isModelAllowed(env, modelId)
+    ? Response.json({ error: "model_not_allowed" }, { status: 400 })
+    : null;
+}

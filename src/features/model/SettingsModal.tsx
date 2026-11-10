@@ -8,6 +8,7 @@ import { chatCopy } from "@/features/chat/chat-copy.ts";
 import { LanguageToggle } from "@/features/chat/LanguageToggle.tsx";
 import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
 import type { ClientModelConfig } from "./model-config.ts";
+import { UsageSection } from "@/features/usage/UsageSection.tsx";
 import { ResponsiveSheet } from "@/shared/ui/ResponsiveSheet.tsx";
 import { SettingsForm } from "./SettingsForm.tsx";
 import { getSettingsCopy } from "./settings-copy.ts";
@@ -72,6 +73,7 @@ export function SettingsModal({
               label: s.tabSecurity,
               badge: hasPassword ? s.securityActive : undefined,
             },
+            { id: "usage", label: s.tabUsage },
           ]}
         />
       }
@@ -130,6 +132,10 @@ export function SettingsModal({
           <div className="mt-6">
             <BackupSection language={language} />
           </div>
+        </div>
+
+        <div hidden={activeTab !== "usage"}>
+          <UsageSection language={language} />
         </div>
       </div>
     </ResponsiveSheet>

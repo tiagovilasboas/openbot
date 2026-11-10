@@ -3,6 +3,7 @@ import type { ModelNetworkOptions } from "./guarded-model-fetch.ts";
 import type { FetchLike, ModelRequest } from "./model-adapter.ts";
 import { parseLocalStream } from "./local-stream.ts";
 import { openModelStream } from "./open-model-stream.ts";
+import { ollamaUsage } from "./token-usage.ts";
 import type { StreamingModelAdapter } from "./stream-adapter.ts";
 import { toWireMessages } from "./wire-messages.ts";
 
@@ -87,7 +88,13 @@ export function createLocalAdapter(
           provider: "local",
         };
       }
-      return { ok: true, provider: "local", text: content };
+      const usage = ollamaUsage(payload);
+      return {
+        ok: true,
+        provider: "local",
+        text: content,
+        ...(usage ? { usage } : {}),
+      };
     },
   };
 }

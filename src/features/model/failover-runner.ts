@@ -43,11 +43,12 @@ export function resolveAutoFallbackAdapter(
     if (targetModel !== currentModel) {
       const routerConfig =
         request.config?.provider === "router" ? request.config : null;
-      const baseUrl =
-        routerConfig?.baseUrl ??
-        env.ROUTER_URL ??
-        "https://openrouter.ai/api/v1";
-      const apiKey = routerConfig?.apiKey ?? env.ROUTER_API_KEY;
+      // A client-chosen URL never gets the server's key: the key belongs to the
+      // server's own router, so it is used only when no client config exists.
+      const baseUrl = routerConfig
+        ? routerConfig.baseUrl
+        : (env.ROUTER_URL ?? "https://openrouter.ai/api/v1");
+      const apiKey = routerConfig ? routerConfig.apiKey : env.ROUTER_API_KEY;
       return createRouterAdapter({
         baseUrl,
         model: targetModel,
@@ -90,6 +91,7 @@ export async function executeWithFailover({
       ok: true,
       provider: fallbackResult.provider,
       text: fallbackResult.text,
+      ...(fallbackResult.usage ? { usage: fallbackResult.usage } : {}),
       failover: {
         fromModel: modelId ?? primaryAdapter.model ?? primaryAdapter.provider,
         toModel: secondaryAdapter.model ?? secondaryAdapter.provider,

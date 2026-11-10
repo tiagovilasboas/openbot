@@ -12,6 +12,8 @@ export interface StubbedReply {
   /** Anything but 200 returns `{ error }` like the real route does. */
   status?: number;
   delayMs?: number;
+  /** Token counts the stubbed provider reports; absent means none. */
+  usage?: { inputTokens?: number; outputTokens?: number };
 }
 
 export interface ModelStub {
@@ -45,7 +47,11 @@ export async function stubModel(context: BrowserContext): Promise<ModelStub> {
       return;
     }
     await route.fulfill({
-      json: { provider: "stub", text: reply.text ?? DEFAULT_REPLY },
+      json: {
+        provider: "stub",
+        text: reply.text ?? DEFAULT_REPLY,
+        ...(reply.usage ? { usage: reply.usage } : {}),
+      },
     });
   });
 

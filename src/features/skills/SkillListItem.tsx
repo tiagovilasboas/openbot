@@ -23,6 +23,13 @@ export function SkillListItem({
   onCancelRemove,
   onConfirmRemove,
 }: SkillListItemProps) {
+  // Text that is not the user's own gets a badge and a "read it first" note.
+  const origin =
+    skill.source === "imported"
+      ? { badge: c.importedBadge, warning: c.importedWarning }
+      : skill.source === "suggested"
+        ? { badge: c.suggestedBadge, warning: c.suggestedWarning }
+        : null;
   return (
     <li className="flex min-h-14 items-center gap-3 rounded-xl bg-surface px-3.5 py-2">
       {isConfirming ? (
@@ -55,14 +62,14 @@ export function SkillListItem({
               <span className="shrink-0 font-mono text-[13px] text-subtle">
                 {skill.command}
               </span>
-              {skill.source === "imported" && (
+              {origin && (
                 <span className="shrink-0 rounded-full bg-warning px-2 text-[12px] font-medium text-warning-foreground">
-                  {c.importedBadge}
+                  {origin.badge}
                 </span>
               )}
             </div>
-            {skill.source === "imported" && (
-              <p className="text-[13px] text-muted">{c.importedWarning}</p>
+            {origin && (
+              <p className="text-[13px] text-muted">{origin.warning}</p>
             )}
             {skill.description && (
               <p className="overflow-hidden text-ellipsis whitespace-nowrap text-[13px] text-muted">

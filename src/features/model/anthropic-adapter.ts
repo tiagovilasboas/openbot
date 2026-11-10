@@ -7,6 +7,7 @@ import {
   parseAnthropicStream,
 } from "./anthropic-stream.ts";
 import { openModelStream } from "./open-model-stream.ts";
+import { anthropicUsage } from "./token-usage.ts";
 import type { StreamingModelAdapter } from "./stream-adapter.ts";
 
 export type AnthropicAdapterConfig = {
@@ -104,7 +105,13 @@ export function createAnthropicAdapter(
           provider: "anthropic",
         };
       }
-      return { ok: true, provider: "anthropic", text };
+      const usage = anthropicUsage(payload);
+      return {
+        ok: true,
+        provider: "anthropic",
+        text,
+        ...(usage ? { usage } : {}),
+      };
     },
   };
 }

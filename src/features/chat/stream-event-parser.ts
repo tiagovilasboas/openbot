@@ -1,6 +1,7 @@
 import type { ModelFailureKind } from "../model/classify-model-failure.ts";
 import type { ChatStreamEvent } from "../model/stream-events.ts";
 import { parseJsonLine } from "../model/stream-lines.ts";
+import { readTokenUsage } from "../model/token-usage.ts";
 
 const FAILURE_KINDS: readonly ModelFailureKind[] = [
   "auth",
@@ -44,9 +45,11 @@ export function parseStreamEvent(line: string): ChatStreamEvent | null {
       const fromModel = text(failover?.fromModel);
       const toModel = text(failover?.toModel);
       const reason = text(failover?.reason);
+      const usage = readTokenUsage(raw.usage);
       return {
         type: "done",
         provider: text(raw.provider) ?? "",
+        ...(usage ? { usage } : {}),
         ...(fromModel && toModel && reason
           ? { failover: { fromModel, toModel, reason } }
           : {}),

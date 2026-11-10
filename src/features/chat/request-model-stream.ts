@@ -5,6 +5,7 @@ import {
 } from "../model/classify-model-failure.ts";
 import type { ClientModelConfig } from "../model/model-config.ts";
 import { readLines } from "../model/stream-lines.ts";
+import type { TokenUsage } from "../model/token-usage.ts";
 import { createCallSignal } from "./call-timeout.ts";
 import {
   browserIsOnline,
@@ -116,6 +117,7 @@ export async function requestModelStream(
   ): Promise<ModelStreamOutcome> {
     let text = "";
     let failover: FailoverDetail | undefined;
+    let usage: TokenUsage | undefined;
     let finished = false;
     // A stream that ends with neither done nor error was cut off.
     let failure: ModelFailure = { kind: "unreachable" };
@@ -128,6 +130,7 @@ export async function requestModelStream(
         } else if (event?.type === "done") {
           finished = true;
           failover = event.failover;
+          usage = event.usage;
           break;
         } else if (event?.type === "error") {
           failure = {
@@ -143,7 +146,12 @@ export async function requestModelStream(
     const hasText = text.trim() !== "";
     if (finished) {
       return hasText
-        ? { kind: "text", text, ...(failover ? { failover } : {}) }
+        ? {
+            kind: "text",
+            text,
+            ...(failover ? { failover } : {}),
+            ...(usage ? { usage } : {}),
+          }
         : { kind: "error", failure: { kind: "unknown" } };
     }
     return hasText
