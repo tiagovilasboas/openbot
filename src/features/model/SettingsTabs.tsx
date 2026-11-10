@@ -2,7 +2,7 @@
 
 import { useRef, type KeyboardEvent } from "react";
 
-export type SettingsTabId = "model" | "connections" | "security";
+export type SettingsTabId = "model" | "connections" | "security" | "usage";
 
 export interface SettingsTabItem {
   id: SettingsTabId;
@@ -46,7 +46,8 @@ export function SettingsTabs({
     <div
       role="tablist"
       aria-label={label}
-      className="grid grid-cols-3 gap-1 rounded-2xl bg-surface p-1"
+      className="grid gap-1 rounded-2xl bg-surface p-1"
+      style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}
     >
       {tabs.map((tab, index) => {
         const selected = tab.id === active;
