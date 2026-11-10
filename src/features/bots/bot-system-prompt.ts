@@ -1,3 +1,4 @@
+import { buildSkillsBlock } from "../skills/skill-prompt-block.ts";
 import type { BotProfile } from "./bot-types.ts";
 
 type PromptLanguage = "pt" | "en";
@@ -24,10 +25,8 @@ export function buildBotSystemPrompt(
   const workspace = bot.workspaceContext
     ? `\n\n${isPt ? "Contexto de Workspace:" : "Workspace Context:"}\n${bot.workspaceContext}`
     : "";
-  const skills = bot.skills
-    .map((s) => `[Skill ${s.name} (${s.command})]: ${s.instructions}`)
-    .join("\n");
+  const skills = buildSkillsBlock(bot.skills, language);
   return skills
-    ? `${description}${workspace}\n\n${isPt ? "Skills Habilitadas:" : "Enabled Skills:"}\n${skills}`
+    ? `${description}${workspace}\n\n${skills}`
     : `${description}${workspace}`;
 }

@@ -1,7 +1,10 @@
 import {
   AVATAR_COLORS,
   AVATAR_SHAPES,
+  BOT_LABEL_MAX_LENGTH,
   BOT_NAME_MAX_LENGTH,
+  BOT_TEXT_MAX_LENGTH,
+  BOTS_MAX_COUNT,
   DEFAULT_BOT,
   LEGACY_SHAPES,
   type AvatarColor,
@@ -9,8 +12,12 @@ import {
   type BotProfile,
 } from "./bot-types.ts";
 import { sanitizeModelId } from "../model/model-id.ts";
+import { isValidBotId } from "./bot-id.ts";
 import { sanitizeSkill } from "../skills/skill-definition.ts";
-import type { SkillDefinition } from "../skills/skill-types.ts";
+import {
+  SKILLS_MAX_COUNT,
+  type SkillDefinition,
+} from "../skills/skill-types.ts";
 import { CREW_PRESETS } from "./crew-presets.ts";
 
 export const BOTS_STORAGE_KEY = "openbot_bots";
@@ -42,7 +49,7 @@ function sanitizeBotSkills(
   library: readonly SkillDefinition[],
 ): SkillDefinition[] {
   if (!Array.isArray(raw)) return [];
-  return raw.flatMap((entry): SkillDefinition[] => {
+  return raw.slice(0, SKILLS_MAX_COUNT).flatMap((entry): SkillDefinition[] => {
     const skill =
       typeof entry === "string"
         ? library.find((s) => s.id === entry)
@@ -68,6 +75,7 @@ export function sanitizeBotProfile(
   if (typeof obj.name !== "string" || !obj.name.trim()) return null;
 
   const rawId = obj.id.trim();
+  if (!isValidBotId(rawId)) return null;
   const rawName = obj.name.trim().slice(0, BOT_NAME_MAX_LENGTH).trim();
 
   // Canonical upgrade for legacy default bot
@@ -81,7 +89,7 @@ export function sanitizeBotProfile(
   const title = isLegacyDefault
     ? DEFAULT_BOT.title
     : typeof obj.title === "string"
-      ? obj.title.trim()
+      ? obj.title.trim().slice(0, BOT_LABEL_MAX_LENGTH)
       : undefined;
 
   const shape: AvatarShape =
@@ -108,11 +116,11 @@ export function sanitizeBotProfile(
       typeof obj.description === "string" &&
       obj.description.trim() &&
       !obj.description.includes("Você é o OpenBot, um assistente rápido")
-        ? obj.description.trim()
+        ? obj.description.trim().slice(0, BOT_TEXT_MAX_LENGTH)
         : DEFAULT_BOT.description,
     workspaceContext:
       typeof obj.workspaceContext === "string" && obj.workspaceContext.trim()
-        ? obj.workspaceContext.trim()
+        ? obj.workspaceContext.trim().slice(0, BOT_TEXT_MAX_LENGTH)
         : undefined,
     ...optionalModelId(obj.modelId),
     avatarShape: shape,
@@ -120,11 +128,11 @@ export function sanitizeBotProfile(
     skills,
     createdAt:
       typeof obj.createdAt === "string"
-        ? obj.createdAt
+        ? obj.createdAt.slice(0, 40)
         : new Date().toISOString(),
     updatedAt:
       typeof obj.updatedAt === "string"
-        ? obj.updatedAt
+        ? obj.updatedAt.slice(0, 40)
         : new Date().toISOString(),
   };
 }
@@ -163,6 +171,7 @@ export function parseBots(
     if (!Array.isArray(parsed)) return DEFAULT_BOTS_LIST;
     const seen = new Set<string>();
     const sanitized = parsed
+      .slice(0, BOTS_MAX_COUNT)
       .map((bot) => sanitizeBotProfile(bot, library))
       .filter((b): b is BotProfile => b !== null)
       .filter((b) => !seen.has(b.id) && Boolean(seen.add(b.id)));
@@ -224,7 +233,8 @@ export function loadActiveBotId(storage?: Storage): string {
     const normalized = raw === "default" ? DEFAULT_BOT.id : raw;
     if (isDefaultStorage && normalized === cachedActiveIdRaw)
       return cachedActiveId;
-    const result = normalized || DEFAULT_BOT.id;
+    // A stored id that is not a plain bot id (huge, hostile) is ignored.
+    const result = isValidBotId(normalized) ? normalized : DEFAULT_BOT.id;
     if (isDefaultStorage) {
       cachedActiveIdRaw = normalized;
       cachedActiveId = result;

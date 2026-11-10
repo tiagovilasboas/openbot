@@ -5,6 +5,7 @@ import type { BotProfile } from "../bots/bot-types.ts";
 import type { ChatLanguage } from "../chat/respond-to-message.ts";
 import {
   describeBotTemplateError,
+  describeFileTextNotice,
   getBotTemplateFileCopy,
 } from "./bot-template-file-copy.ts";
 import type { BotTemplateDraft } from "./bot-template-file-types.ts";
@@ -71,6 +72,8 @@ export function BotTemplateImport({
     kind: "error" | "success";
     text: string;
   } | null>(null);
+  // Stays until the form closes: the imported text is the user's to review.
+  const [reviewNotice, setReviewNotice] = useState<string | null>(null);
 
   async function handleFile(file: File | undefined) {
     setNotice(null);
@@ -91,6 +94,7 @@ export function BotTemplateImport({
       return;
     }
     onImport(result.draft);
+    setReviewNotice(describeFileTextNotice(language, result.draft));
     setNotice({
       kind: "success",
       text: result.draft.skills.length
@@ -126,6 +130,15 @@ export function BotTemplateImport({
       >
         {notice?.text ?? c.importHint}
       </p>
+      {reviewNotice && (
+        <p
+          role="status"
+          data-testid="file-text-notice"
+          className="rounded-xl bg-warning-soft px-3.5 py-2.5 text-[13px] font-medium text-foreground"
+        >
+          {reviewNotice}
+        </p>
+      )}
     </section>
   );
 }

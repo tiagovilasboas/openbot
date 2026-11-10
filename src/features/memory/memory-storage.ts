@@ -6,6 +6,9 @@ export const MEMORY_KEY_PREFIX = "openbot_memory_";
 /** The slice of Storage that memory needs; localStorage satisfies it. */
 export type MemoryStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 
+/** A valid list is far smaller; a longer stored text is not parsed at all. */
+export const MEMORY_MAX_STORED_LENGTH = 100_000;
+
 const EMPTY: MemoryEntry[] = [];
 const listeners = new Map<string, Set<() => void>>();
 /** Keeps the snapshot stable while the stored text is unchanged. */
@@ -46,7 +49,7 @@ export function loadMemoryEntries(
 ): MemoryEntry[] {
   try {
     const raw = storage?.getItem(memoryKey(botId));
-    if (!raw) return EMPTY;
+    if (!raw || raw.length > MEMORY_MAX_STORED_LENGTH) return EMPTY;
     const cached = cache.get(botId);
     if (cached && cached.raw === raw) return cached.data;
     const data = sanitizeMemoryEntries(JSON.parse(raw));

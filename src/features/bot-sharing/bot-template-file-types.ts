@@ -6,6 +6,9 @@ export const TEMPLATE_FILE_KIND = "bot-template";
 export const TEMPLATE_FILE_VERSION = 1;
 export const TEMPLATE_FILE_MAX_BYTES = 256 * 1024;
 export const TEMPLATE_MAX_SKILLS = 30;
+/** The bot's own text becomes the user's after review, so it stays readable. */
+export const TEMPLATE_DESCRIPTION_MAX_LENGTH = 8000;
+export const TEMPLATE_WORKSPACE_MAX_LENGTH = 4000;
 
 /** A skill as written in the file: no ids, dates or origin flags. */
 export interface TemplateFileSkill {

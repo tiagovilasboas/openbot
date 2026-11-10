@@ -16,6 +16,8 @@ const copy = {
     importedSkills:
       "As skills vieram de um arquivo e ficam marcadas como importadas.",
     readFailed: "Não foi possível ler o arquivo. Tente novamente.",
+    fileTextNotice:
+      "Este texto veio de um arquivo: leia antes de salvar. {count} caracteres de instruções.",
     errors: {
       invalid_file: "Esse arquivo não parece um bot do OpenBot.",
       not_a_template:
@@ -37,6 +39,8 @@ const copy = {
     imported: "Bot loaded into the form. Review it and save.",
     importedSkills: "The skills came from a file and stay marked as imported.",
     readFailed: "Could not read the file. Try again.",
+    fileTextNotice:
+      "This text came from a file: read it before saving. {count} characters of instructions.",
     errors: {
       invalid_file: "That file does not look like an OpenBot bot.",
       not_a_template: "That is a full backup. For it, use Settings, Backup.",
@@ -49,6 +53,25 @@ const copy = {
 
 export function getBotTemplateFileCopy(language: ChatLanguage) {
   return copy[language];
+}
+
+/** The characters of instructions an imported file puts in the form. */
+export function importedInstructionLength(draft: {
+  description: string;
+  workspaceContext?: string;
+}): number {
+  return draft.description.length + (draft.workspaceContext?.length ?? 0);
+}
+
+/** The warning shown while a form holds text that came from a file. */
+export function describeFileTextNotice(
+  language: ChatLanguage,
+  draft: { description: string; workspaceContext?: string },
+): string {
+  return copy[language].fileTextNotice.replace(
+    "{count}",
+    String(importedInstructionLength(draft)),
+  );
 }
 
 export function describeBotTemplateError(

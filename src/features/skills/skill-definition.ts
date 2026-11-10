@@ -1,4 +1,14 @@
-import type { SkillDefinition, SkillSource } from "./skill-types.ts";
+import {
+  SKILL_ID_MAX_LENGTH,
+  SKILL_LABEL_MAX_LENGTH,
+  SKILL_TEXT_MAX_LENGTH,
+  SKILLS_MAX_COUNT,
+  type SkillDefinition,
+  type SkillSource,
+} from "./skill-types.ts";
+
+const COMMAND_MAX_LENGTH = 64;
+const DATE_MAX_LENGTH = 40;
 
 /** The "/command" for a skill: the explicit one if given, else from the name. */
 export function sanitizeCommand(
@@ -23,19 +33,27 @@ export function sanitizeSkill(raw: unknown): SkillDefinition | null {
   const obj = raw as Record<string, unknown>;
 
   if (typeof obj.id !== "string" || !obj.id.trim()) return null;
+  if (obj.id.trim().length > SKILL_ID_MAX_LENGTH) return null;
   if (typeof obj.name !== "string" || !obj.name.trim()) return null;
 
+  const name = obj.name.trim().slice(0, SKILL_LABEL_MAX_LENGTH);
   return {
     id: obj.id.trim(),
-    name: obj.name.trim(),
+    name,
     description:
-      typeof obj.description === "string" ? obj.description.trim() : "",
+      typeof obj.description === "string"
+        ? obj.description.trim().slice(0, SKILL_TEXT_MAX_LENGTH)
+        : "",
     instructions:
-      typeof obj.instructions === "string" ? obj.instructions.trim() : "",
+      typeof obj.instructions === "string"
+        ? obj.instructions.trim().slice(0, SKILL_TEXT_MAX_LENGTH)
+        : "",
     command: sanitizeCommand(
-      obj.name.trim(),
-      typeof obj.command === "string" ? obj.command : undefined,
-    ),
+      name,
+      typeof obj.command === "string"
+        ? obj.command.slice(0, SKILL_LABEL_MAX_LENGTH)
+        : undefined,
+    ).slice(0, COMMAND_MAX_LENGTH),
     isBuiltin: false,
     source:
       obj.source === "imported" || obj.source === "suggested"
@@ -43,7 +61,7 @@ export function sanitizeSkill(raw: unknown): SkillDefinition | null {
         : "created",
     createdAt:
       typeof obj.createdAt === "string"
-        ? obj.createdAt
+        ? obj.createdAt.slice(0, DATE_MAX_LENGTH)
         : new Date().toISOString(),
   };
 }
@@ -52,6 +70,7 @@ export function sanitizeSkill(raw: unknown): SkillDefinition | null {
 export function sanitizeSkillList(raw: unknown): SkillDefinition[] {
   if (!Array.isArray(raw)) return [];
   return raw
+    .slice(0, SKILLS_MAX_COUNT)
     .map(sanitizeSkill)
     .filter((skill): skill is SkillDefinition => skill !== null);
 }

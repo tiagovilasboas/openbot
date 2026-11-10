@@ -9,6 +9,9 @@ export const USAGE_STORAGE_KEY = "openbot_usage";
 /** The slice of Storage that usage needs; localStorage satisfies it. */
 export type UsageStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 
+/** A valid log is about 1 MB at most; a longer stored text is not parsed. */
+export const USAGE_MAX_STORED_LENGTH = 2_000_000;
+
 const EMPTY: UsageRecord[] = [];
 const listeners = new Set<() => void>();
 /** Keeps the snapshot stable while the stored text is unchanged. */
@@ -45,7 +48,7 @@ export function loadUsage(
 ): UsageRecord[] {
   try {
     const raw = storage?.getItem(USAGE_STORAGE_KEY);
-    if (!raw) return EMPTY;
+    if (!raw || raw.length > USAGE_MAX_STORED_LENGTH) return EMPTY;
     if (cache && cache.raw === raw) return cache.data;
     const data = sanitizeUsage(JSON.parse(raw));
     cache = { raw, data };
