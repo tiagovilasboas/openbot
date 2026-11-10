@@ -1,0 +1,81 @@
+import {
+  test as base,
+  expect,
+  type BrowserContext,
+  type Page,
+} from "@playwright/test";
+
+/** One scripted answer of the stubbed model, shaped like the real routes. */
+export interface StubbedReply {
+  text?: string;
+  /** Anything but 200 returns `{ error }` like the real route does. */
+  status?: number;
+  delayMs?: number;
+}
+
+export interface ModelStub {
+  /** Answers /api/chat calls in order; later calls get a default reply. */
+  queue: (...replies: StubbedReply[]) => void;
+  /** Bodies of the /api/chat calls received so far. */
+  chatRequests: () => unknown[];
+}
+
+const DEFAULT_REPLY = "Stub reply";
+
+/** Stubs /api/chat and /api/model/test on a context; nothing leaves the box. */
+export async function stubModel(context: BrowserContext): Promise<ModelStub> {
+  const scripted: StubbedReply[] = [];
+  const received: unknown[] = [];
+
+  await context.route("**/api/chat", async (route) => {
+    received.push(route.request().postDataJSON());
+    const reply = scripted.shift() ?? {};
+    if (reply.delayMs) await new Promise((r) => setTimeout(r, reply.delayMs));
+    const status = reply.status ?? 200;
+    if (status !== 200) {
+      await route.fulfill({
+        status,
+        json: { error: "provider_error", provider: "stub", detail: "stub" },
+      });
+      return;
+    }
+    await route.fulfill({
+      json: { provider: "stub", text: reply.text ?? DEFAULT_REPLY },
+    });
+  });
+
+  await context.route("**/api/model/test", (route) =>
+    route.fulfill({ json: { ok: true, provider: "stub" } }),
+  );
+
+  return {
+    queue: (...replies) => void scripted.push(...replies),
+    chatRequests: () => received,
+  };
+}
+
+/** Writes and reads like a person: composer, sidebar, settings. */
+export function appPage(page: Page) {
+  return {
+    composer: page.getByRole("textbox", { name: "mensagem para o OpenBot" }),
+    async send(text: string) {
+      await this.composer.fill(text);
+      await this.composer.press("Enter");
+    },
+    /** The select button of each bot row, in sidebar order (name + role). */
+    botRows: () => page.locator("nav li > button:first-child"),
+    async openSettingsTab(tab: string) {
+      await page.getByRole("button", { name: "Configurações" }).click();
+      await page.getByRole("tab", { name: tab }).click();
+    },
+  };
+}
+
+export const test = base.extend<{ model: ModelStub }>({
+  // Named `provide`, not `use`: eslint-plugin-react-hooks reads `use(` as a hook.
+  model: async ({ context }, provide) => {
+    await provide(await stubModel(context));
+  },
+});
+
+export { expect };

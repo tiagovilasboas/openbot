@@ -4,5 +4,7 @@ out/
 coverage/
 .DS_Store
 *.tsbuildinfo
+test-results/
+playwright-report/
 .env*
 !.env.example
