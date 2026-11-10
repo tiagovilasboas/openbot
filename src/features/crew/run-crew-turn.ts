@@ -1,6 +1,10 @@
 import { buildBotSystemPrompt } from "../bots/bot-system-prompt.ts";
 import type { BotProfile } from "../bots/bot-types.ts";
 import type { ChatLanguage } from "../chat/respond-to-message.ts";
+import {
+  externalDataRule,
+  wrapExternalText,
+} from "../untrusted-text/wrap-external-text.ts";
 import { crewCopy } from "./crew-copy.ts";
 import { parseDelegations, type Delegation } from "./parse-delegations.ts";
 
@@ -73,7 +77,10 @@ async function synthesize(
 ): Promise<string | null> {
   const copy = crewCopy[input.language];
   const report = answers
-    .map((a) => `### ${a.bot.name}\n${a.text.slice(0, MAX_ANSWER_IN_REPORT)}`)
+    .map(
+      (a) =>
+        `### ${a.bot.name}\n${wrapExternalText(a.text.slice(0, MAX_ANSWER_IN_REPORT))}`,
+    )
     .join("\n\n");
   try {
     const reply = await input.askModel({
@@ -81,7 +88,10 @@ async function synthesize(
       messages: [
         ...input.history,
         { role: "assistant", text: kickoff },
-        { role: "user", text: `${copy.synthesisRequest}\n\n${report}` },
+        {
+          role: "user",
+          text: `${copy.synthesisRequest}\n${externalDataRule(input.language)}\n\n${report}`,
+        },
       ],
     });
     return reply.ok ? reply.text : null;
