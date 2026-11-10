@@ -34,7 +34,7 @@ export function createAnthropicAdapter(
               "anthropic-version": "2023-06-01",
             },
             body: JSON.stringify({
-              model: config.model,
+              model: request.modelId ?? config.model,
               max_tokens: config.maxTokens ?? 1024,
               ...(request.systemPrompt ? { system: request.systemPrompt } : {}),
               messages: request.messages.map((message) => ({

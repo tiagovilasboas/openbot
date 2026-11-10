@@ -13,6 +13,8 @@ export type ModelRequest = {
   config?: ClientModelConfig;
   fallbackConfig?: ClientModelConfig;
   systemPrompt?: string;
+  /** Replaces the configured model for this call only. */
+  modelId?: string;
 };
 
 export type ModelErrorCode =

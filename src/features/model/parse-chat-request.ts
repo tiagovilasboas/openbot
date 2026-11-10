@@ -1,5 +1,6 @@
 import type { ModelMessage, ModelRequest } from "./model-adapter.ts";
 import { validateClientModelConfig } from "./model-config.ts";
+import { parseModelId } from "./model-id.ts";
 
 const maxMessages = 50;
 const maxTextLength = 4000;
@@ -29,7 +30,7 @@ function clampMessage(message: ModelMessage): ModelMessage {
 
 export function parseChatRequest(payload: unknown): ParsedChatRequest {
   if (typeof payload !== "object" || payload === null) return { ok: false };
-  const { language, messages, config, fallbackConfig, systemPrompt } =
+  const { language, messages, config, fallbackConfig, systemPrompt, modelId } =
     payload as Record<string, unknown>;
   if (language !== "pt" && language !== "en") return { ok: false };
   if (!Array.isArray(messages)) return { ok: false };
@@ -54,6 +55,9 @@ export function parseChatRequest(payload: unknown): ParsedChatRequest {
     }
   }
 
+  const parsedModelId = parseModelId(modelId);
+  if (!parsedModelId.ok) return { ok: false };
+
   const validSystemPrompt =
     typeof systemPrompt === "string" && systemPrompt.trim()
       ? systemPrompt.trim().slice(0, maxTextLength)
@@ -69,6 +73,7 @@ export function parseChatRequest(payload: unknown): ParsedChatRequest {
         ? { fallbackConfig: validatedFallbackConfig }
         : {}),
       ...(validSystemPrompt ? { systemPrompt: validSystemPrompt } : {}),
+      ...(parsedModelId.modelId ? { modelId: parsedModelId.modelId } : {}),
     },
   };
 }

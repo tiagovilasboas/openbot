@@ -42,7 +42,7 @@ export function createRouterAdapter(config: RouterAdapterConfig): ModelAdapter {
             method: "POST",
             headers,
             body: JSON.stringify({
-              model: config.model,
+              model: request.modelId ?? config.model,
               stream: false,
               messages: [
                 ...(request.systemPrompt

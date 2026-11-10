@@ -8,6 +8,7 @@ import {
   type AvatarShape,
   type BotProfile,
 } from "./bot-types.ts";
+import { sanitizeModelId } from "../model/model-id.ts";
 import { sanitizeSkill } from "../skills/skill-definition.ts";
 import type { SkillDefinition } from "../skills/skill-types.ts";
 import { CREW_PRESETS } from "./crew-presets.ts";
@@ -48,6 +49,12 @@ function sanitizeBotSkills(
         : sanitizeSkill(entry);
     return skill ? [skill] : [];
   });
+}
+
+/** A spread-ready `modelId`: absent when the stored value is not valid. */
+function optionalModelId(raw: unknown): { modelId?: string } {
+  const modelId = sanitizeModelId(raw);
+  return modelId ? { modelId } : {};
 }
 
 export function sanitizeBotProfile(
@@ -107,6 +114,7 @@ export function sanitizeBotProfile(
       typeof obj.workspaceContext === "string" && obj.workspaceContext.trim()
         ? obj.workspaceContext.trim()
         : undefined,
+    ...optionalModelId(obj.modelId),
     avatarShape: shape,
     avatarColor: color,
     skills,

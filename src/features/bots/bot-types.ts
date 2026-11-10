@@ -36,6 +36,8 @@ export interface BotProfile {
   title?: string;
   description: string;
   workspaceContext?: string;
+  /** This bot's own model id; empty means the global model setting. */
+  modelId?: string;
   avatarShape: AvatarShape;
   avatarColor: AvatarColor;
   /** Skills this bot owns: they enter its prompt and its / palette only. */
