@@ -1,6 +1,10 @@
 import { BlockedBaseUrlError, modelFetch } from "./guarded-model-fetch.ts";
 import type { ModelNetworkOptions } from "./guarded-model-fetch.ts";
-import type { FetchLike, ModelAdapter, ModelRequest } from "./model-adapter.ts";
+import type { FetchLike, ModelRequest } from "./model-adapter.ts";
+import { parseLocalStream } from "./local-stream.ts";
+import { openModelStream } from "./open-model-stream.ts";
+import type { StreamingModelAdapter } from "./stream-adapter.ts";
+import { toWireMessages } from "./wire-messages.ts";
 
 export type LocalAdapterConfig = {
   baseUrl: string;
@@ -10,13 +14,32 @@ export type LocalAdapterConfig = {
   guardUrl?: boolean;
 } & ModelNetworkOptions;
 
-export function createLocalAdapter(config: LocalAdapterConfig): ModelAdapter {
+export function createLocalAdapter(
+  config: LocalAdapterConfig,
+): StreamingModelAdapter {
   const fetchImpl = config.fetchImpl ?? fetch;
   const endpoint = `${config.baseUrl.replace(/\/+$/, "")}/api/chat`;
 
   return {
     provider: "local",
     model: config.model,
+    streamReply(request, signal) {
+      return openModelStream({
+        provider: "local",
+        model: config.model,
+        fetchImpl,
+        url: endpoint,
+        headers: { "content-type": "application/json" },
+        body: {
+          model: config.model,
+          stream: true,
+          messages: toWireMessages(request),
+        },
+        network: config,
+        signal,
+        parse: parseLocalStream,
+      });
+    },
     async generateReply(request: ModelRequest) {
       let response: Response;
       try {

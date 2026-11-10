@@ -1,7 +1,13 @@
 import { modelFetch } from "./guarded-model-fetch.ts";
 import type { ModelNetworkOptions } from "./guarded-model-fetch.ts";
-import type { FetchLike, ModelAdapter, ModelRequest } from "./model-adapter.ts";
+import type { FetchLike, ModelRequest } from "./model-adapter.ts";
 import { providerErrorDetail } from "./provider-error-detail.ts";
+import {
+  anthropicStreamBody,
+  parseAnthropicStream,
+} from "./anthropic-stream.ts";
+import { openModelStream } from "./open-model-stream.ts";
+import type { StreamingModelAdapter } from "./stream-adapter.ts";
 
 export type AnthropicAdapterConfig = {
   apiKey: string;
@@ -14,12 +20,33 @@ const endpoint = "https://api.anthropic.com/v1/messages";
 
 export function createAnthropicAdapter(
   config: AnthropicAdapterConfig,
-): ModelAdapter {
+): StreamingModelAdapter {
   const fetchImpl = config.fetchImpl ?? fetch;
 
   return {
     provider: "anthropic",
     model: config.model,
+    streamReply(request, signal) {
+      return openModelStream({
+        provider: "anthropic",
+        model: config.model,
+        fetchImpl,
+        url: endpoint,
+        headers: {
+          "content-type": "application/json",
+          "x-api-key": config.apiKey,
+          "anthropic-version": "2023-06-01",
+        },
+        body: anthropicStreamBody(
+          config.model,
+          config.maxTokens ?? 1024,
+          request,
+        ),
+        network: config,
+        signal,
+        parse: parseAnthropicStream,
+      });
+    },
     async generateReply(request: ModelRequest) {
       let response: Response;
       try {

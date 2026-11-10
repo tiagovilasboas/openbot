@@ -2,7 +2,8 @@ import { createAnthropicAdapter } from "./anthropic-adapter.ts";
 import { createLocalAdapter } from "./local-adapter.ts";
 import { createRouterAdapter } from "./router-adapter.ts";
 import type { ModelNetworkOptions } from "./guarded-model-fetch.ts";
-import type { FetchLike, ModelAdapter } from "./model-adapter.ts";
+import type { FetchLike } from "./model-adapter.ts";
+import type { StreamingModelAdapter } from "./stream-adapter.ts";
 import type { ClientModelConfig } from "./model-config.ts";
 
 type Env = Record<string, string | undefined>;
@@ -26,7 +27,7 @@ export function selectAdapter(
   customConfig?: ClientModelConfig | null,
   fetchImpl?: FetchLike,
   network: ModelNetworkOptions = {},
-): ModelAdapter | null {
+): StreamingModelAdapter | null {
   if (customConfig) {
     if (customConfig.provider === "local") {
       return createLocalAdapter({
