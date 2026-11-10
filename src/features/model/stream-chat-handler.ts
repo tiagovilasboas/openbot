@@ -1,3 +1,4 @@
+import { modelNotAllowedResponse } from "./allowed-models.ts";
 import type { FetchLike } from "./model-adapter.ts";
 import { eventsToNdjson } from "./ndjson-stream.ts";
 import { parseChatRequest } from "./parse-chat-request.ts";
@@ -27,6 +28,9 @@ export async function handleChatStream(
   if (!parsed.ok) {
     return Response.json({ error: "invalid_request" }, { status: 400 });
   }
+
+  const notAllowed = modelNotAllowedResponse(env, parsed.request.modelId);
+  if (notAllowed) return notAllowed;
 
   const primary = selectAdapter(env, parsed.request.config, fetchImpl);
   if (!primary) {
