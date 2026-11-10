@@ -89,6 +89,11 @@ export const AVATAR_COLORS: readonly AvatarColor[] = [
 /** Longest bot name kept by the form and the sanitizer. */
 export const BOT_NAME_MAX_LENGTH = 40;
 
+/** Ceilings for stored bots: far above real use, so hostile storage is bounded. */
+export const BOT_LABEL_MAX_LENGTH = 200;
+export const BOT_TEXT_MAX_LENGTH = 20_000;
+export const BOTS_MAX_COUNT = 100;
+
 export const DEFAULT_BOT: BotProfile = {
   id: "chief-of-staff",
   name: "Chief of Staff",

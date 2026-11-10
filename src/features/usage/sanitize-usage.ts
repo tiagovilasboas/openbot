@@ -1,20 +1,9 @@
+import { isValidBotId } from "../bots/bot-id.ts";
 import { isUsageDay } from "./usage-day.ts";
 import { capCount, capDaysPerBot, type UsageRecord } from "./usage-record.ts";
 
-const MAX_BOT_ID_LENGTH = 100;
 /** Hard stop for hostile storage: more bots than anyone keeps. */
 const MAX_BOTS = 100;
-const HOSTILE_KEYS = new Set(["__proto__", "constructor", "prototype"]);
-
-function isBotId(value: unknown): value is string {
-  return (
-    typeof value === "string" &&
-    value.length > 0 &&
-    value.length <= MAX_BOT_ID_LENGTH &&
-    !HOSTILE_KEYS.has(value)
-  );
-}
-
 /** A whole, non-negative count under the ceiling; anything else is 0. */
 function count(value: unknown): number {
   if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
@@ -28,7 +17,7 @@ function sanitizeRecord(value: unknown): UsageRecord | null {
     return null;
   }
   const raw = value as Record<string, unknown>;
-  if (!isBotId(raw.botId) || !isUsageDay(raw.day)) return null;
+  if (!isValidBotId(raw.botId) || !isUsageDay(raw.day)) return null;
   const calls = count(raw.calls);
   return {
     botId: raw.botId,

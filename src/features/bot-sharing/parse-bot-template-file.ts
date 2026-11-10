@@ -2,11 +2,13 @@ import { sanitizeBotProfile } from "../bots/bot-storage.ts";
 import { createCustomSkill } from "../skills/skill-definition.ts";
 import type { SkillDefinition } from "../skills/skill-types.ts";
 import {
+  TEMPLATE_DESCRIPTION_MAX_LENGTH,
   TEMPLATE_FILE_APP,
   TEMPLATE_FILE_KIND,
   TEMPLATE_FILE_MAX_BYTES,
   TEMPLATE_FILE_VERSION,
   TEMPLATE_MAX_SKILLS,
+  TEMPLATE_WORKSPACE_MAX_LENGTH,
   type BotTemplateDraft,
   type ParseBotTemplateResult,
 } from "./bot-template-file-types.ts";
@@ -22,13 +24,18 @@ function text(value: unknown, max: number): string {
   return typeof value === "string" ? value.trim().slice(0, max) : "";
 }
 
+/** One line of plain text: a name cannot carry line breaks into a prompt. */
+function line(value: unknown, max: number): string {
+  return text(typeof value === "string" ? value.replace(/\s+/g, " ") : "", max);
+}
+
 function readSkills(raw: unknown): SkillDefinition[] | null {
   if (raw === undefined) return [];
   if (!Array.isArray(raw) || raw.length > TEMPLATE_MAX_SKILLS) return null;
   const skills: SkillDefinition[] = [];
   for (const entry of raw) {
     if (!isRecord(entry)) continue;
-    const name = text(entry.name, MAX_LABEL_LENGTH);
+    const name = line(entry.name, MAX_LABEL_LENGTH);
     if (!name) continue;
     skills.push(
       createCustomSkill({
@@ -45,7 +52,7 @@ function readSkills(raw: unknown): SkillDefinition[] | null {
 
 function readBot(raw: unknown): BotTemplateDraft | null {
   if (!isRecord(raw)) return null;
-  const description = text(raw.description, MAX_TEXT_LENGTH);
+  const description = text(raw.description, TEMPLATE_DESCRIPTION_MAX_LENGTH);
   if (!description) return null;
   const skills = readSkills(raw.skills);
   if (!skills) return null;
@@ -53,9 +60,10 @@ function readBot(raw: unknown): BotTemplateDraft | null {
   const bot = sanitizeBotProfile({
     id: "template",
     name: raw.name,
-    title: text(raw.title, MAX_LABEL_LENGTH) || undefined,
+    title: line(raw.title, MAX_LABEL_LENGTH) || undefined,
     description,
-    workspaceContext: text(raw.workspaceContext, MAX_TEXT_LENGTH) || undefined,
+    workspaceContext:
+      text(raw.workspaceContext, TEMPLATE_WORKSPACE_MAX_LENGTH) || undefined,
     // The sanitizer drops an id that is not a plain model id.
     modelId: raw.modelId,
     avatarShape: raw.avatarShape,

@@ -5,6 +5,12 @@
  */
 export type SkillSource = "created" | "imported" | "suggested";
 
+/** Ceilings for stored skills: far above real use, so hostile storage is bounded. */
+export const SKILL_ID_MAX_LENGTH = 100;
+export const SKILL_LABEL_MAX_LENGTH = 200;
+export const SKILL_TEXT_MAX_LENGTH = 20_000;
+export const SKILLS_MAX_COUNT = 100;
+
 export interface SkillDefinition {
   id: string;
   name: string;

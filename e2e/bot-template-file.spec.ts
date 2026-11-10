@@ -36,6 +36,9 @@ test("a bot exported as a file fills a new bot's form, without chats or ids", as
   await page.getByRole("button", { name: "Criar bot" }).click();
   await page.getByLabel("Arquivo de bot do OpenBot").setInputFiles(file);
   await expect(page.getByText("Bot carregado no formulário")).toBeVisible();
+  await expect(page.getByTestId("file-text-notice")).toHaveText(
+    "Este texto veio de um arquivo: leia antes de salvar. 19 caracteres de instruções.",
+  );
   await expect(page.getByRole("textbox", { name: "Nome" })).toHaveValue(
     "Ops Bot",
   );
@@ -45,6 +48,34 @@ test("a bot exported as a file fills a new bot's form, without chats or ids", as
   await expect(app.botRows()).toHaveCount(11);
   await expect(app.botRows().last()).toContainText("Ops Bot 2");
   await expect(app.botRows().last()).toContainText("On call");
+});
+
+test("a file with a huge description is clamped and warns before save", async ({
+  page,
+}, testInfo) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Criar bot" }).click();
+  const file = testInfo.outputPath("huge.json");
+  writeFileSync(
+    file,
+    JSON.stringify({
+      app: "openbot",
+      kind: "bot-template",
+      version: 1,
+      exportedAt: "2026-01-01T00:00:00.000Z",
+      bot: {
+        name: "Big",
+        description: "d".repeat(15_000),
+        avatarShape: "hexagon",
+        avatarColor: "cyan",
+        skills: [],
+      },
+    }),
+  );
+  await page.getByLabel("Arquivo de bot do OpenBot").setInputFiles(file);
+  await expect(page.getByTestId("file-text-notice")).toContainText(
+    "8000 caracteres de instruções",
+  );
 });
 
 test("importing a backup file as a bot says what to do instead", async ({

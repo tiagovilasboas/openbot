@@ -1,3 +1,4 @@
+import { isValidBotId } from "./bot-id.ts";
 import type { BotProfile } from "./bot-types.ts";
 
 /**
@@ -38,7 +39,8 @@ function browserStorage(): Storage | undefined {
 
 export function loadStoredMainBotId(storage = browserStorage()): string | null {
   try {
-    return storage?.getItem(MAIN_BOT_STORAGE_KEY) ?? null;
+    const stored = storage?.getItem(MAIN_BOT_STORAGE_KEY);
+    return isValidBotId(stored) ? stored : null;
   } catch {
     return null;
   }
