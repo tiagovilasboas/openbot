@@ -1,3 +1,4 @@
+import type { CrewStepRecord } from "../crew/crew-step-record.ts";
 import type { MessageData } from "./ChatMessageItem.tsx";
 import type { ChatReplyOutcome } from "./execute-chat-message.ts";
 import type { ChatLanguage } from "./respond-to-message.ts";
@@ -18,6 +19,7 @@ export function buildReplyMessages(
   const message = (
     text: string,
     delegatedBot = reply.delegatedBot,
+    crewStep?: CrewStepRecord,
   ): MessageData => ({
     id: nextId(),
     role: "assistant",
@@ -25,6 +27,7 @@ export function buildReplyMessages(
     text,
     delegatedBot,
     modelBadge,
+    ...(crewStep ? { crewStep } : {}),
   });
 
   // Called last so the synthesis id sorts after the specialists.
@@ -37,8 +40,8 @@ export function buildReplyMessages(
   if (!reply.crew) return [finalMessage()];
 
   const kickoff = message(reply.crew.kickoff);
-  const specialists = reply.crew.specialists.map(({ bot, text }) =>
-    message(text, bot),
+  const specialists = reply.crew.specialists.map(({ bot, text, step }) =>
+    message(text, bot, step),
   );
   return [kickoff, ...specialists, finalMessage()];
 }
