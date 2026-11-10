@@ -292,8 +292,23 @@ test("a provider failure becomes a described error with modelCall failed", async
     throw new TypeError("offline");
   }) as typeof fetch;
   const offline = await run("hello", { language: "pt" });
-  assert.equal(offline.text, chatCopy.pt.modelError);
+  assert.equal(offline.text, chatCopy.pt.modelErrorUnreachable);
   assert.equal(offline.modelCall, "failed");
+});
+
+test("a cancelled turn shows the cancelled note, not an error", async () => {
+  globalThis.fetch = ((_url: string, init?: RequestInit) =>
+    new Promise((_resolve, reject) => {
+      init?.signal?.addEventListener("abort", () =>
+        reject(new DOMException("aborted", "AbortError")),
+      );
+    })) as typeof fetch;
+  const controller = new AbortController();
+  const pending = run("hello", { signal: controller.signal });
+  controller.abort();
+  const out = await pending;
+  assert.equal(out.text, chatCopy.en.cancelledNote);
+  assert.equal(out.modelCall, undefined);
 });
 
 test("the Chief's prompt carries the crew roster, a specialist's does not", async () => {

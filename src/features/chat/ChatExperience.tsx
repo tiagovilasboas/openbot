@@ -93,7 +93,14 @@ export function ChatExperience() {
       ? formatModelBadge(serverModel, false, language)
       : formatModelBadge(null, false, language);
 
-  const { busy, workingBot, sendText, resetConversation } = useChatTurns({
+  const {
+    busy,
+    workingBot,
+    sendText,
+    cancelTurn,
+    retryMessage,
+    resetConversation,
+  } = useChatTurns({
     language,
     activeBot,
     bots,
@@ -213,6 +220,8 @@ export function ChatExperience() {
             onDraftChange={setDraft}
             onSend={() => void sendMessage()}
             onOpenSettings={() => setIsSettingsOpen(true)}
+            onCancel={cancelTurn}
+            onRetry={retryMessage}
           />
         )}
       </main>

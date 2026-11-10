@@ -1,10 +1,25 @@
 import { withApiHeaders } from "../server-guard/api-request-init.ts";
 import {
+  classifyFetchError,
   classifyModelFailure,
   type ModelFailure,
 } from "../model/classify-model-failure.ts";
 import type { ClientModelConfig } from "../model/model-config.ts";
+import { createCallSignal } from "./call-timeout.ts";
 import type { ChatLanguage } from "./respond-to-message.ts";
+
+export interface ModelReplyOptions {
+  /** The user's cancel signal for the whole turn. */
+  signal?: AbortSignal;
+  /** Time limit for this one call; defaults to 120 s. */
+  timeoutMs?: number;
+  /** Tells offline from unreachable; defaults to navigator.onLine. */
+  isOnline?: () => boolean;
+}
+
+function browserIsOnline(): boolean {
+  return typeof navigator === "undefined" || navigator.onLine !== false;
+}
 
 export type HistoryMessage = { role: "assistant" | "user"; text: string };
 
@@ -30,6 +45,38 @@ export async function requestModelReply(
   fetchImpl: typeof fetch = fetch,
   config?: ClientModelConfig | null,
   systemPrompt?: string,
+  options: ModelReplyOptions = {},
+): Promise<ModelReplyOutcome> {
+  const call = createCallSignal(options.signal, options.timeoutMs);
+  const failureOfThrow = () =>
+    classifyFetchError({
+      cancelled: call.cancelled(),
+      timedOut: call.timedOut(),
+      online: (options.isOnline ?? browserIsOnline)(),
+    });
+  try {
+    return await fetchReply(
+      language,
+      messages,
+      fetchImpl,
+      config,
+      systemPrompt,
+      call.signal,
+      failureOfThrow,
+    );
+  } finally {
+    call.dispose();
+  }
+}
+
+async function fetchReply(
+  language: ChatLanguage,
+  messages: HistoryMessage[],
+  fetchImpl: typeof fetch,
+  config: ClientModelConfig | null | undefined,
+  systemPrompt: string | undefined,
+  signal: AbortSignal,
+  failureOfThrow: () => ModelFailure,
 ): Promise<ModelReplyOutcome> {
   let response: Response;
   try {
@@ -37,6 +84,7 @@ export async function requestModelReply(
       "/api/chat",
       withApiHeaders({
         method: "POST",
+        signal,
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           language,
@@ -47,10 +95,12 @@ export async function requestModelReply(
       }),
     );
   } catch {
-    return { kind: "error", failure: { kind: "unreachable" } };
+    return { kind: "error", failure: failureOfThrow() };
   }
 
+  // The body is read under the same signal, so a stalled stream times out too.
   const payload: unknown = await response.json().catch(() => null);
+  if (signal.aborted) return { kind: "error", failure: failureOfThrow() };
   const body = (payload ?? {}) as {
     error?: unknown;
     detail?: unknown;
@@ -70,6 +120,6 @@ export async function requestModelReply(
   }
   return {
     kind: "error",
-    failure: classifyModelFailure(body.error, body.detail),
+    failure: classifyModelFailure(body.error, body.detail, response.status),
   };
 }
