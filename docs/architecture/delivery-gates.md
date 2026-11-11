@@ -1,6 +1,6 @@
 # Delivery gates
 
-Status: implemented for repository foundation and prototype. Node.js >= 22.6.0 is required (for native test running with `--experimental-strip-types`). Husky, lint-staged, ESLint, formatting checks, type checking (`tsc --noEmit`), and the Next.js production build (`next build`) run actively in local checks and pull request CI because application source code exists in `src/`. Automated tests cover the document checker and initial chat/simulated tool response logic. Real model providers, external integrations, and server security controls will require dedicated tests when implemented.
+Status: implemented for repository foundation and prototype. Node.js >= 24.15.0 is required (LTS, with the built-in `node:sqlite` module; native test running uses `--experimental-strip-types`). Husky, lint-staged, ESLint, formatting checks, type checking (`tsc --noEmit`), and the Next.js production build (`next build`) run actively in local checks and pull request CI because application source code exists in `src/`. Automated tests cover the document checker and initial chat/simulated tool response logic. Real model providers, external integrations, and server security controls will require dedicated tests when implemented.
 
 ## Local and CI contract
 
@@ -16,7 +16,7 @@ Type checking uses project configuration (`tsc --noEmit`), not a staged-file lis
 
 ## Implementation boundary
 
-Package scripts, lockfile, formatter/linter configuration, type configuration, and build/typecheck runners are versioned. Husky and lint-staged manage local hooks. The toolchain requires Node.js >= 22.6.0. Installation and current test scope are documented in CONTRIBUTING. The document checker and prototype chat response tests are part of the shared gate.
+Package scripts, lockfile, formatter/linter configuration, type configuration, and build/typecheck runners are versioned. Husky and lint-staged manage local hooks. The toolchain requires Node.js >= 24.15.0. Installation and current test scope are documented in CONTRIBUTING. The document checker and prototype chat response tests are part of the shared gate.
 
 Tests verify domain behavior and relevant failure paths: authorization, tool arguments, model boundaries, cancellation and persistence as implemented. Empty suites and placeholder assertions do not count as application coverage. Extend the gate with dedicated tests as real model providers and external integrations are introduced.
 

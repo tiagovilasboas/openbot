@@ -18,7 +18,7 @@ La app en tu navegador habla solo con tu servidor. El servidor guarda las claves
 
 ## Primeros pasos
 
-1. Selecciona Node.js 22 desde `.nvmrc` con `nvm use` (Node.js 22.6.0 o superior).
+1. Selecciona Node.js 24 desde `.nvmrc` con `nvm use` (Node.js 24.15.0 o superior, la línea LTS con el módulo SQLite integrado).
 2. Instala las dependencias y los hooks de Git con `npm ci`.
 3. Copia `.env.example` a `.env.local` y completa un proveedor. Puedes omitir este paso y elegir un modelo después, en Configuración.
 4. Ejecuta `npm run dev` y abre `http://localhost:3000`.

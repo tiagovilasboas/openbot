@@ -18,7 +18,7 @@ The app in your browser talks only to your server. The server holds the keys and
 
 ## Getting started
 
-1. Select Node.js 22 from `.nvmrc` with `nvm use` (Node.js 22.6.0 or newer).
+1. Select Node.js 24 from `.nvmrc` with `nvm use` (Node.js 24.15.0 or newer, the LTS line with the built-in SQLite module).
 2. Install dependencies and Git hooks with `npm ci`.
 3. Copy `.env.example` to `.env.local` and fill in one provider. You can skip this and choose a model in Settings later.
 4. Run `npm run dev` and open `http://localhost:3000`.
