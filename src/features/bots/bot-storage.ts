@@ -137,7 +137,7 @@ export function sanitizeBotProfile(
   };
 }
 
-const DEFAULT_BOTS_LIST: BotProfile[] = [...CREW_PRESETS];
+export const DEFAULT_BOTS_LIST: BotProfile[] = [...CREW_PRESETS];
 let cachedBotsRaw: string | null = null;
 let cachedBots: BotProfile[] = DEFAULT_BOTS_LIST;
 let botListeners: Array<() => void> = [];

@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useSyncExternalStore } from "react";
-import { deleteBotMemory } from "@/features/memory/memory-storage.ts";
 import type { SkillDefinition } from "@/features/skills/skill-types.ts";
 import {
   createBotProfile,
@@ -22,6 +21,7 @@ import {
 } from "./bot-types.ts";
 import { migrateCrewShapes } from "./crew-shapes-migration.ts";
 import { migrateLegacySkills } from "./legacy-skills-migration.ts";
+import { forgetBotData, pruneOrphanBotData } from "./bot-data-cleanup.ts";
 import { reorderBots } from "./reorder-bots.ts";
 import {
   loadStoredMainBotId,
@@ -42,6 +42,9 @@ export function useBots() {
     migrateLegacySkills();
     // Gives saved crews their new heads, once per browser.
     migrateCrewShapes();
+    // Cleans data of bots deleted before deletion did; it skips an
+    // untrusted bot list, so it never runs on the preset fallback.
+    pruneOrphanBotData();
   }, []);
 
   const bots = useSyncExternalStore(
@@ -125,8 +128,9 @@ export function useBots() {
       loadActiveBotId(),
     );
     saveBotsToStorage(result.bots);
-    // A deleted bot's notes go with it; nothing keeps them behind.
-    deleteBotMemory(id);
+    // A deleted bot's data goes with it, in every domain. A refused delete
+    // (the main bot, the last bot) keeps everything.
+    if (result.bots.length < currentBots.length) forgetBotData(id);
     if (result.newActiveId) {
       saveActiveBotId(result.newActiveId);
     }
