@@ -41,6 +41,8 @@ export const chatCopy = {
     cancelledNote: "Resposta cancelada.",
     interruptedNote:
       "Resposta interrompida: o modelo parou antes de terminar. O texto acima é o que chegou.",
+    truncatedNote:
+      "Resposta cortada por ficar longa demais. O texto acima é o que coube. Tentar de novo não resolve: peça uma resposta mais curta ou divida o pedido.",
     cancelLabel: "Cancelar resposta",
     retryHint: "Sem resposta para esta mensagem.",
     retryAction: "Tentar de novo",
@@ -195,6 +197,8 @@ export const chatCopy = {
     cancelledNote: "Reply cancelled.",
     interruptedNote:
       "Reply interrupted: the model stopped before it finished. The text above is what arrived.",
+    truncatedNote:
+      "Reply cut because it grew too long. The text above is what fit. Trying again will not help: ask for a shorter answer or split the request.",
     cancelLabel: "Cancel reply",
     retryHint: "No reply to this message.",
     retryAction: "Try again",
