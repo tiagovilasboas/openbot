@@ -10,6 +10,7 @@ function post(headers: Record<string, string>, ip = "1.1.1.1") {
     method: "POST",
     headers: new Headers({ host: "localhost:3000", ...headers }),
     ip,
+    address: "127.0.0.1",
   };
 }
 

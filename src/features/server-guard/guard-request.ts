@@ -7,7 +7,14 @@ import { createRateLimiter, parseRateLimit } from "./rate-limiter.ts";
 /** Reads OPENBOT_RATE_LIMIT and OPENBOT_ACCESS_TOKEN. */
 export type GuardEnv = Record<string, string | undefined>;
 
-export type GuardInput = { method: string; headers: Headers; ip: string };
+export type GuardInput = {
+  method: string;
+  headers: Headers;
+  /** Rate-limit key (see client-key.ts). */
+  ip: string;
+  /** The caller's address for the loopback check; undefined when unknown. */
+  address?: string;
+};
 
 /**
  * Builds the single gate for /api/*. Order: cheap structural checks first
@@ -24,10 +31,15 @@ export function createRequestGuard(
   );
   const token = env.OPENBOT_ACCESS_TOKEN || undefined;
 
-  return function guard({ method, headers, ip }: GuardInput): GuardDecision {
+  return function guard({
+    method,
+    headers,
+    ip,
+    address,
+  }: GuardInput): GuardDecision {
     const origin = checkOrigin(headers);
     if (!origin.ok) return origin;
-    const auth = checkAccessToken(headers, token);
+    const auth = checkAccessToken(headers, token, address);
     if (!auth.ok) return auth;
     if (method !== "GET" && method !== "HEAD") {
       const size = checkBodySize(headers);
