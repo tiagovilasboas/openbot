@@ -106,7 +106,8 @@ You can also choose the provider in Settings, under Model. Keys go under Connect
 
 1. Build and serve the production app: `npm run build`, then `npm start`. The service worker only registers in a production build.
 2. Open it on the phone over HTTPS. Browsers install apps only from HTTPS, or from `localhost` on the same machine.
-3. On iPhone, open it in Safari and choose Share, then Add to Home Screen. On Android, open it in Chrome and choose Install app from the menu.
+
+`npm run dev` and `npm start` listen only on this machine (`127.0.0.1`), so the phone reaches the app through an HTTPS reverse proxy or tunnel running here. To let other devices connect to the server directly, set `OPENBOT_ACCESS_TOKEN` and run `npm start -- -H 0.0.0.0`. 3. On iPhone, open it in Safari and choose Share, then Add to Home Screen. On Android, open it in Chrome and choose Install app from the menu.
 
 The service worker caches the app shell only. It never caches `/api` calls, model replies or credentials.
 

@@ -106,7 +106,8 @@ Você também pode escolher o provedor em Configurações, na aba Modelo. As cha
 
 1. Gere e sirva o app de produção: `npm run build` e depois `npm start`. O service worker só é registrado no build de produção.
 2. Abra o app no celular por HTTPS. Os navegadores só instalam apps servidos por HTTPS, ou por `localhost` na mesma máquina.
-3. No iPhone, abra no Safari e toque em Compartilhar, depois em Adicionar à Tela de Início. No Android, abra no Chrome e escolha Instalar app no menu.
+
+`npm run dev` e `npm start` escutam só nesta máquina (`127.0.0.1`), então o celular chega ao app por um proxy reverso ou túnel HTTPS rodando aqui. Para que outros aparelhos se conectem direto ao servidor, defina `OPENBOT_ACCESS_TOKEN` e rode `npm start -- -H 0.0.0.0`. 3. No iPhone, abra no Safari e toque em Compartilhar, depois em Adicionar à Tela de Início. No Android, abra no Chrome e escolha Instalar app no menu.
 
 O service worker guarda só a casca do app. Ele nunca guarda chamadas a `/api`, respostas do modelo ou credenciais.
 
