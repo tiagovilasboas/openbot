@@ -8,6 +8,8 @@ import { useAttention } from "@/features/attention/use-attention.ts";
 import { LockScreen } from "@/features/auth/LockScreen.tsx";
 import { useLocalAuth } from "@/features/auth/use-local-auth.ts";
 import { BotsSyncNotice } from "@/features/bots/sync/BotsSyncNotice.tsx";
+import { ConversationsSyncNotice } from "@/features/conversations/sync/ConversationsSyncNotice.tsx";
+import { useConversationsSync } from "@/features/conversations/sync/use-conversations-sync.ts";
 import { BotEditModal } from "@/features/bots/BotEditModal.tsx";
 import { botAccent } from "@/features/bots/bot-accent.ts";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
@@ -58,6 +60,7 @@ export function ChatExperience() {
   } = useBots();
   const { messages, persistMessages, getNextId, clearMessages } =
     useBotMessages(activeBot.id);
+  const conversationsSync = useConversationsSync();
 
   // The active bot's own skills feed the composer's command palette.
   const activeBotSkills = activeBot.skills;
@@ -240,6 +243,11 @@ export function ChatExperience() {
           language={language}
           error={syncError}
           onDismiss={dismissSyncError}
+        />
+        <ConversationsSyncNotice
+          language={language}
+          error={conversationsSync.syncError}
+          onDismiss={conversationsSync.dismissSyncError}
         />
 
         {messages.length === 0 ? (

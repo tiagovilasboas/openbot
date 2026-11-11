@@ -6,12 +6,20 @@ import { appPage, expect, test } from "./app-fixture.ts";
 test.describe.configure({ mode: "serial" });
 test.use({ realBotsStore: true });
 
-const isBotsSave = (response: {
+type SaveResponse = {
   url(): string;
-  request(): { method(): string };
-}) =>
+  request(): { method(): string; postData(): string | null };
+};
+
+const isBotsSave = (response: SaveResponse) =>
   new URL(response.url()).pathname === "/api/bots" &&
   response.request().method() === "PUT";
+
+// A save can be followed by another PUT (the selection, a coalesced flush):
+// wait for the one that carries the expected name, not just any PUT.
+const isBotsSaveWith = (text: string) => (response: SaveResponse) =>
+  isBotsSave(response) &&
+  (response.request().postData() ?? "").includes(JSON.stringify(text));
 
 test("a created and renamed bot survives clearing the browser storage", async ({
   page,
@@ -30,7 +38,7 @@ test("a created and renamed bot survives clearing the browser storage", async ({
   await page.getByRole("button", { name: "Salvar bot" }).click();
   expect((await created).status()).toBe(200);
 
-  const saved = page.waitForResponse(isBotsSave);
+  const saved = page.waitForResponse(isBotsSaveWith(renamed));
   await page.getByRole("button", { name: `Editar ${name}` }).click();
   await page.getByRole("textbox", { name: "Nome" }).fill(renamed);
   await page.getByRole("button", { name: "Salvar bot" }).click();

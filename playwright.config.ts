@@ -32,6 +32,9 @@ export default defineConfig({
     timeout: 240_000,
     env: {
       OPENBOT_DATA_DIR: DATA_DIR,
+      // Every parallel spec calls from 127.0.0.1, so they share one rate
+      // bucket; the default 60 a minute would refuse some of them.
+      OPENBOT_RATE_LIMIT: "100000",
       // No provider on the server: the model is always the stub.
       ROUTER_URL: "",
       ROUTER_MODEL: "",

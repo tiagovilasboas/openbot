@@ -146,6 +146,58 @@ export async function stubKeysStore(context: BrowserContext): Promise<void> {
   });
 }
 
+/**
+ * Stands in for /api/conversations per browser context: one thread per bot,
+ * kept in memory. It follows the contract: GET reads, PUT replaces the whole
+ * thread (an empty list deletes it), DELETE answers 204.
+ */
+export async function stubConversationsStore(
+  context: BrowserContext,
+): Promise<void> {
+  const threads = new Map<string, { messages: unknown[]; updatedAt: number }>();
+  await context.route("**/api/conversations**", async (route) => {
+    const request = route.request();
+    const method = request.method();
+    const botId = new URL(request.url()).searchParams.get("botId");
+    if (!botId) {
+      const list = [...threads].map(([id, t]) => ({
+        botId: id,
+        updatedAt: t.updatedAt,
+        count: t.messages.length,
+      }));
+      await route.fulfill({ json: { threads: list } });
+      return;
+    }
+    if (method === "PUT") {
+      const body = request.postDataJSON() as { messages?: unknown[] };
+      const messages = Array.isArray(body.messages) ? body.messages : [];
+      if (messages.length === 0) threads.delete(botId);
+      else threads.set(botId, { messages, updatedAt: Date.now() });
+      await route.fulfill({
+        json: {
+          botId,
+          updatedAt: messages.length === 0 ? null : Date.now(),
+          count: messages.length,
+        },
+      });
+      return;
+    }
+    if (method === "DELETE") {
+      threads.delete(botId);
+      await route.fulfill({ status: 204, body: "" });
+      return;
+    }
+    const thread = threads.get(botId);
+    await route.fulfill({
+      json: {
+        botId,
+        messages: thread?.messages ?? [],
+        updatedAt: thread?.updatedAt ?? null,
+      },
+    });
+  });
+}
+
 export const test = base.extend<{
   model: ModelStub;
   /** True for the few specs that talk to the real /api/bots route. */
@@ -154,7 +206,18 @@ export const test = base.extend<{
   /** True for the few specs that talk to the real /api/keys route. */
   realKeysStore: boolean;
   keysStore: void;
+  /** True for the few specs that talk to the real /api/conversations route. */
+  realConversationsStore: boolean;
+  conversationsStore: void;
 }>({
+  realConversationsStore: [false, { option: true }],
+  conversationsStore: [
+    async ({ context, realConversationsStore }, provide) => {
+      if (!realConversationsStore) await stubConversationsStore(context);
+      await provide();
+    },
+    { auto: true },
+  ],
   realBotsStore: [false, { option: true }],
   botsStore: [
     async ({ context, realBotsStore }, provide) => {

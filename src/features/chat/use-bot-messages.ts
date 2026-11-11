@@ -6,6 +6,7 @@ import {
   keySuffixes,
   type KeyListingStorage,
 } from "../../shared/storage/key-suffixes.ts";
+import { currentMessagesSync } from "./messages-sync-port.ts";
 import {
   STORED_MESSAGES_MAX_RAW,
   sanitizeStoredMessages,
@@ -63,6 +64,7 @@ export function forgetBotMessages(
   } catch {
     // Blocked storage: the thread then stays until it can be removed.
   }
+  currentMessagesSync()?.forgotten(botId);
 }
 
 export function loadBotMessages(botId: string): MessageData[] {
@@ -92,7 +94,15 @@ export function loadBotMessages(botId: string): MessageData[] {
   return EMPTY_MESSAGES;
 }
 
-export function saveBotMessages(botId: string, messages: MessageData[]): void {
+/**
+ * Saves a thread in the cache and queues it for the server. The load passes
+ * `sync: false` to mirror what the server holds without sending it back.
+ */
+export function saveBotMessages(
+  botId: string,
+  messages: MessageData[],
+  options: { sync?: boolean } = {},
+): void {
   if (typeof window === "undefined") return;
   try {
     const raw = JSON.stringify(messages);
@@ -103,6 +113,8 @@ export function saveBotMessages(botId: string, messages: MessageData[]): void {
   } catch {
     // ignore
   }
+  // Even with blocked storage the server copy can still be kept.
+  if (options.sync !== false) currentMessagesSync()?.saved(botId, messages);
 }
 
 const getServerSnapshot = () => EMPTY_MESSAGES;

@@ -1,4 +1,11 @@
-import { appPage, expect, test } from "./app-fixture.ts";
+import {
+  appPage,
+  expect,
+  stubBotsStore,
+  stubConversationsStore,
+  stubKeysStore,
+  test,
+} from "./app-fixture.ts";
 
 test("an exported backup imports into a fresh browser profile", async ({
   page,
@@ -30,6 +37,11 @@ test("an exported backup imports into a fresh browser profile", async ({
 
   // A different context has fresh storage: nothing of the first one leaks in.
   const fresh = await browser.newContext({ serviceWorkers: "block" });
+  // A context made here skips the fixture: give it its own empty stores, so
+  // the backup alone fills it and the real server stores stay untouched.
+  await stubBotsStore(fresh);
+  await stubKeysStore(fresh);
+  await stubConversationsStore(fresh);
   const freshPage = await fresh.newPage();
   await freshPage.goto("/");
   const freshApp = appPage(freshPage);
