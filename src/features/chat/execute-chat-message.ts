@@ -145,6 +145,8 @@ export async function executeChatMessage({
       text,
       gitHubToken,
       modelConfig,
+      undefined,
+      executingBot.modelId,
     );
     return {
       text: outcome.text,
