@@ -3,7 +3,7 @@
  * confirming it, as a JSON list of bot ids. Per bot, so one stuck thread
  * never makes another bot's newer server copy lose.
  */
-export const MESSAGES_UNSYNCED_KEY = "openbot_msgs_unsynced";
+export const MESSAGES_UNSYNCED_KEY = "openbot_conversations_unsynced";
 
 function readIds(storage: Storage): Set<string> {
   try {

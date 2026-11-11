@@ -173,9 +173,10 @@ test("threads of different bots do not leak into each other", () => {
   assert.equal(loadBotMessages(`${botId}-b`)[0]?.text, "theirs");
 });
 
-test("the sync's unsynced flag is not listed as a bot's thread", async () => {
-  const { storedMessageBotIds } = await import("./use-bot-messages.ts");
-  const keys = ["openbot_msgs_unsynced", "openbot_msgs_a"];
-  const storage = { length: keys.length, key: (i: number) => keys[i] ?? null };
-  assert.deepEqual(storedMessageBotIds(storage), ["a"]);
+test("the sync's unsynced flag does not share the thread prefix", async () => {
+  const { MESSAGES_KEY_PREFIX } = await import("./use-bot-messages.ts");
+  const { MESSAGES_UNSYNCED_KEY } =
+    await import("../conversations/sync/local-conversations-port.ts");
+  // A shared prefix would make pruning read the flag as a bot and delete it.
+  assert.equal(MESSAGES_UNSYNCED_KEY.startsWith(MESSAGES_KEY_PREFIX), false);
 });

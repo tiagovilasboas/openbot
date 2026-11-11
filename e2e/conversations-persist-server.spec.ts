@@ -1,7 +1,8 @@
 import { appPage, expect, test } from "./app-fixture.ts";
 
-// Runs against the in-memory /api/conversations stub of the fixture, which
-// follows the server contract, so it never touches the server's data dir.
+// Talks to the real /api/conversations route; the e2e server keeps its
+// data in a temporary dir, never in the user's home.
+test.use({ realConversationsStore: true });
 
 const isThreadSave = (response: {
   url(): string;

@@ -39,8 +39,6 @@ export function subscribeBotMessages(
 
 /** One key per bot; the crew room steps live inside these messages. */
 export const MESSAGES_KEY_PREFIX = "openbot_msgs_";
-/** The suffix of the sync's flag key (`openbot_msgs_unsynced`), not a bot. */
-const MESSAGES_UNSYNCED_ID = "unsynced";
 
 /** The bot ids that have a thread saved, for pruning the ones that are gone. */
 export function storedMessageBotIds(
@@ -48,10 +46,7 @@ export function storedMessageBotIds(
     ? window.localStorage
     : undefined,
 ): string[] {
-  // The sync's unsynced flag shares the prefix but is not a thread.
-  return keySuffixes(storage, MESSAGES_KEY_PREFIX).filter(
-    (id) => id !== MESSAGES_UNSYNCED_ID,
-  );
+  return keySuffixes(storage, MESSAGES_KEY_PREFIX);
 }
 
 /** Forgets a bot's whole thread, for example when the bot is deleted. */
