@@ -1,3 +1,7 @@
+import {
+  keySuffixes,
+  type KeyListingStorage,
+} from "../../shared/storage/key-suffixes.ts";
 import { sanitizeMemoryEntries, type MemoryEntry } from "./memory-entries.ts";
 
 /** One key per bot. The global switch uses another prefix on purpose. */
@@ -75,6 +79,14 @@ export function saveMemoryEntries(
   } catch {
     return false;
   }
+}
+
+/** The bot ids that have notes saved, for pruning the ones that are gone. */
+export function storedMemoryBotIds(
+  storage: KeyListingStorage | undefined = browserStorage() as
+    KeyListingStorage | undefined,
+): string[] {
+  return keySuffixes(storage, MEMORY_KEY_PREFIX);
 }
 
 /** Forgets a bot's notes, for example when the bot is deleted. */

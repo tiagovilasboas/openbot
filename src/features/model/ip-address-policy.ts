@@ -55,6 +55,43 @@ function parseIpv6(text: string): number[] | null {
     : null;
 }
 
+function v4From(high: number, low: number): number[] {
+  return [high >> 8, high & 255, low >> 8, low & 255];
+}
+
+/** An embedded IPv4 only counts as safe when it is plainly public. */
+function isPublicIpv4(octets: number[]): boolean {
+  return classifyIpv4(octets) === "public";
+}
+
+/**
+ * Tunnel and translation prefixes that carry an IPv4 address. Unlike
+ * IPv4-mapped space, loopback is refused here: the gateway would reach its
+ * own loopback, never the one the operator meant to allow.
+ *  - NAT64 64:ff9b::/96 (RFC 6052): IPv4 in the last 32 bits.
+ *  - NAT64 local-use 64:ff9b:1::/48 (RFC 8215): never globally routable.
+ *  - 6to4 2002::/16: IPv4 in bits 16-47.
+ *  - Teredo 2001::/32: server IPv4 in bits 32-63, client IPv4 in the last
+ *    32 bits XORed with 0xffffffff.
+ */
+function embedsBlockedIpv4(g: number[]): boolean {
+  if (g[0] === 0x64 && g[1] === 0xff9b) {
+    if (g[2] === 1) return true;
+    if (g.slice(2, 6).every((x) => x === 0)) {
+      return !isPublicIpv4(v4From(g[6], g[7]));
+    }
+  }
+  if (g[0] === 0x2002) {
+    return !isPublicIpv4(v4From(g[1], g[2]));
+  }
+  if (g[0] === 0x2001 && g[1] === 0) {
+    const server = v4From(g[2], g[3]);
+    const client = v4From(g[6] ^ 0xffff, g[7] ^ 0xffff);
+    return !isPublicIpv4(server) || !isPublicIpv4(client);
+  }
+  return false;
+}
+
 function classifyIpv6(groups: number[]): AddressClass {
   const leadingZero = groups.slice(0, 5).every((g) => g === 0);
   // IPv4-mapped (::ffff:a.b.c.d) and deprecated IPv4-compatible (::a.b.c.d).
@@ -72,6 +109,7 @@ function classifyIpv6(groups: number[]): AddressClass {
   if (groups.slice(0, 7).every((g) => g === 0)) {
     return groups[7] === 1 ? "loopback" : "blocked"; // ::1 or ::
   }
+  if (embedsBlockedIpv4(groups)) return "blocked";
   const first = groups[0];
   if ((first & 0xffc0) === 0xfe80) return "blocked"; // fe80::/10
   if ((first & 0xfe00) === 0xfc00) return "blocked"; // fc00::/7
