@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { connection } from "next/server";
 import type { ReactNode } from "react";
 import { RegisterServiceWorker } from "@/features/pwa/RegisterServiceWorker";
 import "./globals.css";
@@ -27,9 +28,12 @@ export const viewport: Viewport = {
   colorScheme: "dark",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: ReactNode }>) {
+  // The CSP nonce is per request, and Next only stamps it while rendering a
+  // request: opt every page into dynamic rendering.
+  await connection();
   return (
     <html lang="pt-BR" data-theme="dark" className="dark">
       <body className="bg-background text-foreground antialiased">
