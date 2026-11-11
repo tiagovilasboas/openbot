@@ -1,4 +1,5 @@
 import type { LocalAuthCredentials } from "./auth-types.ts";
+import { normalizeCredentials } from "./stored-credentials.ts";
 
 export const AUTH_STORAGE_KEY = "openbot_auth_credentials";
 export const SESSION_LOCK_KEY = "openbot_auth_unlocked";
@@ -68,23 +69,7 @@ export function loadCredentials(): LocalAuthCredentials | null {
   try {
     const raw = window.localStorage.getItem(AUTH_STORAGE_KEY);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as Partial<LocalAuthCredentials>;
-    if (
-      typeof parsed === "object" &&
-      parsed !== null &&
-      typeof parsed.salt === "string" &&
-      typeof parsed.hash === "string" &&
-      typeof parsed.iterations === "number"
-    ) {
-      return {
-        salt: parsed.salt,
-        hash: parsed.hash,
-        iterations: parsed.iterations,
-        hint: typeof parsed.hint === "string" ? parsed.hint : undefined,
-        createdAt: parsed.createdAt || new Date().toISOString(),
-      };
-    }
-    return null;
+    return normalizeCredentials(JSON.parse(raw));
   } catch {
     return null;
   }
@@ -94,8 +79,11 @@ export function saveCredentials(credentials: LocalAuthCredentials): void {
   if (typeof window === "undefined" || !window.localStorage) {
     return;
   }
+  // Never write what loading would refuse; the hint is cut to its cap.
+  const safe = normalizeCredentials(credentials);
+  if (!safe) return;
   try {
-    window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(credentials));
+    window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(safe));
     setSessionUnlocked(true);
     notifyListeners();
   } catch {
