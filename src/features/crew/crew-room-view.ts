@@ -17,7 +17,7 @@ export interface CrewRoomStep {
   bot: BotProfile;
   /** What the Chief asked; null on replies saved before it was kept. */
   task: string | null;
-  status: "done" | "failed";
+  status: "done" | "failed" | "incomplete";
   text: string;
   /** Null on replies saved before it was kept. */
   durationMs: number | null;
@@ -50,7 +50,12 @@ export function buildCrewRoomView(
       id: reply.id,
       bot: reply.delegatedBot,
       task: reply.crewStep?.task ?? null,
-      status: reply.crewStep?.ok === false ? "failed" : "done",
+      status:
+        reply.crewStep?.ok === false
+          ? "failed"
+          : reply.crewStep?.incomplete
+            ? "incomplete"
+            : "done",
       text: reply.text,
       durationMs: reply.crewStep?.durationMs ?? null,
     });

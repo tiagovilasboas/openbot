@@ -162,3 +162,16 @@ test("a thread yields one room per delegated turn, keyed by its synthesis", () =
   assert.equal(rooms.get(11)?.steps[0]?.bot.id, "publishing");
   assert.equal(rooms.get(7), undefined);
 });
+
+test("a step that was cut off reads as incomplete, not failed", () => {
+  const room = buildCrewRoomView([
+    user(1),
+    reply(2, "Delegating to Engineering."),
+    reply(3, "CI is gre", {
+      delegatedBot: engineering,
+      crewStep: { task: "check CI", ok: true, incomplete: "error" },
+    }),
+    reply(4, "final answer"),
+  ]);
+  assert.equal(room?.steps[0]?.status, "incomplete");
+});

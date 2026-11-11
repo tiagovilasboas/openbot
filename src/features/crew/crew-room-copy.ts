@@ -11,6 +11,8 @@ interface CrewRoomCopy {
   taskLabel: string;
   statusDone: string;
   statusFailed: string;
+  /** The specialist's reply was cut off midway; the text is only a part. */
+  statusIncomplete: string;
   showReply: string;
   hideReply: string;
   /** Read by screen readers as the step's position, "Step 1 of 3". */
@@ -35,6 +37,7 @@ export const crewRoomCopy: Record<ChatLanguage, CrewRoomCopy> = {
     taskLabel: "Tarefa recebida",
     statusDone: "Respondeu",
     statusFailed: "Não respondeu",
+    statusIncomplete: "Resposta cortada",
     showReply: "Ver resposta",
     hideReply: "Ocultar resposta",
     stepOf: (position, total) => `Passo ${position} de ${total}`,
@@ -55,6 +58,7 @@ export const crewRoomCopy: Record<ChatLanguage, CrewRoomCopy> = {
     taskLabel: "Task given",
     statusDone: "Answered",
     statusFailed: "Did not answer",
+    statusIncomplete: "Reply cut off",
     showReply: "Show reply",
     hideReply: "Hide reply",
     stepOf: (position, total) => `Step ${position} of ${total}`,
@@ -75,6 +79,7 @@ export const crewRoomCopy: Record<ChatLanguage, CrewRoomCopy> = {
     taskLabel: "Tarea recibida",
     statusDone: "Respondió",
     statusFailed: "No respondió",
+    statusIncomplete: "Respuesta cortada",
     showReply: "Ver respuesta",
     hideReply: "Ocultar respuesta",
     stepOf: (position, total) => `Paso ${position} de ${total}`,

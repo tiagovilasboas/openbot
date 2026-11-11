@@ -1,3 +1,8 @@
+import {
+  readIncompleteKind,
+  type IncompleteKind,
+} from "../chat/incomplete-reply.ts";
+
 /** What is kept on a specialist's stored reply about its part in a turn. */
 export interface CrewStepRecord {
   /** The task the Chief handed over. */
@@ -6,6 +11,11 @@ export interface CrewStepRecord {
   ok: boolean;
   /** Milliseconds the specialist took; absent on replies from older versions. */
   durationMs?: number;
+  /**
+   * Set when the specialist's stream broke midway: the stored text is what
+   * arrived (ok stays true). Absent on complete answers and on failures.
+   */
+  incomplete?: IncompleteKind;
 }
 
 const MAX_TASK_LENGTH = 4_000;
@@ -24,12 +34,14 @@ export function sanitizeCrewStep(raw: unknown): CrewStepRecord | null {
   if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
     return null;
   }
-  const { task, ok, durationMs } = raw as Record<string, unknown>;
+  const { task, ok, durationMs, incomplete } = raw as Record<string, unknown>;
   if (typeof task !== "string" || typeof ok !== "boolean") return null;
   const duration = sanitizeDurationMs(durationMs);
+  const kind = ok ? readIncompleteKind(incomplete) : undefined;
   return {
     task: task.slice(0, MAX_TASK_LENGTH),
     ok,
     ...(duration === undefined ? {} : { durationMs: duration }),
+    ...(kind ? { incomplete: kind } : {}),
   };
 }

@@ -304,6 +304,15 @@ export async function executeChatMessage({
               memory,
               speaker,
             );
+            if (reply.kind === "partial") {
+              // A broken stream keeps what arrived; a cancel keeps nothing here
+              // (the user's cancel stores the live entries instead).
+              const kind = incompleteKindOf(reply.failure);
+              if (kind !== "cancelled") {
+                board?.keep();
+                return { ok: false, partial: { text: reply.text, kind } };
+              }
+            }
             if (reply.kind !== "text") {
               board?.drop();
               return { ok: false };
@@ -324,17 +333,27 @@ export async function executeChatMessage({
             crew: {
               kickoff: crewTurn.kickoff,
               specialists: crewTurn.specialists.map(
-                ({ bot, text, task, ok, durationMs }) => ({
+                ({ bot, text, task, ok, durationMs, incomplete }) => ({
                   bot,
                   text,
-                  step: { task, ok, durationMs },
+                  step: {
+                    task,
+                    ok,
+                    durationMs,
+                    ...(incomplete ? { incomplete } : {}),
+                  },
                 }),
               ),
             },
           }
         : {}),
       delegatedBot,
-      modelCall: "ok",
+      ...(crewTurn?.synthesisIncomplete
+        ? {
+            incomplete: crewTurn.synthesisIncomplete,
+            modelCall: "failed" as const,
+          }
+        : { modelCall: "ok" as const }),
       ...(outcome.failover ? { failover: outcome.failover } : {}),
     };
   }

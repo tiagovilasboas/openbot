@@ -9,6 +9,13 @@ import type { ChatLanguage } from "./respond-to-message.ts";
  */
 export type IncompleteKind = "error" | "cancelled" | "too_long";
 
+/** An untrusted stored or imported value as a kind; undefined when unknown. */
+export function readIncompleteKind(value: unknown): IncompleteKind | undefined {
+  return value === "error" || value === "cancelled" || value === "too_long"
+    ? value
+    : undefined;
+}
+
 export function incompleteKindOf(failure: ModelFailure): IncompleteKind {
   if (failure.kind === "cancelled") return "cancelled";
   if (failure.kind === "response_too_long") return "too_long";

@@ -1,5 +1,6 @@
 import { buildBotSystemPrompt } from "../bots/bot-system-prompt.ts";
 import type { BotProfile } from "../bots/bot-types.ts";
+import type { IncompleteKind } from "../chat/incomplete-reply.ts";
 import type { ChatLanguage } from "../chat/respond-to-message.ts";
 import {
   externalDataRule,
@@ -14,7 +15,13 @@ export const MAX_DELEGATIONS_PER_TURN = 3;
 const MAX_ANSWER_IN_REPORT = 1200;
 
 export type CrewMessage = { role: "assistant" | "user"; text: string };
-export type CrewModelReply = { ok: true; text: string } | { ok: false };
+/**
+ * A failed call may carry `partial`: the text that arrived before the stream
+ * broke. A user cancel never carries one; the caller handles it.
+ */
+export type CrewModelReply =
+  | { ok: true; text: string }
+  | { ok: false; partial?: { text: string; kind: IncompleteKind } };
 
 /** The model call, injected so the turn runs the same with fakes in tests. */
 export type AskCrewModel = (request: {
@@ -35,6 +42,8 @@ export interface SpecialistAnswer {
   text: string;
   /** How long the specialist took to answer or fail, in milliseconds. */
   durationMs: number;
+  /** Set when `text` is only what arrived before the stream broke (ok stays true). */
+  incomplete?: IncompleteKind;
 }
 
 export interface CrewTurn {
@@ -43,6 +52,8 @@ export interface CrewTurn {
   specialists: SpecialistAnswer[];
   /** The Chief's final reply; null when no synthesis could be written. */
   synthesis: string | null;
+  /** Set when the synthesis is only what arrived before its stream broke. */
+  synthesisIncomplete?: IncompleteKind;
 }
 
 interface CrewTurnInput {
@@ -83,6 +94,16 @@ async function askSpecialist(
     if (reply.ok) {
       return { bot, task, ok: true, text: reply.text, durationMs: elapsed() };
     }
+    if (reply.partial) {
+      return {
+        bot,
+        task,
+        ok: true,
+        text: reply.partial.text,
+        durationMs: elapsed(),
+        incomplete: reply.partial.kind,
+      };
+    }
   } catch {
     // A failing specialist must not break the Chief's turn.
   }
@@ -99,12 +120,12 @@ async function synthesize(
   input: CrewTurnInput,
   kickoff: string,
   answers: SpecialistAnswer[],
-): Promise<string | null> {
+): Promise<{ text: string; incomplete?: IncompleteKind } | null> {
   const copy = crewCopy[input.language];
   const report = answers
     .map(
       (a) =>
-        `### ${a.bot.name}\n${wrapExternalText(a.text.slice(0, MAX_ANSWER_IN_REPORT))}`,
+        `### ${a.bot.name}\n${wrapExternalText(a.text.slice(0, MAX_ANSWER_IN_REPORT))}${a.incomplete ? `\n${copy.specialistCut}` : ""}`,
     )
     .join("\n\n");
   try {
@@ -121,7 +142,10 @@ async function synthesize(
       modelId: input.chief.modelId,
       memory: input.memoryFor?.(input.chief.id),
     });
-    return reply.ok ? reply.text : null;
+    if (reply.ok) return { text: reply.text };
+    return reply.partial
+      ? { text: reply.partial.text, incomplete: reply.partial.kind }
+      : null;
   } catch {
     return null;
   }
@@ -157,5 +181,12 @@ export async function runCrewTurn(
   if (answered.length === 0) return { kickoff, specialists, synthesis: null };
   input.onBotWorking?.(input.chief);
   const synthesis = await synthesize(input, kickoff, answered);
-  return { kickoff, specialists, synthesis };
+  return {
+    kickoff,
+    specialists,
+    synthesis: synthesis?.text ?? null,
+    ...(synthesis?.incomplete
+      ? { synthesisIncomplete: synthesis.incomplete }
+      : {}),
+  };
 }
