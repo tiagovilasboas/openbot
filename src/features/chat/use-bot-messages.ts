@@ -2,6 +2,10 @@
 
 import { useCallback, useRef, useSyncExternalStore } from "react";
 import type { MessageData } from "./ChatMessageItem.tsx";
+import {
+  STORED_MESSAGES_MAX_RAW,
+  sanitizeStoredMessages,
+} from "./stored-message.ts";
 
 const EMPTY_MESSAGES: MessageData[] = [];
 const messageListeners = new Map<string, Set<() => void>>();
@@ -42,10 +46,12 @@ export function loadBotMessages(botId: string): MessageData[] {
     if (cached && cached.raw === raw) {
       return cached.data;
     }
-    const parsed = JSON.parse(raw);
+    if (raw.length > STORED_MESSAGES_MAX_RAW) return EMPTY_MESSAGES;
+    const parsed: unknown = JSON.parse(raw);
     if (Array.isArray(parsed)) {
-      cachedMessages.set(botId, { raw, data: parsed });
-      return parsed;
+      const data = sanitizeStoredMessages(parsed);
+      cachedMessages.set(botId, { raw, data });
+      return data;
     }
   } catch {
     // ignore
