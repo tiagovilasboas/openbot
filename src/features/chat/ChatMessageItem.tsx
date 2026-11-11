@@ -14,6 +14,11 @@ import type {
 } from "@/features/github/github-types.ts";
 import { chatCopy } from "./chat-copy.ts";
 import { CopyButton } from "./CopyButton.tsx";
+import {
+  canRetryIncomplete,
+  incompleteNote,
+  type IncompleteKind,
+} from "./incomplete-reply.ts";
 import { FailoverNotice } from "./FailoverNotice.tsx";
 import { FormattedMessage } from "./FormattedMessage.tsx";
 import type { ChatLanguage } from "./respond-to-message.ts";
@@ -36,7 +41,7 @@ export interface MessageData {
   /** Names and sizes of the files sent with this user message; never text. */
   attachments?: AttachmentSummary[];
   /** The text is partial: the reply broke off or the user cancelled it. */
-  incomplete?: "error" | "cancelled";
+  incomplete?: IncompleteKind;
   failover?: {
     fromModel: string;
     toModel: string;
@@ -128,12 +133,8 @@ export function ChatMessageItem({
 
       {message.incomplete && (
         <div className="flex flex-wrap items-center gap-2 text-[13px] text-muted">
-          <span>
-            {message.incomplete === "cancelled"
-              ? content.cancelledNote
-              : content.interruptedNote}
-          </span>
-          {message.incomplete === "error" && onRetry && (
+          <span>{incompleteNote(message.incomplete, content)}</span>
+          {canRetryIncomplete(message.incomplete) && onRetry && (
             <button
               type="button"
               onClick={onRetry}

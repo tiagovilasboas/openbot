@@ -3,6 +3,15 @@ import type { ChatLanguage } from "../chat/respond-to-message.ts";
 /** The literal keyword the Chief writes to hand a task to a crew member. */
 export const DELEGATE_KEYWORD = "@delegate";
 
+/**
+ * The user's chosen language decides the language of every answer in a crew
+ * turn, whatever language the request, the task or a specialist's text uses.
+ */
+const ANSWER_LANGUAGE_RULE: Record<ChatLanguage, string> = {
+  pt: "Escreva sempre em português do Brasil, o idioma escolhido pelo usuário, mesmo que o pedido, a tarefa ou o texto dos especialistas esteja em outro idioma.",
+  en: "Always write in English, the language the user chose, even if the request, the task or the specialists' text is in another language.",
+};
+
 interface CrewCopy {
   rosterHeader: string;
   noSkills: string;
@@ -34,15 +43,18 @@ export const crewCopy: Record<ChatLanguage, CrewCopy> = {
         "Você vai receber as respostas e então escreverá a resposta final ao usuário. Se puder responder sozinho, responda direto, sem " +
           DELEGATE_KEYWORD +
           ".",
+        ANSWER_LANGUAGE_RULE.pt,
       ].join("\n"),
     antiLoopRule:
-      "[Regra Anti-Loop]: Responda estritamente com o conteúdo solicitado. Nunca envie mensagens só de agradecimento, confirmação ou cortesia. Não delegue para outros bots.",
+      "[Regra Anti-Loop]: Responda estritamente com o conteúdo solicitado. Nunca envie mensagens só de agradecimento, confirmação ou cortesia. Não delegue para outros bots. " +
+      ANSWER_LANGUAGE_RULE.pt,
     userAsked: "Pedido original do usuário",
     yourTask: "Sua tarefa, enviada pelo Chief of Staff",
     synthesisRule:
       "Agora escreva a resposta final ao usuário a partir das respostas dos especialistas. Não delegue de novo e não escreva " +
       DELEGATE_KEYWORD +
-      ".",
+      ". " +
+      ANSWER_LANGUAGE_RULE.pt,
     synthesisRequest: "Respostas dos especialistas:",
     delegatingTo: (names) => `Delegando para ${names.join(", ")}.`,
     specialistFailed: (name) => `${name} não conseguiu responder desta vez.`,
@@ -62,15 +74,18 @@ export const crewCopy: Record<ChatLanguage, CrewCopy> = {
         "You will receive their answers and then write the final reply to the user. If you can answer alone, answer directly without " +
           DELEGATE_KEYWORD +
           ".",
+        ANSWER_LANGUAGE_RULE.en,
       ].join("\n"),
     antiLoopRule:
-      "[Anti-Loop Rule]: Answer strictly with the requested content. Never send thank-you, acknowledgement-only or courtesy messages. Do not delegate to other bots.",
+      "[Anti-Loop Rule]: Answer strictly with the requested content. Never send thank-you, acknowledgement-only or courtesy messages. Do not delegate to other bots. " +
+      ANSWER_LANGUAGE_RULE.en,
     userAsked: "The user's original request",
     yourTask: "Your task, sent by the Chief of Staff",
     synthesisRule:
       "Now write the final reply to the user from the specialists' answers. Do not delegate again and do not write " +
       DELEGATE_KEYWORD +
-      ".",
+      ". " +
+      ANSWER_LANGUAGE_RULE.en,
     synthesisRequest: "Specialists' answers:",
     delegatingTo: (names) => `Delegating to ${names.join(", ")}.`,
     specialistFailed: (name) => `${name} could not answer this time.`,

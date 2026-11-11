@@ -97,6 +97,21 @@ test("an error after some text keeps it as an incomplete reply", async () => {
   assert.equal(out.modelCall, "failed");
 });
 
+test("a reply cut for length keeps its text and is marked too_long, not retryable", async () => {
+  stubStream([
+    [
+      ndjson(delta("Most of an answer"), {
+        type: "error",
+        code: "response_too_long",
+        provider: "stub",
+      }),
+    ],
+  ]);
+  const out = await run("hi").result;
+  assert.equal(out.text, "Most of an answer");
+  assert.equal(out.incomplete, "too_long");
+});
+
 test("an error before any text uses the failure copy, as without streaming", async () => {
   stubStream([
     [ndjson({ type: "error", code: "auth", provider: "stub", status: 401 })],
