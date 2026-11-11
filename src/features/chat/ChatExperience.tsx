@@ -7,6 +7,7 @@ import { useComposerAttachments } from "@/features/attachments/use-composer-atta
 import { useAttention } from "@/features/attention/use-attention.ts";
 import { LockScreen } from "@/features/auth/LockScreen.tsx";
 import { useLocalAuth } from "@/features/auth/use-local-auth.ts";
+import { BotsSyncNotice } from "@/features/bots/sync/BotsSyncNotice.tsx";
 import { BotEditModal } from "@/features/bots/BotEditModal.tsx";
 import { botAccent } from "@/features/bots/bot-accent.ts";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
@@ -51,6 +52,8 @@ export function ChatExperience() {
     reorderBot,
     mainBotId,
     makeMainBot,
+    syncError,
+    dismissSyncError,
   } = useBots();
   const { messages, persistMessages, getNextId, clearMessages } =
     useBotMessages(activeBot.id);
@@ -230,6 +233,11 @@ export function ChatExperience() {
             setBotToEdit(activeBot);
             setIsBotModalOpen(true);
           }}
+        />
+        <BotsSyncNotice
+          language={language}
+          error={syncError}
+          onDismiss={dismissSyncError}
         />
 
         {messages.length === 0 ? (
