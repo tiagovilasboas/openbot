@@ -8,6 +8,9 @@ import { downloadBackupFile } from "./backup-file.ts";
 import type { Backup, RestoreMode } from "./backup-types.ts";
 import { summarizeBackup } from "./build-backup.ts";
 import { parseBackup } from "./parse-backup.ts";
+import { botsSyncMessage } from "../bots/sync/bots-sync-copy.ts";
+import { botsSyncErrorCode } from "../bots/sync/bots-sync-failure.ts";
+import { pushRestoredBackup } from "../bots/sync/browser-bots-sync.ts";
 import { restoreBackup } from "./restore-backup.ts";
 
 const BUTTON =
@@ -52,7 +55,7 @@ export function BackupSection({ language }: { language: ChatLanguage }) {
     setPending(result.backup);
   }
 
-  function handleConfirm() {
+  async function handleConfirm() {
     if (!pending) return;
     setBusy(true);
     try {
@@ -62,9 +65,17 @@ export function BackupSection({ language }: { language: ChatLanguage }) {
       setNotice({ kind: "error", text: c.restoreFailed });
       return;
     }
-    setNotice({ kind: "success", text: c.restored });
+    // The server holds the bots now, so the restored list goes there too;
+    // if it is refused, the next load retries it from this browser.
+    const failure = await pushRestoredBackup();
+    const code = failure && botsSyncErrorCode(failure);
+    setNotice(
+      code
+        ? { kind: "error", text: botsSyncMessage(language, code) }
+        : { kind: "success", text: c.restored },
+    );
     // App state is cached in memory: a reload is the one way to re-read it all.
-    window.setTimeout(() => window.location.reload(), 900);
+    window.setTimeout(() => window.location.reload(), code ? 2500 : 900);
   }
 
   function handleCancel() {
@@ -170,7 +181,7 @@ export function BackupSection({ language }: { language: ChatLanguage }) {
             </button>
             <button
               type="button"
-              onClick={handleConfirm}
+              onClick={() => void handleConfirm()}
               disabled={busy}
               className={PRIMARY}
             >

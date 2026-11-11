@@ -3,6 +3,9 @@ import { appPage, expect, test } from "./app-fixture.ts";
 const KEY = "sk-or-v1-e2e-secret-key";
 const headers = { "x-openbot-client": "1" };
 
+// This spec proves the real vault: it opts out of the per-context stub.
+test.use({ realKeysStore: true });
+
 test("a connected key lives on the server, never in the browser", async ({
   page,
   model,

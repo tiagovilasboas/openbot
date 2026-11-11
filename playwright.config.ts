@@ -1,9 +1,13 @@
+import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { defineConfig, devices } from "@playwright/test";
 
 const PORT = 3800;
 const isCI = Boolean(process.env.CI);
+// The server keeps bots in a data dir: every run gets a fresh one, so the
+// specs never touch ~/.openbot. A reused server keeps the dir it started with.
+const DATA_DIR = mkdtempSync(join(tmpdir(), "openbot-e2e-"));
 
 export default defineConfig({
   testDir: "./e2e",
@@ -27,6 +31,7 @@ export default defineConfig({
     reuseExistingServer: !isCI,
     timeout: 240_000,
     env: {
+      OPENBOT_DATA_DIR: DATA_DIR,
       // No provider on the server: the model is always the stub.
       ROUTER_URL: "",
       ROUTER_MODEL: "",
@@ -35,11 +40,6 @@ export default defineConfig({
       LOCAL_MODEL_NAME: "",
       ANTHROPIC_API_KEY: "",
       ANTHROPIC_MODEL: "",
-      // The key vault and database live in a throwaway folder, never in ~/.openbot.
-      OPENBOT_DATA_DIR: join(
-        tmpdir(),
-        `openbot-e2e-${Date.now()}-${process.pid}`,
-      ),
     },
   },
 });

@@ -25,6 +25,7 @@ export function proxy(request: NextRequest) {
   }
   const decision = guard({
     method: request.method,
+    path: request.nextUrl.pathname,
     headers: request.headers,
     ip: clientKey(request.headers, process.env),
     address: clientAddress(request.headers, process.env),

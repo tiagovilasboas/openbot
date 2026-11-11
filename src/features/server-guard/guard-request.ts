@@ -1,4 +1,5 @@
 import { checkAccessToken } from "./check-access-token.ts";
+import { bodyLimitFor } from "./body-limits.ts";
 import { checkBodySize } from "./check-body-size.ts";
 import { checkOrigin } from "./check-origin.ts";
 import type { GuardDecision } from "./guard-types.ts";
@@ -9,6 +10,8 @@ export type GuardEnv = Record<string, string | undefined>;
 
 export type GuardInput = {
   method: string;
+  /** Request path, for route-specific body caps; the default cap when absent. */
+  path?: string;
   headers: Headers;
   /** Rate-limit key (see client-key.ts). */
   ip: string;
@@ -33,6 +36,7 @@ export function createRequestGuard(
 
   return function guard({
     method,
+    path,
     headers,
     ip,
     address,
@@ -42,7 +46,7 @@ export function createRequestGuard(
     const auth = checkAccessToken(headers, token, address);
     if (!auth.ok) return auth;
     if (method !== "GET" && method !== "HEAD") {
-      const size = checkBodySize(headers);
+      const size = checkBodySize(headers, bodyLimitFor(method, path));
       if (!size.ok) return size;
     }
     const verdict = limiter.check(ip);

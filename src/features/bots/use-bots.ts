@@ -1,6 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useSyncExternalStore } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import type { SkillDefinition } from "@/features/skills/skill-types.ts";
 import {
   createBotProfile,
@@ -22,6 +28,12 @@ import {
 import { migrateCrewShapes } from "./crew-shapes-migration.ts";
 import { migrateLegacySkills } from "./legacy-skills-migration.ts";
 import { forgetBotData, pruneOrphanBotData } from "./bot-data-cleanup.ts";
+import {
+  loadBotsFromServer,
+  pushBots,
+  subscribeBotsSyncErrors,
+} from "./sync/browser-bots-sync.ts";
+import type { BotsSyncErrorCode } from "./sync/bots-sync-failure.ts";
 import { reorderBots } from "./reorder-bots.ts";
 import {
   loadStoredMainBotId,
@@ -37,15 +49,24 @@ const getServerActiveBotId = () => DEFAULT_BOT.id;
 const getServerMainBotId = () => null;
 
 export function useBots() {
-  // Moves the old global skill library into the bots, once per browser.
+  const [syncError, setSyncError] = useState<BotsSyncErrorCode | null>(null);
+
   useEffect(() => {
+    // Moves the old global skill library into the bots, once per browser.
     migrateLegacySkills();
     // Gives saved crews their new heads, once per browser.
     migrateCrewShapes();
-    // Cleans data of bots deleted before deletion did; it skips an
-    // untrusted bot list, so it never runs on the preset fallback.
-    pruneOrphanBotData();
+    // The server holds the bots; the browser copy is a read cache. Loading
+    // never throws: when the server is out of reach, the cache is used.
+    void loadBotsFromServer().then((outcome) => {
+      // Cleans data of bots deleted before deletion did, but only against a
+      // bot list that can be trusted, never the preset fallback.
+      if (outcome.canPrune) pruneOrphanBotData();
+    });
+    return subscribeBotsSyncErrors(setSyncError);
   }, []);
+
+  const dismissSyncError = useCallback(() => setSyncError(null), []);
 
   const bots = useSyncExternalStore(
     subscribeBots,
@@ -66,12 +87,14 @@ export function useBots() {
 
   const setActiveBotId = useCallback((id: string) => {
     saveActiveBotId(id);
+    pushBots();
   }, []);
 
   const saveBot = useCallback((profile: BotProfile) => {
     const currentBots = loadBotsFromStorage();
     const updated = updateBotInList(currentBots, profile);
     saveBotsToStorage(updated);
+    pushBots();
   }, []);
 
   const createAndActivateBot = useCallback(
@@ -88,6 +111,7 @@ export function useBots() {
       const nextList = [...currentBots, newBot];
       saveBotsToStorage(nextList);
       saveActiveBotId(newBot.id);
+      pushBots();
       return newBot;
     },
     [],
@@ -107,6 +131,7 @@ export function useBots() {
 
   const makeMainBot = useCallback((id: string) => {
     saveMainBotId(id);
+    pushBots();
   }, []);
 
   /** Moves a bot to a position of the list as shown, and saves that order. */
@@ -115,7 +140,10 @@ export function useBots() {
     const mainId = resolveMainBotId(loadStoredMainBotId(), currentBots);
     const next = reorderBots(currentBots, id, toIndex, mainId);
     const changed = next.some((bot, i) => bot !== currentBots[i]);
-    if (changed) saveBotsToStorage(next);
+    if (changed) {
+      saveBotsToStorage(next);
+      pushBots();
+    }
   }, []);
 
   const removeBot = useCallback((id: string) => {
@@ -134,6 +162,7 @@ export function useBots() {
     if (result.newActiveId) {
       saveActiveBotId(result.newActiveId);
     }
+    pushBots();
   }, []);
 
   const activeBot =
@@ -150,5 +179,7 @@ export function useBots() {
     reorderBot,
     mainBotId,
     makeMainBot,
+    syncError,
+    dismissSyncError,
   };
 }
