@@ -22,6 +22,8 @@ export interface SidebarNavProps {
   mainBotId?: string;
   /** Bots answering a message right now. */
   workingBotIds?: readonly string[];
+  /** Replies per bot the user has not seen yet. */
+  attentionCounts?: Readonly<Record<string, number>>;
   onSelectBot: (botId: string) => void;
   onReorderBot?: (botId: string, toIndex: number) => void;
   onCreateBot: () => void;
@@ -48,6 +50,7 @@ export function SidebarPanel({
   activeBotId,
   mainBotId,
   workingBotIds,
+  attentionCounts,
   onSelectBot,
   onReorderBot,
   onCreateBot,
@@ -90,6 +93,7 @@ export function SidebarPanel({
             activeBotId={activeBotId}
             mainBotId={mainBotId}
             workingBotIds={workingBotIds}
+            attentionCounts={attentionCounts}
             onSelectBot={onSelectBot}
             onEditBot={onEditBot}
             onReorderBot={onReorderBot}

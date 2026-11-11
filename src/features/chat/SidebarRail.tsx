@@ -2,6 +2,8 @@
 
 import { Focusable, Tooltip } from "@heroui/react";
 import type { ReactNode } from "react";
+import { AttentionBadge } from "@/features/attention/AttentionBadge.tsx";
+import { attentionLabel } from "@/features/attention/attention-copy.ts";
 import { BotAvatar } from "@/features/bots/BotAvatar.tsx";
 import { BotWorkingDot } from "./BotWorkingDot.tsx";
 import { chatCopy } from "./chat-copy.ts";
@@ -60,6 +62,7 @@ export function SidebarRail({
   bots,
   activeBotId,
   workingBotIds = [],
+  attentionCounts = {},
   onSelectBot,
   onCreateBot,
   onOpenSettings,
@@ -93,12 +96,15 @@ export function SidebarRail({
           {bots.map((bot) => {
             const isActive = bot.id === activeBotId;
             const isWorking = workingBotIds.includes(bot.id);
+            const unseen = attentionCounts[bot.id] ?? 0;
+            const status = [
+              isWorking ? content.botWorking : "",
+              unseen > 0 ? attentionLabel(language, unseen) : "",
+            ].filter(Boolean);
             return (
               <li key={bot.id}>
                 <RailButton
-                  label={
-                    isWorking ? `${bot.name}, ${content.botWorking}` : bot.name
-                  }
+                  label={[bot.name, ...status].join(", ")}
                   isCurrent={isActive}
                   onPress={() => onSelectBot(bot.id)}
                 >
@@ -110,6 +116,7 @@ export function SidebarRail({
                       active={isActive}
                     />
                     {isWorking && <BotWorkingDot color={bot.avatarColor} />}
+                    {unseen > 0 && <AttentionBadge count={unseen} />}
                   </span>
                 </RailButton>
               </li>

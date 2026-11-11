@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { messageFitsRequest } from "@/features/attachments/request-size.ts";
 import { toPayloads } from "@/features/attachments/attachment-summary.ts";
 import { useComposerAttachments } from "@/features/attachments/use-composer-attachments.ts";
+import { useAttention } from "@/features/attention/use-attention.ts";
 import { LockScreen } from "@/features/auth/LockScreen.tsx";
 import { useLocalAuth } from "@/features/auth/use-local-auth.ts";
 import { BotEditModal } from "@/features/bots/BotEditModal.tsx";
@@ -100,6 +101,11 @@ export function ChatExperience() {
       ? formatModelBadge(serverModel, false, language)
       : formatModelBadge(null, false, language);
 
+  const { attentionCounts, noteReply } = useAttention(
+    activeBot.id,
+    bots.map((b) => b.id),
+  );
+
   const {
     busy,
     liveMessages,
@@ -124,6 +130,7 @@ export function ChatExperience() {
     enqueue,
     dequeue,
     clearQueue,
+    onReply: noteReply,
   });
 
   useEffect(() => {
@@ -181,6 +188,7 @@ export function ChatExperience() {
         activeBotId={activeBotId}
         mainBotId={mainBotId}
         workingBotIds={workingBotIds}
+        attentionCounts={attentionCounts}
         onReorderBot={reorderBot}
         isMobileOpen={isMobileSidebarOpen}
         isDesktopCollapsed={isDesktopCollapsed}

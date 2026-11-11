@@ -48,6 +48,8 @@ interface ChatTurnsInput {
   enqueue: (item: QueuedMessage) => void;
   dequeue: () => QueuedMessage | undefined;
   clearQueue: () => void;
+  /** A bot's reply was stored (not one the user cancelled). */
+  onReply: (botId: string) => void;
 }
 
 /** Sends the user's text, answers it turn by turn and runs the queue. */
@@ -67,6 +69,7 @@ export function useChatTurns(input: ChatTurnsInput) {
     enqueue,
     dequeue,
     clearQueue,
+    onReply,
   } = input;
   const [busy, setBusy] = useState(false);
   // While the Chief's crew answers, the thinking row follows the working bot.
@@ -157,6 +160,7 @@ export function useChatTurns(input: ChatTurnsInput) {
         replyMessages,
       ),
     );
+    if (result !== "cancelled") onReply(activeBot.id);
     setBusy(false);
 
     // If another message was queued in the meantime, process it sequentially

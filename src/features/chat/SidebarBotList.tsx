@@ -15,6 +15,8 @@ interface SidebarBotListProps {
   mainBotId?: string;
   /** Bots answering a message right now. */
   workingBotIds?: readonly string[];
+  /** Replies per bot the user has not seen yet. */
+  attentionCounts?: Readonly<Record<string, number>>;
   onSelectBot: (botId: string) => void;
   onEditBot: (bot: BotProfile) => void;
   /** Moves a bot to a position of the list as shown; omit to lock the order. */
@@ -27,6 +29,7 @@ export function SidebarBotList({
   activeBotId,
   mainBotId,
   workingBotIds = [],
+  attentionCounts = {},
   onSelectBot,
   onEditBot,
   onReorderBot,
@@ -56,6 +59,7 @@ export function SidebarBotList({
               }
               isActive={bot.id === activeBotId}
               isWorking={workingBotIds.includes(bot.id)}
+              unseenReplies={attentionCounts[bot.id] ?? 0}
               rowRef={reorder.registerRow(bot.id)}
               onSelect={() => onSelectBot(bot.id)}
               onEdit={() => onEditBot(bot)}
