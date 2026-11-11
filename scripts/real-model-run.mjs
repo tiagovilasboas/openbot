@@ -70,11 +70,16 @@ async function plainChat(language, extra = {}) {
       detail: `${json.provider ?? "?"} / ${json.model ?? "model not reported"}`,
       reply: clip(json.text),
       usage: json.usage ? JSON.stringify(json.usage) : "none reported",
-      failover: json.failover
-        ? `${json.failover.fromModel} -> ${json.failover.toModel}`
-        : "",
+      failover: describeFailover(json.failover),
     };
   });
+}
+
+/** "from -> to (reason)", or "" when the configured model answered. */
+function describeFailover(failover) {
+  if (!failover) return "";
+  const reason = failover.reason ? ` (${clip(failover.reason, 60)})` : "";
+  return `${failover.fromModel} -> ${failover.toModel}${reason}`;
 }
 
 async function streamChat(language) {
@@ -122,9 +127,10 @@ async function streamChat(language) {
     const ended = last?.type ?? "no final event";
     return {
       ok: ended === "done" && text.length > 0,
-      detail: `${ended}${last?.code ? ` ${last.code}` : ""}, ${deltas} deltas, first delta ${firstDelta ?? "never"} ms`,
+      detail: `${ended}${last?.code ? ` ${last.code}` : ""}, ${last?.model ?? "model not reported"}, ${deltas} deltas, first delta ${firstDelta ?? "never"} ms`,
       reply: clip(text),
       usage: last?.usage ? JSON.stringify(last.usage) : "none reported",
+      failover: describeFailover(last?.failover),
     };
   });
 }
@@ -172,9 +178,7 @@ async function delegation(language) {
             ? `delegated to ${steps} specialist(s)`
             : "no delegation happened",
         reply: clip(outcome.text),
-        failover: outcome.failover
-          ? `${outcome.failover.fromModel} -> ${outcome.failover.toModel}`
-          : "",
+        failover: describeFailover(outcome.failover),
       };
     });
   } finally {

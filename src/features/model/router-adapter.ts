@@ -114,16 +114,25 @@ export function createRouterAdapter(
       const payload: unknown = await response.json().catch(() => null);
       const choice = (
         payload as {
-          choices?: Array<{ message?: { content?: unknown } }>;
+          choices?: Array<{
+            message?: { content?: unknown; reasoning?: unknown };
+          }>;
         } | null
       )?.choices?.[0];
       const content = choice?.message?.content;
 
       if (typeof content !== "string" || !content.trim()) {
+        // Say why, so a failover reason tells "no text at all" apart from
+        // "the text came only as reasoning".
+        const reasoning = choice?.message?.reasoning;
         return {
           ok: false,
           code: "invalid_provider_response",
           provider: "router",
+          detail:
+            typeof reasoning === "string" && reasoning.trim()
+              ? `${response.status}: empty_content_reasoning_only`
+              : `${response.status}: empty_content`,
         };
       }
       const usage = openAiUsage(payload);

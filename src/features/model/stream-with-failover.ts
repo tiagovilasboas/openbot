@@ -1,3 +1,4 @@
+import { logFailover } from "./failover-log.ts";
 import { classifyModelFailure } from "./classify-model-failure.ts";
 import { resolveAutoFallbackAdapter } from "./failover-runner.ts";
 import type {
@@ -156,6 +157,7 @@ export async function* streamWithFailover(
           toModel: secondary.model ?? secondary.provider,
           reason: first.detail ?? first.code,
         };
+        logFailover(failover);
       }
       attempt =
         second.kind === "failed"
