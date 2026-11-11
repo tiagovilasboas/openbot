@@ -7,6 +7,7 @@ export const BOTS_BODY_MAX_BYTES = 2 * 1024 * 1024;
 // Route-specific caps, keyed by "METHOD /path". Anything absent uses the default.
 const ROUTE_BODY_LIMITS: Readonly<Record<string, number>> = {
   "PUT /api/bots": BOTS_BODY_MAX_BYTES,
+  "PUT /api/conversations": 8 * 1024 * 1024,
 };
 
 /** The body cap for a request; the default when the route has no entry. */

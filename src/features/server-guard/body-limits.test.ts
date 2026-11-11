@@ -24,6 +24,18 @@ function put(path: string, length: number, method = "PUT") {
   };
 }
 
+test("PUT /api/conversations gets an 8 MB cap, other methods the default", () => {
+  assert.equal(bodyLimitFor("PUT", "/api/conversations"), 8 * MB);
+  assert.equal(
+    bodyLimitFor("GET", "/api/conversations"),
+    DEFAULT_BODY_MAX_BYTES,
+  );
+  assert.equal(
+    bodyLimitFor("DELETE", "/api/conversations"),
+    DEFAULT_BODY_MAX_BYTES,
+  );
+});
+
 test("only PUT /api/bots gets the larger cap", () => {
   assert.equal(bodyLimitFor("PUT", "/api/bots"), 2 * MB);
   assert.equal(bodyLimitFor("put", "/api/bots/"), 2 * MB);
