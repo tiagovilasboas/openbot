@@ -91,3 +91,11 @@ test("a specialist without a modelId does not inherit the Chief's", async () => 
   await run(chief, [chief, engineering], "how is our CI?");
   assert.equal(sent[1]?.modelId, undefined);
 });
+
+test("a repository summary asks with the active bot's modelId", async () => {
+  const sent = stub(["the summary"]);
+  const bot = { ...engineering, modelId: "vendor/coder:free" };
+  const out = await run(bot, [bot], "summarize the repo");
+  assert.equal(out.text, "the summary");
+  assert.equal(sent[0]?.modelId, "vendor/coder:free");
+});
