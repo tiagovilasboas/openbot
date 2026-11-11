@@ -9,7 +9,9 @@ import {
   saveStoredModelConfig,
   type ClientModelConfig,
 } from "../model/model-config.ts";
-import { saveProviderKey } from "../model/provider-keys.ts";
+import { keyOriginFor } from "../key-vault/key-origin.ts";
+import { deleteSavedKey, putSavedKey } from "../key-vault/saved-keys-api.ts";
+import { refreshSavedKeys } from "../key-vault/saved-keys-store.ts";
 import { testModelConnection } from "../model/test-model-connection.ts";
 import type { ConnectionId } from "./connection-catalog.ts";
 
@@ -68,54 +70,63 @@ export async function checkConnectionKey(
       };
 }
 
-/** Saves the key, and hands it to the active model when it uses this one. */
-export function connectKey(id: ConnectionId, key: string): void {
-  if (id === "github") {
-    saveStoredGitHubToken(key);
-    return;
-  }
-  saveProviderKey(id, key);
-  const next = configAfterConnect(id, key, loadStoredModelConfig());
-  if (next) saveStoredModelConfig(next);
-}
-
 /**
- * The model config after a key connects: the active one takes the new key,
- * and a first OpenRouter key with no model set starts on the free router.
+ * Saves the key to the server's vault, for the URL it was tested against.
+ * False when the server did not save it. Nothing is kept in the browser.
  */
-export function configAfterConnect(
+export async function saveKeyToVault(
   id: "router" | "anthropic",
   key: string,
   active: ClientModelConfig | null,
+  put: typeof putSavedKey = putSavedKey,
+): Promise<boolean> {
+  const trimmed = key.trim();
+  const origin = keyOriginFor(testConfigFor(id, trimmed, active));
+  return origin ? put({ provider: id, origin, key: trimmed }) : false;
+}
+
+/** Connects the service. False when a model key could not be saved. */
+export async function connectKey(
+  id: ConnectionId,
+  key: string,
+): Promise<boolean> {
+  if (id === "github") {
+    saveStoredGitHubToken(key);
+    return true;
+  }
+  const active = loadStoredModelConfig();
+  if (!(await saveKeyToVault(id, key, active))) return false;
+  const next = configAfterConnect(id, active);
+  if (next) saveStoredModelConfig(next);
+  await refreshSavedKeys();
+  return true;
+}
+
+/** A first OpenRouter key with no model set starts on the free router. */
+export function configAfterConnect(
+  id: "router" | "anthropic",
+  active: ClientModelConfig | null,
 ): ClientModelConfig | null {
-  if (active?.provider === id) return { ...active, apiKey: key.trim() };
   if (!active && id === "router") {
     return {
       provider: "router",
       baseUrl: OPENROUTER_URL,
       model: OPENROUTER_TEST_MODEL,
-      apiKey: key.trim(),
     };
   }
   return null;
 }
 
-/** Forgets the key, including the copy the active model holds. */
-export function disconnectKey(id: ConnectionId): void {
+/** Forgets the key on the server. */
+export async function disconnectKey(id: ConnectionId): Promise<void> {
   if (id === "github") {
     clearStoredGitHubToken();
     return;
   }
-  saveProviderKey(id, "");
-  const active = loadStoredModelConfig();
-  if (active?.provider === "router" && id === "router") {
-    saveStoredModelConfig({
-      provider: "router",
-      baseUrl: active.baseUrl,
-      model: active.model,
-    });
-  } else if (active?.provider === "anthropic" && id === "anthropic") {
-    // An Anthropic config cannot exist without its key.
+  await deleteSavedKey(id);
+  await refreshSavedKeys();
+  if (id === "anthropic" && loadStoredModelConfig()?.provider === "anthropic") {
+    // An Anthropic model cannot answer without its key.
     clearStoredModelConfig();
   }
 }

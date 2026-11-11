@@ -1,3 +1,8 @@
+import {
+  noKeyLookup,
+  withVaultKeys,
+  type KeyLookup,
+} from "../key-vault/apply-vault-keys.ts";
 import { clientKey } from "../server-guard/client-key.ts";
 import {
   sharedStreamSlots,
@@ -21,6 +26,8 @@ export type StreamChatOptions = {
   timeoutMs?: number;
   /** In-flight stream pool; defaults to the process-wide one. */
   slots?: StreamSlots;
+  /** Where a config with no key finds its saved one; none by default. */
+  keyLookup?: KeyLookup;
 };
 
 /** Runs the events and gives the slot back however the stream ends. */
@@ -47,6 +54,7 @@ export async function handleChatStream(
     fetchImpl,
     timeoutMs = STREAM_TIMEOUT_MS,
     slots = sharedStreamSlots(env),
+    keyLookup = noKeyLookup,
   }: StreamChatOptions,
 ): Promise<Response> {
   const payload: unknown = await request.json().catch(() => null);
@@ -58,12 +66,13 @@ export async function handleChatStream(
   const notAllowed = modelNotAllowedResponse(env, parsed.request.modelId);
   if (notAllowed) return notAllowed;
 
-  const primary = selectAdapter(env, parsed.request.config, fetchImpl);
+  const modelRequest = withVaultKeys(parsed.request, keyLookup);
+  const primary = selectAdapter(env, modelRequest.config, fetchImpl);
   if (!primary) {
     return Response.json({ error: "no_provider_configured" }, { status: 503 });
   }
-  const fallback = parsed.request.fallbackConfig
-    ? selectAdapter(env, parsed.request.fallbackConfig, fetchImpl)
+  const fallback = modelRequest.fallbackConfig
+    ? selectAdapter(env, modelRequest.fallbackConfig, fetchImpl)
     : null;
 
   // The slot is taken only after validation, and before any provider call.
@@ -84,7 +93,7 @@ export async function handleChatStream(
   else signal.addEventListener("abort", release, { once: true });
   const events = releasing(
     streamWithFailover({
-      request: parsed.request,
+      request: modelRequest,
       primary,
       fallback,
       env,

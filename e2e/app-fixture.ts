@@ -111,16 +111,62 @@ export async function stubBotsStore(context: BrowserContext): Promise<void> {
   });
 }
 
+type SavedKey = { provider: string; origin: string; updatedAt: number };
+
+/**
+ * Stands in for /api/keys per browser context. The real vault is shared by
+ * every parallel spec, so a reset in one spec would forget another's key.
+ * Like the real route, it never echoes a key value.
+ */
+export async function stubKeysStore(context: BrowserContext): Promise<void> {
+  const saved = new Map<string, SavedKey>();
+  await context.route("**/api/keys**", async (route) => {
+    const request = route.request();
+    const method = request.method();
+    if (method === "PUT") {
+      const body = request.postDataJSON() as {
+        provider: string;
+        origin: string;
+      };
+      const entry = {
+        provider: body.provider,
+        origin: new URL(body.origin).origin,
+        updatedAt: Date.now(),
+      };
+      saved.set(entry.provider, entry);
+      await route.fulfill({ json: entry });
+      return;
+    }
+    if (method === "DELETE") {
+      saved.delete(new URL(request.url()).searchParams.get("provider") ?? "");
+      await route.fulfill({ status: 204, body: "" });
+      return;
+    }
+    await route.fulfill({ json: { keys: [...saved.values()] } });
+  });
+}
+
 export const test = base.extend<{
   model: ModelStub;
   /** True for the few specs that talk to the real /api/bots route. */
   realBotsStore: boolean;
   botsStore: void;
+  /** True for the few specs that talk to the real /api/keys route. */
+  realKeysStore: boolean;
+  keysStore: void;
 }>({
   realBotsStore: [false, { option: true }],
   botsStore: [
     async ({ context, realBotsStore }, provide) => {
       if (!realBotsStore) await stubBotsStore(context);
+      await provide();
+    },
+    { auto: true },
+  ],
+  realKeysStore: [false, { option: true }],
+  keysStore: [
+    async ({ context, realKeysStore }, provide) => {
+      if (!realKeysStore) await stubKeysStore(context);
       await provide();
     },
     { auto: true },

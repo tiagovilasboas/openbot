@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { withApiHeaders } from "../server-guard/api-request-init.ts";
-import { useProviderKeys } from "./use-provider-keys.ts";
+import { useSavedKeys } from "../key-vault/use-saved-keys.ts";
 
 export interface FreeModelEntry {
   id: string;
@@ -54,19 +54,20 @@ export function useFreeModels(isOpenRouter: boolean) {
   );
   const [hasLoadedLive, setHasLoadedLive] = useState(false);
   const [isAccountList, setIsAccountList] = useState(false);
-  const routerKey = useProviderKeys().router ?? "";
+  const hasRouterKey = Boolean(useSavedKeys().keys.router);
 
   useEffect(() => {
     if (!isOpenRouter) return;
 
     let isMounted = true;
-    const request = routerKey
+    const request = hasRouterKey
       ? fetch(
           "/api/model/free",
           withApiHeaders({
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ apiKey: routerKey }),
+            // The server holds the key; the request only asks to use it.
+            body: JSON.stringify({ useSavedKey: true }),
           }),
         )
       : fetch("/api/model/free", withApiHeaders());
@@ -97,7 +98,7 @@ export function useFreeModels(isOpenRouter: boolean) {
     return () => {
       isMounted = false;
     };
-  }, [isOpenRouter, routerKey]);
+  }, [isOpenRouter, hasRouterKey]);
 
   return { liveFreeModels, hasLoadedLive, isAccountList };
 }

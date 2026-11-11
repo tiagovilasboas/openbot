@@ -1,18 +1,13 @@
-import {
-  MODEL_CONFIG_STORAGE_KEY,
-  validateClientModelConfig,
-  type ClientModelConfig,
-} from "./model-config.ts";
-
 /*
- * One saved key per provider, kept apart from the active model config, so
- * switching from OpenRouter to Anthropic and back does not lose a key.
- * Keys stay in this browser's storage, like the model config itself.
+ * Providers that take a key. The keys themselves live in the server's key
+ * vault (src/features/key-vault); the browser only ever held them in the past,
+ * under PROVIDER_KEYS_STORAGE_KEY, which is read once to move them there.
  */
 
 export type KeyedProvider = "router" | "anthropic";
 export type ProviderKeys = Partial<Record<KeyedProvider, string>>;
 
+/** The old browser keyring. Only the migration reads it now. */
 export const PROVIDER_KEYS_STORAGE_KEY = "openbot_provider_keys";
 export const KEYED_PROVIDERS: readonly KeyedProvider[] = [
   "router",
@@ -37,113 +32,4 @@ export function sanitizeProviderKeys(data: unknown): ProviderKeys {
     if (key) keys[provider] = key;
   }
   return keys;
-}
-
-/** The keys plus the active config's key, when the keyring lacks it. */
-export function seedKeysFromConfig(
-  keys: ProviderKeys,
-  config: ClientModelConfig | null,
-): ProviderKeys {
-  if (!config || config.provider === "local" || keys[config.provider]) {
-    return keys;
-  }
-  const key = cleanKey(config.apiKey);
-  return key ? { ...keys, [config.provider]: key } : keys;
-}
-
-function resolveStorage(storage?: Storage): Storage | undefined {
-  if (storage) return storage;
-  return typeof window !== "undefined" ? window.localStorage : undefined;
-}
-
-function readStoredConfig(s: Storage): ClientModelConfig | null {
-  try {
-    const raw = s.getItem(MODEL_CONFIG_STORAGE_KEY);
-    return raw ? validateClientModelConfig(JSON.parse(raw)) : null;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * The saved keys. The first read moves the key kept in the model config
- * into the keyring, so keys saved before the keyring existed carry over.
- */
-export function loadProviderKeys(storage?: Storage): ProviderKeys {
-  try {
-    const s = resolveStorage(storage);
-    if (!s) return {};
-    const raw = s.getItem(PROVIDER_KEYS_STORAGE_KEY);
-    if (raw != null) return sanitizeProviderKeys(JSON.parse(raw));
-    const seeded = seedKeysFromConfig({}, readStoredConfig(s));
-    s.setItem(PROVIDER_KEYS_STORAGE_KEY, JSON.stringify(seeded));
-    return seeded;
-  } catch {
-    return {};
-  }
-}
-
-/** Saves one provider's key; an empty key removes it. */
-export function saveProviderKey(
-  provider: KeyedProvider,
-  key: string,
-  storage?: Storage,
-): ProviderKeys {
-  const s = resolveStorage(storage);
-  const current = loadProviderKeys(s);
-  const next: ProviderKeys = { ...current };
-  const cleaned = cleanKey(key);
-  if (cleaned) next[provider] = cleaned;
-  else delete next[provider];
-  try {
-    s?.setItem(PROVIDER_KEYS_STORAGE_KEY, JSON.stringify(next));
-  } catch {
-    // Ignore storage write quota exceptions silently
-  }
-  notifyListeners();
-  return next;
-}
-
-export function clearProviderKeys(storage?: Storage): void {
-  try {
-    resolveStorage(storage)?.setItem(PROVIDER_KEYS_STORAGE_KEY, "{}");
-  } catch {
-    // Ignore storage exceptions silently
-  }
-  notifyListeners();
-}
-
-let listeners: Array<() => void> = [];
-let cachedRaw: string | null | undefined;
-let cachedKeys: ProviderKeys = {};
-
-function notifyListeners(): void {
-  listeners.forEach((listener) => listener());
-}
-
-export function subscribeProviderKeys(listener: () => void): () => void {
-  listeners.push(listener);
-  if (typeof window !== "undefined") {
-    window.addEventListener("storage", listener);
-  }
-  return () => {
-    listeners = listeners.filter((item) => item !== listener);
-    if (typeof window !== "undefined") {
-      window.removeEventListener("storage", listener);
-    }
-  };
-}
-
-/** The saved keys as a stable object, for useSyncExternalStore. */
-export function readProviderKeysSnapshot(): ProviderKeys {
-  const s = resolveStorage();
-  if (!s) return cachedKeys;
-  try {
-    if (s.getItem(PROVIDER_KEYS_STORAGE_KEY) === cachedRaw) return cachedKeys;
-    cachedKeys = loadProviderKeys(s);
-    cachedRaw = s.getItem(PROVIDER_KEYS_STORAGE_KEY);
-  } catch {
-    // Keep the last snapshot when storage is unavailable
-  }
-  return cachedKeys;
 }

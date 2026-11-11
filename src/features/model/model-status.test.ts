@@ -11,7 +11,12 @@ const openRouter = {
 
 test("no model at all is unconfigured", () => {
   assert.equal(
-    modelStatus({ isConfigured: false, config: null, lastCallFailed: false }),
+    modelStatus({
+      isConfigured: false,
+      config: null,
+      lastCallFailed: false,
+      hasSavedKey: false,
+    }),
     "unconfigured",
   );
 });
@@ -22,14 +27,16 @@ test("OpenRouter without a key fails before any call", () => {
       isConfigured: true,
       config: openRouter,
       lastCallFailed: false,
+      hasSavedKey: false,
     }),
     "failing",
   );
   assert.equal(
     modelStatus({
       isConfigured: true,
-      config: { ...openRouter, apiKey: "sk-or-v1-test" },
+      config: openRouter,
       lastCallFailed: false,
+      hasSavedKey: true,
     }),
     "ready",
   );
@@ -42,11 +49,21 @@ test("a failed last call turns a configured model to failing", () => {
     model: "llama3",
   };
   assert.equal(
-    modelStatus({ isConfigured: true, config: local, lastCallFailed: true }),
+    modelStatus({
+      isConfigured: true,
+      config: local,
+      lastCallFailed: true,
+      hasSavedKey: false,
+    }),
     "failing",
   );
   assert.equal(
-    modelStatus({ isConfigured: true, config: local, lastCallFailed: false }),
+    modelStatus({
+      isConfigured: true,
+      config: local,
+      lastCallFailed: false,
+      hasSavedKey: false,
+    }),
     "ready",
   );
 });

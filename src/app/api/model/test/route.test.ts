@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { POST as chatPost } from "../../chat/route.ts";
 import { POST as testPost } from "./route.ts";
+import "../../../../shared/testing/temp-data-dir.mjs";
 
 const blockedConfig = {
   provider: "router",

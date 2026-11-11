@@ -1,3 +1,5 @@
+import { withVaultKey } from "../../../../features/key-vault/apply-vault-keys.ts";
+import { vaultKeyLookup } from "../../../../features/key-vault/vault-key-lookup.ts";
 import { TEST_TIMEOUT_MS } from "../../../../features/model/guarded-model-fetch.ts";
 import { validateClientModelConfig } from "../../../../features/model/model-config.ts";
 import { selectAdapter } from "../../../../features/model/select-adapter.ts";
@@ -17,7 +19,9 @@ export async function POST(request: Request) {
     );
   }
 
-  const adapter = selectAdapter(process.env, customConfig, undefined, {
+  // A key typed for a test travels in the body; a saved one comes from the vault.
+  const keyed = customConfig && withVaultKey(customConfig, vaultKeyLookup);
+  const adapter = selectAdapter(process.env, keyed, undefined, {
     timeoutMs: TEST_TIMEOUT_MS,
   });
   if (!adapter) {

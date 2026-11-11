@@ -20,7 +20,9 @@ import {
 interface ConnectionDetailProps {
   entry: ConnectionEntry;
   language: ChatLanguage;
-  savedKey: string | null;
+  /** The GitHub token to show; model keys are never sent to the browser. */
+  savedToken: string | null;
+  isSaved: boolean;
   showSecretLabel: string;
   hideSecretLabel: string;
   onBack: () => void;
@@ -30,13 +32,14 @@ interface ConnectionDetailProps {
 export function ConnectionDetail({
   entry,
   language,
-  savedKey,
+  savedToken,
+  isSaved,
   showSecretLabel,
   hideSecretLabel,
   onBack,
 }: ConnectionDetailProps) {
   const c = getConnectionsCopy(language);
-  const [key, setKey] = useState(savedKey ?? "");
+  const [key, setKey] = useState(savedToken ?? "");
   const [isTesting, setIsTesting] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; message: string } | null>(
     null,
@@ -61,7 +64,13 @@ export function ConnectionDetail({
       setResult({ ok: false, message: describeFailure(outcome) });
       return;
     }
-    connectKey(entry.id, key);
+    const isSaved = await connectKey(entry.id, key);
+    if (!isSaved) {
+      setResult({ ok: false, message: c.saveFailed });
+      return;
+    }
+    // A model key now lives on the server; the field never holds it again.
+    if (entry.id !== "github") setKey("");
     setResult({
       ok: true,
       message: outcome.user
@@ -70,8 +79,8 @@ export function ConnectionDetail({
     });
   }
 
-  function handleDisconnect() {
-    disconnectKey(entry.id);
+  async function handleDisconnect() {
+    await disconnectKey(entry.id);
     onBack();
   }
 
@@ -88,7 +97,7 @@ export function ConnectionDetail({
 
       <header className="flex flex-col gap-1">
         <h3 className="text-lg font-semibold text-foreground">
-          {fillCopy(savedKey ? c.manageTitle : c.connectTitle, {
+          {fillCopy(isSaved ? c.manageTitle : c.connectTitle, {
             name: entry.name,
           })}
         </h3>
@@ -98,7 +107,7 @@ export function ConnectionDetail({
       <div className="flex flex-col gap-1">
         <FormField
           label={entry.id === "github" ? c.tokenLabel : c.keyLabel}
-          helper={c.storedHere}
+          helper={isSaved && entry.id !== "github" ? c.keySaved : c.storedHere}
         >
           {(control) => (
             <SecretInput
@@ -125,17 +134,17 @@ export function ConnectionDetail({
       </div>
 
       <ConnectionTest
-        label={savedKey ? c.testAndSave : c.testAndConnect}
+        label={isSaved ? c.testAndSave : c.testAndConnect}
         loadingLabel={c.testing}
         isTesting={isTesting}
         result={result}
         onTest={() => void handleConnect()}
       />
 
-      {savedKey && (
+      {isSaved && (
         <button
           type="button"
-          onClick={handleDisconnect}
+          onClick={() => void handleDisconnect()}
           className="min-h-11 w-full rounded-full px-5 text-sm font-medium text-danger transition-colors hover:bg-danger-soft active:scale-[0.97]"
         >
           {c.disconnect}

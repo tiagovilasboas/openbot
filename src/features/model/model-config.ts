@@ -16,7 +16,7 @@ export type LocalConfig = {
 
 export type AnthropicConfig = {
   provider: "anthropic";
-  apiKey: string;
+  apiKey?: string;
   model: string;
 };
 
@@ -99,13 +99,12 @@ export function validateClientModelConfig(
   }
 
   if (provider === "anthropic") {
-    if (
-      typeof candidate.apiKey !== "string" ||
-      !candidate.apiKey.trim() ||
-      candidate.apiKey.length > maxKeyLength
-    ) {
-      return null;
-    }
+    // The key is optional: the server adds the one saved in its key vault.
+    const apiKey =
+      typeof candidate.apiKey === "string" && candidate.apiKey.trim().length > 0
+        ? candidate.apiKey.trim()
+        : undefined;
+    if (apiKey && apiKey.length > maxKeyLength) return null;
     if (
       typeof candidate.model !== "string" ||
       !candidate.model.trim() ||
@@ -116,12 +115,22 @@ export function validateClientModelConfig(
 
     return {
       provider: "anthropic",
-      apiKey: candidate.apiKey.trim(),
       model: candidate.model.trim(),
+      ...(apiKey ? { apiKey } : {}),
     };
   }
 
   return null;
+}
+
+/**
+ * The config without its key. Keys live in the server's vault, so the copy
+ * kept in this browser and sent with requests never carries one.
+ */
+export function withoutApiKey(config: ClientModelConfig): ClientModelConfig {
+  if (config.provider === "local") return config;
+  const { apiKey: _key, ...rest } = config;
+  return rest;
 }
 
 let cachedRaw: string | null = null;
@@ -162,7 +171,8 @@ export function loadStoredModelConfig(): ClientModelConfig | null {
       return null;
     }
     const parsed: unknown = JSON.parse(raw);
-    cachedConfig = validateClientModelConfig(parsed);
+    const validated = validateClientModelConfig(parsed);
+    cachedConfig = validated ? withoutApiKey(validated) : null;
     return cachedConfig;
   } catch {
     cachedRaw = null;
@@ -176,8 +186,9 @@ export function saveStoredModelConfig(config: ClientModelConfig): void {
     return;
   }
   try {
-    const validated = validateClientModelConfig(config);
-    if (validated) {
+    const checked = validateClientModelConfig(config);
+    if (checked) {
+      const validated = withoutApiKey(checked);
       const serialized = JSON.stringify(validated);
       window.localStorage.setItem(MODEL_CONFIG_STORAGE_KEY, serialized);
       cachedRaw = serialized;
