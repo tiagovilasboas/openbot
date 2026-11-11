@@ -24,18 +24,18 @@ echo
 [ -n "$KEY" ] || { echo "Empty key; nothing was started." >&2; exit 2; }
 
 ROUTER_URL=https://openrouter.ai/api/v1 ROUTER_MODEL="$MODEL" ROUTER_API_KEY="$KEY" \
-  npx next dev -p $PORT >"$LOG" 2>&1 &
+  npx next dev -H 127.0.0.1 -p $PORT >"$LOG" 2>&1 &
 SERVER=$!
 unset KEY
 trap 'kill $SERVER 2>/dev/null || true' EXIT
 
 for _ in $(seq 1 90); do
-  curl -s -o /dev/null "http://localhost:$PORT/" && break
+  curl -s -o /dev/null "http://127.0.0.1:$PORT/" && break
   sleep 1
 done
-curl -s -o /dev/null "http://localhost:$PORT/" || { echo "Server did not start; see $LOG" >&2; exit 2; }
+curl -s -o /dev/null "http://127.0.0.1:$PORT/" || { echo "Server did not start; see $LOG" >&2; exit 2; }
 
 echo "Model: $MODEL"
-OPENBOT_RUN_URL="http://localhost:$PORT" node --experimental-strip-types \
+OPENBOT_RUN_URL="http://127.0.0.1:$PORT" node --experimental-strip-types \
   --disable-warning=MODULE_TYPELESS_PACKAGE_JSON \
   scripts/real-model-run.mjs docs/spikes/real-model-run.md
