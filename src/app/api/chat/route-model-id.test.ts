@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test, { afterEach, beforeEach } from "node:test";
 import "../../../shared/testing/register-alias-resolver.mjs";
+import "../../../shared/testing/temp-data-dir.mjs";
 
 const { POST } = await import("./route.ts");
 

@@ -50,7 +50,8 @@ export function selectAdapter(
     }
     if (customConfig.provider === "anthropic") {
       return createAnthropicAdapter({
-        apiKey: customConfig.apiKey,
+        // No vault key either: the provider answers 401, as it would to a bad key.
+        apiKey: customConfig.apiKey ?? "",
         model: customConfig.model,
         fetchImpl,
         ...network,

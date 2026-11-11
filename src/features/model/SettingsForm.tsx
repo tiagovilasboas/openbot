@@ -13,7 +13,13 @@ import {
   type ClientModelConfig,
   type ModelProviderType,
 } from "./model-config.ts";
-import { clearProviderKeys } from "./provider-keys.ts";
+import { keyOriginFor } from "../key-vault/key-origin.ts";
+import {
+  deleteAllSavedKeys,
+  hasSavedKeyFor,
+} from "../key-vault/saved-keys-api.ts";
+import { refreshSavedKeys } from "../key-vault/saved-keys-store.ts";
+import { useSavedKeys } from "../key-vault/use-saved-keys.ts";
 import { classifyModelFailure } from "./classify-model-failure.ts";
 import { lacksRequiredRouterKey } from "./router-key.ts";
 import {
@@ -25,7 +31,6 @@ import { getSettingsCopy } from "./settings-copy.ts";
 import { SettingsProviderFields } from "./SettingsProviderFields.tsx";
 import { SettingsProviderSelector } from "./SettingsProviderSelector.tsx";
 import { testModelConnection } from "./test-model-connection.ts";
-import { useProviderKeys } from "./use-provider-keys.ts";
 
 export interface SettingsFormProps {
   language: ChatLanguage;
@@ -50,7 +55,7 @@ export function SettingsForm({
 }: SettingsFormProps) {
   const content = chatCopy[language];
   const s = getSettingsCopy(language);
-  const keys = useProviderKeys();
+  const saved = useSavedKeys();
   const [isConfirmingReset, setIsConfirmingReset] = useState(false);
   const [provider, setProvider] = useState<ModelProviderType>(
     currentConfig?.provider ?? "router",
@@ -88,12 +93,12 @@ export function SettingsForm({
   } | null>(null);
 
   function getCandidateConfig(): ClientModelConfig | null {
+    // No key here: the server adds the saved one when the config is used.
     if (provider === "router") {
       return validateClientModelConfig({
         provider: "router",
         baseUrl: routerUrl,
         model: routerModel,
-        ...(keys.router ? { apiKey: keys.router } : {}),
       });
     }
     if (provider === "local") {
@@ -106,7 +111,6 @@ export function SettingsForm({
     if (provider === "anthropic") {
       return validateClientModelConfig({
         provider: "anthropic",
-        apiKey: keys.anthropic,
         model: anthropicModel,
       });
     }
@@ -114,10 +118,18 @@ export function SettingsForm({
   }
 
   // OpenRouter answers 401 to every call without a key, free models included.
-  const missingKeyProvider =
-    provider === "router" && lacksRequiredRouterKey(routerUrl, keys.router)
+  // Not flagged until the server has said which keys it holds.
+  const routerKey = hasSavedKeyFor(
+    saved.keys,
+    "router",
+    keyOriginFor({ provider: "router", baseUrl: routerUrl, model: "-" }),
+  );
+  const missingKeyProvider = !saved.loaded
+    ? null
+    : provider === "router" &&
+        lacksRequiredRouterKey(routerUrl, routerKey ? "saved" : undefined)
       ? "OpenRouter"
-      : provider === "anthropic" && !keys.anthropic
+      : provider === "anthropic" && !saved.keys.anthropic
         ? "Anthropic"
         : null;
 
@@ -153,7 +165,7 @@ export function SettingsForm({
 
   function handleReset() {
     clearStoredModelConfig();
-    clearProviderKeys();
+    void deleteAllSavedKeys().then(refreshSavedKeys);
     clearStoredGitHubToken();
     onReset?.();
     onClose();

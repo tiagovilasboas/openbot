@@ -1,3 +1,8 @@
+import {
+  noKeyLookup,
+  withVaultKey,
+  type KeyLookup,
+} from "../key-vault/apply-vault-keys.ts";
 import { isModelAllowed } from "../model/allowed-models.ts";
 import { executeWithFailover } from "../model/failover-runner.ts";
 import type { FetchLike } from "../model/model-adapter.ts";
@@ -11,6 +16,8 @@ type Env = Record<string, string | undefined>;
 export interface SuggestSkillOptions {
   env: Env;
   fetchImpl?: FetchLike;
+  /** Where a config with no key finds its saved one; none by default. */
+  keyLookup?: KeyLookup;
 }
 
 /**
@@ -22,7 +29,7 @@ export interface SuggestSkillOptions {
  */
 export async function handleSuggestSkill(
   request: Request,
-  { env, fetchImpl }: SuggestSkillOptions,
+  { env, fetchImpl, keyLookup = noKeyLookup }: SuggestSkillOptions,
 ): Promise<Response> {
   const payload: unknown = await request.json().catch(() => null);
   const parsed = parseSuggestionRequest(payload);
@@ -30,7 +37,10 @@ export async function handleSuggestSkill(
     const status = parsed.error === "not_enough_history" ? 422 : 400;
     return Response.json({ error: parsed.error }, { status });
   }
-  const { language, messages, config, modelId } = parsed.request;
+  const { language, messages, modelId } = parsed.request;
+  const config = parsed.request.config
+    ? withVaultKey(parsed.request.config, keyLookup)
+    : parsed.request.config;
 
   if (modelId && !isModelAllowed(env, modelId)) {
     return Response.json({ error: "model_not_allowed" }, { status: 400 });

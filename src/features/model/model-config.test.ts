@@ -87,13 +87,14 @@ test("validates anthropic configuration correctly", () => {
     model: "claude-3-5-sonnet-20241022",
   });
 
-  assert.equal(
+  // A blank key is no key: the server adds the saved one.
+  assert.deepEqual(
     validateClientModelConfig({
       provider: "anthropic",
       apiKey: "   ",
       model: "claude-3-5-sonnet",
     }),
-    null,
+    { provider: "anthropic", model: "claude-3-5-sonnet" },
   );
   assert.equal(
     validateClientModelConfig({

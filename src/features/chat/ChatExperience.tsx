@@ -19,6 +19,7 @@ import {
   type ActiveServerModelOutcome,
 } from "@/features/model/test-model-connection.ts";
 import { useModelConfig } from "@/features/model/use-model-config.ts";
+import { useMigrateLocalKeys } from "@/features/key-vault/use-migrate-local-keys.ts";
 import { useModelStatus } from "@/features/model/use-model-status.ts";
 import { ChatEmptyState } from "./ChatEmptyState.tsx";
 import { ChatHeader } from "./ChatHeader.tsx";
@@ -90,6 +91,7 @@ export function ChatExperience() {
   useEffect(() => {
     void fetchActiveServerModel().then((server) => setServerModel(server));
   }, []);
+  useMigrateLocalKeys();
 
   const isConfigured = Boolean(modelConfig || serverModel?.configured);
   const { status: modelStatus, recordModelCall } = useModelStatus(

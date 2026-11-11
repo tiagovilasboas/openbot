@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { GET } from "./route.ts";
+import "../../../../shared/testing/temp-data-dir.mjs";
 
 test("GET /api/model/free returns a list of free models including openrouter/free", async () => {
   const response = await GET();

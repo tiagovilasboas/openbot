@@ -1,6 +1,8 @@
 import { modelNotAllowedResponse } from "../../../features/model/allowed-models.ts";
 import { executeWithFailover } from "../../../features/model/failover-runner.ts";
 import { parseChatRequest } from "../../../features/model/parse-chat-request.ts";
+import { withVaultKeys } from "../../../features/key-vault/apply-vault-keys.ts";
+import { vaultKeyLookup } from "../../../features/key-vault/vault-key-lookup.ts";
 import { selectAdapter } from "../../../features/model/select-adapter.ts";
 
 export const dynamic = "force-dynamic";
@@ -18,17 +20,18 @@ export async function POST(request: Request) {
   );
   if (notAllowed) return notAllowed;
 
-  const primaryAdapter = selectAdapter(process.env, parsed.request.config);
+  const modelRequest = withVaultKeys(parsed.request, vaultKeyLookup);
+  const primaryAdapter = selectAdapter(process.env, modelRequest.config);
   if (!primaryAdapter) {
     return Response.json({ error: "no_provider_configured" }, { status: 503 });
   }
 
-  const fallbackAdapter = parsed.request.fallbackConfig
-    ? selectAdapter(process.env, parsed.request.fallbackConfig)
+  const fallbackAdapter = modelRequest.fallbackConfig
+    ? selectAdapter(process.env, modelRequest.fallbackConfig)
     : null;
 
   const result = await executeWithFailover({
-    request: parsed.request,
+    request: modelRequest,
     primaryAdapter,
     fallbackAdapter,
     env: process.env,

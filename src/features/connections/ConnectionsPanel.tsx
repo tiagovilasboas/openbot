@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
 import { useGitHubToken } from "@/features/github/use-github-token.ts";
 import { useModelConfig } from "@/features/model/use-model-config.ts";
-import { useProviderKeys } from "@/features/model/use-provider-keys.ts";
+import { useSavedKeys } from "@/features/key-vault/use-saved-keys.ts";
 import {
   CONNECTIONS,
   findConnection,
@@ -30,13 +30,13 @@ export function ConnectionsPanel({
   hideSecretLabel,
 }: ConnectionsPanelProps) {
   const c = getConnectionsCopy(language);
-  const keys = useProviderKeys();
+  const { keys } = useSavedKeys();
   const gitHubToken = useGitHubToken();
   const activeConfig = useModelConfig();
   const [openId, setOpenId] = useState<ConnectionId | null>(null);
 
-  function savedKeyFor(id: ConnectionId): string | null {
-    return id === "github" ? gitHubToken : (keys[id] ?? null);
+  function isSaved(id: ConnectionId): boolean {
+    return id === "github" ? Boolean(gitHubToken) : Boolean(keys[id]);
   }
 
   if (openId) {
@@ -45,7 +45,8 @@ export function ConnectionsPanel({
         key={openId}
         entry={findConnection(openId)}
         language={language}
-        savedKey={savedKeyFor(openId)}
+        savedToken={openId === "github" ? gitHubToken : null}
+        isSaved={isSaved(openId)}
         showSecretLabel={showSecretLabel}
         hideSecretLabel={hideSecretLabel}
         onBack={() => setOpenId(null)}
@@ -71,7 +72,7 @@ export function ConnectionsPanel({
                       ? c.inUse
                       : c.descriptions[entry.id]
                   }
-                  isConnected={Boolean(savedKeyFor(entry.id))}
+                  isConnected={isSaved(entry.id)}
                   connectedLabel={c.connected}
                   connectLabel={c.connect}
                   onOpen={() => setOpenId(entry.id)}

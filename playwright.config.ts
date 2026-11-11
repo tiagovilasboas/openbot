@@ -1,3 +1,5 @@
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { defineConfig, devices } from "@playwright/test";
 
 const PORT = 3800;
@@ -33,6 +35,11 @@ export default defineConfig({
       LOCAL_MODEL_NAME: "",
       ANTHROPIC_API_KEY: "",
       ANTHROPIC_MODEL: "",
+      // The key vault and database live in a throwaway folder, never in ~/.openbot.
+      OPENBOT_DATA_DIR: join(
+        tmpdir(),
+        `openbot-e2e-${Date.now()}-${process.pid}`,
+      ),
     },
   },
 });
