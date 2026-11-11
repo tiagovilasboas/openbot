@@ -82,6 +82,36 @@ test("blocks IPv4-mapped and compatible IPv6 of blocked ranges", async () => {
   await allowed("http://[::ffff:127.0.0.1]/");
 });
 
+test("blocks IPv6 forms that embed a non-public IPv4 (NAT64, 6to4, Teredo)", async () => {
+  for (const host of [
+    "[64:ff9b::127.0.0.1]",
+    "[64:ff9b::7f00:1]",
+    "[64:ff9b::a9fe:a9fe]",
+    "[64:ff9b::10.0.0.1]",
+    "[64:ff9b:1::1]",
+    "[64:ff9b:1:0:0:0:a9fe:a9fe]",
+    "[2002:7f00:0001::]",
+    "[2002:a9fe:a9fe::]",
+    "[2002:c0a8:0101::1]",
+    // Teredo client XORed with 0xffffffff: 169.254.169.254, 127.0.0.1, 10.0.0.1.
+    "[2001:0:4136:e378:8000:63bf:5601:5601]",
+    "[2001:0:4136:e378:8000:63bf:80ff:fffe]",
+    "[2001:0:4136:e378:8000:63bf:f5ff:fffe]",
+    // Teredo server address that is itself private (10.0.0.1).
+    "[2001:0:a00:1:8000:63bf:3f57:fefd]",
+  ]) {
+    await blocked(`http://${host}/v1`);
+  }
+  await blocked("https://evil.example/v1", resolvesTo("64:ff9b::a9fe:a9fe"));
+});
+
+test("allows IPv6 tunnel forms that embed a public IPv4", async () => {
+  await allowed("http://[64:ff9b::808:808]/");
+  await allowed("http://[2002:808:808::1]/");
+  // Teredo server 65.54.227.120, client 8.8.8.8 (f7f7:f7f7 after XOR).
+  await allowed("http://[2001:0:4136:e378:8000:63bf:f7f7:f7f7]/");
+});
+
 test("blocks cloud metadata hostnames without resolving them", async () => {
   await blocked("http://metadata.google.internal/computeMetadata/v1/");
   await blocked("http://METADATA.GOOGLE.INTERNAL./");
