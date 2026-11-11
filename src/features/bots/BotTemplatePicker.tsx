@@ -17,7 +17,7 @@ export function BotTemplatePicker({
   selectedId = null,
   onSelectTemplate,
 }: BotTemplatePickerProps) {
-  const copy = getBotsCopy(language === "pt");
+  const copy = getBotsCopy(language);
 
   return (
     <section

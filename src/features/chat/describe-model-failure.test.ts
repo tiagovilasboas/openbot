@@ -1,3 +1,4 @@
+import { LANGUAGES } from "../language/language.ts";
 import assert from "node:assert/strict";
 import test from "node:test";
 
@@ -34,7 +35,7 @@ test("other failures keep the generic message, with the status if known", () => 
 });
 
 test("offline, timeout, server and cancel each read differently in both languages", () => {
-  for (const language of ["pt", "en"] as const) {
+  for (const language of LANGUAGES) {
     const c = chatCopy[language];
     assert.equal(
       describeModelFailure({ kind: "offline" }, language),
@@ -84,7 +85,7 @@ test("a blocked model address explains the restriction in both languages", () =>
 });
 
 test("a reply cut for length has its own sentence with an action, in both languages", () => {
-  for (const language of ["pt", "en"] as const) {
+  for (const language of LANGUAGES) {
     const c = chatCopy[language];
     const text = describeModelFailure({ kind: "response_too_long" }, language);
     assert.equal(text, c.modelErrorTooLong);

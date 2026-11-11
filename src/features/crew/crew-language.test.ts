@@ -3,6 +3,7 @@ import test from "node:test";
 import type { BotProfile } from "../bots/bot-types.ts";
 import { CREW_PRESETS } from "../bots/crew-presets.ts";
 import type { ChatLanguage } from "../chat/respond-to-message.ts";
+import { LANGUAGES } from "../language/language.ts";
 import { crewCopy } from "./crew-copy.ts";
 import { buildCrewRoster } from "./crew-roster.ts";
 import { runCrewTurn, type AskCrewModel } from "./run-crew-turn.ts";
@@ -14,6 +15,7 @@ const chief = bots[0] as BotProfile;
 const MENTIONS: Record<ChatLanguage, RegExp> = {
   pt: /sempre em português/i,
   en: /always write in english/i,
+  es: /siempre en español/i,
 };
 
 async function promptsOf(language: ChatLanguage) {
@@ -40,7 +42,7 @@ async function promptsOf(language: ChatLanguage) {
   return prompts;
 }
 
-for (const language of ["pt", "en"] as const) {
+for (const language of LANGUAGES) {
   test(`the Chief's delegation rules state the answer language (${language})`, () => {
     const roster = buildCrewRoster(chief, bots, language);
     assert.match(roster, MENTIONS[language]);
@@ -57,4 +59,5 @@ for (const language of ["pt", "en"] as const) {
 test("the synthesis rule still ends the prompt, with the language last", () => {
   assert.ok(crewCopy.pt.synthesisRule.endsWith("outro idioma."));
   assert.ok(crewCopy.en.synthesisRule.endsWith("another language."));
+  assert.ok(crewCopy.es.synthesisRule.endsWith("otro idioma."));
 });

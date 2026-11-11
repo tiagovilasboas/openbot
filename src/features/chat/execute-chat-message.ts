@@ -109,7 +109,6 @@ export async function executeChatMessage({
       ? fitHistoryToBytes(limited, historyByteBudget(attachments))
       : limited;
   const content = chatCopy[language];
-  const isPt = language === "pt";
 
   // Check if user delegated to a specific bot via @mention
   const mentionedBot = findMentionedBot(text, bots);
@@ -179,9 +178,13 @@ export async function executeChatMessage({
             : one
               ? content.githubOpenItem
               : content.githubOpenItems;
-      const summaryText = isPt
-        ? `Encontrei ${items.length} ${labelKind} em ${githubDetected.repo.owner}/${githubDetected.repo.repo}:`
-        : `Found ${items.length} ${labelKind} in ${githubDetected.repo.owner}/${githubDetected.repo.repo}:`;
+      const summaryText = content.githubFound
+        .replace("{count}", String(items.length))
+        .replace("{kind}", labelKind)
+        .replace(
+          "{repo}",
+          `${githubDetected.repo.owner}/${githubDetected.repo.repo}`,
+        );
       return {
         text: summaryText,
         delegatedBot,

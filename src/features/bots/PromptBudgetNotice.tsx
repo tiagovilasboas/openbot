@@ -1,4 +1,5 @@
 import { describePromptBudget } from "./prompt-budget-copy.ts";
+import type { Language } from "../language/language.ts";
 import type { PromptBudgetReport } from "./prompt-budget.ts";
 
 /**
@@ -8,12 +9,12 @@ import type { PromptBudgetReport } from "./prompt-budget.ts";
  */
 export function PromptBudgetNotice({
   report,
-  isPt,
+  language,
 }: {
   report: PromptBudgetReport;
-  isPt: boolean;
+  language: Language;
 }) {
-  const message = describePromptBudget(report, isPt ? "pt" : "en");
+  const message = describePromptBudget(report, language);
   return (
     <div role="status" aria-live="polite">
       {message && (

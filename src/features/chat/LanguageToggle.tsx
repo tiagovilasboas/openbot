@@ -1,17 +1,15 @@
 "use client";
 
 import { chatCopy } from "./chat-copy.ts";
-import type { ChatLanguage } from "./respond-to-message.ts";
+import { HTML_LANG, LANGUAGES, type Language } from "../language/language.ts";
 
 interface LanguageToggleProps {
-  language: ChatLanguage;
-  onChange: (language: ChatLanguage) => void;
-  /** compact: PT/EN pill for the desktop header; full: named, 44px tall. */
+  language: Language;
+  onChange: (language: Language) => void;
+  /** compact: PT/EN/ES pill for the desktop header; full: named, 44px tall. */
   density?: "compact" | "full";
   className?: string;
 }
-
-const LANGUAGES: readonly ChatLanguage[] = ["pt", "en"];
 
 const DENSITY = {
   compact: {
@@ -19,7 +17,7 @@ const DENSITY = {
     option: "h-7 rounded-full px-2.5 text-xs font-medium tabular-nums",
   },
   full: {
-    group: "grid grid-cols-2 rounded-xl p-0.5",
+    group: "grid grid-cols-3 rounded-xl p-0.5",
     option: "h-11 rounded-[10px] px-3 text-[15px] font-medium",
   },
 } as const;
@@ -32,9 +30,10 @@ export function LanguageToggle({
 }: LanguageToggleProps) {
   const content = chatCopy[language];
   const styles = DENSITY[density];
-  const names: Record<ChatLanguage, string> = {
+  const names: Record<Language, string> = {
     pt: content.languagePortuguese,
     en: content.languageEnglish,
+    es: content.languageSpanish,
   };
 
   return (
@@ -49,7 +48,7 @@ export function LanguageToggle({
           <button
             key={option}
             type="button"
-            lang={option === "pt" ? "pt-BR" : "en"}
+            lang={HTML_LANG[option]}
             aria-pressed={isSelected}
             title={density === "compact" ? names[option] : undefined}
             onClick={() => onChange(option)}

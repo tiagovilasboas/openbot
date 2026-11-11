@@ -1,3 +1,4 @@
+import { isLanguage } from "../language/language.ts";
 import type { AttachmentSummary } from "@/features/attachments/attachment-summary.ts";
 import { sanitizeBotProfile } from "../bots/bot-storage.ts";
 import { sanitizeCrewStep } from "../crew/crew-step-record.ts";
@@ -132,7 +133,7 @@ export function sanitizeStoredMessage(raw: unknown): MessageData | null {
 
   const message: MessageData = {
     id: raw.id,
-    language: raw.language === "pt" ? "pt" : "en",
+    language: isLanguage(raw.language) ? raw.language : "en",
     role: raw.role,
     text: raw.text.slice(0, STORED_TEXT_MAX),
   };

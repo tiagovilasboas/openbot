@@ -1,6 +1,6 @@
 import type { ChatLanguage } from "../chat/respond-to-message.ts";
 
-/** Copy for the Usage tab of Settings. Bilingual parity. */
+/** Copy for the Usage tab of Settings. One entry per language. */
 export interface UsageCopy {
   title: string;
   description: string;
@@ -69,6 +69,33 @@ const EN: UsageCopy = {
   cancel: "Cancel",
 };
 
+const ES: UsageCopy = {
+  title: "Uso por bot",
+  description:
+    "Cuántos tokens usó cada bot. El número viene del proveedor; cuando no lo informa, no se estima nada.",
+  deviceNote:
+    "Se queda solo en este navegador y no entra en la copia de seguridad.",
+  noBots: "Aún no hay bots.",
+  noReplies: "Aún no hay respuestas contadas.",
+  total: "Total",
+  lastSevenDays: "Últimos 7 días",
+  input: "entrada",
+  output: "salida",
+  replies: (count) => (count === 1 ? "1 respuesta" : `${count} respuestas`),
+  withoutData: (count) =>
+    count === 1
+      ? "1 respuesta sin datos de uso"
+      : `${count} respuestas sin datos de uso`,
+  reset: (botName) => `Reiniciar el uso de ${botName}`,
+  resetAll: "Reiniciar todo",
+  confirmBot: "¿Reiniciar el uso de este bot?",
+  confirmAll: "¿Reiniciar el uso de todos los bots?",
+  confirmAction: "Sí, reiniciar",
+  cancel: "Cancelar",
+};
+
+const USAGE_COPY: Record<ChatLanguage, UsageCopy> = { pt: PT, en: EN, es: ES };
+
 export function getUsageCopy(language: ChatLanguage): UsageCopy {
-  return language === "pt" ? PT : EN;
+  return USAGE_COPY[language];
 }

@@ -10,6 +10,7 @@ export const DELEGATE_KEYWORD = "@delegate";
 const ANSWER_LANGUAGE_RULE: Record<ChatLanguage, string> = {
   pt: "Escreva sempre em português do Brasil, o idioma escolhido pelo usuário, mesmo que o pedido, a tarefa ou o texto dos especialistas esteja em outro idioma.",
   en: "Always write in English, the language the user chose, even if the request, the task or the specialists' text is in another language.",
+  es: "Escribe siempre en español latinoamericano neutro, el idioma que eligió el usuario, aunque la solicitud, la tarea o el texto de los especialistas estén en otro idioma.",
 };
 
 interface CrewCopy {
@@ -29,7 +30,7 @@ interface CrewCopy {
   delegateNotFound: string;
 }
 
-/** Prompt and UI text for the Chief's crew, in both supported languages. */
+/** Prompt and UI text for the Chief's crew, in every supported language. */
 export const crewCopy: Record<ChatLanguage, CrewCopy> = {
   pt: {
     rosterHeader:
@@ -93,5 +94,37 @@ export const crewCopy: Record<ChatLanguage, CrewCopy> = {
       "I could not combine the answers right now; see what each specialist said above.",
     delegateNotFound:
       "I could not find that bot on the crew, so I could not hand the task over.",
+  },
+  es: {
+    rosterHeader:
+      "Tu equipo (otros bots que conoces y puedes llamar por su nombre):",
+    noSkills: "sin skills",
+    delegationRules: (exampleName) =>
+      [
+        "Para pasarle una tarea a alguien del equipo, escribe una línea por tarea, sola en su línea, exactamente así:",
+        `${DELEGATE_KEYWORD} ${exampleName}: <la tarea completa, que se entienda por sí sola>`,
+        "Reglas: máximo 3 líneas; delega solo cuando el especialista aporte algo real; nunca te delegues a ti mismo; después de esas líneas no escribas nada más.",
+        "Recibirás sus respuestas y entonces escribirás la respuesta final al usuario. Si puedes responder solo, responde directamente, sin " +
+          DELEGATE_KEYWORD +
+          ".",
+        ANSWER_LANGUAGE_RULE.es,
+      ].join("\n"),
+    antiLoopRule:
+      "[Regla antibucle]: Responde estrictamente con el contenido solicitado. Nunca envíes mensajes de solo agradecimiento, confirmación o cortesía. No delegues a otros bots. " +
+      ANSWER_LANGUAGE_RULE.es,
+    userAsked: "Solicitud original del usuario",
+    yourTask: "Tu tarea, enviada por el Chief of Staff",
+    synthesisRule:
+      "Ahora escribe la respuesta final al usuario a partir de las respuestas de los especialistas. No delegues de nuevo y no escribas " +
+      DELEGATE_KEYWORD +
+      ". " +
+      ANSWER_LANGUAGE_RULE.es,
+    synthesisRequest: "Respuestas de los especialistas:",
+    delegatingTo: (names) => `Delegando a ${names.join(", ")}.`,
+    specialistFailed: (name) => `${name} no pudo responder esta vez.`,
+    synthesisFailed:
+      "No pude juntar las respuestas ahora; mira arriba lo que dijo cada especialista.",
+    delegateNotFound:
+      "No encontré ese bot en el equipo, así que no pude pasarle la tarea.",
   },
 };

@@ -1,7 +1,7 @@
 import type { ChatLanguage } from "../chat/respond-to-message.ts";
 import type { ConnectionId } from "./connection-catalog.ts";
 
-/** Copy for the Connections tab. Bilingual parity. */
+/** Copy for the Connections tab. One entry per language. */
 export const connectionsCopy = {
   pt: {
     groupModels: "Modelos de IA",
@@ -69,6 +69,41 @@ export const connectionsCopy = {
       router: "Hundreds of models, free ones included",
       anthropic: "Claude straight from the API",
       github: "Issues and pull requests in chat",
+    } satisfies Record<ConnectionId, string>,
+  },
+  es: {
+    groupModels: "Modelos de IA",
+    groupTools: "Herramientas",
+    connected: "Conectado",
+    connect: "Conectar",
+    inUse: "En uso en el chat",
+    back: "Volver a las conexiones",
+    connectTitle: "Conectar {name}",
+    manageTitle: "{name}",
+    storedHere: "La clave se queda solo en este dispositivo.",
+    keyLabel: "Clave de API",
+    tokenLabel: "Token de acceso",
+    getKey: "Créala en {url}",
+    testAndConnect: "Probar y conectar",
+    testAndSave: "Probar y guardar",
+    testing: "Probando...",
+    disconnect: "Desconectar",
+    emptyKey: "Pega la clave antes de probar.",
+    connectedAs: "Conectado como @{user}.",
+    connectedOk: "Conectado. La clave funcionó.",
+    rejected: "La clave no funcionó: {reason}",
+    unauthorized: "el servicio rechazó la clave",
+    rateLimited: "se alcanzó el límite de solicitudes, inténtalo más tarde",
+    network: "el servicio no respondió, revisa tu conexión",
+    blockedUrl: "esa dirección no está permitida, usa una pública o localhost",
+    modelGone: "el modelo ya no está disponible, elige otro",
+    serverDown:
+      "el servicio tiene problemas, inténtalo de nuevo en unos instantes",
+    unknown: "algo salió mal, inténtalo de nuevo",
+    descriptions: {
+      router: "Cientos de modelos, incluidos gratuitos",
+      anthropic: "Claude directo desde la API",
+      github: "Issues y pull requests en el chat",
     } satisfies Record<ConnectionId, string>,
   },
 } as const;

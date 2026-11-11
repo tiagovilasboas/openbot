@@ -1,3 +1,4 @@
+import { isLanguage, type Language } from "../language/language.ts";
 import {
   validateClientModelConfig,
   type ClientModelConfig,
@@ -6,7 +7,7 @@ import { parseModelId } from "../model/model-id.ts";
 import { clipHistory, SUGGEST_MIN_MESSAGES } from "./suggestion-history.ts";
 
 export interface SuggestionRequest {
-  language: "pt" | "en";
+  language: Language;
   /** The user's messages, already clipped and capped. */
   messages: string[];
   config?: ClientModelConfig;
@@ -31,7 +32,7 @@ export function parseSuggestionRequest(
     string,
     unknown
   >;
-  if (language !== "pt" && language !== "en") return invalid;
+  if (!isLanguage(language)) return invalid;
   if (!Array.isArray(messages)) return invalid;
 
   let validatedConfig: ClientModelConfig | undefined;

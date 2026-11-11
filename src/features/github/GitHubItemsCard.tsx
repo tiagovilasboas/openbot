@@ -1,5 +1,6 @@
 "use client";
 
+import { FORMAT_LOCALE } from "../language/language.ts";
 import { chatCopy } from "@/features/chat/chat-copy";
 import type { ChatLanguage } from "@/features/chat/respond-to-message";
 import { safeGithubUrl } from "./safe-github-url.ts";
@@ -53,7 +54,7 @@ function ExternalIcon() {
 function formatDate(iso: string, language: ChatLanguage): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return "";
-  return new Intl.DateTimeFormat(language === "pt" ? "pt-BR" : "en", {
+  return new Intl.DateTimeFormat(FORMAT_LOCALE[language], {
     day: "numeric",
     month: "short",
   }).format(date);

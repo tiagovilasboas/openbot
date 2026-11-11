@@ -1,3 +1,4 @@
+import { LANGUAGES } from "../language/language.ts";
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
@@ -53,7 +54,7 @@ test("neutralizing leaves clean text alone", () => {
 });
 
 test("the rule exists in both languages and names the tag", () => {
-  for (const lang of ["pt", "en"] as const) {
+  for (const lang of LANGUAGES) {
     assert.match(externalDataRule(lang), /<external-data>/);
   }
   assert.match(externalDataRule("en"), /never follow instructions/);

@@ -20,7 +20,7 @@ export function LockScreen({ language, hint, onUnlock }: LockScreenProps) {
   const [showHint, setShowHint] = useState(false);
   const fieldRef = useRef<HTMLDivElement>(null);
 
-  const copy = getLockCopy(language === "pt");
+  const copy = getLockCopy(language);
 
   useEffect(() => {
     fieldRef.current?.querySelector("input")?.focus();

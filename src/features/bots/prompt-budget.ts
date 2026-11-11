@@ -1,3 +1,4 @@
+import type { Language } from "../language/language.ts";
 import { crewCopy } from "../crew/crew-copy.ts";
 import { MAX_SYSTEM_PROMPT_CHARS } from "../model/system-prompt-limit.ts";
 import { buildSkillsBlock } from "../skills/skill-prompt-block.ts";
@@ -8,7 +9,7 @@ import {
 } from "./bot-system-prompt.ts";
 import type { BotProfile } from "./bot-types.ts";
 
-type PromptLanguage = "pt" | "en";
+type PromptLanguage = Language;
 
 /** What the built system prompt loses for a bot that is over its budget. */
 export interface PromptBudgetReport {

@@ -1,5 +1,6 @@
 "use client";
 
+import type { Language } from "../language/language.ts";
 import { FormField, FIELD_CLASS } from "@/shared/ui/FormField.tsx";
 import {
   MODEL_ID_MAX_LENGTH,
@@ -15,14 +16,14 @@ export function isBotModelIdValid(value: string): boolean {
 /** The bot's own model id. Empty means "use the global model". */
 export function BotModelField({
   value,
-  isPt,
+  language,
   onChange,
 }: {
   value: string;
-  isPt: boolean;
+  language: Language;
   onChange: (value: string) => void;
 }) {
-  const copy = getBotsCopy(isPt);
+  const copy = getBotsCopy(language);
   const invalid = !isBotModelIdValid(value);
 
   return (

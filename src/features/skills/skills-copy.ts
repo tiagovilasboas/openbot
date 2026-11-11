@@ -1,6 +1,6 @@
 import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
 
-/** Copy for a bot's own skills, edited in the bot sheet. Bilingual parity. */
+/** Copy for a bot's own skills, edited in the bot sheet. One entry per language. */
 export const skillsCopy = {
   pt: {
     sectionTitle: "Skills",
@@ -74,6 +74,44 @@ export const skillsCopy = {
       "Drafted by the model from your chats: read the instructions before using it.",
     cancel: "Cancel",
     removed: "Skill removed. Save the bot to confirm.",
+  },
+  es: {
+    sectionTitle: "Skills",
+    sectionHint: "Comandos / que solo conoce este bot.",
+    addSkill: "Nueva skill",
+    empty:
+      "Aún no hay skills. Crea una para guardar instrucciones detrás de un comando /.",
+    createTitle: "Nueva skill",
+    importLabel: "Pegar un SKILL.md (opcional)",
+    importHint: "Rellena los campos de abajo.",
+    markdownPlaceholder:
+      "# Nombre de la skill\n> Descripción corta\n\nInstrucciones detalladas...",
+    nameLabel: "Nombre",
+    namePlaceholder: "Revisión de código",
+    commandLabel: "Comando",
+    commandPlaceholder: "/revision-de-codigo",
+    commandHint: "Opcional. Se genera a partir del nombre si lo dejas vacío.",
+    duplicateCommand: "Este bot ya tiene el comando {command}.",
+    descLabel: "Descripción corta",
+    descPlaceholder: "Revisa los diffs de los PRs en busca de errores",
+    instructionsLabel: "Instrucciones",
+    instructionsPlaceholder:
+      "Instrucciones que se envían al modelo cuando se llama a esta skill.",
+    requiredHint:
+      "Completa el nombre y las instrucciones para agregar la skill.",
+    addAction: "Agregar skill",
+    added: "Skill agregada: {name}. Guarda el bot para conservarla.",
+    removeAria: "Quitar la skill {name}",
+    removeConfirm: "¿Quitar {name}?",
+    removeConfirmAction: "Quitar",
+    importedBadge: "Importada",
+    importedWarning:
+      "Viene de un SKILL.md pegado: lee las instrucciones antes de usarla.",
+    suggestedBadge: "Sugerida",
+    suggestedWarning:
+      "Redactada por el modelo a partir de tus conversaciones: lee las instrucciones antes de usarla.",
+    cancel: "Cancelar",
+    removed: "Skill quitada. Guarda el bot para confirmar.",
   },
 } as const satisfies Record<ChatLanguage, Record<string, string>>;
 

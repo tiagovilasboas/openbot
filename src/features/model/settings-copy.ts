@@ -1,6 +1,6 @@
 import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
 
-/** Copy for the Settings sheet (model, GitHub, tabs). Bilingual parity. */
+/** Copy for the Settings sheet (model, GitHub, tabs). One entry per language. */
 export const settingsCopy = {
   pt: {
     tabsLabel: "Seções das configurações",
@@ -83,6 +83,48 @@ export const settingsCopy = {
     resetConfirmHint: "Removes the model and the keys stored on this device.",
     resetConfirmAction: "Yes, restore",
     cancel: "Cancel",
+  },
+  es: {
+    tabsLabel: "Secciones de la configuración",
+    tabModel: "Modelo",
+    tabConnections: "Conexiones",
+    tabSecurity: "Seguridad",
+    tabUsage: "Uso",
+    securityActive: "Protección activa",
+    showSecret: "Mostrar valor",
+    hideSecret: "Ocultar valor",
+    closeSheet: "Cerrar configuración",
+    sectionLanguage: "Idioma",
+    sectionProvider: "Proveedor de IA",
+    sectionPresets: "Atajos",
+    sectionConnection: "Conexión",
+    badgeFree: "Gratis",
+    badgeLocal: "Local",
+    badgeSelected: "Seleccionado",
+    presetOpenRouterName: "OpenRouter",
+    presetOpenRouterDesc: "Modelos gratuitos en la nube",
+    preset9RouterName: "9Router / OmniRoute",
+    preset9RouterDesc: "Router local en el puerto 3000",
+    presetOllamaName: "Ollama",
+    presetOllamaDesc: "Modelos que corren en tu equipo",
+    freeModelsLoading: "Actualizando modelos gratuitos...",
+    freeModelsLive: "{count} modelos gratuitos en tiempo real",
+    freeModelsAccount: "{count} modelos gratuitos en tu cuenta",
+    freeModelsList: "Modelos gratuitos",
+    getKey: "Obtén una clave en openrouter.ai/keys",
+    allModels: "Ver todos los modelos",
+    showAll: "Ver todos ({count})",
+    showFewer: "Mostrar menos",
+    testIdle: "Comprueba que el modelo responda antes de guardar.",
+    testInvalid:
+      "Completa los campos obligatorios del proveedor y vuelve a probar.",
+    keyMissing: "{provider} aún no está conectado.",
+    connectAction: "Conectar",
+    resetConfirm: "¿Restaurar todo?",
+    resetConfirmHint:
+      "Quita el modelo y las claves guardadas en este dispositivo.",
+    resetConfirmAction: "Sí, restaurar",
+    cancel: "Cancelar",
   },
 } as const satisfies Record<ChatLanguage, Record<string, string>>;
 

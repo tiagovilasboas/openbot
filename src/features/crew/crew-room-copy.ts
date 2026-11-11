@@ -19,7 +19,7 @@ interface CrewRoomCopy {
   noTask: string;
 }
 
-/** Text of the team room, in both supported languages. */
+/** Text of the team room, in every supported language. */
 export const crewRoomCopy: Record<ChatLanguage, CrewRoomCopy> = {
   pt: {
     open: "Sala da equipe",
@@ -60,5 +60,25 @@ export const crewRoomCopy: Record<ChatLanguage, CrewRoomCopy> = {
     stepOf: (position, total) => `Step ${position} of ${total}`,
     durationLabel: "Time",
     noTask: "The task was not saved in this older conversation.",
+  },
+  es: {
+    open: "Sala del equipo",
+    title: "Sala del equipo",
+    subtitle: (steps) =>
+      steps === 1
+        ? "Se consultó a 1 especialista en esta respuesta."
+        : `Se consultó a ${steps} especialistas en esta respuesta.`,
+    close: "Cerrar la sala del equipo",
+    kickoffHeading: "Lo que dijo el Chief",
+    stepsHeading: "Pasos, en orden",
+    synthesisHeading: "Respuesta final del Chief",
+    taskLabel: "Tarea recibida",
+    statusDone: "Respondió",
+    statusFailed: "No respondió",
+    showReply: "Ver respuesta",
+    hideReply: "Ocultar respuesta",
+    stepOf: (position, total) => `Paso ${position} de ${total}`,
+    durationLabel: "Tiempo",
+    noTask: "La tarea no se guardó en esta conversación antigua.",
   },
 };

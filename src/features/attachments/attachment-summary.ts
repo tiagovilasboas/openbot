@@ -1,3 +1,4 @@
+import type { Language } from "../language/language.ts";
 import type { AttachmentPayload } from "./parse-attachments.ts";
 import type { Attachment } from "./read-attachment.ts";
 
@@ -30,8 +31,8 @@ export function toSummaries(
   }));
 }
 
-/** "812 B", "4.2 KB" or "4,2 KB" for a size in bytes. */
-export function formatFileSize(bytes: number, language: "pt" | "en"): string {
+/** "812 B", "4.2 KB" or "4,2 KB" (Portuguese only) for a size in bytes. */
+export function formatFileSize(bytes: number, language: Language): string {
   if (bytes < 1024) return `${bytes} B`;
   const kb = bytes / 1024;
   const text = kb < 10 ? kb.toFixed(1) : String(Math.round(kb));

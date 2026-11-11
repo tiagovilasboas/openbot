@@ -1,3 +1,4 @@
+import { LANGUAGES } from "../language/language.ts";
 import assert from "node:assert/strict";
 import test from "node:test";
 
@@ -48,12 +49,12 @@ test("the four new shapes are in the shape list, once", () => {
   assert.equal(new Set(AVATAR_SHAPES).size, AVATAR_SHAPES.length);
 });
 
-test("every shape has a spec, drawn art and a name in both languages", () => {
+test("every shape has a spec, drawn art and a name in every language", () => {
   for (const shape of AVATAR_SHAPES) {
     assert.ok(SPECS[shape], `${shape} has no spec`);
     assert.ok(BLOB_ART[shape].body.length > 20, `${shape} has no art`);
-    for (const isPt of [true, false]) {
-      assert.ok(getBotsCopy(isPt).shapes[shape], `${shape} has no name`);
+    for (const language of LANGUAGES) {
+      assert.ok(getBotsCopy(language).shapes[shape], `${shape} has no name`);
     }
   }
 });

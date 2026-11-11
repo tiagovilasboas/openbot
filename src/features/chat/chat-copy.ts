@@ -1,3 +1,5 @@
+import { chatCopyEs } from "./chat-copy-es.ts";
+
 export const chatCopy = {
   pt: {
     title: "OpenBot",
@@ -88,6 +90,7 @@ export const chatCopy = {
     githubNetworkError:
       "Erro ao conectar com a API do GitHub. Verifique sua conexão de rede.",
     githubViewOnGitHub: "Ver no GitHub",
+    githubFound: "Encontrei {count} {kind} em {repo}:",
     gitHubSamplePrompt: "Issues do OpenBot",
     summarySamplePrompt: "Briefing de hoje",
     chiefOfStaffTitle: "Manager & Orquestrador",
@@ -139,6 +142,7 @@ export const chatCopy = {
     modelStatusFailing: "o modelo não está respondendo",
     languagePortuguese: "Português",
     languageEnglish: "English",
+    languageSpanish: "Español",
     skillPaletteButtonAria: "Abrir catálogo de skills (/)",
     skillPaletteLabel: "Skills disponíveis",
     skillPaletteEmpty: "Nenhuma skill encontrada.",
@@ -242,6 +246,7 @@ export const chatCopy = {
     githubNetworkError:
       "Error connecting to GitHub API. Please check your network connection.",
     githubViewOnGitHub: "View on GitHub",
+    githubFound: "Found {count} {kind} in {repo}:",
     gitHubSamplePrompt: "OpenBot Issues",
     summarySamplePrompt: "Today's Briefing",
     chiefOfStaffTitle: "Manager & Orchestrator",
@@ -293,6 +298,7 @@ export const chatCopy = {
     modelStatusFailing: "the model is not answering",
     languagePortuguese: "Português",
     languageEnglish: "English",
+    languageSpanish: "Español",
     skillPaletteButtonAria: "Open skills catalog (/)",
     skillPaletteLabel: "Available skills",
     skillPaletteEmpty: "No matching skills.",
@@ -311,4 +317,5 @@ export const chatCopy = {
     composerPlaceholder: "Ask anything or request repo issues",
     composerNoModelPlaceholder: "No model yet. Set one up in Settings",
   },
+  es: chatCopyEs,
 } as const;

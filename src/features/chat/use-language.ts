@@ -1,8 +1,8 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { DEFAULT_LANGUAGE } from "../language/language.ts";
 import {
-  DEFAULT_LANGUAGE,
   loadLanguage,
   saveLanguage,
   subscribeLanguage,

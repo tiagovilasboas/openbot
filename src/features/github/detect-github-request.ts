@@ -14,10 +14,13 @@ export type DetectedGitHubRequest =
 const ignoredOwners = new Set([
   "e",
   "ou",
+  "y",
+  "o",
   "and",
   "or",
   "se",
   "if",
+  "si",
   "sim",
   "nao",
   "yes",
@@ -30,7 +33,7 @@ const githubUrlPattern =
 
 // 2. Matches phrases like "issues de owner/repo", "prs de owner/repo", "repo owner/repo"
 const prefixPattern =
-  /\b(?:issues?|prs?|pull\s*requests?|repo|reposit[oó]rio|bugs?|tarefas?)\s+(?:d[oe]|em|for|from|in|do|da|of|about)?\s*[:\s]*([a-zA-Z0-9_-]+)\/([a-zA-Z0-9_.-]+)/i;
+  /\b(?:issues?|prs?|pull\s*requests?|repo|reposit[oó]rio|bugs?|tarefas?)\s+(?:d[oe]|del|em|en|for|from|in|do|da|of|about|sobre)?\s*[:\s]*([a-zA-Z0-9_-]+)\/([a-zA-Z0-9_.-]+)/i;
 
 // 3. Matches phrases like "owner/repo issues", "owner/repo prs"
 const suffixPattern =

@@ -1,5 +1,6 @@
 "use client";
 
+import type { Language } from "../language/language.ts";
 import { useState } from "react";
 import { FIELD_CLASS } from "@/shared/ui/FormField.tsx";
 import { MEMORY_MAX_ENTRY_LENGTH, type MemoryEntry } from "./memory-entries.ts";
@@ -11,7 +12,7 @@ const ROW_BUTTON =
 
 interface MemoryEntryRowProps {
   entry: MemoryEntry;
-  isPt: boolean;
+  language: Language;
   onEdit: (id: string, text: string) => MemoryActionResult;
   onRemove: (id: string) => void;
 }
@@ -19,11 +20,11 @@ interface MemoryEntryRowProps {
 /** One note: its text with Edit and Delete, or an inline field to edit it. */
 export function MemoryEntryRow({
   entry,
-  isPt,
+  language,
   onEdit,
   onRemove,
 }: MemoryEntryRowProps) {
-  const copy = getMemoryCopy(isPt);
+  const copy = getMemoryCopy(language);
   const [draft, setDraft] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 

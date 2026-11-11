@@ -1,3 +1,4 @@
+import { LANGUAGES } from "../language/language.ts";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createCustomSkill } from "../skills/skill-definition.ts";
@@ -34,16 +35,16 @@ test("a skill the user created stays plain instructions", () => {
   assert.ok(prompt.includes("Enabled Skills:"));
 });
 
+const LEAD_WORD = { pt: "notas de", en: "third-party", es: "terceros" };
+
 for (const source of ["imported", "suggested"] as const) {
-  for (const language of ["pt", "en"] as const) {
+  for (const language of LANGUAGES) {
     test(`a ${source} skill sits inside the data delimiter (${language})`, () => {
       const prompt = buildBotSystemPrompt(botWith(source), language);
       assert.ok(between(prompt, ATTACK), "instructions are inside the tags");
       assert.ok(prompt.includes("(/review)"), "the /command stays usable");
       assert.ok(prompt.includes("/comando") || prompt.includes("/command"));
-      const lead = prompt.indexOf(
-        language === "pt" ? "notas de" : "third-party",
-      );
+      const lead = prompt.indexOf(LEAD_WORD[language]);
       assert.ok(lead !== -1 && lead < prompt.indexOf("<external-data>"));
     });
   }

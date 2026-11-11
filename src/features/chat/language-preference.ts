@@ -1,27 +1,29 @@
-import type { ChatLanguage } from "./respond-to-message.ts";
+import {
+  DEFAULT_LANGUAGE,
+  isLanguage,
+  type Language,
+} from "../language/language.ts";
 
-/** The PT/EN choice survives reloads; Portuguese is the default. */
+/** The language choice survives reloads; Portuguese is the default. */
 
 const LANGUAGE_STORAGE_KEY = "openbot_language";
-export const DEFAULT_LANGUAGE: ChatLanguage = "pt";
-
 let listeners: Array<() => void> = [];
 
 function browserStorage(): Storage | undefined {
   return typeof window !== "undefined" ? window.localStorage : undefined;
 }
 
-export function loadLanguage(storage = browserStorage()): ChatLanguage {
+export function loadLanguage(storage = browserStorage()): Language {
   try {
     const stored = storage?.getItem(LANGUAGE_STORAGE_KEY);
-    return stored === "pt" || stored === "en" ? stored : DEFAULT_LANGUAGE;
+    return isLanguage(stored) ? stored : DEFAULT_LANGUAGE;
   } catch {
     return DEFAULT_LANGUAGE;
   }
 }
 
 export function saveLanguage(
-  language: ChatLanguage,
+  language: Language,
   storage = browserStorage(),
 ): void {
   try {

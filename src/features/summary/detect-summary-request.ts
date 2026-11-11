@@ -6,6 +6,7 @@ const summaryKeywords = [
   "resumo",
   "resuma",
   "resumir",
+  "resumen",
   "briefing",
   "sintese",
   "síntese",
@@ -13,6 +14,9 @@ const summaryKeywords = [
   "panorama",
   "visao geral",
   "visão geral",
+  "visión general",
+  "vision general",
+  "puntos destacados",
   "destaques",
   "summary",
   "summarize",
@@ -30,6 +34,9 @@ const dailyKeywords = [
   "de hoje",
   "today",
   "meu dia",
+  "mi día",
+  "mi dia",
+  "hoy",
   "my day",
 ];
 
@@ -58,7 +65,7 @@ export function detectSummaryRequest(input: string): DetectedSummaryRequest {
     !hasSummaryKeyword &&
     !(
       lower.includes("briefing") ||
-      (hasDailyKeyword && lower.includes("o que"))
+      (hasDailyKeyword && (lower.includes("o que") || lower.includes("lo que")))
     )
   ) {
     return { isSummary: false };
@@ -89,7 +96,8 @@ export function detectSummaryRequest(input: string): DetectedSummaryRequest {
   if (
     hasDailyKeyword ||
     lower.includes("briefing") ||
-    lower.includes("resumo")
+    lower.includes("resumo") ||
+    lower.includes("resumen")
   ) {
     return {
       isSummary: true,

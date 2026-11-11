@@ -1,9 +1,10 @@
 "use client";
 
+import type { Language } from "../language/language.ts";
 import { getBotsCopy } from "./bots-copy.ts";
 
 interface BotMainControlProps {
-  isPt: boolean;
+  language: Language;
   isMain: boolean;
   onMakeMain: () => void;
 }
@@ -13,11 +14,11 @@ interface BotMainControlProps {
  * user hand that role to the bot being edited.
  */
 export function BotMainControl({
-  isPt,
+  language,
   isMain,
   onMakeMain,
 }: BotMainControlProps) {
-  const copy = getBotsCopy(isPt);
+  const copy = getBotsCopy(language);
   return (
     <div className="flex min-h-14 items-center justify-between gap-3 rounded-xl bg-surface px-3.5 py-2">
       <span className="min-w-0">

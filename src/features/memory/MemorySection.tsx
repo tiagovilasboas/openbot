@@ -1,5 +1,6 @@
 "use client";
 
+import type { Language } from "../language/language.ts";
 import { useState } from "react";
 import { FormField, FIELD_CLASS } from "@/shared/ui/FormField.tsx";
 import { MEMORY_MAX_ENTRY_LENGTH } from "./memory-entries.ts";
@@ -9,11 +10,11 @@ import { useBotMemory, useMemoryEnabled } from "./use-memory.ts";
 
 interface MemorySectionProps {
   botId: string;
-  isPt: boolean;
+  language: Language;
 }
 
-function MemorySwitch({ isPt }: { isPt: boolean }) {
-  const copy = getMemoryCopy(isPt);
+function MemorySwitch({ language }: { language: Language }) {
+  const copy = getMemoryCopy(language);
   const { enabled, setEnabled } = useMemoryEnabled();
   return (
     <div className="flex min-h-14 items-center justify-between gap-3 rounded-xl bg-surface px-3.5 py-2">
@@ -40,13 +41,13 @@ function MemorySwitch({ isPt }: { isPt: boolean }) {
 }
 
 function ClearAllControl({
-  isPt,
+  language,
   onConfirm,
 }: {
-  isPt: boolean;
+  language: Language;
   onConfirm: () => void;
 }) {
-  const copy = getMemoryCopy(isPt);
+  const copy = getMemoryCopy(language);
   const [confirming, setConfirming] = useState(false);
   if (!confirming) {
     return (
@@ -90,8 +91,8 @@ function ClearAllControl({
  * deletable, plus the "use memory" switch. Changes save at once, apart from
  * the bot form's own Save button.
  */
-export function MemorySection({ botId, isPt }: MemorySectionProps) {
-  const copy = getMemoryCopy(isPt);
+export function MemorySection({ botId, language }: MemorySectionProps) {
+  const copy = getMemoryCopy(language);
   const { entries, add, edit, remove, clear } = useBotMemory(botId);
   const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -109,7 +110,7 @@ export function MemorySection({ botId, isPt }: MemorySectionProps) {
         <p className="text-[13px] text-muted">{copy.deviceNote}</p>
       </div>
 
-      <MemorySwitch isPt={isPt} />
+      <MemorySwitch language={language} />
 
       {entries.length === 0 ? (
         <p className="text-[13px] text-subtle">{copy.empty}</p>
@@ -119,7 +120,7 @@ export function MemorySection({ botId, isPt }: MemorySectionProps) {
             <MemoryEntryRow
               key={entry.id}
               entry={entry}
-              isPt={isPt}
+              language={language}
               onEdit={edit}
               onRemove={remove}
             />
@@ -161,7 +162,9 @@ export function MemorySection({ botId, isPt }: MemorySectionProps) {
         )}
       </FormField>
 
-      {entries.length > 0 && <ClearAllControl isPt={isPt} onConfirm={clear} />}
+      {entries.length > 0 && (
+        <ClearAllControl language={language} onConfirm={clear} />
+      )}
     </section>
   );
 }

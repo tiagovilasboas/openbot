@@ -1,3 +1,5 @@
+import type { Language } from "../language/language.ts";
+
 interface LockCopy {
   title: string;
   hint: string;
@@ -40,6 +42,22 @@ const EN: LockCopy = {
   offline: "100% offline. Local screen lock (PBKDF2 hash).",
 };
 
-export function getLockCopy(isPt: boolean): LockCopy {
-  return isPt ? PT : EN;
+const ES: LockCopy = {
+  title: "OpenBot bloqueado",
+  hint: "Escribe tu contraseña o PIN local para acceder.",
+  placeholder: "Contraseña o PIN local",
+  label: "Contraseña o PIN",
+  show: "Mostrar contraseña",
+  hide: "Ocultar contraseña",
+  error: "Contraseña incorrecta. Inténtalo de nuevo.",
+  unlock: "Desbloquear",
+  unlocking: "Desbloqueando...",
+  showHint: "Ver pista de la contraseña",
+  offline: "100 % sin conexión. Bloqueo de pantalla local (hash PBKDF2).",
+};
+
+const LOCK_COPY: Record<Language, LockCopy> = { pt: PT, en: EN, es: ES };
+
+export function getLockCopy(language: Language): LockCopy {
+  return LOCK_COPY[language];
 }

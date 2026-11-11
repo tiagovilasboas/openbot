@@ -1,3 +1,4 @@
+import { LANGUAGES } from "../language/language.ts";
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
@@ -71,7 +72,7 @@ test("the review notice counts the instructions, in both languages", () => {
     describeFileTextNotice("pt", { description: "abc" }),
     "Este texto veio de um arquivo: leia antes de salvar. 3 caracteres de instruções.",
   );
-  for (const lang of ["pt", "en"] as const) {
+  for (const lang of LANGUAGES) {
     assert.ok(getBotTemplateFileCopy(lang).fileTextNotice.includes("{count}"));
   }
 });

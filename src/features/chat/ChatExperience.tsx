@@ -27,6 +27,7 @@ import { ConversationView } from "./ConversationView.tsx";
 import { focusComposer } from "./focus-composer.ts";
 import { rollBackThread, rollbackBlock } from "./roll-back-thread.ts";
 import { useBotMessages } from "./use-bot-messages.ts";
+import { HTML_LANG } from "../language/language.ts";
 import { useChatTurns } from "./use-chat-turns.ts";
 import { useLanguage } from "./use-language.ts";
 import { useMessageQueue } from "./use-message-queue.ts";
@@ -72,7 +73,7 @@ export function ChatExperience() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    document.documentElement.lang = language === "pt" ? "pt-BR" : "en";
+    document.documentElement.lang = HTML_LANG[language];
   }, [language]);
 
   // The active bot's accent drives focus rings, caret, selection and the

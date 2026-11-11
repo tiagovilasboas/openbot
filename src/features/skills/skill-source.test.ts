@@ -1,3 +1,4 @@
+import { LANGUAGES } from "../language/language.ts";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { skillsCopy } from "./skills-copy.ts";
@@ -26,7 +27,7 @@ test("the sanitizer keeps imported and defaults old data to created", () => {
 });
 
 test("the imported badge and warning exist in both languages", () => {
-  for (const lang of ["pt", "en"] as const) {
+  for (const lang of LANGUAGES) {
     assert.ok(skillsCopy[lang].importedBadge.length > 0);
     assert.ok(skillsCopy[lang].importedWarning.length > 0);
   }

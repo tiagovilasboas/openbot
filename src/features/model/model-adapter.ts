@@ -1,7 +1,8 @@
+import type { Language } from "../language/language.ts";
 import type { ClientModelConfig } from "./model-config.ts";
 import type { TokenUsage } from "./token-usage.ts";
 
-export type ModelLanguage = "pt" | "en";
+export type ModelLanguage = Language;
 
 export type ModelMessage = {
   role: "assistant" | "user";
