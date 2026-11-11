@@ -80,7 +80,7 @@ test("buildBackup never exports secrets or unknown keys", () => {
 test("buildBackup collects bots, ids, messages and language", () => {
   const backup = buildBackup(seeded(), "pt", new Date("2026-03-04T10:00:00Z"));
   assert.equal(backup.app, "openbot");
-  assert.equal(backup.version, 1);
+  assert.equal(backup.version, 2);
   assert.equal(backup.exportedAt, "2026-03-04T10:00:00.000Z");
   assert.equal(backup.data.bots.length, 2);
   assert.equal(backup.data.activeBotId, "b");
@@ -124,7 +124,7 @@ test("parseBackup returns typed errors", () => {
     error: "invalid_file",
   });
   assert.deepEqual(
-    parseBackup(envelope({ bots: [bot("a")] }, { version: 2 })),
+    parseBackup(envelope({ bots: [bot("a")] }, { version: 3 })),
     {
       ok: false,
       error: "unsupported_version",

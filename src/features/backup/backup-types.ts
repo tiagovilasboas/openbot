@@ -4,7 +4,13 @@ import type { BotProfile } from "../bots/bot-types.ts";
 import type { MemoryEntry } from "../memory/memory-entries.ts";
 
 export const BACKUP_APP = "openbot";
-export const BACKUP_VERSION = 1;
+/**
+ * Format history. 1: bots, messages, memory. 2: messages also keep their
+ * `incomplete` flag and the names and sizes of their attachments. Files of
+ * every version in BACKUP_READABLE_VERSIONS still import; new exports are 2.
+ */
+export const BACKUP_VERSION = 2;
+export const BACKUP_READABLE_VERSIONS: readonly number[] = [1, 2];
 export const BACKUP_MAX_BYTES = 5 * 1024 * 1024;
 
 /** The only storage keys a backup reads. Everything else is never exported. */
