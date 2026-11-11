@@ -7,7 +7,7 @@ type PromptLanguage = "pt" | "en";
 const CHIEF_EN_DESCRIPTION =
   "You are the Chief of Staff, the general coordinator of the bot team. Your role is to plan, synthesize repository/calendar information, and coordinate/delegate tasks to specialist bots when needed.";
 
-function describeBot(bot: BotProfile, language: PromptLanguage): string {
+export function describeBot(bot: BotProfile, language: PromptLanguage): string {
   const isStockChief =
     (bot.id === "chief-of-staff" || bot.id === "default") &&
     bot.description.includes("Você é o Chief of Staff");
@@ -36,8 +36,23 @@ export function buildBotSystemPrompt(
   language: PromptLanguage,
   reserve = 0,
 ): string {
+  return buildBotSystemPromptWithin(
+    bot,
+    language,
+    Math.max(0, MAX_SYSTEM_PROMPT_CHARS - reserve),
+  );
+}
+
+/**
+ * The same prompt built to an explicit character budget. An infinite budget
+ * gives the whole prompt, uncut, which is what the editor measures against.
+ */
+export function buildBotSystemPromptWithin(
+  bot: BotProfile,
+  language: PromptLanguage,
+  budget: number,
+): string {
   const isPt = language === "pt";
-  const budget = Math.max(0, MAX_SYSTEM_PROMPT_CHARS - reserve);
   const description = describeBot(bot, language);
   const workspaceLabel = isPt ? "Contexto de Workspace:" : "Workspace Context:";
   const workspaceText = bot.workspaceContext ?? "";

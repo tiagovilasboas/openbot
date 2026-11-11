@@ -26,6 +26,7 @@ import { executeSummary } from "@/features/summary/execute-summary.ts";
 import { chatCopy } from "./chat-copy.ts";
 import { describeModelFailure } from "./describe-model-failure.ts";
 import { findMentionedBot } from "./find-mentioned-bot.ts";
+import { incompleteKindOf, type IncompleteKind } from "./incomplete-reply.ts";
 import { createLiveBoard, type LiveEntry } from "./live-board.ts";
 import { fitHistoryToBytes, limitHistory } from "./request-history.ts";
 import { requestModelReply } from "./request-model-reply.ts";
@@ -41,7 +42,7 @@ export interface ChatReplyOutcome {
   github?: { repo: GitHubRepoRef; items: GitHubItem[] };
   failover?: { fromModel: string; toModel: string; reason: string };
   /** The text is what arrived before the reply broke off or was cancelled. */
-  incomplete?: "error" | "cancelled";
+  incomplete?: IncompleteKind;
   /** Set when the turn reached the model, so the header dot can follow it. */
   modelCall?: ModelCallResult;
   /** Set when the Chief delegated: its kickoff and each specialist's reply. */
@@ -268,7 +269,7 @@ export async function executeChatMessage({
     return {
       ...failedReply(outcome.failure),
       text: kept,
-      incomplete: outcome.failure.kind === "cancelled" ? "cancelled" : "error",
+      incomplete: incompleteKindOf(outcome.failure),
     };
   }
   if (outcome.kind === "text") {

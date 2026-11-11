@@ -1,3 +1,8 @@
+import type { AttachmentSummary } from "../attachments/attachment-summary.ts";
+import {
+  MAX_ATTACHMENTS,
+  MAX_NAME_LENGTH,
+} from "../attachments/attachment-limits.ts";
 import { sanitizeBotProfile } from "../bots/bot-storage.ts";
 import type { BotProfile } from "../bots/bot-types.ts";
 import type { MessageData } from "../chat/ChatMessageItem.tsx";
@@ -9,6 +14,7 @@ import {
 import {
   BACKUP_APP,
   BACKUP_MAX_BYTES,
+  BACKUP_READABLE_VERSIONS,
   BACKUP_VERSION,
   type Backup,
   type BackupData,
@@ -19,6 +25,7 @@ const MAX_BOTS = 100;
 const MAX_MESSAGES_PER_BOT = 500;
 const MAX_TEXT_LENGTH = 20_000;
 const MAX_LABEL_LENGTH = 200;
+const MAX_ATTACHMENTS_SCANNED = 20;
 const RESERVED_IDS = new Set(["__proto__", "constructor", "prototype"]);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -46,6 +53,28 @@ function sanitizeFailover(raw: unknown): MessageData["failover"] {
   };
 }
 
+/** Names and sizes only; anything else a file claims is dropped. */
+function sanitizeAttachments(raw: unknown): AttachmentSummary[] {
+  if (!Array.isArray(raw)) return [];
+  const kept: AttachmentSummary[] = [];
+  for (const entry of raw.slice(0, MAX_ATTACHMENTS_SCANNED)) {
+    if (kept.length >= MAX_ATTACHMENTS) break;
+    if (!isRecord(entry)) continue;
+    const name = clampText(entry.name, MAX_NAME_LENGTH);
+    const { size } = entry;
+    if (!name || typeof size !== "number" || !Number.isSafeInteger(size)) {
+      continue;
+    }
+    if (size < 0) continue;
+    kept.push({
+      name,
+      size,
+      ...(entry.truncated === true ? { truncated: true } : {}),
+    });
+  }
+  return kept;
+}
+
 function sanitizeMessage(raw: unknown): MessageData | null {
   if (!isRecord(raw)) return null;
   const text = clampText(raw.text, MAX_TEXT_LENGTH);
@@ -70,6 +99,11 @@ function sanitizeMessage(raw: unknown): MessageData | null {
   }
   const crewStep = sanitizeCrewStep(raw.crewStep);
   if (crewStep && message.delegatedBot) message.crewStep = crewStep;
+  if (raw.incomplete === "error" || raw.incomplete === "cancelled") {
+    message.incomplete = raw.incomplete;
+  }
+  const attachments = sanitizeAttachments(raw.attachments);
+  if (attachments.length > 0) message.attachments = attachments;
   return message;
 }
 
@@ -157,7 +191,10 @@ export function parseBackup(text: unknown): ParseBackupResult {
   if (!isRecord(parsed) || parsed.app !== BACKUP_APP) {
     return { ok: false, error: "invalid_file" };
   }
-  if (parsed.version !== BACKUP_VERSION) {
+  if (
+    typeof parsed.version !== "number" ||
+    !BACKUP_READABLE_VERSIONS.includes(parsed.version)
+  ) {
     return { ok: false, error: "unsupported_version" };
   }
   const data = sanitizeData(parsed.data);
