@@ -94,6 +94,14 @@ export function recordUsageCall(
   }
 }
 
+/** The bot ids that have usage recorded, for pruning the ones that are gone. */
+export function storedUsageBotIds(
+  storage: UsageStorage | undefined = browserStorage(),
+): string[] {
+  return [...new Set(loadUsage(storage).map((r) => r.botId))];
+}
+
+/** Forgets a bot's usage, for example when the bot is deleted. */
 export function clearBotUsage(
   botId: string,
   storage: UsageStorage | undefined = browserStorage(),
