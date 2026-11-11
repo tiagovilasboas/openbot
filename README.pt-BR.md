@@ -7,7 +7,7 @@
 
 > Uma equipe de bots de IA que mora no seu celular. Um Chief of Staff lidera e delega, você escolhe o modelo e as chaves de API ficam no seu próprio servidor.
 
-[English](README.md) · [Por onde começar](#por-onde-começar) · [Telas](#como-ele-é) · [A equipe](#a-equipe) · [Modelos](#escolha-o-modelo) · [Instale no celular](#instale-no-celular) · [Status](#status-e-limites)
+[English](README.md) · [Español](README.es.md) · [Por onde começar](#por-onde-começar) · [Telas](#como-ele-é) · [A equipe](#a-equipe) · [Modelos](#escolha-o-modelo) · [Instale no celular](#instale-no-celular) · [Status](#status-e-limites)
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/readme/architecture-dark.svg">
@@ -82,7 +82,7 @@ Peça ao Chief algo que precise de mais de um especialista e ele escreve uma lin
 | Skills                 | Cada bot guarda as próprias skills. Escreva uma ao editar o bot, ou cole um `SKILL.md`, e rode como `/comando`.                                                                                                        |
 | Bot como arquivo       | Exporte um bot para um arquivo JSON com nome, instruções, visual e skills, e preencha o formulário de um bot novo com um arquivo. Conversas, chaves e senha não vão no arquivo, e as skills importadas ficam marcadas. |
 | Bloqueio local         | Senha opcional que bloqueia o app neste aparelho. É um bloqueio de tela, não autenticação; só um hash PBKDF2 fica salvo.                                                                                               |
-| Dois idiomas           | Português brasileiro e inglês, com troca a qualquer momento.                                                                                                                                                           |
+| Três idiomas           | Português brasileiro, inglês e espanhol, com troca a qualquer momento.                                                                                                                                                 |
 
 ## Escolha o modelo
 
@@ -130,7 +130,7 @@ O Open Bot é um projeto inicial, na versão 0.1.0.
 - Os testes automatizados usam provedores simulados. Nenhum teste roda contra um modelo de verdade.
 - A instalação num iPhone ou Android físico ainda não foi verificada.
 - Bots, conversas, skills e Configurações ficam no `localStorage` deste navegador. Não há sincronização, mas você pode exportar e importar um arquivo de backup em Configurações (ele deixa de fora chaves, tokens e senhas).
-- As descrições da equipe ainda estão só em português, mesmo com a interface em inglês.
+- As descrições da equipe ainda estão só em português, mesmo com a interface em inglês ou espanhol.
 - A delegação só rodou à mão contra um modelo gratuito. Nenhum teste automatizado chama um modelo real.
 - Ainda não existe integração com calendário.
 
