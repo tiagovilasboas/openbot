@@ -110,7 +110,7 @@ Você também pode escolher o provedor em Configurações, na aba Modelo. As cha
 
 O service worker guarda só a casca do app. Ele nunca guarda chamadas a `/api`, respostas do modelo ou credenciais.
 
-Por padrão o servidor não tem login, o que serve para localhost. Toda chamada a `/api` é checada por um `Origin` do mesmo site (ou pelo header `x-openbot-client: 1`), limitada a 64 KB e a 60 requisições por minuto por chamador (`OPENBOT_RATE_LIMIT`). Para expor além da sua máquina, defina `OPENBOT_ACCESS_TOKEN` no `.env.local`: toda chamada a `/api` passa a exigir `Authorization: Bearer <token>`. No navegador, salve o token uma vez com `localStorage.setItem("openbot_access_token", "<token>")` no console do desenvolvedor. Mantenha atrás de HTTPS e de um controle de acesso em que você confie.
+Por padrão o servidor não tem login, o que serve para localhost. Toda chamada a `/api` é checada por um `Origin` do mesmo site (ou pelo header `x-openbot-client: 1`), limitada a 64 KB e a 60 requisições por minuto por chamador (`OPENBOT_RATE_LIMIT`). Sem token, a API só atende chamadas de loopback (`127.0.0.1`, `::1`); uma requisição de qualquer outro dispositivo é recusada com `403 access_token_required`, então o servidor nunca fica aberto à sua rede por acidente. Para usar a partir de outro dispositivo ou expor além da sua máquina, defina `OPENBOT_ACCESS_TOKEN` no `.env.local`: toda chamada a `/api` passa a exigir `Authorization: Bearer <token>`. No navegador, salve o token uma vez com `localStorage.setItem("openbot_access_token", "<token>")` no console do desenvolvedor. Mantenha atrás de HTTPS e de um controle de acesso em que você confie.
 
 Estas variáveis ajustam a proteção de `/api`. Defina no `.env.local`:
 

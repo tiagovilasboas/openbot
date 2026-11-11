@@ -22,6 +22,8 @@ export const chatCopyEs = {
     "No pude comunicarme con el modelo configurado. Inténtalo de nuevo.",
   modelErrorAuth:
     "El proveedor rechazó la llamada: la clave de API falta o no es válida. Abre **Configuración**, pega tu clave y prueba la conexión.",
+  modelErrorAccessRequired:
+    "Define **OPENBOT_ACCESS_TOKEN** en el servidor para usar Open Bot desde otro dispositivo.",
   modelErrorRateLimit:
     "El proveedor alcanzó su límite de solicitudes (por minuto o la cuota diaria gratuita). Espera un momento o elige otro modelo en **Configuración**.",
   modelErrorModel:

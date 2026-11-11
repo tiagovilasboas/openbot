@@ -24,6 +24,8 @@ export const chatCopy = {
     modelError: "Não consegui falar com o modelo configurado. Tente novamente.",
     modelErrorAuth:
       "O provedor recusou a chamada: a chave de API está faltando ou é inválida. Abra **Configurações**, cole sua chave e teste a conexão.",
+    modelErrorAccessRequired:
+      "Defina **OPENBOT_ACCESS_TOKEN** no servidor para usar o Open Bot a partir de outro dispositivo.",
     modelErrorRateLimit:
       "O provedor atingiu o limite de pedidos (por minuto ou a cota diária gratuita). Espere um pouco ou escolha outro modelo em **Configurações**.",
     modelErrorModel:
@@ -183,6 +185,8 @@ export const chatCopy = {
     modelError: "I could not reach the configured model. Please try again.",
     modelErrorAuth:
       "The provider rejected the call: the API key is missing or invalid. Open **Settings**, paste your key and test the connection.",
+    modelErrorAccessRequired:
+      "Set **OPENBOT_ACCESS_TOKEN** on the server to use Open Bot from another device.",
     modelErrorRateLimit:
       "The provider hit its request limit (per minute or the free daily quota). Wait a moment or pick another model in **Settings**.",
     modelErrorModel:
