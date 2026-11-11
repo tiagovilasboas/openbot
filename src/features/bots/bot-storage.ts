@@ -160,6 +160,19 @@ export function subscribeActiveBotId(listener: () => void): () => void {
   };
 }
 
+/** A raw bot list, sanitized: invalid entries dropped, ids unique, capped. */
+export function sanitizeBotList(
+  parsed: readonly unknown[],
+  library: readonly SkillDefinition[] = [],
+): BotProfile[] {
+  const seen = new Set<string>();
+  return parsed
+    .slice(0, BOTS_MAX_COUNT)
+    .map((bot) => sanitizeBotProfile(bot, library))
+    .filter((b): b is BotProfile => b !== null)
+    .filter((b) => !seen.has(b.id) && Boolean(seen.add(b.id)));
+}
+
 /** The stored bot list, sanitized; the crew presets when nothing is stored. */
 export function parseBots(
   raw: string | null,
@@ -169,12 +182,7 @@ export function parseBots(
   try {
     const parsed: unknown = JSON.parse(raw);
     if (!Array.isArray(parsed)) return DEFAULT_BOTS_LIST;
-    const seen = new Set<string>();
-    const sanitized = parsed
-      .slice(0, BOTS_MAX_COUNT)
-      .map((bot) => sanitizeBotProfile(bot, library))
-      .filter((b): b is BotProfile => b !== null)
-      .filter((b) => !seen.has(b.id) && Boolean(seen.add(b.id)));
+    const sanitized = sanitizeBotList(parsed, library);
     return sanitized.length > 0 ? sanitized : DEFAULT_BOTS_LIST;
   } catch {
     return DEFAULT_BOTS_LIST;
