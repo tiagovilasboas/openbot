@@ -1,3 +1,4 @@
+import { isLanguage } from "../language/language.ts";
 import type { AttachmentSummary } from "../attachments/attachment-summary.ts";
 import {
   MAX_ATTACHMENTS,
@@ -84,7 +85,7 @@ function sanitizeMessage(raw: unknown): MessageData | null {
   const message: MessageData = {
     id: raw.id,
     role: raw.role,
-    language: raw.language === "en" ? "en" : "pt",
+    language: isLanguage(raw.language) ? raw.language : "pt",
     text,
   };
   const badge = clampText(raw.modelBadge, MAX_LABEL_LENGTH);
@@ -170,9 +171,7 @@ function sanitizeData(raw: unknown): BackupData | null {
     bots,
     ...(activeBotId ? { activeBotId } : {}),
     ...(mainBotId ? { mainBotId } : {}),
-    ...(raw.language === "pt" || raw.language === "en"
-      ? { language: raw.language }
-      : {}),
+    ...(isLanguage(raw.language) ? { language: raw.language } : {}),
     messages: sanitizeMessages(raw.messages, ids),
     memory: sanitizeMemory(raw.memory, ids),
   };

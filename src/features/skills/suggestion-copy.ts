@@ -1,6 +1,6 @@
 import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
 
-/** Copy for "suggest a skill from this bot's chats". Bilingual parity. */
+/** Copy for "suggest a skill from this bot's chats". One entry per language. */
 export const suggestionCopy = {
   pt: {
     action: "Sugerir uma skill a partir das conversas deste bot",
@@ -36,6 +36,24 @@ export const suggestionCopy = {
     notEnoughHistory:
       "Not enough chats yet: send this bot at least {min} messages and try again.",
     invalidSuggestion: "The model did not return a usable skill. Try again.",
+  },
+  es: {
+    action: "Sugerir una skill a partir de las conversaciones de este bot",
+    hint: "Lee tus últimos mensajes a este bot y propone una skill. No se agrega nada sin que la aceptes.",
+    thinking: "Leyendo tus conversaciones…",
+    cancel: "Cancelar",
+    draftTitle: "Skill sugerida",
+    draftWarning:
+      "Escrita por el modelo a partir de tus mensajes: lee las instrucciones antes de agregarla.",
+    commandLabel: "Comando",
+    instructionsLabel: "Instrucciones",
+    accept: "Agregar skill",
+    discard: "Descartar",
+    retry: "Intentar de nuevo",
+    notEnoughHistory:
+      "Todavía hay pocas conversaciones: envía al menos {min} mensajes a este bot e inténtalo de nuevo.",
+    invalidSuggestion:
+      "El modelo no devolvió una skill utilizable. Inténtalo de nuevo.",
   },
 } as const satisfies Record<ChatLanguage, Record<string, string>>;
 

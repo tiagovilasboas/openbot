@@ -1,19 +1,28 @@
+import type { Language } from "../language/language.ts";
 import { MAX_SYSTEM_PROMPT_CHARS } from "../model/system-prompt-limit.ts";
 import { buildSkillsBlock } from "../skills/skill-prompt-block.ts";
 import type { BotProfile } from "./bot-types.ts";
 
-type PromptLanguage = "pt" | "en";
+type PromptLanguage = Language;
 
-const CHIEF_EN_DESCRIPTION =
-  "You are the Chief of Staff, the general coordinator of the bot team. Your role is to plan, synthesize repository/calendar information, and coordinate/delegate tasks to specialist bots when needed.";
+/** The stock Chief's description per language; Portuguese is what is stored. */
+const CHIEF_DESCRIPTION: Record<Language, string | null> = {
+  pt: null,
+  en: "You are the Chief of Staff, the general coordinator of the bot team. Your role is to plan, synthesize repository/calendar information, and coordinate/delegate tasks to specialist bots when needed.",
+  es: "Eres el Chief of Staff, el coordinador general del equipo de bots. Tu función es planificar, sintetizar información de repositorios y calendario, y coordinar o delegar tareas a los bots especialistas cuando haga falta.",
+};
+
+const WORKSPACE_LABEL: Record<Language, string> = {
+  pt: "Contexto de Workspace:",
+  en: "Workspace Context:",
+  es: "Contexto del workspace:",
+};
 
 export function describeBot(bot: BotProfile, language: PromptLanguage): string {
   const isStockChief =
     (bot.id === "chief-of-staff" || bot.id === "default") &&
     bot.description.includes("Você é o Chief of Staff");
-  return isStockChief && language === "en"
-    ? CHIEF_EN_DESCRIPTION
-    : bot.description;
+  return (isStockChief && CHIEF_DESCRIPTION[language]) || bot.description;
 }
 
 const CUT_MARK = "…";
@@ -52,9 +61,8 @@ export function buildBotSystemPromptWithin(
   language: PromptLanguage,
   budget: number,
 ): string {
-  const isPt = language === "pt";
   const description = describeBot(bot, language);
-  const workspaceLabel = isPt ? "Contexto de Workspace:" : "Workspace Context:";
+  const workspaceLabel = WORKSPACE_LABEL[language];
   const workspaceText = bot.workspaceContext ?? "";
   const workspaceOf = (text: string) =>
     text ? `\n\n${workspaceLabel}\n${text}` : "";

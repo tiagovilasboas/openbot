@@ -1,3 +1,4 @@
+import type { Language } from "../language/language.ts";
 import {
   MEMORY_MAX_ENTRIES,
   MEMORY_MAX_ENTRY_LENGTH,
@@ -83,6 +84,37 @@ const EN: MemoryCopy = {
   },
 };
 
-export function getMemoryCopy(isPt: boolean): MemoryCopy {
-  return isPt ? PT : EN;
+const ES: MemoryCopy = {
+  title: "Memoria",
+  deviceNote:
+    "Las notas se quedan solo en este dispositivo y se envían al modelo con cada mensaje a este bot. Aquí ves, editas y borras todo.",
+  switchLabel: "Usar memoria",
+  switchHint: "Vale para todos los bots. Si está apagada, no se envía nada.",
+  empty: "Aún no hay notas.",
+  addLabel: "Nueva nota",
+  addPlaceholder: "ej.: Prefiero respuestas cortas",
+  addAction: "Agregar",
+  counter: (count) => `${count} de ${MEMORY_MAX_ENTRIES} notas`,
+  edit: "Editar",
+  editLabel: "Editar nota",
+  remove: "Eliminar",
+  save: "Guardar",
+  cancel: "Cancelar",
+  clearAll: "Borrar todo",
+  clearConfirm: "¿Borrar toda la memoria?",
+  clearConfirmAction: "Borrar",
+  errors: {
+    empty: "Escribe algo antes de guardar.",
+    too_long: `Cada nota puede tener hasta ${MEMORY_MAX_ENTRY_LENGTH} caracteres.`,
+    too_many: `La memoria guarda hasta ${MEMORY_MAX_ENTRIES} notas. Borra alguna para liberar espacio.`,
+    total_too_long:
+      "La memoria llegó al límite de tamaño. Borra o acorta alguna nota.",
+    not_found: "Esa nota ya no existe.",
+  },
+};
+
+const MEMORY_COPY: Record<Language, MemoryCopy> = { pt: PT, en: EN, es: ES };
+
+export function getMemoryCopy(language: Language): MemoryCopy {
+  return MEMORY_COPY[language];
 }

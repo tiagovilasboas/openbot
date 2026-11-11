@@ -1,3 +1,4 @@
+import { LANGUAGES } from "../language/language.ts";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { acceptSuggestion } from "./accept-suggestion.ts";
@@ -35,7 +36,7 @@ test("both languages have the same suggestion copy and the badge", () => {
     Object.keys(suggestionCopy.pt).sort(),
     Object.keys(suggestionCopy.en).sort(),
   );
-  for (const lang of ["pt", "en"] as const) {
+  for (const lang of LANGUAGES) {
     assert.ok(skillsCopy[lang].suggestedBadge.length > 0);
     assert.ok(skillsCopy[lang].suggestedWarning.length > 0);
   }
@@ -50,7 +51,7 @@ test("each failure has human copy in both languages, without raw codes", () => {
     { kind: "error", failure: { kind: "timeout" } },
     { kind: "error", failure: { kind: "unreachable" } },
   ] as const;
-  for (const language of ["pt", "en"] as const) {
+  for (const language of LANGUAGES) {
     for (const outcome of failures) {
       const text = describeSuggestionFailure(outcome, language);
       assert.ok(text.length > 10);

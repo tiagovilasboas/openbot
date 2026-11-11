@@ -1,3 +1,4 @@
+import { LANGUAGES } from "../language/language.ts";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createMessageQueue } from "../chat/message-queue.ts";
@@ -41,7 +42,7 @@ test("sizes read like a person would say them", () => {
 });
 
 test("every refusal has human copy in both languages", () => {
-  for (const language of ["pt", "en"] as const) {
+  for (const language of LANGUAGES) {
     for (const reason of [
       "too_large",
       "not_text",

@@ -17,6 +17,9 @@ Escreva no idioma das mensagens. Se nada se repete, proponha a skill mais útil 
   en: `Below are messages a user sent to an assistant, oldest first. Find ONE way of working that repeats across them and propose a skill that captures it: a reusable set of instructions for the assistant.
 Reply with ONLY a JSON object, no text before or after and no code fences, with exactly these text fields: "name" (up to ${SUGGESTION_MAX_NAME} characters), "description" (one sentence, up to ${SUGGESTION_MAX_DESCRIPTION}), "instructions" (direct instructions to the assistant, up to ${SUGGESTION_MAX_INSTRUCTIONS} characters).
 Write in the language of the messages. If nothing repeats, propose the most useful skill the set suggests.`,
+  es: `A continuación hay mensajes que un usuario envió a un asistente, del más antiguo al más reciente. Encuentra UNA forma de trabajar que se repita en ellos y propón una skill que la capture: un conjunto reutilizable de instrucciones para el asistente.
+Responde SOLO con un objeto JSON, sin texto antes ni después y sin bloques de código, con exactamente estos campos de texto: "name" (hasta ${SUGGESTION_MAX_NAME} caracteres), "description" (una frase, hasta ${SUGGESTION_MAX_DESCRIPTION}), "instructions" (instrucciones directas al asistente, hasta ${SUGGESTION_MAX_INSTRUCTIONS} caracteres).
+Escribe en el idioma de los mensajes. Si nada se repite, propón la skill más útil que sugiera el conjunto.`,
 };
 
 /** The system prompt: the task and the rule that the messages are data. */

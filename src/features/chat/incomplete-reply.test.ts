@@ -1,3 +1,4 @@
+import { LANGUAGES } from "../language/language.ts";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { chatCopy } from "./chat-copy.ts";
@@ -21,7 +22,7 @@ test("only an interrupted reply offers a retry", () => {
 });
 
 test("the too-long note says it was cut and that retrying will not help, in both languages", () => {
-  for (const language of ["pt", "en"] as const) {
+  for (const language of LANGUAGES) {
     const c = chatCopy[language];
     const note = incompleteNote("too_long", c);
     assert.equal(note, c.truncatedNote);

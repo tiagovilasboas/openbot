@@ -1,5 +1,6 @@
 "use client";
 
+import type { Language } from "../language/language.ts";
 import type { chatCopy } from "@/features/chat/chat-copy.ts";
 import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
 import { FIELD_CLASS, FormField } from "@/shared/ui/FormField.tsx";
@@ -9,7 +10,7 @@ import { SettingsModelPresets } from "./SettingsModelPresets.tsx";
 interface SettingsProviderFieldsProps {
   provider: ModelProviderType;
   language: ChatLanguage;
-  content: (typeof chatCopy)["pt" | "en"];
+  content: (typeof chatCopy)[Language];
   routerUrl: string;
   setRouterUrl: (val: string) => void;
   routerModel: string;

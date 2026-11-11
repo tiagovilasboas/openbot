@@ -1,3 +1,4 @@
+import { LANGUAGES } from "../language/language.ts";
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { GitHubItem } from "../github/github-types.ts";
@@ -15,14 +16,17 @@ const hostile: GitHubItem = {
   isPullRequest: false,
 };
 
-for (const language of ["pt", "en"] as const) {
+for (const language of LANGUAGES) {
   test(`GitHub titles are wrapped as data and cannot break out (${language})`, () => {
     const { text } = formatSummaryPrompt(
       { repo: { owner: "o", repo: "r" }, items: [hostile] },
       language,
       "summarize",
     );
-    assert.match(text, /between <external-data> tags|entre as tags/);
+    assert.match(
+      text,
+      /between <external-data> tags|entre as tags|entre las etiquetas/,
+    );
     assert.equal(text.match(/<\/external-data>/g)?.length, 1);
     const open = text.indexOf("<external-data>");
     const close = text.indexOf("</external-data>");

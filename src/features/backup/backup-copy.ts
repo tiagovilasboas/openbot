@@ -67,6 +67,40 @@ export const backupCopy = {
     restoreFailed:
       "Could not save the backup in this browser. Free some space and try again.",
   },
+  es: {
+    title: "Copia de seguridad",
+    description:
+      "Tus bots y conversaciones viven solo en este navegador. Exporta un archivo para guardar una copia o llevarla a otro lugar.",
+    secretsNote:
+      "El archivo no incluye claves, tokens ni contraseña. Vuelve a conectar tus proveedores después de importar.",
+    exportAction: "Exportar copia",
+    exported: "Copia descargada.",
+    importAction: "Importar copia",
+    importFileLabel: "Archivo de copia de seguridad de OpenBot",
+    summary:
+      "{bots} bot(s) y {conversations} conversación(es) en este archivo.",
+    modeLegend: "Cómo importar",
+    modeMerge: "Combinar",
+    modeMergeHint: "Conserva lo que ya tienes y agrega los bots nuevos.",
+    modeReplace: "Reemplazar",
+    modeReplaceHint:
+      "Borra tus bots y conversaciones actuales y usa los del archivo.",
+    confirmMerge: "Combinar ahora",
+    confirmReplace: "Reemplazar todo",
+    cancel: "Cancelar",
+    restoring: "Importando...",
+    restored: "Copia importada. Recargando...",
+    errors: {
+      invalid_file:
+        "Ese archivo no parece una copia de seguridad de OpenBot. Elige otro archivo.",
+      unsupported_version:
+        "Esa copia viene de una versión que este OpenBot no entiende.",
+      too_large: "Ese archivo es demasiado grande. El límite es de 5 MB.",
+    },
+    readFailed: "No se pudo leer el archivo. Inténtalo de nuevo.",
+    restoreFailed:
+      "No se pudo guardar la copia en este navegador. Libera espacio e inténtalo de nuevo.",
+  },
 } as const;
 
 export function getBackupCopy(language: ChatLanguage) {

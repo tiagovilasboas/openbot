@@ -1,3 +1,4 @@
+import { isLanguage } from "../language/language.ts";
 import type { ModelMessage, ModelRequest } from "./model-adapter.ts";
 import { appendAttachmentBlock } from "../attachments/attachment-block.ts";
 import { parseAttachments } from "../attachments/parse-attachments.ts";
@@ -44,7 +45,7 @@ export function parseChatRequest(payload: unknown): ParsedChatRequest {
     memory,
     attachments,
   } = payload as Record<string, unknown>;
-  if (language !== "pt" && language !== "en") return { ok: false };
+  if (!isLanguage(language)) return { ok: false };
   if (!Array.isArray(messages)) return { ok: false };
   if (messages.length === 0 || messages.length > maxMessages) {
     return { ok: false };

@@ -1,5 +1,6 @@
 "use client";
 
+import type { Language } from "../language/language.ts";
 import { useId, useRef, type KeyboardEvent } from "react";
 import { BotAvatar } from "./BotAvatar.tsx";
 import { getBotsCopy } from "./bots-copy.ts";
@@ -13,7 +14,7 @@ import {
 interface BotAvatarPickersProps {
   avatarShape: AvatarShape;
   avatarColor: AvatarColor;
-  isPt: boolean;
+  language: Language;
   onSelectShape: (shape: AvatarShape) => void;
   onSelectColor: (color: AvatarColor) => void;
 }
@@ -94,11 +95,11 @@ function SwatchGroup<T extends string>({
 export function BotAvatarPickers({
   avatarShape,
   avatarColor,
-  isPt,
+  language,
   onSelectShape,
   onSelectColor,
 }: BotAvatarPickersProps) {
-  const copy = getBotsCopy(isPt);
+  const copy = getBotsCopy(language);
 
   return (
     <div className="flex flex-col gap-4">

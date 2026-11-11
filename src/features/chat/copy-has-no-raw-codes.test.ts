@@ -1,3 +1,4 @@
+import { LANGUAGES } from "../language/language.ts";
 import assert from "node:assert/strict";
 import test from "node:test";
 
@@ -32,7 +33,7 @@ test("the scan does catch a raw code", () => {
 });
 
 test("every failure sentence has an action, in both languages", () => {
-  for (const language of ["pt", "en"] as const) {
+  for (const language of LANGUAGES) {
     const c = chatCopy[language];
     for (const text of [
       c.modelErrorOffline,

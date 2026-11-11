@@ -2,10 +2,14 @@ import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
 
 /** What assistive tech hears for a bot with replies the user has not seen. */
 export function attentionLabel(language: ChatLanguage, count: number): string {
-  if (language === "pt") {
-    return count === 1 ? "1 resposta nova" : `${count} respostas novas`;
+  switch (language) {
+    case "pt":
+      return count === 1 ? "1 resposta nova" : `${count} respostas novas`;
+    case "en":
+      return count === 1 ? "1 new reply" : `${count} new replies`;
+    case "es":
+      return count === 1 ? "1 respuesta nueva" : `${count} respuestas nuevas`;
   }
-  return count === 1 ? "1 new reply" : `${count} new replies`;
 }
 
 /** The pill is two characters wide at most. */

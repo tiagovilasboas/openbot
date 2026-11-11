@@ -56,8 +56,7 @@ function BotEditForm({
   onMakeMain,
 }: BotEditFormProps) {
   const isEditing = Boolean(bot?.id && bot.id !== "new");
-  const isPt = language === "pt";
-  const copy = getBotsCopy(isPt);
+  const copy = getBotsCopy(language);
 
   const [name, setName] = useState(bot?.name || "");
   const [title, setTitle] = useState(bot?.title || "");
@@ -127,11 +126,7 @@ function BotEditForm({
           : `bot_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
       name: name.trim(),
       title: title.trim() || undefined,
-      description:
-        description.trim() ||
-        (isPt
-          ? "Você é um assistente conciso e prestativo."
-          : "You are a concise, helpful assistant."),
+      description: description.trim() || copy.defaultDescription,
       workspaceContext: workspaceContext.trim() || undefined,
       modelId: modelId.trim() || undefined,
       avatarShape,
@@ -214,7 +209,7 @@ function BotEditForm({
       <BotAvatarPickers
         avatarShape={avatarShape}
         avatarColor={avatarColor}
-        isPt={isPt}
+        language={language}
         onSelectShape={setAvatarShape}
         onSelectColor={setAvatarColor}
       />
@@ -243,7 +238,11 @@ function BotEditForm({
         )}
       </FormField>
 
-      <BotModelField value={modelId} isPt={isPt} onChange={setModelId} />
+      <BotModelField
+        value={modelId}
+        language={language}
+        onChange={setModelId}
+      />
 
       <BotSkillsEditor
         language={language}
@@ -253,13 +252,13 @@ function BotEditForm({
         modelId={modelId}
       />
 
-      <PromptBudgetNotice report={budgetReport} isPt={isPt} />
+      <PromptBudgetNotice report={budgetReport} language={language} />
 
-      {isEditing && bot && <MemorySection botId={bot.id} isPt={isPt} />}
+      {isEditing && bot && <MemorySection botId={bot.id} language={language} />}
 
       {isEditing && bot && onMakeMain && (
         <BotMainControl
-          isPt={isPt}
+          language={language}
           isMain={isMain}
           onMakeMain={() => onMakeMain(bot.id)}
         />
@@ -272,7 +271,7 @@ function BotEditForm({
           <div>
             {isEditing && canDelete && onDelete && bot && (
               <BotDeleteControl
-                isPt={isPt}
+                language={language}
                 onConfirm={() => {
                   onDelete(bot.id);
                   onClose();
@@ -306,7 +305,7 @@ function BotEditForm({
 export function BotEditModal(props: BotEditModalProps) {
   const { isOpen, bot, onClose } = props;
   const isEditing = Boolean(bot?.id && bot.id !== "new");
-  const copy = getBotsCopy(props.language === "pt");
+  const copy = getBotsCopy(props.language);
 
   return (
     <ResponsiveSheet

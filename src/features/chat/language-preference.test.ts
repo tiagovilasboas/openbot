@@ -28,8 +28,18 @@ test("a saved language is loaded back", () => {
   saveLanguage("en", storage);
   assert.equal(storage.getItem("openbot_language"), "en");
   assert.equal(loadLanguage(storage), "en");
+  saveLanguage("es", storage);
+  assert.equal(storage.getItem("openbot_language"), "es");
+  assert.equal(loadLanguage(storage), "es");
   saveLanguage("pt", storage);
   assert.equal(loadLanguage(storage), "pt");
+});
+
+test("Spanish is accepted and near misses are rejected on read", () => {
+  assert.equal(loadLanguage(memoryStorage({ openbot_language: "es" })), "es");
+  for (const bad of ["ES", "es-419", "es ", "", "spanish"]) {
+    assert.equal(loadLanguage(memoryStorage({ openbot_language: bad })), "pt");
+  }
 });
 
 test("an invalid stored value falls back to Portuguese", () => {

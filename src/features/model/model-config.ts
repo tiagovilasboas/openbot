@@ -1,3 +1,4 @@
+import type { Language } from "../language/language.ts";
 export type ModelProviderType = "router" | "local" | "anthropic";
 
 export type RouterConfig = {
@@ -202,13 +203,19 @@ export function clearStoredModelConfig(): void {
   }
 }
 
+const NO_MODEL_LABEL: Record<Language, string> = {
+  pt: "Sem modelo",
+  en: "No model",
+  es: "Sin modelo",
+};
+
 export function formatModelBadge(
   config?: { provider?: string; model?: string } | null,
   isDemo = false,
-  language: "pt" | "en" = "pt",
+  language: Language = "pt",
 ): string {
   if (isDemo || !config?.provider) {
-    return language === "pt" ? "Sem modelo" : "No model";
+    return NO_MODEL_LABEL[language];
   }
 
   const providerLabel =

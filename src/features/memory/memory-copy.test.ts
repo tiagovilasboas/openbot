@@ -1,3 +1,4 @@
+import { LANGUAGES } from "../language/language.ts";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { getMemoryCopy } from "./memory-copy.ts";
@@ -11,13 +12,18 @@ function flatten(value: unknown, prefix = ""): string[] {
   );
 }
 
-test("memory copy has the same keys in Portuguese and English", () => {
-  assert.deepEqual(flatten(getMemoryCopy(true)), flatten(getMemoryCopy(false)));
+test("memory copy has the same keys in every language", () => {
+  for (const language of LANGUAGES) {
+    assert.deepEqual(
+      flatten(getMemoryCopy(language)),
+      flatten(getMemoryCopy("pt")),
+    );
+  }
 });
 
 test("no memory text is empty and the counter names the limit", () => {
-  for (const isPt of [true, false]) {
-    const copy = getMemoryCopy(isPt);
+  for (const language of LANGUAGES) {
+    const copy = getMemoryCopy(language);
     for (const error of Object.values(copy.errors)) assert.ok(error.length > 0);
     assert.ok(copy.deviceNote.length > 0);
     assert.match(copy.counter(3), /3.*30/);
@@ -25,8 +31,10 @@ test("no memory text is empty and the counter names the limit", () => {
 });
 
 test("the device note says it stays here and goes to the model", () => {
-  assert.match(getMemoryCopy(true).deviceNote, /neste aparelho/);
-  assert.match(getMemoryCopy(true).deviceNote, /enviadas ao modelo/);
-  assert.match(getMemoryCopy(false).deviceNote, /this device/);
-  assert.match(getMemoryCopy(false).deviceNote, /sent to the model/);
+  assert.match(getMemoryCopy("pt").deviceNote, /neste aparelho/);
+  assert.match(getMemoryCopy("pt").deviceNote, /enviadas ao modelo/);
+  assert.match(getMemoryCopy("en").deviceNote, /this device/);
+  assert.match(getMemoryCopy("en").deviceNote, /sent to the model/);
+  assert.match(getMemoryCopy("es").deviceNote, /este dispositivo/);
+  assert.match(getMemoryCopy("es").deviceNote, /se envían al modelo/);
 });

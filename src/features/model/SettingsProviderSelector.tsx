@@ -1,12 +1,13 @@
 "use client";
 
+import type { Language } from "../language/language.ts";
 import type { chatCopy } from "@/features/chat/chat-copy.ts";
 import { CheckIcon } from "@/shared/ui/FieldIcons.tsx";
 import type { ModelProviderType } from "./model-config.ts";
 
 interface SettingsProviderSelectorProps {
   provider: ModelProviderType;
-  content: (typeof chatCopy)["pt" | "en"];
+  content: (typeof chatCopy)[Language];
   onSelectProvider: (provider: ModelProviderType) => void;
 }
 

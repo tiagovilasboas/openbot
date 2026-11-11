@@ -1,6 +1,5 @@
+import { FORMAT_LOCALE, type Language } from "../language/language.ts";
 import type { PromptBudgetReport } from "./prompt-budget.ts";
-
-type Language = "pt" | "en";
 
 interface PromptBudgetCopy {
   title: string;
@@ -19,7 +18,7 @@ const COPY: Record<Language, PromptBudgetCopy> = {
     workspace: "o contexto de projeto será cortado",
     description: "as instruções serão cortadas",
     overBy: (n) =>
-      `Passa do limite em cerca de ${n.toLocaleString("pt-BR")} caracteres.`,
+      `Passa do limite em cerca de ${n.toLocaleString(FORMAT_LOCALE.pt)} caracteres.`,
     hint: "Reduza o texto ou remova skills. Para o bot principal, a lista da equipe também ocupa espaço.",
   },
   en: {
@@ -29,8 +28,18 @@ const COPY: Record<Language, PromptBudgetCopy> = {
     workspace: "the project context will be cut",
     description: "the instructions will be cut",
     overBy: (n) =>
-      `It is over the limit by about ${n.toLocaleString("en-US")} characters.`,
+      `It is over the limit by about ${n.toLocaleString(FORMAT_LOCALE.en)} characters.`,
     hint: "Shorten the text or remove skills. For the main bot, the team list also takes room.",
+  },
+  es: {
+    title: "Atención: el prompt de este bot es demasiado grande",
+    skills: (n) =>
+      n === 1 ? "1 skill quedará fuera" : `${n} skills quedarán fuera`,
+    workspace: "el contexto del proyecto se cortará",
+    description: "las instrucciones se cortarán",
+    overBy: (n) =>
+      `Supera el límite en aproximadamente ${n.toLocaleString(FORMAT_LOCALE.es)} caracteres.`,
+    hint: "Reduce el texto o quita skills. En el bot principal, la lista del equipo también ocupa espacio.",
   },
 };
 

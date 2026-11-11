@@ -1,5 +1,6 @@
 "use client";
 
+import { FORMAT_LOCALE } from "../language/language.ts";
 import { useMemo, useSyncExternalStore } from "react";
 import { loadBotsFromStorage, subscribeBots } from "../bots/bot-storage.ts";
 import type { BotProfile } from "../bots/bot-types.ts";
@@ -29,9 +30,7 @@ export function UsageSection({ language }: { language: ChatLanguage }) {
   );
   const records = useUsage();
   const format = useMemo(() => {
-    const formatter = new Intl.NumberFormat(
-      language === "pt" ? "pt-BR" : "en-US",
-    );
+    const formatter = new Intl.NumberFormat(FORMAT_LOCALE[language]);
     return (value: number) => formatter.format(value);
   }, [language]);
   const today = localDay(new Date());

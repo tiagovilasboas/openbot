@@ -1,82 +1,59 @@
-import type { ChatLanguage } from "../chat/respond-to-message.ts";
+import type { Language } from "../language/language.ts";
+import { getSummaryCopy, type SummaryCopy } from "./summary-copy.ts";
 import type { SummaryDataSource, SummaryRequestKind } from "./summary-types.ts";
+
+function describeGitHubError(
+  error: NonNullable<SummaryDataSource["githubError"]>,
+  data: SummaryDataSource,
+  copy: SummaryCopy,
+): string {
+  if (error === "rate_limited") return copy.rateLimited;
+  if (error === "repo_not_found") {
+    return copy.repoNotFound(`${data.repo?.owner}/${data.repo?.repo}`);
+  }
+  if (error === "unauthorized") return copy.unauthorized;
+  return copy.network;
+}
 
 export function generateDeterministicSummary(
   data: SummaryDataSource,
-  language: ChatLanguage,
+  language: Language,
   kind: SummaryRequestKind = "repo_summary",
 ): string {
-  const isPt = language === "pt";
+  const copy = getSummaryCopy(language);
   const lines: string[] = [];
 
   // 1. Header
   if (kind === "daily_briefing") {
-    lines.push(isPt ? "### ☀️ Briefing Diário" : "### ☀️ Daily Briefing");
+    lines.push(copy.dailyBriefing);
   } else if (data.repo) {
-    lines.push(
-      isPt
-        ? `### 📋 Resumo de ${data.repo.owner}/${data.repo.repo}`
-        : `### 📋 Summary for ${data.repo.owner}/${data.repo.repo}`,
-    );
+    lines.push(copy.repoSummary(`${data.repo.owner}/${data.repo.repo}`));
   } else {
-    lines.push(isPt ? "### 📋 Resumo dos Dados" : "### 📋 Data Summary");
+    lines.push(copy.dataSummary);
   }
   lines.push("");
 
   // 2. Partial Failures (transparency rule)
   if (data.githubError) {
-    const errorMsg =
-      data.githubError === "rate_limited"
-        ? isPt
-          ? "Limite de requisições da API pública do GitHub atingido para seu IP. Configure um GITHUB_TOKEN nas Configurações para obter dados em tempo real."
-          : "GitHub public API rate limit exceeded for your IP. Configure a GITHUB_TOKEN in Settings for live data."
-        : data.githubError === "repo_not_found"
-          ? isPt
-            ? `Repositório ${data.repo?.owner}/${data.repo?.repo} não encontrado ou inacessível.`
-            : `Repository ${data.repo?.owner}/${data.repo?.repo} not found or inaccessible.`
-          : data.githubError === "unauthorized"
-            ? isPt
-              ? "Token do GitHub não autorizado ou sem permissão de leitura."
-              : "GitHub token unauthorized or lacking read permissions."
-            : isPt
-              ? "Erro de conexão ao acessar a API do GitHub."
-              : "Network error connecting to the GitHub API.";
-
     lines.push(
-      isPt
-        ? `> ⚠️ **Falha Parcial (GitHub):** ${errorMsg}`
-        : `> ⚠️ **Partial Failure (GitHub):** ${errorMsg}`,
+      copy.partialFailure(describeGitHubError(data.githubError, data, copy)),
     );
     lines.push("");
   }
 
-  // 3. Fatos Verificados - GitHub
+  // 3. Verified facts - GitHub
   const items = data.items ?? [];
   const prs = items.filter((i) => i.isPullRequest);
   const issues = items.filter((i) => !i.isPullRequest);
 
   if (items.length > 0) {
-    lines.push(
-      isPt
-        ? `**Visão Geral do Repositório (${items.length} itens abertos):**`
-        : `**Repository Overview (${items.length} open items):**`,
-    );
-    lines.push(
-      isPt
-        ? `- Pull Requests: **${prs.length}** abertos`
-        : `- Pull Requests: **${prs.length}** open`,
-    );
-    lines.push(
-      isPt
-        ? `- Issues: **${issues.length}** abertas`
-        : `- Issues: **${issues.length}** open`,
-    );
+    lines.push(copy.overview(items.length));
+    lines.push(copy.openPullRequests(prs.length));
+    lines.push(copy.openIssues(issues.length));
     lines.push("");
 
     if (prs.length > 0) {
-      lines.push(
-        isPt ? `**Pull Requests Recentes:**` : `**Recent Pull Requests:**`,
-      );
+      lines.push(copy.recentPullRequests);
       for (const pr of prs.slice(0, 5)) {
         lines.push(`- **#${pr.number}** ${pr.title} (@${pr.author})`);
       }
@@ -84,7 +61,7 @@ export function generateDeterministicSummary(
     }
 
     if (issues.length > 0) {
-      lines.push(isPt ? `**Issues Recentes:**` : `**Recent Issues:**`);
+      lines.push(copy.recentIssues);
       for (const issue of issues.slice(0, 5)) {
         const labelsStr =
           issue.labels.length > 0 ? ` [${issue.labels.join(", ")}]` : "";
@@ -95,47 +72,19 @@ export function generateDeterministicSummary(
       lines.push("");
     }
   } else if (!data.githubError && data.repo) {
-    lines.push(
-      isPt
-        ? `Nenhum item aberto encontrado em ${data.repo.owner}/${data.repo.repo}.`
-        : `No open items found in ${data.repo.owner}/${data.repo.repo}.`,
-    );
+    lines.push(copy.noOpenItems(`${data.repo.owner}/${data.repo.repo}`));
     lines.push("");
   }
 
-  // 4. Sugestões de Ação (Separadas dos fatos)
-  lines.push(
-    isPt ? `#### 💡 Sugestões de Ação` : `#### 💡 Suggested Next Steps`,
-  );
-  if (prs.length > 0) {
-    lines.push(
-      isPt
-        ? `- Revisar os PRs abertos prioritários para destravar o fluxo de desenvolvimento.`
-        : `- Review pending PRs to unblock development workflow.`,
-    );
-  }
-  if (issues.length > 0) {
-    lines.push(
-      isPt
-        ? `- Fazer a triagem das issues mais recentes e classificar por prioridade.`
-        : `- Triage the most recent issues and categorize by priority.`,
-    );
-  }
-  if (prs.length === 0 && issues.length === 0) {
-    lines.push(
-      isPt
-        ? `- Repositório sem pendências abertas. Bom momento para avançar no roadmap.`
-        : `- Repository has no open items. Good time to advance roadmap priorities.`,
-    );
-  }
+  // 4. Suggested next steps (kept apart from the facts)
+  lines.push(copy.nextSteps);
+  if (prs.length > 0) lines.push(copy.reviewPullRequests);
+  if (issues.length > 0) lines.push(copy.triageIssues);
+  if (prs.length === 0 && issues.length === 0) lines.push(copy.nothingPending);
   lines.push("");
 
-  // 5. Rodapé de Fontes
-  lines.push(
-    isPt
-      ? `*Fontes: GitHub API v3 (somente leitura)*`
-      : `*Sources: GitHub API v3 (read-only)*`,
-  );
+  // 5. Sources footer
+  lines.push(copy.sources);
 
   return lines.join("\n");
 }

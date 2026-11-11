@@ -93,6 +93,55 @@ export const securityCopy = {
     cancel: "Cancel",
     removeDone: "Password protection removed.",
   },
+  es: {
+    title: "Bloqueo local",
+    description:
+      "Protege OpenBot con una contraseña o PIN en este dispositivo.",
+    offlineNote:
+      "Es un bloqueo de pantalla en este dispositivo, no autenticación ni cifrado de tus datos. La contraseña nunca sale del navegador; solo se guarda aquí un hash (PBKDF2, 600.000 iteraciones SHA-256).",
+    setupTitle: "Definir contraseña o PIN",
+    passwordLabel: "Contraseña o PIN",
+    passwordHelper: "Mínimo 4 caracteres.",
+    confirmLabel: "Confirmar contraseña o PIN",
+    hintLabel: "Pista de la contraseña (opcional)",
+    hintPlaceholder: "Ej.: fecha especial, frase favorita",
+    enable: "Activar protección",
+    enabling: "Activando...",
+    showSecret: "Mostrar contraseña",
+    hideSecret: "Ocultar contraseña",
+    tooShort:
+      "La contraseña debe tener al menos 4 caracteres. Usa una más larga.",
+    mismatch:
+      "Las contraseñas no coinciden. Escribe la misma contraseña en ambos campos.",
+    setupFailed: "No se pudo definir la contraseña. Inténtalo de nuevo.",
+    setupDone: "Protección por contraseña activada.",
+    statusActive: "Protección activa",
+    hintPrefix: "Pista: {hint}",
+    changeTitle: "Cambiar contraseña o PIN",
+    currentLabel: "Contraseña actual",
+    newLabel: "Nueva contraseña",
+    confirmNewLabel: "Confirmar nueva contraseña",
+    newHintLabel: "Nueva pista (opcional)",
+    update: "Actualizar contraseña",
+    updating: "Guardando...",
+    needCurrent: "Escribe la contraseña actual para continuar.",
+    newTooShort:
+      "La nueva contraseña debe tener al menos 4 caracteres. Usa una más larga.",
+    newMismatch:
+      "Las nuevas contraseñas no coinciden. Escribe la misma contraseña en ambos campos.",
+    wrongCurrent:
+      "Contraseña actual incorrecta. Revísala e inténtalo de nuevo.",
+    changeDone: "Contraseña actualizada.",
+    removeTitle: "Quitar protección",
+    removeHelper:
+      "Cualquier persona con acceso a este dispositivo podrá abrir OpenBot.",
+    removeStart: "Quitar contraseña",
+    removeCurrentLabel: "Contraseña actual para confirmar",
+    removeConfirm: "Quitar protección",
+    removing: "Quitando...",
+    cancel: "Cancelar",
+    removeDone: "Protección por contraseña quitada.",
+  },
 } as const satisfies Record<ChatLanguage, Record<string, string>>;
 
 export function getSecurityCopy(language: ChatLanguage) {

@@ -1,16 +1,20 @@
 "use client";
 
+import type { Language } from "../language/language.ts";
 import { useState } from "react";
 import { getBotsCopy } from "./bots-copy.ts";
 
 interface BotDeleteControlProps {
-  isPt: boolean;
+  language: Language;
   onConfirm: () => void;
 }
 
 /** Two-step delete: ghost trigger, then inline "Delete? Confirm / Cancel". */
-export function BotDeleteControl({ isPt, onConfirm }: BotDeleteControlProps) {
-  const copy = getBotsCopy(isPt);
+export function BotDeleteControl({
+  language,
+  onConfirm,
+}: BotDeleteControlProps) {
+  const copy = getBotsCopy(language);
   const [confirming, setConfirming] = useState(false);
 
   if (!confirming) {
