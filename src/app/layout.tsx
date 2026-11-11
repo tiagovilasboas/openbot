@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import { connection } from "next/server";
 import type { ReactNode } from "react";
 import { RegisterServiceWorker } from "@/features/pwa/RegisterServiceWorker";
@@ -34,8 +35,14 @@ export default async function RootLayout({
   // The CSP nonce is per request, and Next only stamps it while rendering a
   // request: opt every page into dynamic rendering.
   await connection();
+  // react-aria injects a <style> on first press and reads its nonce from this
+  // meta tag; without it the style is blocked by the CSP.
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   return (
     <html lang="pt-BR" data-theme="dark" className="dark">
+      <head>
+        <meta property="csp-nonce" nonce={nonce} />
+      </head>
       <body className="bg-background text-foreground antialiased">
         <RegisterServiceWorker />
         {children}
