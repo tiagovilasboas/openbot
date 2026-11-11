@@ -7,9 +7,9 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-# The run needs Node >= 22.6 (--experimental-strip-types); use the nvm one if present.
-NODE22="$(ls -d "$HOME"/.nvm/versions/node/v22.* 2>/dev/null | sort -V | tail -1)"
-[ -n "$NODE22" ] && export PATH="$NODE22/bin:$PATH"
+# The run needs Node >= 24.15 (see .nvmrc); use the nvm one if present.
+NODE24="$(ls -d "$HOME"/.nvm/versions/node/v24.* 2>/dev/null | sort -V | tail -1)"
+[ -n "$NODE24" ] && export PATH="$NODE24/bin:$PATH"
 MODEL="${1:-google/gemma-4-31b-it:free}"
 PORT=3801
 LOG=/tmp/oc-run-$PORT.log

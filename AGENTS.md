@@ -74,7 +74,7 @@ These instructions apply to any AI coding agent and harness (Antigravity, Claude
 
 ### C. Local Verification & Environment Requirements
 
-- **Runtime:** Requires **Node.js >= 22.6.0** (required by native test runner flag `--experimental-strip-types`).
+- **Runtime:** Requires **Node.js >= 24.15.0** (LTS; the built-in `node:sqlite` module is a release candidate there, and the native test runner uses `--experimental-strip-types`).
 - **Versioned Git Hooks:** Husky + lint-staged are active. Every commit runs formatting and linting; every push runs `npm run check`.
 - **Quality Suite (`npm run check`):**
   1. `npm run docs:check`: Verifies the 12 canonical documents are non-empty.
