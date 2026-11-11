@@ -17,6 +17,7 @@ export async function executeSummary(
   gitHubToken: string | null = null,
   modelConfig: ClientModelConfig | null = null,
   fetchImpl: typeof fetch = fetch,
+  modelId?: string,
 ): Promise<SummaryOutcome> {
   const dataSource: SummaryDataSource = {
     repo: request.repo,
@@ -53,6 +54,9 @@ export async function executeSummary(
       [promptMessage],
       fetchImpl,
       modelConfig,
+      undefined,
+      // The active bot's own model; the server applies the allow-list.
+      modelId ? { modelId } : {},
     );
     if (outcome.kind === "text") {
       summaryText = outcome.text;

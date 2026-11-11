@@ -11,5 +11,5 @@ test("the proxy matcher covers nested API paths such as /api/chat/stream", () =>
     new URL("../../proxy.ts", import.meta.url),
     "utf8",
   );
-  assert.match(source, /matcher:\s*"\/api\/:path\*"/);
+  assert.match(source, /matcher:\s*\[\s*"\/api\/:path\*"/);
 });
