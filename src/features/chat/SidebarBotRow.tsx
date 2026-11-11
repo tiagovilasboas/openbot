@@ -4,6 +4,8 @@ import type {
   KeyboardEvent as ReactKeyboardEvent,
   PointerEvent as ReactPointerEvent,
 } from "react";
+import { AttentionBadge } from "@/features/attention/AttentionBadge.tsx";
+import { attentionLabel } from "@/features/attention/attention-copy.ts";
 import { BotAvatar } from "@/features/bots/BotAvatar.tsx";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
 import { BotWorkingDot } from "./BotWorkingDot.tsx";
@@ -26,6 +28,8 @@ interface SidebarBotRowProps {
   role?: string;
   isActive: boolean;
   isWorking: boolean;
+  /** Replies the user has not seen yet. */
+  unseenReplies?: number;
   reorder?: RowReorder;
   rowRef: (el: HTMLElement | null) => void;
   onSelect: () => void;
@@ -44,6 +48,7 @@ export function SidebarBotRow({
   role,
   isActive,
   isWorking,
+  unseenReplies = 0,
   reorder,
   rowRef,
   onSelect,
@@ -76,6 +81,7 @@ export function SidebarBotRow({
             active={isActive}
           />
           {isWorking && <BotWorkingDot color={bot.avatarColor} />}
+          {unseenReplies > 0 && <AttentionBadge count={unseenReplies} />}
         </span>
         <span className="flex min-w-0 flex-col">
           <span className="truncate text-[15px] leading-5 font-medium text-foreground md:text-sm">
@@ -88,6 +94,11 @@ export function SidebarBotRow({
           )}
         </span>
         {isWorking && <span className="sr-only">, {content.botWorking}</span>}
+        {unseenReplies > 0 && (
+          <span className="sr-only">
+            , {attentionLabel(language, unseenReplies)}
+          </span>
+        )}
       </button>
 
       {reorder && (
