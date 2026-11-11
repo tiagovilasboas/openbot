@@ -4,6 +4,7 @@ export type GuardRefusal = {
   status: 401 | 403 | 413 | 429;
   error:
     | "unauthorized"
+    | "access_token_required"
     | "forbidden_origin"
     | "missing_client_header"
     | "payload_too_large"

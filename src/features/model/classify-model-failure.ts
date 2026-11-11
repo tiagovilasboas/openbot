@@ -5,6 +5,7 @@
  */
 export type ModelFailureKind =
   | "auth"
+  | "access_required"
   | "rate_limit"
   | "model_unavailable"
   | "blocked_url"
@@ -43,6 +44,10 @@ export function classifyModelFailure(
   detail: unknown,
   httpStatus?: number,
 ): ModelFailure {
+  // The server guard refused a non-local caller because no access token is set.
+  if (code === "access_token_required") {
+    return { kind: "access_required", status: 403 };
+  }
   if (code === "blocked_base_url") return { kind: "blocked_url" };
   // The reply grew past the character or stream cap and was cut off.
   if (code === "response_too_long") return { kind: "response_too_long" };
