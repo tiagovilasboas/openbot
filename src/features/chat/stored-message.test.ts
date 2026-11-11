@@ -190,3 +190,8 @@ test("loading caps the length of a stored text", () => {
   win.window = { localStorage: storageWith("openbot_msgs_val-3", raw) };
   assert.equal(loadBotMessages("val-3")[0]?.text.length, STORED_TEXT_MAX);
 });
+
+test("a too_long incomplete reply survives a reload", () => {
+  const message = sanitizeStoredMessage({ ...ok, incomplete: "too_long" });
+  assert.equal(message?.incomplete, "too_long");
+});

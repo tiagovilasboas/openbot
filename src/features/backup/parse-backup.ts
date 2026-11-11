@@ -7,6 +7,7 @@ import {
 import { sanitizeBotProfile } from "../bots/bot-storage.ts";
 import type { BotProfile } from "../bots/bot-types.ts";
 import type { MessageData } from "../chat/ChatMessageItem.tsx";
+import { readIncompleteKind } from "../chat/incomplete-reply.ts";
 import { sanitizeCrewStep } from "../crew/crew-step-record.ts";
 import {
   sanitizeMemoryEntries,
@@ -100,9 +101,8 @@ function sanitizeMessage(raw: unknown): MessageData | null {
   }
   const crewStep = sanitizeCrewStep(raw.crewStep);
   if (crewStep && message.delegatedBot) message.crewStep = crewStep;
-  if (raw.incomplete === "error" || raw.incomplete === "cancelled") {
-    message.incomplete = raw.incomplete;
-  }
+  const incomplete = readIncompleteKind(raw.incomplete);
+  if (incomplete) message.incomplete = incomplete;
   const attachments = sanitizeAttachments(raw.attachments);
   if (attachments.length > 0) message.attachments = attachments;
   return message;

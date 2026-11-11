@@ -28,6 +28,11 @@ interface CrewCopy {
   synthesisFailed: string;
   /** Shown when the Chief named a bot that is not on the crew. */
   delegateNotFound: string;
+  /**
+   * Tells the Chief, outside the wrapped specialist text, that this answer
+   * was cut off and may be missing its end.
+   */
+  specialistCut: string;
 }
 
 /** Prompt and UI text for the Chief's crew, in every supported language. */
@@ -63,6 +68,8 @@ export const crewCopy: Record<ChatLanguage, CrewCopy> = {
       "Não consegui juntar as respostas agora; veja o que cada especialista disse acima.",
     delegateNotFound:
       "Não encontrei esse bot na equipe, então não consegui passar a tarefa adiante.",
+    specialistCut:
+      "[Aviso do sistema: esta resposta foi cortada no meio e pode estar incompleta. Use só o que chegou e diga ao usuário que esta parte ficou incompleta.]",
   },
   en: {
     rosterHeader: "Your crew (other bots you know and can call by name):",
@@ -94,6 +101,8 @@ export const crewCopy: Record<ChatLanguage, CrewCopy> = {
       "I could not combine the answers right now; see what each specialist said above.",
     delegateNotFound:
       "I could not find that bot on the crew, so I could not hand the task over.",
+    specialistCut:
+      "[System notice: this answer was cut off midway and may be incomplete. Use only what arrived and tell the user this part is incomplete.]",
   },
   es: {
     rosterHeader:
@@ -126,5 +135,7 @@ export const crewCopy: Record<ChatLanguage, CrewCopy> = {
       "No pude juntar las respuestas ahora; mira arriba lo que dijo cada especialista.",
     delegateNotFound:
       "No encontré ese bot en el equipo, así que no pude pasarle la tarea.",
+    specialistCut:
+      "[Aviso del sistema: esta respuesta se cortó a la mitad y puede estar incompleta. Usa solo lo que llegó y dile al usuario que esta parte quedó incompleta.]",
   },
 };

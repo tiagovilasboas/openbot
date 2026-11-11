@@ -8,6 +8,7 @@ import type {
 } from "@/features/github/github-types.ts";
 import { safeGithubUrl } from "../github/safe-github-url.ts";
 import type { MessageData } from "./ChatMessageItem.tsx";
+import { readIncompleteKind } from "./incomplete-reply.ts";
 
 /** Messages kept per bot; the newest win. */
 export const STORED_MESSAGES_MAX = 500;
@@ -148,9 +149,8 @@ export function sanitizeStoredMessage(raw: unknown): MessageData | null {
   if (modelBadge) message.modelBadge = modelBadge;
   const attachments = readAttachments(raw.attachments);
   if (attachments) message.attachments = attachments;
-  if (raw.incomplete === "error" || raw.incomplete === "cancelled") {
-    message.incomplete = raw.incomplete;
-  }
+  const incomplete = readIncompleteKind(raw.incomplete);
+  if (incomplete) message.incomplete = incomplete;
   const failover = readFailover(raw.failover);
   if (failover) message.failover = failover;
   return message;

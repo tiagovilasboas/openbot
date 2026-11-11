@@ -28,6 +28,7 @@ export function buildReplyMessages(
     delegatedBot,
     modelBadge,
     ...(crewStep ? { crewStep } : {}),
+    ...(crewStep?.incomplete ? { incomplete: crewStep.incomplete } : {}),
   });
 
   // Called last so the synthesis id sorts after the specialists.

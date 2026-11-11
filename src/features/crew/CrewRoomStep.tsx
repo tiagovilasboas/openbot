@@ -25,6 +25,11 @@ export function CrewRoomStep({
   const replyId = useId();
   const [open, setOpen] = useState(false);
   const failed = step.status === "failed";
+  const statusLabel = {
+    done: copy.statusDone,
+    failed: copy.statusFailed,
+    incomplete: copy.statusIncomplete,
+  }[step.status];
 
   return (
     <li className="flex gap-3">
@@ -49,7 +54,7 @@ export function CrewRoomStep({
                 : "bg-bot-accent-soft text-bot-accent"
             }`}
           >
-            {failed ? copy.statusFailed : copy.statusDone}
+            {statusLabel}
           </span>
           {step.durationMs !== null && (
             <span className="tabular-nums text-muted">

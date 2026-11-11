@@ -112,3 +112,20 @@ test("durations read naturally in both languages", () => {
   assert.equal(formatStepDuration(120_000, "pt"), "2 min");
   assert.equal(formatStepDuration(119_700, "en"), "2 min");
 });
+
+test("an incomplete kind is kept on a step that answered, dropped otherwise", () => {
+  const kept = sanitizeCrewStep({
+    task: "t",
+    ok: true,
+    incomplete: "too_long",
+  });
+  assert.equal(kept?.incomplete, "too_long");
+  const weird = sanitizeCrewStep({ task: "t", ok: true, incomplete: "weird" });
+  assert.equal(weird?.incomplete, undefined);
+  const failed = sanitizeCrewStep({
+    task: "t",
+    ok: false,
+    incomplete: "error",
+  });
+  assert.equal(failed?.incomplete, undefined);
+});
