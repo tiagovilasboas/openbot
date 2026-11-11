@@ -27,6 +27,8 @@ import {
   type BotProfile,
 } from "./bot-types.ts";
 import { getBotsCopy } from "./bots-copy.ts";
+import { PromptBudgetNotice } from "./PromptBudgetNotice.tsx";
+import { analyzePromptBudget, promptReserveFor } from "./prompt-budget.ts";
 
 interface BotEditModalProps {
   isOpen: boolean;
@@ -72,6 +74,22 @@ function BotEditForm({
   );
   const [skills, setSkills] = useState<SkillDefinition[]>(bot?.skills ?? []);
   const [templateId, setTemplateId] = useState<string | null>(null);
+
+  const budgetReport = analyzePromptBudget(
+    {
+      id: bot?.id ?? "new",
+      name,
+      description: description.trim(),
+      workspaceContext: workspaceContext.trim() || undefined,
+      avatarShape,
+      avatarColor,
+      skills,
+      createdAt: "",
+      updatedAt: "",
+    },
+    language,
+    promptReserveFor(isMain, language),
+  );
 
   const isValid = name.trim().length > 0 && isBotModelIdValid(modelId);
 
@@ -234,6 +252,8 @@ function BotEditForm({
         botId={isEditing && bot ? bot.id : undefined}
         modelId={modelId}
       />
+
+      <PromptBudgetNotice report={budgetReport} isPt={isPt} />
 
       {isEditing && bot && <MemorySection botId={bot.id} isPt={isPt} />}
 
