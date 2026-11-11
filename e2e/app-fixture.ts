@@ -83,7 +83,48 @@ export function appPage(page: Page) {
   };
 }
 
-export const test = base.extend<{ model: ModelStub }>({
+interface StoredBots {
+  bots: unknown[];
+  activeBotId: string | null;
+  mainBotId: string | null;
+}
+
+/**
+ * Stands in for /api/bots with an in-memory store per browser context, so
+ * specs stay isolated from each other and from the server's data dir. It
+ * follows the real contract: GET is empty until the first PUT, and PUT
+ * replaces the whole list and echoes the stored state.
+ */
+export async function stubBotsStore(context: BrowserContext): Promise<void> {
+  let stored: StoredBots = { bots: [], activeBotId: null, mainBotId: null };
+  await context.route("**/api/bots", async (route) => {
+    const request = route.request();
+    if (request.method() === "PUT") {
+      const body = request.postDataJSON() as Partial<StoredBots>;
+      stored = {
+        bots: Array.isArray(body.bots) ? body.bots : [],
+        activeBotId: body.activeBotId ?? stored.activeBotId,
+        mainBotId: body.mainBotId ?? stored.mainBotId,
+      };
+    }
+    await route.fulfill({ json: stored });
+  });
+}
+
+export const test = base.extend<{
+  model: ModelStub;
+  /** True for the few specs that talk to the real /api/bots route. */
+  realBotsStore: boolean;
+  botsStore: void;
+}>({
+  realBotsStore: [false, { option: true }],
+  botsStore: [
+    async ({ context, realBotsStore }, provide) => {
+      if (!realBotsStore) await stubBotsStore(context);
+      await provide();
+    },
+    { auto: true },
+  ],
   // Named `provide`, not `use`: eslint-plugin-react-hooks reads `use(` as a hook.
   model: async ({ context }, provide) => {
     const model = await stubModel(context);
