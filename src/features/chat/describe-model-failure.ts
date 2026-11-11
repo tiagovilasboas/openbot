@@ -19,6 +19,8 @@ export function describeModelFailure(
   switch (failure.kind) {
     case "auth":
       return content.modelErrorAuth;
+    case "access_required":
+      return content.modelErrorAccessRequired;
     case "rate_limit":
       return content.modelErrorRateLimit;
     case "model_unavailable":

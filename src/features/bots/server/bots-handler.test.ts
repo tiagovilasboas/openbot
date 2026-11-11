@@ -155,3 +155,54 @@ test("bad requests answer 400 with a stable code and leave the store alone", asy
     );
   });
 });
+
+test("a write that drops the stored main bot is refused", async () => {
+  await withDb(async (db) => {
+    await put(db, { bots: [bot("a"), bot("b")], mainBotId: "b" });
+    const response = await put(db, { bots: [bot("a"), bot("c")] });
+    assert.equal(response.status, 400);
+    assert.deepEqual(await response.json(), { error: "main_bot_required" });
+    const kept = await handleGetBots(db).json();
+    assert.deepEqual(
+      kept.bots.map((b: { id: string }) => b.id),
+      ["a", "b"],
+    );
+    // Other bots may go while the main bot stays.
+    const ok = await put(db, { bots: [bot("b"), bot("c")] });
+    assert.equal(ok.status, 200);
+  });
+});
+
+test("without a stored choice the legacy chief is protected", async () => {
+  await withDb(async (db) => {
+    await put(db, { bots: [bot("a"), bot("chief-of-staff")] });
+    const response = await put(db, { bots: [bot("a")] });
+    assert.equal(response.status, 400);
+    assert.deepEqual(await response.json(), { error: "main_bot_required" });
+  });
+});
+
+test("bodies are capped at 2 MB when read, with or without Content-Length", async () => {
+  await withDb(async (db) => {
+    const big = Array.from({ length: 50 }, (_, i) => ({
+      ...bot(`b${i}`),
+      description: "d".repeat(20_000),
+    }));
+    // About 1 MB of bots is accepted.
+    assert.equal((await put(db, { bots: big })).status, 200);
+    // No Content-Length (string body): the read itself is bounded.
+    const over = await put(db, "x".repeat(2 * 1024 * 1024 + 1));
+    assert.equal(over.status, 413);
+    assert.deepEqual(await over.json(), { error: "payload_too_large" });
+    // A declared length over the cap is refused too.
+    const declared = await handlePutBots(
+      new Request("http://localhost/api/bots", {
+        method: "PUT",
+        body: "{}",
+        headers: { "content-length": String(3 * 1024 * 1024) },
+      }),
+      db,
+    );
+    assert.equal(declared.status, 413);
+  });
+});

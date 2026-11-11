@@ -31,6 +31,8 @@ test("rotating X-Forwarded-For does not dodge the rate limit", () => {
         "x-forwarded-for": `203.0.113.${i}`,
       }),
       ip: clientKey(withForwarded(`203.0.113.${i}`), env),
+      // A local caller: this test is about the limiter, not the token gate.
+      address: "127.0.0.1",
     }),
   );
   assert.deepEqual(

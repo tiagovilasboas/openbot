@@ -1,5 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
 import type { GuardDecision } from "./guard-types.ts";
+import { isLoopbackAddress } from "./loopback-address.ts";
 
 /** Constant-time string comparison that does not leak the length either. */
 export function safeEqual(a: string, b: string): boolean {
@@ -15,12 +16,21 @@ export function safeEqual(a: string, b: string): boolean {
   );
 }
 
-/** When no token is configured the server stays open, as on localhost today. */
+/**
+ * Without a token only a loopback caller is served, as on localhost today;
+ * anyone else, or a caller whose address is unknown, gets a 403 that says the
+ * token is required. With a token every caller must present it.
+ */
 export function checkAccessToken(
   headers: Headers,
   expectedToken: string | undefined,
+  address: string | undefined,
 ): GuardDecision {
-  if (!expectedToken) return { ok: true };
+  if (!expectedToken) {
+    return isLoopbackAddress(address)
+      ? { ok: true }
+      : { ok: false, status: 403, error: "access_token_required" };
+  }
   const match = /^Bearer (.+)$/.exec(headers.get("authorization") ?? "");
   if (!match || !safeEqual(match[1], expectedToken)) {
     return { ok: false, status: 401, error: "unauthorized" };

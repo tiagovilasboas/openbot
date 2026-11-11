@@ -3,6 +3,11 @@ import { isValidBotId } from "../bot-id.ts";
 import { DEFAULT_BOT } from "../bot-types.ts";
 import { resolveMainBotId } from "../main-bot.ts";
 import {
+  bodyLimitFor,
+  readBodyWithCap,
+} from "../../server-guard/body-limits.ts";
+import { dropsMainBot } from "./main-bot-guard.ts";
+import {
   listBots,
   readSelection,
   replaceBots,
@@ -49,7 +54,15 @@ export async function handlePutBots(
   request: Request,
   db: DatabaseSync,
 ): Promise<Response> {
-  const body: unknown = await request.json().catch(() => null);
+  // The guard checks the declared length; this bounds the bytes actually read.
+  const text = await readBodyWithCap(request, bodyLimitFor("PUT", "/api/bots"));
+  if (text === null) return json({ error: "payload_too_large" }, 413);
+  let body: unknown = null;
+  try {
+    body = JSON.parse(text);
+  } catch {
+    // Falls through to invalid_body.
+  }
   if (typeof body !== "object" || body === null || Array.isArray(body)) {
     return json({ error: "invalid_body" }, 400);
   }
@@ -61,6 +74,10 @@ export async function handlePutBots(
   }
   const result = validateBotsWrite(input.bots);
   if (!result.ok) return json({ error: result.error }, 400);
+
+  if (dropsMainBot(listBots(db), readSelection(db).mainBotId, result.bots)) {
+    return json({ error: "main_bot_required" }, 400);
+  }
 
   const selection: BotSelection = {
     ...(active !== undefined && { activeBotId: active }),
