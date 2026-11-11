@@ -6,6 +6,7 @@ import {
   keySuffixes,
   type KeyListingStorage,
 } from "../../shared/storage/key-suffixes.ts";
+import { currentMessagesSync } from "./messages-sync-port.ts";
 import {
   STORED_MESSAGES_MAX_RAW,
   sanitizeStoredMessages,
@@ -38,6 +39,8 @@ export function subscribeBotMessages(
 
 /** One key per bot; the crew room steps live inside these messages. */
 export const MESSAGES_KEY_PREFIX = "openbot_msgs_";
+/** The suffix of the sync's flag key (`openbot_msgs_unsynced`), not a bot. */
+const MESSAGES_UNSYNCED_ID = "unsynced";
 
 /** The bot ids that have a thread saved, for pruning the ones that are gone. */
 export function storedMessageBotIds(
@@ -45,7 +48,10 @@ export function storedMessageBotIds(
     ? window.localStorage
     : undefined,
 ): string[] {
-  return keySuffixes(storage, MESSAGES_KEY_PREFIX);
+  // The sync's unsynced flag shares the prefix but is not a thread.
+  return keySuffixes(storage, MESSAGES_KEY_PREFIX).filter(
+    (id) => id !== MESSAGES_UNSYNCED_ID,
+  );
 }
 
 /** Forgets a bot's whole thread, for example when the bot is deleted. */
@@ -63,6 +69,7 @@ export function forgetBotMessages(
   } catch {
     // Blocked storage: the thread then stays until it can be removed.
   }
+  currentMessagesSync()?.forgotten(botId);
 }
 
 export function loadBotMessages(botId: string): MessageData[] {
@@ -92,7 +99,15 @@ export function loadBotMessages(botId: string): MessageData[] {
   return EMPTY_MESSAGES;
 }
 
-export function saveBotMessages(botId: string, messages: MessageData[]): void {
+/**
+ * Saves a thread in the cache and queues it for the server. The load passes
+ * `sync: false` to mirror what the server holds without sending it back.
+ */
+export function saveBotMessages(
+  botId: string,
+  messages: MessageData[],
+  options: { sync?: boolean } = {},
+): void {
   if (typeof window === "undefined") return;
   try {
     const raw = JSON.stringify(messages);
@@ -103,6 +118,8 @@ export function saveBotMessages(botId: string, messages: MessageData[]): void {
   } catch {
     // ignore
   }
+  // Even with blocked storage the server copy can still be kept.
+  if (options.sync !== false) currentMessagesSync()?.saved(botId, messages);
 }
 
 const getServerSnapshot = () => EMPTY_MESSAGES;
