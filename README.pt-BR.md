@@ -106,12 +106,13 @@ Você também pode escolher o provedor em Configurações, na aba Modelo. As cha
 
 1. Gere e sirva o app de produção: `npm run build` e depois `npm start`. O service worker só é registrado no build de produção.
 2. Abra o app no celular por HTTPS. Os navegadores só instalam apps servidos por HTTPS, ou por `localhost` na mesma máquina.
+3. No iPhone, abra no Safari e toque em Compartilhar, depois em Adicionar à Tela de Início. No Android, abra no Chrome e escolha Instalar app no menu.
 
-`npm run dev` e `npm start` escutam só nesta máquina (`127.0.0.1`), então o celular chega ao app por um proxy reverso ou túnel HTTPS rodando aqui. Para que outros aparelhos se conectem direto ao servidor, defina `OPENBOT_ACCESS_TOKEN` e rode `npm start -- -H 0.0.0.0`. 3. No iPhone, abra no Safari e toque em Compartilhar, depois em Adicionar à Tela de Início. No Android, abra no Chrome e escolha Instalar app no menu.
+`npm run dev` e `npm start` escutam só nesta máquina (`127.0.0.1`), então o celular chega ao app por um proxy reverso ou túnel HTTPS rodando aqui. Para que outros aparelhos se conectem direto ao servidor, defina `OPENBOT_ACCESS_TOKEN` e rode `npm start -- -H 0.0.0.0`.
 
 O service worker guarda só a casca do app. Ele nunca guarda chamadas a `/api`, respostas do modelo ou credenciais.
 
-Por padrão o servidor não tem login, o que serve para localhost. Toda chamada a `/api` é checada por um `Origin` do mesmo site (ou pelo header `x-openbot-client: 1`), limitada a 64 KB e a 60 requisições por minuto por chamador (`OPENBOT_RATE_LIMIT`). Para expor além da sua máquina, defina `OPENBOT_ACCESS_TOKEN` no `.env.local`: toda chamada a `/api` passa a exigir `Authorization: Bearer <token>`. No navegador, salve o token uma vez com `localStorage.setItem("openbot_access_token", "<token>")` no console do desenvolvedor. Mantenha atrás de HTTPS e de um controle de acesso em que você confie.
+Por padrão o servidor não tem login, o que serve para localhost. Toda chamada a `/api` é checada por um `Origin` do mesmo site (ou pelo header `x-openbot-client: 1`), limitada a 64 KB e a 60 requisições por minuto por chamador (`OPENBOT_RATE_LIMIT`). Sem token, a API só atende chamadas de loopback (`127.0.0.1`, `::1`); uma requisição de qualquer outro dispositivo é recusada com `403 access_token_required`, então o servidor nunca fica aberto à sua rede por acidente. Para usar a partir de outro dispositivo ou expor além da sua máquina, defina `OPENBOT_ACCESS_TOKEN` no `.env.local`: toda chamada a `/api` passa a exigir `Authorization: Bearer <token>`. No navegador, salve o token uma vez com `localStorage.setItem("openbot_access_token", "<token>")` no console do desenvolvedor. Mantenha atrás de HTTPS e de um controle de acesso em que você confie.
 
 Estas variáveis ajustam a proteção de `/api`. Defina no `.env.local`:
 

@@ -106,12 +106,13 @@ You can also choose the provider in Settings, under Model. Keys go under Connect
 
 1. Build and serve the production app: `npm run build`, then `npm start`. The service worker only registers in a production build.
 2. Open it on the phone over HTTPS. Browsers install apps only from HTTPS, or from `localhost` on the same machine.
+3. On iPhone, open it in Safari and choose Share, then Add to Home Screen. On Android, open it in Chrome and choose Install app from the menu.
 
-`npm run dev` and `npm start` listen only on this machine (`127.0.0.1`), so the phone reaches the app through an HTTPS reverse proxy or tunnel running here. To let other devices connect to the server directly, set `OPENBOT_ACCESS_TOKEN` and run `npm start -- -H 0.0.0.0`. 3. On iPhone, open it in Safari and choose Share, then Add to Home Screen. On Android, open it in Chrome and choose Install app from the menu.
+`npm run dev` and `npm start` listen only on this machine (`127.0.0.1`), so the phone reaches the app through an HTTPS reverse proxy or tunnel running here. To let other devices connect to the server directly, set `OPENBOT_ACCESS_TOKEN` and run `npm start -- -H 0.0.0.0`.
 
 The service worker caches the app shell only. It never caches `/api` calls, model replies or credentials.
 
-By default the server has no login, which is fine on localhost. Every `/api` call is checked for a same-site `Origin` (or the `x-openbot-client: 1` header), capped at 64 KB and limited to 60 requests per minute per caller (`OPENBOT_RATE_LIMIT`). To expose it beyond your machine, set `OPENBOT_ACCESS_TOKEN` in `.env.local`: every `/api` call then needs `Authorization: Bearer <token>`. In the browser, save the token once with `localStorage.setItem("openbot_access_token", "<token>")` in the developer console. Keep it behind HTTPS and access control you trust.
+By default the server has no login, which is fine on localhost. Every `/api` call is checked for a same-site `Origin` (or the `x-openbot-client: 1` header), capped at 64 KB and limited to 60 requests per minute per caller (`OPENBOT_RATE_LIMIT`). Without a token the API only answers loopback callers (`127.0.0.1`, `::1`); a request from any other device is refused with `403 access_token_required`, so the server never stays open to your network by accident. To use it from another device or expose it beyond your machine, set `OPENBOT_ACCESS_TOKEN` in `.env.local`: every `/api` call then needs `Authorization: Bearer <token>`. In the browser, save the token once with `localStorage.setItem("openbot_access_token", "<token>")` in the developer console. Keep it behind HTTPS and access control you trust.
 
 These variables tune the guard on `/api`. Set them in `.env.local`:
 

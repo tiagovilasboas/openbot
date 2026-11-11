@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { clientAddress } from "./features/server-guard/client-address.ts";
 import { clientKey } from "./features/server-guard/client-key.ts";
 import { createRequestGuard } from "./features/server-guard/guard-request.ts";
 import { withPageCsp } from "./features/server-guard/page-csp.ts";
@@ -26,6 +27,7 @@ export function proxy(request: NextRequest) {
     method: request.method,
     headers: request.headers,
     ip: clientKey(request.headers, process.env),
+    address: clientAddress(request.headers, process.env),
   });
   if (decision.ok) return NextResponse.next();
   return NextResponse.json(
