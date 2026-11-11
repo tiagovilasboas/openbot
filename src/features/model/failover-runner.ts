@@ -1,3 +1,4 @@
+import { logFailover } from "./failover-log.ts";
 import { createRouterAdapter } from "./router-adapter.ts";
 import { selectAdapter } from "./select-adapter.ts";
 import type { StreamingModelAdapter } from "./stream-adapter.ts";
@@ -87,16 +88,18 @@ export async function executeWithFailover({
   const { modelId, ...fallbackRequest } = request;
   const fallbackResult = await secondaryAdapter.generateReply(fallbackRequest);
   if (fallbackResult.ok) {
+    const failover = {
+      fromModel: modelId ?? primaryAdapter.model ?? primaryAdapter.provider,
+      toModel: secondaryAdapter.model ?? secondaryAdapter.provider,
+      reason: primaryResult.detail ?? primaryResult.code,
+    };
+    logFailover(failover);
     return {
       ok: true,
       provider: fallbackResult.provider,
       text: fallbackResult.text,
       ...(fallbackResult.usage ? { usage: fallbackResult.usage } : {}),
-      failover: {
-        fromModel: modelId ?? primaryAdapter.model ?? primaryAdapter.provider,
-        toModel: secondaryAdapter.model ?? secondaryAdapter.provider,
-        reason: primaryResult.detail ?? primaryResult.code,
-      },
+      failover,
     };
   }
 
