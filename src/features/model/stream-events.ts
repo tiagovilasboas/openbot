@@ -1,6 +1,7 @@
 import type { FailoverInfo } from "./model-adapter.ts";
 import type { ModelFailureKind } from "./classify-model-failure.ts";
 import type { StreamUsage } from "./stream-adapter.ts";
+import type { ToolCallChunk } from "./tool-wire.ts";
 
 /**
  * Wire format of POST /api/chat/stream: newline-delimited JSON
@@ -16,6 +17,7 @@ import type { StreamUsage } from "./stream-adapter.ts";
 export type ChatStreamEvent =
   | { type: "start"; provider: string; model?: string }
   | { type: "delta"; text: string }
+  | ToolCallChunk
   | {
       type: "done";
       provider: string;

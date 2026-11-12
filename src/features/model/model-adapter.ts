@@ -1,6 +1,7 @@
 import type { Language } from "../language/language.ts";
 import type { ClientModelConfig } from "./model-config.ts";
 import type { TokenUsage } from "./token-usage.ts";
+import type { ToolExchange, ToolSpec } from "./tool-wire.ts";
 
 export type ModelLanguage = Language;
 
@@ -17,6 +18,10 @@ export type ModelRequest = {
   systemPrompt?: string;
   /** Replaces the configured model for this call only. */
   modelId?: string;
+  /** Tools the model may call; absent keeps the request plain chat. */
+  tools?: ToolSpec[];
+  /** Earlier tool calls and their results, replayed after the messages. */
+  toolTranscript?: ToolExchange[];
 };
 
 export type ModelErrorCode =

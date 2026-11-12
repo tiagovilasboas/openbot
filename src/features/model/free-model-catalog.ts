@@ -5,6 +5,8 @@ export interface FreeModelItem {
   name: string;
   contextLength: number;
   description?: string;
+  /** True when the catalog lists "tools" in supported_parameters; absent when unknown. */
+  supportsTools?: boolean;
 }
 
 export const AUTO_FREE_MODEL: FreeModelItem = {
@@ -49,6 +51,12 @@ interface CatalogEntry {
   description?: unknown;
   pricing?: { prompt?: unknown; completion?: unknown };
   architecture?: { output_modalities?: unknown };
+  supported_parameters?: unknown;
+}
+
+function supportsTools(entry: CatalogEntry): boolean | undefined {
+  const params = entry.supported_parameters;
+  return Array.isArray(params) ? params.includes("tools") : undefined;
 }
 
 function isZeroPrice(value: unknown): boolean {
@@ -83,6 +91,9 @@ function toItem(entry: CatalogEntry, id: string): FreeModelItem {
         : DEFAULT_CONTEXT_LENGTH,
     description:
       typeof entry.description === "string" ? entry.description : undefined,
+    ...(supportsTools(entry) !== undefined
+      ? { supportsTools: supportsTools(entry) }
+      : {}),
   };
 }
 

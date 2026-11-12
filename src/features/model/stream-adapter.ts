@@ -4,6 +4,7 @@ import type {
   ModelRequest,
 } from "./model-adapter.ts";
 import type { TokenUsage } from "./token-usage.ts";
+import type { ToolCallChunk } from "./tool-wire.ts";
 
 /** Token counts a provider reported; either side may be missing. */
 export type StreamUsage = TokenUsage;
@@ -14,6 +15,7 @@ export type StreamUsage = TokenUsage;
  */
 export type ModelStreamChunk =
   | { type: "delta"; text: string }
+  | ToolCallChunk
   | { type: "usage"; usage: StreamUsage }
   | { type: "failed"; code: ModelErrorCode; detail?: string };
 

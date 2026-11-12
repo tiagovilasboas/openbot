@@ -2,6 +2,7 @@ import { BlockedBaseUrlError, modelFetch } from "./guarded-model-fetch.ts";
 import type { ModelNetworkOptions } from "./guarded-model-fetch.ts";
 import type { FetchLike, ModelRequest } from "./model-adapter.ts";
 import { parseLocalStream } from "./local-stream.ts";
+import { toolsBody } from "./wire-messages.ts";
 import { openModelStream } from "./open-model-stream.ts";
 import { ollamaUsage } from "./token-usage.ts";
 import type { StreamingModelAdapter } from "./stream-adapter.ts";
@@ -36,6 +37,7 @@ export function createLocalAdapter(
           model: model,
           stream: true,
           messages: toWireMessages(request),
+          ...toolsBody(request.tools),
         },
         network: config,
         signal,
