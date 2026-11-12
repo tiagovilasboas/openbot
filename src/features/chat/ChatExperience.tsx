@@ -146,6 +146,7 @@ export function ChatExperience() {
     mainBotId,
     gitHubToken,
     modelConfig,
+    contextModel: modelConfig?.model ?? serverModel?.model,
     modelBadge: isConfigured ? activeModelLabel : undefined,
     recordModelCall,
     persistMessages,

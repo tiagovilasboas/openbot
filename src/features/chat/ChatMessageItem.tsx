@@ -12,6 +12,8 @@ import type {
   GitHubItem,
   GitHubRepoRef,
 } from "@/features/github/github-types.ts";
+import { CompactedDivider } from "@/features/compaction/CompactedDivider.tsx";
+import type { CompactedMeta } from "@/features/compaction/compaction-types.ts";
 import { chatCopy } from "./chat-copy.ts";
 import { CopyButton } from "./CopyButton.tsx";
 import {
@@ -47,6 +49,11 @@ export interface MessageData {
     toModel: string;
     reason: string;
   };
+  /**
+   * Set on the marker that stands for compacted history: `text` is the
+   * summary, the originals are archived here and never sent to the model.
+   */
+  compacted?: CompactedMeta;
 }
 
 /** What the user's message needs to offer "go back to this message". */
@@ -75,6 +82,8 @@ export function ChatMessageItem({
   crewRoom,
 }: ChatMessageItemProps) {
   const content = chatCopy[message.language];
+
+  if (message.compacted) return <CompactedDivider message={message} />;
 
   if (message.role === "user") {
     return (

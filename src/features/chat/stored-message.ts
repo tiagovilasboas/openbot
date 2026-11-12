@@ -8,6 +8,7 @@ import type {
 } from "@/features/github/github-types.ts";
 import { safeGithubUrl } from "../github/safe-github-url.ts";
 import type { MessageData } from "./ChatMessageItem.tsx";
+import { readCompacted } from "../compaction/read-compacted.ts";
 import { readIncompleteKind } from "./incomplete-reply.ts";
 
 /** Messages kept per bot; the newest win. */
@@ -123,9 +124,13 @@ function readFailover(raw: unknown): MessageData["failover"] {
 
 /**
  * Reads one stored message; null when it is not usable. Only known fields
- * survive, each type-checked and capped.
+ * survive, each type-checked and capped. An archived message (`nested`) is
+ * never a compaction marker itself.
  */
-export function sanitizeStoredMessage(raw: unknown): MessageData | null {
+export function sanitizeStoredMessage(
+  raw: unknown,
+  nested = false,
+): MessageData | null {
   if (!isRecord(raw)) return null;
   if (raw.role !== "user" && raw.role !== "assistant") return null;
   if (typeof raw.text !== "string") return null;
@@ -153,6 +158,12 @@ export function sanitizeStoredMessage(raw: unknown): MessageData | null {
   if (incomplete) message.incomplete = incomplete;
   const failover = readFailover(raw.failover);
   if (failover) message.failover = failover;
+  const compacted = nested
+    ? undefined
+    : readCompacted(raw.compacted, (entry) =>
+        sanitizeStoredMessage(entry, true),
+      );
+  if (compacted && raw.role === "assistant") message.compacted = compacted;
   return message;
 }
 
