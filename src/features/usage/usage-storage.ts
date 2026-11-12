@@ -2,6 +2,7 @@ import type { TokenUsage } from "../model/token-usage.ts";
 import { sanitizeUsage } from "./sanitize-usage.ts";
 import { localDay } from "./usage-day.ts";
 import { addCall, clearBot, type UsageRecord } from "./usage-record.ts";
+import { currentUsageSync } from "./usage-sync-port.ts";
 
 /** Local metric only: it is not part of the backup on purpose. */
 export const USAGE_STORAGE_KEY = "openbot_usage";
@@ -58,16 +59,21 @@ export function loadUsage(
   }
 }
 
-/** Saves the list, or removes the key when it is empty. False if blocked. */
+/**
+ * Saves the list, or removes the key when it is empty. False if blocked.
+ * `sync: false` is for mirroring the server's copy, which must not go back.
+ */
 export function saveUsage(
   records: readonly UsageRecord[],
   storage: UsageStorage | undefined = browserStorage(),
+  options: { sync?: boolean } = {},
 ): boolean {
   try {
     if (!storage) return false;
     if (records.length === 0) storage.removeItem(USAGE_STORAGE_KEY);
     else storage.setItem(USAGE_STORAGE_KEY, JSON.stringify(records));
     notify();
+    if (options.sync !== false) currentUsageSync()?.saved(records);
     return true;
   } catch {
     return false;

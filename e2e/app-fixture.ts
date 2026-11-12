@@ -4,6 +4,7 @@ import {
   type BrowserContext,
   type Page,
 } from "@playwright/test";
+import { stubMemoryStore } from "./memory-store-stub.ts";
 import { stubStream, type StreamStub } from "./stream-stub.ts";
 
 /** One scripted answer of the stubbed model, shaped like the real routes. */
@@ -199,60 +200,34 @@ export async function stubConversationsStore(
 }
 
 /**
- * Stands in for /api/memory per browser context: one list of notes per bot,
- * kept in memory. GET reads, PUT replaces the whole list (an empty list
- * deletes it), DELETE answers 204.
+ * Stands in for /api/usage per browser context: one global log kept in
+ * memory. GET reads, PUT replaces the whole log, DELETE answers 204.
  */
-export async function stubMemoryStore(context: BrowserContext): Promise<void> {
-  const notes = new Map<string, { entries: unknown[]; updatedAt: number }>();
-  await context.route("**/api/memory**", async (route) => {
+export async function stubUsageStore(context: BrowserContext): Promise<void> {
+  let records: unknown[] = [];
+  let updatedAt: number | null = null;
+  await context.route("**/api/usage**", async (route) => {
     const request = route.request();
     const method = request.method();
-    const botId = new URL(request.url()).searchParams.get("botId");
-    if (!botId) {
-      const list = [...notes].map(([id, n]) => ({
-        botId: id,
-        updatedAt: n.updatedAt,
-        count: n.entries.length,
-      }));
-      await route.fulfill({ json: { notes: list } });
-      return;
-    }
     if (method === "PUT") {
-      const body = request.postDataJSON() as { entries?: unknown[] };
-      const entries = Array.isArray(body.entries) ? body.entries : [];
-      if (entries.length === 0) notes.delete(botId);
-      else notes.set(botId, { entries, updatedAt: Date.now() });
-      await route.fulfill({
-        json: {
-          botId,
-          updatedAt: entries.length === 0 ? null : Date.now(),
-          count: entries.length,
-        },
-      });
+      const body = request.postDataJSON() as { records?: unknown[] };
+      records = Array.isArray(body.records) ? body.records : [];
+      updatedAt = records.length === 0 ? null : Date.now();
+      await route.fulfill({ json: { updatedAt, count: records.length } });
       return;
     }
     if (method === "DELETE") {
-      notes.delete(botId);
+      records = [];
+      updatedAt = null;
       await route.fulfill({ status: 204, body: "" });
       return;
     }
-    const stored = notes.get(botId);
-    await route.fulfill({
-      json: {
-        botId,
-        entries: stored?.entries ?? [],
-        updatedAt: stored?.updatedAt ?? null,
-      },
-    });
+    await route.fulfill({ json: { records, updatedAt } });
   });
 }
 
 export const test = base.extend<{
   model: ModelStub;
-  /** True for the few specs that talk to the real /api/memory route. */
-  realMemoryStore: boolean;
-  memoryStore: void;
   /** True for the few specs that talk to the real /api/bots route. */
   realBotsStore: boolean;
   botsStore: void;
@@ -262,11 +237,25 @@ export const test = base.extend<{
   /** True for the few specs that talk to the real /api/conversations route. */
   realConversationsStore: boolean;
   conversationsStore: void;
+  /** True for the few specs that talk to the real /api/usage route. */
+  realUsageStore: boolean;
+  usageStore: void;
+  /** True for the few specs that talk to the real /api/memory route. */
+  realMemoryStore: boolean;
+  memoryStore: void;
 }>({
   realMemoryStore: [false, { option: true }],
   memoryStore: [
     async ({ context, realMemoryStore }, provide) => {
       if (!realMemoryStore) await stubMemoryStore(context);
+      await provide();
+    },
+    { auto: true },
+  ],
+  realUsageStore: [false, { option: true }],
+  usageStore: [
+    async ({ context, realUsageStore }, provide) => {
+      if (!realUsageStore) await stubUsageStore(context);
       await provide();
     },
     { auto: true },
@@ -303,4 +292,4 @@ export const test = base.extend<{
   },
 });
 
-export { expect };
+export { expect, stubMemoryStore };
