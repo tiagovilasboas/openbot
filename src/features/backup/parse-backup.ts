@@ -7,6 +7,7 @@ import {
 import { sanitizeBotProfile } from "../bots/bot-storage.ts";
 import type { BotProfile } from "../bots/bot-types.ts";
 import type { MessageData } from "../chat/ChatMessageItem.tsx";
+import { readCompacted } from "../compaction/read-compacted.ts";
 import { readIncompleteKind } from "../chat/incomplete-reply.ts";
 import { sanitizeCrewStep } from "../crew/crew-step-record.ts";
 import {
@@ -77,7 +78,7 @@ function sanitizeAttachments(raw: unknown): AttachmentSummary[] {
   return kept;
 }
 
-function sanitizeMessage(raw: unknown): MessageData | null {
+function sanitizeMessage(raw: unknown, nested = false): MessageData | null {
   if (!isRecord(raw)) return null;
   const text = clampText(raw.text, MAX_TEXT_LENGTH);
   if (text === undefined) return null;
@@ -105,6 +106,10 @@ function sanitizeMessage(raw: unknown): MessageData | null {
   if (incomplete) message.incomplete = incomplete;
   const attachments = sanitizeAttachments(raw.attachments);
   if (attachments.length > 0) message.attachments = attachments;
+  const compacted = nested
+    ? undefined
+    : readCompacted(raw.compacted, (entry) => sanitizeMessage(entry, true));
+  if (compacted && message.role === "assistant") message.compacted = compacted;
   return message;
 }
 
@@ -133,7 +138,7 @@ function sanitizeMessages(
     const list = raw[key];
     if (!botIds.has(id) || !Array.isArray(list)) continue;
     const kept = list
-      .map(sanitizeMessage)
+      .map((entry) => sanitizeMessage(entry))
       .filter((m): m is MessageData => m !== null)
       .slice(-MAX_MESSAGES_PER_BOT);
     if (kept.length > 0) messages[id] = kept;

@@ -17,6 +17,8 @@ import type { ModelCallResult } from "@/features/model/model-status.ts";
 import type { MessageData } from "./ChatMessageItem.tsx";
 import { raceCancel } from "./cancel-turn.ts";
 import { cancelledPartialReply } from "./cancelled-partial-reply.ts";
+import { historyFromThread } from "@/features/compaction/history-from-thread.ts";
+import { useTurnCompaction } from "@/features/compaction/use-turn-compaction.ts";
 import { chatCopy } from "./chat-copy.ts";
 import {
   executeChatMessage,
@@ -39,6 +41,8 @@ interface ChatTurnsInput {
   mainBotId: string;
   gitHubToken: string | null;
   modelConfig: ClientModelConfig | null;
+  /** The model whose window the thread is measured against. */
+  contextModel: string | undefined;
   /** Shown on replies only when a model is configured. */
   modelBadge: string | undefined;
   recordModelCall: (result?: ModelCallResult) => void;
@@ -61,6 +65,7 @@ export function useChatTurns(input: ChatTurnsInput) {
     mainBotId,
     gitHubToken,
     modelConfig,
+    contextModel,
     modelBadge,
     recordModelCall,
     persistMessages,
@@ -80,6 +85,13 @@ export function useChatTurns(input: ChatTurnsInput) {
   const [turnBotId, setTurnBotId] = useState<string | null>(null);
   const conversationIdRef = useRef(0);
   const turnAbortRef = useRef<AbortController | null>(null);
+  const compactThread = useTurnCompaction({
+    language,
+    activeBot,
+    modelConfig,
+    contextModel,
+    persistMessages,
+  });
 
   async function processTurn(
     turnText: string,
@@ -98,14 +110,13 @@ export function useChatTurns(input: ChatTurnsInput) {
     const paint = createFrameThrottle((entries: LiveEntry[]) =>
       setLive(liveMessages(entries, language)),
     );
+    // A thread filling the window is folded into a summary first; on any
+    // failure the turn goes out as it is.
+    await compactThread(userMessageId, controller.signal);
     // Read the stored thread, not a render closure, so queued messages stay.
-    const history = threadUpTo(
-      loadBotMessages(activeBot.id),
-      userMessageId,
-    ).map((m) => ({
-      role: m.role,
-      text: m.text,
-    }));
+    const history = historyFromThread(
+      threadUpTo(loadBotMessages(activeBot.id), userMessageId),
+    );
 
     const result = await raceCancel(
       controller.signal,
