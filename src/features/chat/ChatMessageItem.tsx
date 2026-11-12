@@ -14,7 +14,9 @@ import type {
 } from "@/features/github/github-types.ts";
 import { CompactedDivider } from "@/features/compaction/CompactedDivider.tsx";
 import type { CompactedMeta } from "@/features/compaction/compaction-types.ts";
+import type { LiveToolStep } from "@/features/tools/client/live-tool-steps.ts";
 import type { ToolStep } from "@/features/tools/client/tool-steps.ts";
+import { ToolStepChips } from "@/features/tools/client/ToolStepChips.tsx";
 import { chatCopy } from "./chat-copy.ts";
 import { CopyButton } from "./CopyButton.tsx";
 import {
@@ -75,6 +77,8 @@ interface ChatMessageItemProps {
   rollback?: MessageRollback;
   /** On a delegated turn's final reply: the room that shows how it went. */
   crewRoom?: CrewRoomView;
+  /** A paused tool turn's steps as they stand now, over the stored ones. */
+  liveSteps?: readonly LiveToolStep[];
 }
 
 export function ChatMessageItem({
@@ -83,7 +87,9 @@ export function ChatMessageItem({
   onRetry,
   rollback,
   crewRoom,
+  liveSteps,
 }: ChatMessageItemProps) {
+  const steps = liveSteps ?? message.toolSteps;
   const content = chatCopy[message.language];
 
   if (message.compacted) return <CompactedDivider message={message} />;
@@ -142,6 +148,10 @@ export function ChatMessageItem({
       </header>
 
       <FormattedMessage content={message.text} language={message.language} />
+
+      {steps && steps.length > 0 && (
+        <ToolStepChips steps={steps} language={message.language} />
+      )}
 
       {message.incomplete && (
         <div className="flex flex-wrap items-center gap-2 text-[13px] text-muted">

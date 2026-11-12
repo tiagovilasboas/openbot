@@ -27,6 +27,25 @@ describe("activityPhase", () => {
       "consulting",
     );
   });
+
+  it("is using a tool while one runs, even with text on screen", () => {
+    assert.equal(
+      activityPhase({
+        delegating: false,
+        hasStreamedText: true,
+        usingTool: true,
+      }),
+      "tool",
+    );
+    assert.equal(
+      activityPhase({
+        delegating: true,
+        hasStreamedText: false,
+        usingTool: true,
+      }),
+      "consulting",
+    );
+  });
 });
 
 describe("elapsedSeconds", () => {

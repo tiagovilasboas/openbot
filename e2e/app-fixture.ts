@@ -8,6 +8,7 @@ import { stubMemoryStore } from "./memory-store-stub.ts";
 import { stubSettingsStore } from "./settings-store-stub.ts";
 import { stubUsageStore } from "./usage-store-stub.ts";
 import { stubStream, type StreamStub } from "./stream-stub.ts";
+import { stubTools, type ToolsStub } from "./tools-stub.ts";
 
 /** One scripted answer of the stubbed model, shaped like the real routes. */
 export interface StubbedReply {
@@ -27,6 +28,8 @@ export interface ModelStub {
   /** The streaming route; unscripted, it answers 503 and the app falls back
    * to /api/chat, so every spec above keeps using `queue`. */
   stream: StreamStub;
+  /** The tool route; unscripted, it answers 503 like the stream route. */
+  tools: ToolsStub;
 }
 
 const DEFAULT_REPLY = "Stub reply";
@@ -36,6 +39,7 @@ export async function stubModel(context: BrowserContext): Promise<ModelStub> {
   const scripted: StubbedReply[] = [];
   const received: unknown[] = [];
   const stream = await stubStream(context);
+  const tools = await stubTools(context);
 
   await context.route("**/api/chat", async (route) => {
     received.push(route.request().postDataJSON());
@@ -66,6 +70,7 @@ export async function stubModel(context: BrowserContext): Promise<ModelStub> {
     queue: (...replies) => void scripted.push(...replies),
     chatRequests: () => received,
     stream,
+    tools,
   };
 }
 

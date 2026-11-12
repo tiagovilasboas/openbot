@@ -51,6 +51,7 @@ export type PausedToolTurn = PausedTurn<StreamRequest>;
 export function useToolApproval(input: ToolApprovalInput) {
   const { language, conversationIdRef } = input;
   const [paused, setPaused] = useState<PausedToolTurn | null>(null);
+  const [resumingId, setResumingId] = useState<number | null>(null);
   // Decisions read the latest pause, not a render's copy of it.
   const pausedRef = useRef<PausedToolTurn | null>(null);
   const setPause = (next: PausedToolTurn | null) => {
@@ -87,6 +88,7 @@ export function useToolApproval(input: ToolApprovalInput) {
     }
     const conversationId = conversationIdRef.current;
     const turn = input.beginTurn(current.botId);
+    setResumingId(current.messageId);
     const board = createLiveBoard(turn.live);
     const result = await streamToolTurn({
       request: current.request,
@@ -98,6 +100,7 @@ export function useToolApproval(input: ToolApprovalInput) {
       onToolSteps: turn.steps,
     });
     turn.end();
+    setResumingId(null);
     if (conversationIdRef.current === conversationId) {
       store(current, result.reply);
       input.recordModelCall(result.reply.modelCall);
@@ -108,5 +111,5 @@ export function useToolApproval(input: ToolApprovalInput) {
     input.settleTurn(current.botId, conversationId);
   }
 
-  return { paused, hold, drop, decide };
+  return { paused, resumingId, hold, drop, decide };
 }
