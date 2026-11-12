@@ -17,11 +17,13 @@ interface ModelStatusBadgeProps {
   onPress?: () => void;
   /** Names what pressing the pill does, for assistive tech. */
   actionLabel?: string;
+  /** How full the context window is, e.g. "12% do contexto". */
+  contextUsage?: { text: string; isWarning: boolean };
   className?: string;
 }
 
 const PILL =
-  "inline-flex h-8 min-w-0 max-w-64 items-center gap-2 rounded-full border border-border bg-surface px-3 text-xs font-medium text-muted";
+  "inline-flex h-8 min-w-0 max-w-96items-center gap-2 rounded-full border border-border bg-surface px-3 text-xs font-medium text-muted";
 
 export function ModelStatusBadge({
   label,
@@ -29,6 +31,7 @@ export function ModelStatusBadge({
   statusNote,
   onPress,
   actionLabel,
+  contextUsage,
   className = "",
 }: ModelStatusBadgeProps) {
   const body = (
@@ -38,6 +41,16 @@ export function ModelStatusBadge({
         className={`size-1.5 shrink-0 rounded-full ${MODEL_STATUS_DOT[status]}`}
       />
       <span className="truncate">{label}</span>
+      {contextUsage && (
+        <span
+          data-testid="context-usage"
+          className={`shrink-0 border-l border-border pl-2 font-normal ${
+            contextUsage.isWarning ? "text-warning" : "text-subtle"
+          }`}
+        >
+          {contextUsage.text}
+        </span>
+      )}
       {statusNote && <span className="sr-only">, {statusNote}</span>}
       {actionLabel && <span className="sr-only">, {actionLabel}</span>}
     </>

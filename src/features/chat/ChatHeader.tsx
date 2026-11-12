@@ -26,6 +26,8 @@ interface ChatHeaderProps {
   onOpenBotEdit?: () => void;
   /** Whether the phone sidebar drawer is open (for aria-expanded). */
   isMobileSidebarOpen?: boolean;
+  /** How full the model's context window is; shown in the model pill. */
+  contextUsage?: { text: string; isWarning: boolean };
 }
 
 const ICON_BUTTON =
@@ -48,6 +50,7 @@ export function ChatHeader({
   onOpenMobileSidebar,
   onOpenBotEdit,
   isMobileSidebarOpen,
+  contextUsage,
 }: ChatHeaderProps) {
   const content = chatCopy[language];
   const statusNote =
@@ -119,6 +122,7 @@ export function ChatHeader({
             label={activeModelLabel}
             status={modelStatus}
             statusNote={statusNote}
+            contextUsage={contextUsage}
             onPress={onOpenSettings}
             actionLabel={
               onOpenSettings ? content.headerModelSettings : undefined

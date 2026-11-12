@@ -20,6 +20,7 @@ import { botAccent } from "@/features/bots/bot-accent.ts";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
 import { useBots } from "@/features/bots/use-bots.ts";
 import { useGitHubToken } from "@/features/github/use-github-token.ts";
+import { useContextUsage } from "@/features/context-window/use-context-usage.ts";
 import { formatModelBadge } from "@/features/model/model-config.ts";
 import { SettingsModal } from "@/features/model/SettingsModal.tsx";
 import {
@@ -116,6 +117,13 @@ export function ChatExperience() {
     : serverModel?.configured
       ? formatModelBadge(serverModel, false, language)
       : formatModelBadge(null, false, language);
+
+  const contextUsage = useContextUsage(
+    messages,
+    modelConfig?.model ?? serverModel?.model,
+    activeBot,
+    language,
+  );
 
   const { attentionCounts, noteReply } = useAttention(
     activeBot.id,
@@ -235,6 +243,7 @@ export function ChatExperience() {
           onLanguageChange={setLanguage}
           activeModelLabel={activeModelLabel}
           modelStatus={modelStatus}
+          contextUsage={contextUsage}
           onOpenSettings={() => setIsSettingsOpen(true)}
           hasMessages={messages.length > 0}
           onNewChat={startNewChat}
