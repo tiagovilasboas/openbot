@@ -123,6 +123,7 @@ export function sanitizeBotProfile(
         ? obj.workspaceContext.trim().slice(0, BOT_TEXT_MAX_LENGTH)
         : undefined,
     ...optionalModelId(obj.modelId),
+    ...(obj.toolsEnabled === true ? { toolsEnabled: true } : {}),
     avatarShape: shape,
     avatarColor: color,
     skills,

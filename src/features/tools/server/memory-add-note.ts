@@ -5,8 +5,11 @@ import type { ToolDefinition } from "../tool-definition.ts";
 
 export const MEMORY_ADD_NOTE = "memory_add_note";
 
-/** Longest text the tool accepts; the memory caps then apply on top. */
-export const MEMORY_NOTE_ARG_MAX_CHARS = 500;
+/**
+ * Longest text the tool accepts: the memory's own cap per note, so a call
+ * the user approves never fails for its length afterwards.
+ */
+export const MEMORY_NOTE_ARG_MAX_CHARS = MEMORY_MAX_ENTRY_LENGTH;
 
 type Args = { text: string };
 
@@ -40,7 +43,7 @@ export function createMemoryAddNoteTool(
         text: {
           type: "string",
           description: "The note, one line of plain text",
-          maxLength: MEMORY_MAX_ENTRY_LENGTH,
+          maxLength: MEMORY_NOTE_ARG_MAX_CHARS,
         },
       },
       required: ["text"],
