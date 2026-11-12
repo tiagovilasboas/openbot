@@ -115,6 +115,8 @@ export function ConversationView({
           {busy && (
             <ThinkingIndicator
               bot={thinkingBot ?? activeBot}
+              turnBot={activeBot}
+              hasStreamedText={liveMessages.length > 0}
               language={language}
               onCancel={onCancel}
             />

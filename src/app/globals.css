@@ -20,6 +20,32 @@
   }
 }
 
+/* The live activity phrase: a soft light sweeps across it; plain when motion is off. */
+@keyframes activity-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .activity-shimmer {
+    background-image: linear-gradient(
+      90deg,
+      var(--muted) 35%,
+      var(--foreground) 50%,
+      var(--muted) 65%
+    );
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: activity-shimmer 2.2s linear infinite;
+  }
+}
+
 /* A bot answering: a dot that pings once a beat; still when motion is off. */
 @keyframes bot-working-ping {
   0% {

@@ -1,40 +1,62 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { BotAvatar } from "@/features/bots/BotAvatar.tsx";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
+import { activityPhase, elapsedSeconds } from "./activity-phase.ts";
 import { chatCopy } from "./chat-copy.ts";
 import type { ChatLanguage } from "./respond-to-message.ts";
 
 interface ThinkingIndicatorProps {
+  /** The bot working now; a crew member while it answers the Chief. */
   bot: BotProfile;
+  /** The bot that took the message. */
+  turnBot: BotProfile;
   language: ChatLanguage;
+  /** Reply text has started to arrive. */
+  hasStreamedText: boolean;
   /** Stops the reply in flight. */
   onCancel: () => void;
 }
 
-const DOT_DELAYS = ["0ms", "150ms", "300ms"];
-
+/** One status line for the turn in flight: who, what phase, how long. */
 export function ThinkingIndicator({
   bot,
+  turnBot,
   language,
+  hasStreamedText,
   onCancel,
 }: ThinkingIndicatorProps) {
   const content = chatCopy[language];
+  const [startedAt] = useState(() => Date.now());
+  const [now, setNow] = useState(startedAt);
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const phase = activityPhase({
+    delegating: bot.id !== turnBot.id,
+    hasStreamedText,
+  });
+  const phrase =
+    phase === "consulting"
+      ? `${content.activityConsulting} ${bot.name}…`
+      : phase === "writing"
+        ? content.activityWriting
+        : content.activityThinking;
+
   return (
-    <div className="flex items-center gap-2.5 animate-enter" role="status">
+    <div className="flex items-center gap-2.5 animate-enter">
       <BotAvatar shape={bot.avatarShape} color={bot.avatarColor} size={29} />
-      <div aria-hidden="true" className="flex items-center gap-1.5">
-        {DOT_DELAYS.map((delay) => (
-          <span
-            key={delay}
-            className="size-1.5 rounded-full bg-muted animate-typing"
-            style={{ animationDelay: delay }}
-          />
-        ))}
-      </div>
-      <span aria-live="polite" className="sr-only">
-        {content.thinking}
-      </span>
+      <p className="flex items-baseline gap-2 text-[14px] text-muted">
+        <span role="status" aria-live="polite" className="activity-shimmer">
+          {phrase}
+        </span>
+        <span aria-hidden="true" className="tabular-nums">
+          {elapsedSeconds(startedAt, now)}s
+        </span>
+      </p>
       <button
         type="button"
         aria-label={content.cancelLabel}
