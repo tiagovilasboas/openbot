@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { BotAvatar } from "@/features/bots/BotAvatar.tsx";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
+import { toolsCopy } from "@/features/tools/client/tools-copy.ts";
 import { activityPhase, elapsedSeconds } from "./activity-phase.ts";
 import { chatCopy } from "./chat-copy.ts";
 import type { ChatLanguage } from "./respond-to-message.ts";
@@ -15,6 +16,8 @@ interface ThinkingIndicatorProps {
   language: ChatLanguage;
   /** Reply text has started to arrive. */
   hasStreamedText: boolean;
+  /** A tool call of the turn is running now. */
+  usingTool?: boolean;
   /** Stops the reply in flight. */
   onCancel: () => void;
 }
@@ -25,6 +28,7 @@ export function ThinkingIndicator({
   turnBot,
   language,
   hasStreamedText,
+  usingTool = false,
   onCancel,
 }: ThinkingIndicatorProps) {
   const content = chatCopy[language];
@@ -38,13 +42,16 @@ export function ThinkingIndicator({
   const phase = activityPhase({
     delegating: bot.id !== turnBot.id,
     hasStreamedText,
+    usingTool,
   });
   const phrase =
     phase === "consulting"
       ? `${content.activityConsulting} ${bot.name}…`
-      : phase === "writing"
-        ? content.activityWriting
-        : content.activityThinking;
+      : phase === "tool"
+        ? toolsCopy[language].activityTool
+        : phase === "writing"
+          ? content.activityWriting
+          : content.activityThinking;
 
   return (
     <div className="flex items-center gap-2.5 animate-enter">

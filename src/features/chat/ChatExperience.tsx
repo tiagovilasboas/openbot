@@ -139,6 +139,7 @@ export function ChatExperience() {
     cancelTurn,
     retryMessage,
     resetConversation,
+    toolTurn,
   } = useChatTurns({
     language,
     activeBot,
@@ -316,6 +317,7 @@ export function ChatExperience() {
             onRetry={retryMessage}
             rollbackBlocked={blockedRollback}
             onRollBack={rollBack}
+            toolTurn={toolTurn}
           />
         )}
       </main>

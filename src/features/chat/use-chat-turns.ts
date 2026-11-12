@@ -32,6 +32,7 @@ import { dropRepliesTo } from "./retry-partial-reply.ts";
 import type { ChatLanguage } from "./respond-to-message.ts";
 import { insertReplyAfter, threadUpTo } from "./thread-sequencing.ts";
 import { loadBotMessages } from "./use-bot-messages.ts";
+import type { ToolTurnView } from "./tool-turn-view.ts";
 import { useToolApproval } from "./use-tool-approval.ts";
 import type { QueuedMessage } from "./use-message-queue.ts";
 import { workingBotIds } from "./working-bots.ts";
@@ -86,6 +87,8 @@ export function useChatTurns(input: ChatTurnsInput) {
   // The bot that took the message in flight, even if the user moves to another.
   const [turnBotId, setTurnBotId] = useState<string | null>(null);
   const [toolSteps, setToolSteps] = useState<LiveToolStep[]>([]);
+  // The bot whose last turn ran without tools, for a one-line notice.
+  const [unavailableBotId, setUnavailableBotId] = useState<string | null>(null);
   const conversationIdRef = useRef(0);
   const turnAbortRef = useRef<AbortController | null>(null);
   const compactThread = useTurnCompaction({
@@ -141,6 +144,7 @@ export function useChatTurns(input: ChatTurnsInput) {
   ) {
     // A new message ends a turn still waiting for approval.
     approval.drop();
+    setUnavailableBotId(null);
     const turn = beginTurn(activeBot.id);
     const { controller } = turn;
     // A thread filling the window is folded into a summary first; on any
@@ -192,6 +196,7 @@ export function useChatTurns(input: ChatTurnsInput) {
           replyMessages,
         ),
       );
+      if (reply.toolsUnavailable) setUnavailableBotId(activeBot.id);
       if (reply.toolPause) {
         approval.hold(
           reply.toolPause,
@@ -280,10 +285,13 @@ export function useChatTurns(input: ChatTurnsInput) {
     cancelTurn,
     retryMessage,
     resetConversation,
-    /** The tool calls of the turn in flight, for the activity line. */
-    toolSteps,
-    /** A tool turn waiting for the user's approval, and how to answer it. */
-    pausedToolTurn: approval.paused,
-    decideToolApproval: approval.decide,
+    /** The tool turn as the conversation shows it. */
+    toolTurn: {
+      paused: approval.paused,
+      resumingId: approval.resumingId,
+      steps: toolSteps,
+      unavailableBotId,
+      onDecide: (choice) => void approval.decide(choice),
+    } satisfies ToolTurnView,
   };
 }

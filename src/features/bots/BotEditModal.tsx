@@ -9,6 +9,7 @@ import {
 import type { BotTemplateDraft } from "@/features/bot-sharing/bot-template-file-types.ts";
 import { MemorySection } from "@/features/memory/MemorySection.tsx";
 import { BotSkillsEditor } from "@/features/skills/BotSkillsEditor.tsx";
+import { BotToolsToggle } from "@/features/tools/client/BotToolsToggle.tsx";
 import type { SkillDefinition } from "@/features/skills/skill-types.ts";
 import { FormField, FIELD_CLASS } from "@/shared/ui/FormField.tsx";
 import { ResponsiveSheet, SheetFooter } from "@/shared/ui/ResponsiveSheet.tsx";
@@ -73,6 +74,7 @@ function BotEditForm({
   );
   const [skills, setSkills] = useState<SkillDefinition[]>(bot?.skills ?? []);
   const [templateId, setTemplateId] = useState<string | null>(null);
+  const [toolsEnabled, setToolsEnabled] = useState(bot?.toolsEnabled === true);
 
   const budgetReport = analyzePromptBudget(
     {
@@ -132,6 +134,7 @@ function BotEditForm({
       avatarShape,
       avatarColor,
       skills,
+      ...(toolsEnabled ? { toolsEnabled: true } : {}),
       createdAt: bot?.createdAt || now,
       updatedAt: now,
     };
@@ -251,6 +254,15 @@ function BotEditForm({
         botId={isEditing && bot ? bot.id : undefined}
         modelId={modelId}
       />
+
+      {/* The main bot leads the crew, and a crew turn never uses tools. */}
+      {!isMain && (
+        <BotToolsToggle
+          enabled={toolsEnabled}
+          language={language}
+          onChange={setToolsEnabled}
+        />
+      )}
 
       <PromptBudgetNotice report={budgetReport} language={language} />
 
