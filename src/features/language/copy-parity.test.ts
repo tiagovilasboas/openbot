@@ -15,6 +15,7 @@ import { settingsCopy } from "../model/settings-copy.ts";
 import { skillsCopy } from "../skills/skills-copy.ts";
 import { suggestionCopy } from "../skills/suggestion-copy.ts";
 import { getSummaryCopy } from "../summary/summary-copy.ts";
+import { toolsCopy } from "../tools/client/tools-copy.ts";
 import { getUsageCopy } from "../usage/usage-copy.ts";
 import { LANGUAGES, type Language } from "./language.ts";
 
@@ -47,6 +48,7 @@ const DICTIONARIES: Record<string, (language: Language) => unknown> = {
   lock: (l) => getLockCopy(l),
   usage: (l) => getUsageCopy(l),
   summary: (l) => getSummaryCopy(l),
+  tools: (l) => toolsCopy[l],
 };
 
 for (const [name, read] of Object.entries(DICTIONARIES)) {

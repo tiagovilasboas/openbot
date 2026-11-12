@@ -9,6 +9,7 @@ import type {
 import { safeGithubUrl } from "../github/safe-github-url.ts";
 import type { MessageData } from "./ChatMessageItem.tsx";
 import { readCompacted } from "../compaction/read-compacted.ts";
+import { sanitizeToolSteps } from "../tools/client/tool-steps.ts";
 import { readIncompleteKind } from "./incomplete-reply.ts";
 
 /** Messages kept per bot; the newest win. */
@@ -158,6 +159,8 @@ export function sanitizeStoredMessage(
   if (incomplete) message.incomplete = incomplete;
   const failover = readFailover(raw.failover);
   if (failover) message.failover = failover;
+  const toolSteps = sanitizeToolSteps(raw.toolSteps);
+  if (toolSteps && raw.role === "assistant") message.toolSteps = toolSteps;
   const compacted = nested
     ? undefined
     : readCompacted(raw.compacted, (entry) =>

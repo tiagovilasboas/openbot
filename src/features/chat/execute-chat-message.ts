@@ -14,7 +14,8 @@ import type {
   GitHubItem,
   GitHubRepoRef,
 } from "@/features/github/github-types.ts";
-import { listRepositoryItems } from "@/features/github/list-repository-items.ts";
+import type { LiveToolStep } from "@/features/tools/client/live-tool-steps.ts";
+import { toolTurnFor } from "@/features/tools/client/tool-route.ts";
 import type { ModelFailure } from "@/features/model/classify-model-failure.ts";
 import type { ClientModelConfig } from "@/features/model/model-config.ts";
 import { memoryTextsForRequest } from "@/features/memory/memory-request.ts";
@@ -23,9 +24,9 @@ import type { TokenUsage } from "@/features/model/token-usage.ts";
 import { recordUsageCall } from "@/features/usage/usage-storage.ts";
 import { detectSummaryRequest } from "@/features/summary/detect-summary-request.ts";
 import { executeSummary } from "@/features/summary/execute-summary.ts";
-import { chatCopy } from "./chat-copy.ts";
 import { describeModelFailure } from "./describe-model-failure.ts";
 import { findMentionedBot } from "./find-mentioned-bot.ts";
+import { githubRequestReply } from "./github-request-reply.ts";
 import { incompleteKindOf, type IncompleteKind } from "./incomplete-reply.ts";
 import { createLiveBoard, type LiveEntry } from "./live-board.ts";
 import { fitHistoryToBytes, limitHistory } from "./request-history.ts";
@@ -35,6 +36,11 @@ import {
   getUnconfiguredModelMessage,
   type ChatLanguage,
 } from "./respond-to-message.ts";
+import {
+  streamToolTurn,
+  type ToolPauseDraft,
+  type ToolTurnReply,
+} from "./tool-turn-reply.ts";
 
 export interface ChatReplyOutcome {
   text: string;
@@ -55,6 +61,10 @@ export interface ChatReplyOutcome {
       step?: CrewStepRecord;
     }>;
   };
+  /** On a tool turn: the calls, the plain-chat notice, a pause. */
+  toolSteps?: ToolTurnReply["toolSteps"];
+  toolsUnavailable?: true;
+  toolPause?: ToolPauseDraft;
 }
 
 export async function executeChatMessage({
@@ -72,6 +82,8 @@ export async function executeChatMessage({
   memoryFor = memoryTextsForRequest,
   attachments = [],
   onUsage = recordUsageCall,
+  onMemoryChanged = () => undefined,
+  onToolSteps,
 }: {
   text: string;
   language: ChatLanguage;
@@ -100,6 +112,10 @@ export async function executeChatMessage({
   attachments?: AttachmentPayload[];
   /** Hears each finished reply of a bot; defaults to the device's usage log. */
   onUsage?: (botId: string, usage: TokenUsage | undefined) => void;
+  /** A tool changed the bot's notes on the server. */
+  onMemoryChanged?: (botId: string) => void;
+  /** Follows the tool calls of a tool turn as they run. */
+  onToolSteps?: (steps: LiveToolStep[]) => void;
 }): Promise<ChatReplyOutcome> {
   // The server caps the history; send only the newest messages, and fewer
   // when files take room in the request body.
@@ -108,7 +124,13 @@ export async function executeChatMessage({
     attachments.length > 0
       ? fitHistoryToBytes(limited, historyByteBudget(attachments))
       : limited;
-  const content = chatCopy[language];
+  const countUsage = (botId: string, usage: TokenUsage | undefined) => {
+    try {
+      onUsage(botId, usage);
+    } catch {
+      // Counting must never break the turn.
+    }
+  };
 
   // Check if user delegated to a specific bot via @mention
   const mentionedBot = findMentionedBot(text, bots);
@@ -157,53 +179,39 @@ export async function executeChatMessage({
   // 2. GitHub Request Detection
   const githubDetected = detectGitHubRequest(text);
   if (githubDetected.isGitHubRequest) {
-    const result = await listRepositoryItems(githubDetected.repo, gitHubToken);
-    if (result.ok) {
-      let items = result.items;
-      if (githubDetected.itemType === "prs") {
-        items = items.filter((item) => item.isPullRequest);
-      } else if (githubDetected.itemType === "issues") {
-        items = items.filter((item) => !item.isPullRequest);
-      }
-      const one = items.length === 1;
-      const labelKind =
-        githubDetected.itemType === "prs"
-          ? one
-            ? content.githubPR
-            : content.githubPRs
-          : githubDetected.itemType === "issues"
-            ? one
-              ? content.githubIssue
-              : content.githubIssues
-            : one
-              ? content.githubOpenItem
-              : content.githubOpenItems;
-      const summaryText = content.githubFound
-        .replace("{count}", String(items.length))
-        .replace("{kind}", labelKind)
-        .replace(
-          "{repo}",
-          `${githubDetected.repo.owner}/${githubDetected.repo.repo}`,
-        );
-      return {
-        text: summaryText,
-        delegatedBot,
-        github: { repo: githubDetected.repo, items },
-      };
-    }
-    const errorText =
-      result.error === "repo_not_found"
-        ? content.githubRepoNotFound
-        : result.error === "rate_limited"
-          ? content.githubRateLimited
-          : result.error === "unauthorized"
-            ? content.githubUnauthorized
-            : content.githubNetworkError;
-    return { text: errorText, delegatedBot };
+    const reply = await githubRequestReply(
+      githubDetected,
+      gitHubToken,
+      language,
+    );
+    return { ...reply, delegatedBot };
   }
 
   // 3. Model Reply with Bot System Prompt
   const board = onLive ? createLiveBoard(onLive) : null;
+  // A single bot that opted in streams through the tool route; never a crew.
+  const tools =
+    board && !isChief ? toolTurnFor(executingBot, false) : undefined;
+  if (board && tools) {
+    const result = await streamToolTurn({
+      request: {
+        language,
+        messages: history,
+        config: modelConfig,
+        systemPrompt: fullSystemPrompt,
+        modelId: executingBot.modelId,
+        memory: memoryFor(executingBot.id),
+        attachments,
+      },
+      tools,
+      signal,
+      show: board.stream(delegatedBot),
+      onMemoryChanged,
+      onToolSteps,
+    });
+    if (result.produced) countUsage(executingBot.id, result.usage);
+    return { ...result.reply, delegatedBot };
+  }
   /** One model call; with a live board its text shows as it arrives. */
   const ask = (
     system: string,
@@ -241,11 +249,7 @@ export async function executeChatMessage({
     if (outcome.kind === "text" || outcome.kind === "partial") {
       const usage = outcome.kind === "text" ? outcome.usage : undefined;
       const speaker: BotProfile | undefined = args[4];
-      try {
-        onUsage((speaker ?? executingBot).id, usage);
-      } catch {
-        // Counting must never break the turn.
-      }
+      countUsage((speaker ?? executingBot).id, usage);
     }
     return outcome;
   };
@@ -360,5 +364,8 @@ export async function executeChatMessage({
   if (outcome.kind === "unavailable") {
     return { text: getUnconfiguredModelMessage(language), delegatedBot };
   }
-  return failedReply(outcome.failure);
+  // The plain routes never pause, so only an error is left.
+  return failedReply(
+    outcome.kind === "error" ? outcome.failure : { kind: "unknown" },
+  );
 }

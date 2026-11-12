@@ -13,7 +13,10 @@ import {
   appendNote,
   readNotes,
 } from "../../memory/server/memory-repository.ts";
-import { createMemoryAddNoteTool } from "./memory-add-note.ts";
+import {
+  createMemoryAddNoteTool,
+  MEMORY_NOTE_ARG_MAX_CHARS,
+} from "./memory-add-note.ts";
 
 async function withDb(run: (db: DatabaseSync) => Promise<void> | void) {
   const dir = mkdtempSync(join(tmpdir(), "openbot-note-tool-"));
@@ -78,10 +81,22 @@ test("the note tool asks first and parses only a short text", () => {
     {},
     { text: 3 },
     { text: " " },
-    { text: "x".repeat(501) },
+    { text: "x".repeat(MEMORY_MAX_ENTRY_LENGTH + 1) },
   ]) {
     assert.equal(tool.parseArgs(bad).ok, false);
   }
+});
+
+test("the note tool's schema and parser share the memory cap", () => {
+  const tool = createMemoryAddNoteTool({} as DatabaseSync);
+  assert.equal(MEMORY_NOTE_ARG_MAX_CHARS, MEMORY_MAX_ENTRY_LENGTH);
+  const text = tool.parameters.properties?.text as { maxLength?: number };
+  assert.equal(text.maxLength, MEMORY_NOTE_ARG_MAX_CHARS);
+  const atCap = "x".repeat(MEMORY_MAX_ENTRY_LENGTH);
+  assert.deepEqual(tool.parseArgs({ text: atCap }), {
+    ok: true,
+    args: { text: atCap },
+  });
 });
 
 test("the note tool saves to the bot and reports memory_changed", async () => {

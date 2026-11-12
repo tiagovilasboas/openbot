@@ -42,6 +42,11 @@ export interface BotProfile {
   workspaceContext?: string;
   /** This bot's own model id; empty means the global model setting. */
   modelId?: string;
+  /**
+   * The bot may use the server's tools (asking first for anything that
+   * changes data). Only its own single-bot turns: never a crew turn.
+   */
+  toolsEnabled?: boolean;
   avatarShape: AvatarShape;
   avatarColor: AvatarColor;
   /** Skills this bot owns: they enter its prompt and its / palette only. */

@@ -10,6 +10,7 @@ import type { MessageData } from "../chat/ChatMessageItem.tsx";
 import { readCompacted } from "../compaction/read-compacted.ts";
 import { readIncompleteKind } from "../chat/incomplete-reply.ts";
 import { sanitizeCrewStep } from "../crew/crew-step-record.ts";
+import { sanitizeToolSteps } from "../tools/client/tool-steps.ts";
 import {
   sanitizeMemoryEntries,
   type MemoryEntry,
@@ -106,6 +107,8 @@ function sanitizeMessage(raw: unknown, nested = false): MessageData | null {
   if (incomplete) message.incomplete = incomplete;
   const attachments = sanitizeAttachments(raw.attachments);
   if (attachments.length > 0) message.attachments = attachments;
+  const toolSteps = sanitizeToolSteps(raw.toolSteps);
+  if (toolSteps && message.role === "assistant") message.toolSteps = toolSteps;
   const compacted = nested
     ? undefined
     : readCompacted(raw.compacted, (entry) => sanitizeMessage(entry, true));

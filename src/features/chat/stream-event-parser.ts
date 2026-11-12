@@ -2,6 +2,19 @@ import type { ModelFailureKind } from "../model/classify-model-failure.ts";
 import type { ChatStreamEvent } from "../model/stream-events.ts";
 import { parseJsonLine } from "../model/stream-lines.ts";
 import { readTokenUsage } from "../model/token-usage.ts";
+import {
+  parseToolEvent,
+  type ToolStreamEvent,
+} from "../tools/client/tool-stream-events.ts";
+
+/** The model's own text events, as the client reads them. */
+export type ModelTextEvent = Extract<
+  ChatStreamEvent,
+  { type: "start" | "delta" | "done" | "error" }
+>;
+
+/** One event of a streamed turn: model text, or what the tools did. */
+export type TurnEvent = ModelTextEvent | ToolStreamEvent;
 
 const FAILURE_KINDS: readonly ModelFailureKind[] = [
   "auth",
@@ -31,9 +44,22 @@ function text(value: unknown): string | undefined {
  * The error code is narrowed to a known failure kind; anything else becomes
  * "unknown", and provider text is never read.
  */
-export function parseStreamEvent(line: string): ChatStreamEvent | null {
+export function parseStreamEvent(line: string): ModelTextEvent | null {
+  const raw = parseJsonLine(line);
+  return raw ? modelEvent(raw) : null;
+}
+
+/**
+ * One NDJSON line of a streamed turn, from /api/chat/stream or the tool
+ * route: the model events plus the checked tool events.
+ */
+export function parseTurnEvent(line: string): TurnEvent | null {
   const raw = parseJsonLine(line);
   if (!raw) return null;
+  return modelEvent(raw) ?? parseToolEvent(raw);
+}
+
+function modelEvent(raw: Record<string, unknown>): ModelTextEvent | null {
   switch (raw.type) {
     case "start":
       return { type: "start", provider: text(raw.provider) ?? "" };

@@ -13,7 +13,9 @@ import type { AttachmentPayload } from "@/features/attachments/parse-attachments
 import type { Attachment } from "@/features/attachments/read-attachment.ts";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
 import type { ClientModelConfig } from "@/features/model/model-config.ts";
+import { refreshMemoryFromServer } from "@/features/memory/sync/browser-memory-sync.ts";
 import type { ModelCallResult } from "@/features/model/model-status.ts";
+import type { LiveToolStep } from "@/features/tools/client/live-tool-steps.ts";
 import type { MessageData } from "./ChatMessageItem.tsx";
 import { raceCancel } from "./cancel-turn.ts";
 import { cancelledPartialReply } from "./cancelled-partial-reply.ts";
@@ -24,13 +26,13 @@ import {
   executeChatMessage,
   type ChatReplyOutcome,
 } from "./execute-chat-message.ts";
-import { createFrameThrottle } from "./frame-throttle.ts";
-import { liveMessages, type LiveEntry } from "./live-board.ts";
+import { startLiveTurn } from "./live-turn.ts";
 import { buildReplyMessages } from "./reply-messages.ts";
 import { dropRepliesTo } from "./retry-partial-reply.ts";
 import type { ChatLanguage } from "./respond-to-message.ts";
 import { insertReplyAfter, threadUpTo } from "./thread-sequencing.ts";
 import { loadBotMessages } from "./use-bot-messages.ts";
+import { useToolApproval } from "./use-tool-approval.ts";
 import type { QueuedMessage } from "./use-message-queue.ts";
 import { workingBotIds } from "./working-bots.ts";
 
@@ -83,6 +85,7 @@ export function useChatTurns(input: ChatTurnsInput) {
   const [live, setLive] = useState<MessageData[]>([]);
   // The bot that took the message in flight, even if the user moves to another.
   const [turnBotId, setTurnBotId] = useState<string | null>(null);
+  const [toolSteps, setToolSteps] = useState<LiveToolStep[]>([]);
   const conversationIdRef = useRef(0);
   const turnAbortRef = useRef<AbortController | null>(null);
   const compactThread = useTurnCompaction({
@@ -93,23 +96,53 @@ export function useChatTurns(input: ChatTurnsInput) {
     persistMessages,
   });
 
+  const beginTurn = (botId: string) =>
+    startLiveTurn(
+      {
+        language,
+        abortRef: turnAbortRef,
+        setBusy,
+        setTurnBotId,
+        setLive,
+        setToolSteps,
+      },
+      botId,
+    );
+
+  /** The turn is over: free the composer, then answer the next queued one. */
+  function settleTurn(botId: string, conversationId: number) {
+    setWorkingBot(null);
+    setBusy(false);
+    if (conversationIdRef.current !== conversationId) return;
+    const nextQueued = dequeue();
+    if (nextQueued && nextQueued.conversationId === conversationIdRef.current) {
+      void processTurn(
+        nextQueued.text,
+        nextQueued.id,
+        conversationId,
+        nextQueued.attachments,
+      );
+    }
+  }
+
+  const approval = useToolApproval({
+    language,
+    conversationIdRef,
+    beginTurn,
+    settleTurn,
+    recordModelCall,
+  });
+
   async function processTurn(
     turnText: string,
     userMessageId: number,
     conversationId: number,
     attachments: AttachmentPayload[] = [],
   ) {
-    setBusy(true);
-    setTurnBotId(activeBot.id);
-    const controller = new AbortController();
-    turnAbortRef.current = controller;
-    // Deltas repaint at most once per frame; the latest entries are kept
-    // aside so a cancel can store exactly what had arrived.
-    let latestLive: LiveEntry[] = [];
-    let turnActive = true;
-    const paint = createFrameThrottle((entries: LiveEntry[]) =>
-      setLive(liveMessages(entries, language)),
-    );
+    // A new message ends a turn still waiting for approval.
+    approval.drop();
+    const turn = beginTurn(activeBot.id);
+    const { controller } = turn;
     // A thread filling the window is folded into a summary first; on any
     // failure the turn goes out as it is.
     await compactThread(userMessageId, controller.signal);
@@ -131,59 +164,44 @@ export function useChatTurns(input: ChatTurnsInput) {
         modelConfig,
         attachments,
         onBotWorking: setWorkingBot,
-        onLive: (entries) => {
-          // After a cancel the abandoned work may still report (a dropped
-          // reply, say); what had arrived by then is what gets stored.
-          if (!turnActive || controller.signal.aborted) return;
-          latestLive = entries;
-          paint.push(entries);
-        },
+        onLive: turn.live,
+        onToolSteps: turn.steps,
+        onMemoryChanged: (botId) => void refreshMemoryFromServer(botId),
         signal: controller.signal,
       }),
     );
-    turnActive = false;
-    paint.cancel();
-    setLive([]);
-    if (turnAbortRef.current === controller) turnAbortRef.current = null;
+    turn.end();
     const reply: ChatReplyOutcome =
       result === "cancelled"
-        ? (cancelledPartialReply(latestLive) ?? {
+        ? (cancelledPartialReply(turn.latest()) ?? {
             text: chatCopy[language].cancelledNote,
           })
         : result;
     recordModelCall(reply.modelCall);
-    setWorkingBot(null);
 
-    if (conversationIdRef.current !== conversationId) {
-      setBusy(false);
-      return;
-    }
-
-    const replyMessages = buildReplyMessages(reply, {
-      language,
-      modelBadge,
-      nextId: getNextId,
-    });
-    persistMessages(
-      insertReplyAfter(
-        loadBotMessages(activeBot.id),
-        userMessageId,
-        replyMessages,
-      ),
-    );
-    if (result !== "cancelled") onReply(activeBot.id);
-    setBusy(false);
-
-    // If another message was queued in the meantime, process it sequentially
-    const nextQueued = dequeue();
-    if (nextQueued && nextQueued.conversationId === conversationIdRef.current) {
-      void processTurn(
-        nextQueued.text,
-        nextQueued.id,
-        conversationId,
-        nextQueued.attachments,
+    if (conversationIdRef.current === conversationId) {
+      const replyMessages = buildReplyMessages(reply, {
+        language,
+        modelBadge,
+        nextId: getNextId,
+      });
+      persistMessages(
+        insertReplyAfter(
+          loadBotMessages(activeBot.id),
+          userMessageId,
+          replyMessages,
+        ),
       );
+      if (reply.toolPause) {
+        approval.hold(
+          reply.toolPause,
+          replyMessages[replyMessages.length - 1].id,
+        );
+      }
+      if (result !== "cancelled") onReply(activeBot.id);
     }
+    // If another message was queued in the meantime, it is answered next.
+    settleTurn(activeBot.id, conversationId);
   }
 
   /** Stores the user's message and answers it now, or queues it while busy. */
@@ -242,6 +260,7 @@ export function useChatTurns(input: ChatTurnsInput) {
     turnAbortRef.current?.abort();
     conversationIdRef.current += 1;
     clearQueue();
+    approval.drop();
     clearMessages();
     setLive([]);
     setBusy(false);
@@ -261,5 +280,10 @@ export function useChatTurns(input: ChatTurnsInput) {
     cancelTurn,
     retryMessage,
     resetConversation,
+    /** The tool calls of the turn in flight, for the activity line. */
+    toolSteps,
+    /** A tool turn waiting for the user's approval, and how to answer it. */
+    pausedToolTurn: approval.paused,
+    decideToolApproval: approval.decide,
   };
 }

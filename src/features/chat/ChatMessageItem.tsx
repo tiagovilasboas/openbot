@@ -14,6 +14,7 @@ import type {
 } from "@/features/github/github-types.ts";
 import { CompactedDivider } from "@/features/compaction/CompactedDivider.tsx";
 import type { CompactedMeta } from "@/features/compaction/compaction-types.ts";
+import type { ToolStep } from "@/features/tools/client/tool-steps.ts";
 import { chatCopy } from "./chat-copy.ts";
 import { CopyButton } from "./CopyButton.tsx";
 import {
@@ -54,6 +55,8 @@ export interface MessageData {
    * summary, the originals are archived here and never sent to the model.
    */
   compacted?: CompactedMeta;
+  /** On a tool turn's reply: each tool call and how it ended. */
+  toolSteps?: ToolStep[];
 }
 
 /** What the user's message needs to offer "go back to this message". */
