@@ -1,6 +1,6 @@
 import type { CrewStepRecord } from "../crew/crew-step-record.ts";
 import type { MessageData } from "./ChatMessageItem.tsx";
-import type { ChatReplyOutcome } from "./execute-chat-message.ts";
+import type { ChatReplyOutcome } from "./chat-reply-outcome.ts";
 import type { ChatLanguage } from "./respond-to-message.ts";
 
 /**

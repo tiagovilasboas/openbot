@@ -22,10 +22,8 @@ import { cancelledPartialReply } from "./cancelled-partial-reply.ts";
 import { historyFromThread } from "@/features/compaction/history-from-thread.ts";
 import { useTurnCompaction } from "@/features/compaction/use-turn-compaction.ts";
 import { chatCopy } from "./chat-copy.ts";
-import {
-  executeChatMessage,
-  type ChatReplyOutcome,
-} from "./execute-chat-message.ts";
+import type { ChatReplyOutcome } from "./chat-reply-outcome.ts";
+import { executeChatMessage } from "./execute-chat-message.ts";
 import { startLiveTurn } from "./live-turn.ts";
 import { buildReplyMessages } from "./reply-messages.ts";
 import { dropRepliesTo } from "./retry-partial-reply.ts";

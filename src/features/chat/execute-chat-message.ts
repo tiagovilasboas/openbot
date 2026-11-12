@@ -4,68 +4,36 @@ import { buildBotSystemPrompt } from "@/features/bots/bot-system-prompt.ts";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
 import { chiefPlainReply } from "@/features/crew/chief-plain-reply.ts";
 import { crewCopy } from "@/features/crew/crew-copy.ts";
-import type { CrewStepRecord } from "@/features/crew/crew-step-record.ts";
 import { buildCrewRoster } from "@/features/crew/crew-roster.ts";
 import { liveChiefText } from "@/features/crew/live-chief-text.ts";
 import { parseDelegations } from "@/features/crew/parse-delegations.ts";
 import { runCrewTurn } from "@/features/crew/run-crew-turn.ts";
 import { detectGitHubRequest } from "@/features/github/detect-github-request.ts";
-import type {
-  GitHubItem,
-  GitHubRepoRef,
-} from "@/features/github/github-types.ts";
 import type { LiveToolStep } from "@/features/tools/client/live-tool-steps.ts";
 import { toolTurnFor } from "@/features/tools/client/tool-route.ts";
 import type { ModelFailure } from "@/features/model/classify-model-failure.ts";
 import type { ClientModelConfig } from "@/features/model/model-config.ts";
 import { memoryTextsForRequest } from "@/features/memory/memory-request.ts";
-import type { ModelCallResult } from "@/features/model/model-status.ts";
 import type { TokenUsage } from "@/features/model/token-usage.ts";
 import { recordUsageCall } from "@/features/usage/usage-storage.ts";
 import { detectSummaryRequest } from "@/features/summary/detect-summary-request.ts";
 import { executeSummary } from "@/features/summary/execute-summary.ts";
+import type { ExecuteChatMessageInput } from "./execute-chat-message-input.ts";
+import type { ChatReplyOutcome } from "./chat-reply-outcome.ts";
 import { describeModelFailure } from "./describe-model-failure.ts";
 import { findMentionedBot } from "./find-mentioned-bot.ts";
 import { githubRequestReply } from "./github-request-reply.ts";
-import { incompleteKindOf, type IncompleteKind } from "./incomplete-reply.ts";
+import { crewReplyFields } from "./crew-reply-fields.ts";
 import { createLiveBoard, type LiveEntry } from "./live-board.ts";
 import { fitHistoryToBytes, limitHistory } from "./request-history.ts";
+import { incompleteKindOf } from "./incomplete-reply.ts";
 import { requestModelReply } from "./request-model-reply.ts";
 import { requestModelStream } from "./request-model-stream.ts";
 import {
   getUnconfiguredModelMessage,
   type ChatLanguage,
 } from "./respond-to-message.ts";
-import {
-  streamToolTurn,
-  type ToolPauseDraft,
-  type ToolTurnReply,
-} from "./tool-turn-reply.ts";
-
-export interface ChatReplyOutcome {
-  text: string;
-  delegatedBot?: BotProfile;
-  github?: { repo: GitHubRepoRef; items: GitHubItem[] };
-  failover?: { fromModel: string; toModel: string; reason: string };
-  /** The text is what arrived before the reply broke off or was cancelled. */
-  incomplete?: IncompleteKind;
-  /** Set when the turn reached the model, so the header dot can follow it. */
-  modelCall?: ModelCallResult;
-  /** Set when the Chief delegated: its kickoff and each specialist's reply. */
-  crew?: {
-    kickoff: string;
-    specialists: Array<{
-      bot: BotProfile;
-      text: string;
-      /** What the Chief asked and how it went; the team room reads this. */
-      step?: CrewStepRecord;
-    }>;
-  };
-  /** On a tool turn: the calls, the plain-chat notice, a pause. */
-  toolSteps?: ToolTurnReply["toolSteps"];
-  toolsUnavailable?: true;
-  toolPause?: ToolPauseDraft;
-}
+import { streamToolTurn } from "./tool-turn-reply.ts";
 
 export async function executeChatMessage({
   text,
@@ -84,39 +52,7 @@ export async function executeChatMessage({
   onUsage = recordUsageCall,
   onMemoryChanged = () => undefined,
   onToolSteps,
-}: {
-  text: string;
-  language: ChatLanguage;
-  history: Array<{ role: "assistant" | "user"; text: string }>;
-  activeBot: BotProfile;
-  bots?: BotProfile[];
-  /** The bot the user made main; it leads the crew as the Chief. */
-  mainBotId?: string;
-  gitHubToken: string | null;
-  modelConfig: ClientModelConfig | null;
-  /** Follows which bot is working while the Chief's crew answers. */
-  onBotWorking?: (bot: BotProfile) => void;
-  /**
-   * Streams the model replies and reports the replies in progress. Without
-   * it the turn uses the plain, non-stream route.
-   */
-  onLive?: (entries: LiveEntry[]) => void;
-  /** The user's cancel signal; each model call also has its own time limit. */
-  signal?: AbortSignal;
-  /** A bot's memory notes; defaults to what the user saved on this device. */
-  memoryFor?: (botId: string) => string[];
-  /**
-   * Files for this turn, raw name and text. Only the first model call gets
-   * them: a delegated specialist is not sent the user's files.
-   */
-  attachments?: AttachmentPayload[];
-  /** Hears each finished reply of a bot; defaults to the device's usage log. */
-  onUsage?: (botId: string, usage: TokenUsage | undefined) => void;
-  /** A tool changed the bot's notes on the server. */
-  onMemoryChanged?: (botId: string) => void;
-  /** Follows the tool calls of a tool turn as they run. */
-  onToolSteps?: (steps: LiveToolStep[]) => void;
-}): Promise<ChatReplyOutcome> {
+}: ExecuteChatMessageInput): Promise<ChatReplyOutcome> {
   // The server caps the history; send only the newest messages, and fewer
   // when files take room in the request body.
   const limited = limitHistory(fullHistory);
@@ -332,25 +268,7 @@ export async function executeChatMessage({
         : isChief
           ? chiefPlainReply(outcome.text, bots, executingBot.id, language)
           : outcome.text,
-      ...(crewTurn
-        ? {
-            crew: {
-              kickoff: crewTurn.kickoff,
-              specialists: crewTurn.specialists.map(
-                ({ bot, text, task, ok, durationMs, incomplete }) => ({
-                  bot,
-                  text,
-                  step: {
-                    task,
-                    ok,
-                    durationMs,
-                    ...(incomplete ? { incomplete } : {}),
-                  },
-                }),
-              ),
-            },
-          }
-        : {}),
+      ...crewReplyFields(crewTurn),
       delegatedBot,
       ...(crewTurn?.synthesisIncomplete
         ? {
