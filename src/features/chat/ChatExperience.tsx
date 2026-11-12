@@ -10,6 +10,7 @@ import { useLocalAuth } from "@/features/auth/use-local-auth.ts";
 import { BotsSyncNotice } from "@/features/bots/sync/BotsSyncNotice.tsx";
 import { ConversationsSyncNotice } from "@/features/conversations/sync/ConversationsSyncNotice.tsx";
 import { useConversationsSync } from "@/features/conversations/sync/use-conversations-sync.ts";
+import { MemorySyncNotice } from "@/features/memory/sync/MemorySyncNotice.tsx";
 import { UsageSyncNotice } from "@/features/usage/sync/UsageSyncNotice.tsx";
 import { useUsageSync } from "@/features/usage/sync/use-usage-sync.ts";
 import { BotEditModal } from "@/features/bots/BotEditModal.tsx";
@@ -252,6 +253,7 @@ export function ChatExperience() {
           error={conversationsSync.syncError}
           onDismiss={conversationsSync.dismissSyncError}
         />
+        <MemorySyncNotice language={language} />
         <UsageSyncNotice
           language={language}
           error={usageSync.syncError}

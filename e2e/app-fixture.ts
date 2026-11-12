@@ -4,6 +4,7 @@ import {
   type BrowserContext,
   type Page,
 } from "@playwright/test";
+import { stubMemoryStore } from "./memory-store-stub.ts";
 import { stubStream, type StreamStub } from "./stream-stub.ts";
 
 /** One scripted answer of the stubbed model, shaped like the real routes. */
@@ -239,7 +240,18 @@ export const test = base.extend<{
   /** True for the few specs that talk to the real /api/usage route. */
   realUsageStore: boolean;
   usageStore: void;
+  /** True for the few specs that talk to the real /api/memory route. */
+  realMemoryStore: boolean;
+  memoryStore: void;
 }>({
+  realMemoryStore: [false, { option: true }],
+  memoryStore: [
+    async ({ context, realMemoryStore }, provide) => {
+      if (!realMemoryStore) await stubMemoryStore(context);
+      await provide();
+    },
+    { auto: true },
+  ],
   realUsageStore: [false, { option: true }],
   usageStore: [
     async ({ context, realUsageStore }, provide) => {
@@ -280,4 +292,4 @@ export const test = base.extend<{
   },
 });
 
-export { expect };
+export { expect, stubMemoryStore };
