@@ -20,6 +20,9 @@ export const chatCopy = {
       "Consulte repositórios do GitHub ou conecte modelos de IA.",
     conversationLabel: "Conversa",
     thinking: "Pensando...",
+    activityThinking: "Pensando…",
+    activityWriting: "Escrevendo…",
+    activityConsulting: "Consultando",
     sendMessageLabel: "Enviar mensagem",
     modelError: "Não consegui falar com o modelo configurado. Tente novamente.",
     modelErrorAuth:
@@ -181,6 +184,9 @@ export const chatCopy = {
     emptySubheading: "Query GitHub repositories or connect AI models.",
     conversationLabel: "Conversation",
     thinking: "Thinking...",
+    activityThinking: "Thinking…",
+    activityWriting: "Writing…",
+    activityConsulting: "Consulting",
     sendMessageLabel: "Send message",
     modelError: "I could not reach the configured model. Please try again.",
     modelErrorAuth:

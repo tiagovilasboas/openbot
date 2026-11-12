@@ -17,6 +17,9 @@ export const chatCopyEs = {
   emptySubheading: "Consulta repositorios de GitHub o conecta modelos de IA.",
   conversationLabel: "Conversación",
   thinking: "Pensando...",
+  activityThinking: "Pensando…",
+  activityWriting: "Escribiendo…",
+  activityConsulting: "Consultando",
   sendMessageLabel: "Enviar mensaje",
   modelError:
     "No pude comunicarme con el modelo configurado. Inténtalo de nuevo.",
