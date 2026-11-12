@@ -4,6 +4,7 @@ import {
   type BrowserContext,
   type Page,
 } from "@playwright/test";
+import { stubSettingsStore } from "./settings-store-stub.ts";
 import { stubStream, type StreamStub } from "./stream-stub.ts";
 
 /** One scripted answer of the stubbed model, shaped like the real routes. */
@@ -199,26 +200,29 @@ export async function stubConversationsStore(
 }
 
 /**
- * Stands in for /api/settings per browser context: the saved keys, in
- * memory. It follows the contract: GET returns only the saved keys, PUT
- * merges per key and a null clears one.
+ * Stands in for /api/usage per browser context: one global log kept in
+ * memory. GET reads, PUT replaces the whole log, DELETE answers 204.
  */
-export async function stubSettingsStore(
-  context: BrowserContext,
-): Promise<void> {
-  const settings = new Map<string, unknown>();
-  await context.route("**/api/settings", async (route) => {
+export async function stubUsageStore(context: BrowserContext): Promise<void> {
+  let records: unknown[] = [];
+  let updatedAt: number | null = null;
+  await context.route("**/api/usage**", async (route) => {
     const request = route.request();
-    if (request.method() === "PUT") {
-      const body = request.postDataJSON() as {
-        settings?: Record<string, unknown>;
-      };
-      for (const [key, value] of Object.entries(body.settings ?? {})) {
-        if (value === null) settings.delete(key);
-        else settings.set(key, value);
-      }
+    const method = request.method();
+    if (method === "PUT") {
+      const body = request.postDataJSON() as { records?: unknown[] };
+      records = Array.isArray(body.records) ? body.records : [];
+      updatedAt = records.length === 0 ? null : Date.now();
+      await route.fulfill({ json: { updatedAt, count: records.length } });
+      return;
     }
-    await route.fulfill({ json: { settings: Object.fromEntries(settings) } });
+    if (method === "DELETE") {
+      records = [];
+      updatedAt = null;
+      await route.fulfill({ status: 204, body: "" });
+      return;
+    }
+    await route.fulfill({ json: { records, updatedAt } });
   });
 }
 
@@ -236,11 +240,22 @@ export const test = base.extend<{
   /** True for the few specs that talk to the real /api/conversations route. */
   realConversationsStore: boolean;
   conversationsStore: void;
+  /** True for the few specs that talk to the real /api/usage route. */
+  realUsageStore: boolean;
+  usageStore: void;
 }>({
   realSettingsStore: [false, { option: true }],
   settingsStore: [
     async ({ context, realSettingsStore }, provide) => {
       if (!realSettingsStore) await stubSettingsStore(context);
+      await provide();
+    },
+    { auto: true },
+  ],
+  realUsageStore: [false, { option: true }],
+  usageStore: [
+    async ({ context, realUsageStore }, provide) => {
+      if (!realUsageStore) await stubUsageStore(context);
       await provide();
     },
     { auto: true },
@@ -277,4 +292,4 @@ export const test = base.extend<{
   },
 });
 
-export { expect };
+export { expect, stubSettingsStore };

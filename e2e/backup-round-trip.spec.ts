@@ -4,6 +4,7 @@ import {
   stubBotsStore,
   stubConversationsStore,
   stubKeysStore,
+  stubSettingsStore,
   test,
 } from "./app-fixture.ts";
 
@@ -42,6 +43,7 @@ test("an exported backup imports into a fresh browser profile", async ({
   await stubBotsStore(fresh);
   await stubKeysStore(fresh);
   await stubConversationsStore(fresh);
+  await stubSettingsStore(fresh);
   const freshPage = await fresh.newPage();
   await freshPage.goto("/");
   const freshApp = appPage(freshPage);
