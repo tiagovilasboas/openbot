@@ -1,17 +1,7 @@
 // Contracts of the approval-gated tool loop. Pure types: no I/O here.
-
-// Local on purpose: unify with the neutral type in model/tool-wire.ts once
-// both slices are merged.
-export type JsonSchemaLite = {
-  type?: string;
-  description?: string;
-  properties?: Record<string, JsonSchemaLite>;
-  required?: string[];
-  items?: JsonSchemaLite;
-  enum?: (string | number | boolean)[];
-  maxLength?: number;
-  additionalProperties?: boolean;
-};
+// The tools domain may use the model domain's neutral wire types; the model
+// domain never imports this one.
+import type { JsonSchemaLite } from "../model/tool-wire.ts";
 
 export type ToolPolicy = "auto" | "ask";
 
