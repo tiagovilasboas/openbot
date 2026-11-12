@@ -11,6 +11,7 @@ import { parseBackup } from "./parse-backup.ts";
 import { botsSyncMessage } from "../bots/sync/bots-sync-copy.ts";
 import { botsSyncErrorCode } from "../bots/sync/bots-sync-failure.ts";
 import { pushRestoredBackup } from "../bots/sync/browser-bots-sync.ts";
+import { pushRestoredLanguage } from "../settings/sync/browser-settings-sync.ts";
 import { restoreBackup } from "./restore-backup.ts";
 
 const BUTTON =
@@ -67,6 +68,7 @@ export function BackupSection({ language }: { language: ChatLanguage }) {
     }
     // The server holds the bots now, so the restored list goes there too;
     // if it is refused, the next load retries it from this browser.
+    pushRestoredLanguage();
     const failure = await pushRestoredBackup();
     const code = failure && botsSyncErrorCode(failure);
     setNotice(

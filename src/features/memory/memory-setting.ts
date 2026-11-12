@@ -1,3 +1,4 @@
+import { notifySettingsChanged } from "../settings/settings-sync-port.ts";
 import type { MemoryStorage } from "./memory-storage.ts";
 
 /**
@@ -23,9 +24,25 @@ export function loadMemoryEnabled(
   }
 }
 
+/** The saved switch; undefined while the user never turned memory off. */
+export function loadStoredMemoryEnabled(
+  storage: MemoryStorage | undefined = browserStorage(),
+): boolean | undefined {
+  try {
+    return storage?.getItem(MEMORY_SWITCH_KEY) === OFF ? false : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Saves the switch and queues it for the server. The load passes
+ * `sync: false` to mirror what the server holds without sending it back.
+ */
 export function saveMemoryEnabled(
   enabled: boolean,
   storage: MemoryStorage | undefined = browserStorage(),
+  options: { sync?: boolean } = {},
 ): void {
   try {
     if (!storage) return;
@@ -34,7 +51,9 @@ export function saveMemoryEnabled(
     listeners.forEach((listener) => listener());
   } catch {
     // Storage can be blocked; the switch then stays as it was.
+    return;
   }
+  if (options.sync !== false) notifySettingsChanged({ memoryEnabled: enabled });
 }
 
 export function subscribeMemoryEnabled(listener: () => void): () => void {

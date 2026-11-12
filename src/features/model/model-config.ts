@@ -1,4 +1,5 @@
 import type { Language } from "../language/language.ts";
+import { notifySettingsChanged } from "../settings/settings-sync-port.ts";
 export type ModelProviderType = "router" | "local" | "anthropic";
 
 export type RouterConfig = {
@@ -181,7 +182,14 @@ export function loadStoredModelConfig(): ClientModelConfig | null {
   }
 }
 
-export function saveStoredModelConfig(config: ClientModelConfig): void {
+/**
+ * Saves the config (without its key) and queues it for the server. The load
+ * passes `sync: false` to mirror what the server holds without sending it back.
+ */
+export function saveStoredModelConfig(
+  config: ClientModelConfig,
+  options: { sync?: boolean } = {},
+): void {
   if (typeof window === "undefined" || !window.localStorage) {
     return;
   }
@@ -194,13 +202,17 @@ export function saveStoredModelConfig(config: ClientModelConfig): void {
       cachedRaw = serialized;
       cachedConfig = validated;
       notifyListeners();
+      if (options.sync !== false) {
+        notifySettingsChanged({ modelConfig: validated });
+      }
     }
   } catch {
     // Ignore storage write quota exceptions silently
   }
 }
 
-export function clearStoredModelConfig(): void {
+/** Forgets the config here and, unless `sync: false`, on the server too. */
+export function clearStoredModelConfig(options: { sync?: boolean } = {}): void {
   if (typeof window === "undefined" || !window.localStorage) {
     return;
   }
@@ -209,6 +221,7 @@ export function clearStoredModelConfig(): void {
     cachedRaw = null;
     cachedConfig = null;
     notifyListeners();
+    if (options.sync !== false) notifySettingsChanged({ modelConfig: null });
   } catch {
     // Ignore storage exceptions silently
   }

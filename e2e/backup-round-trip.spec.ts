@@ -4,6 +4,7 @@ import {
   stubBotsStore,
   stubConversationsStore,
   stubKeysStore,
+  stubSettingsStore,
   stubMemoryStore,
   stubUsageStore,
   test,
@@ -44,6 +45,7 @@ test("an exported backup imports into a fresh browser profile", async ({
   await stubBotsStore(fresh);
   await stubKeysStore(fresh);
   await stubConversationsStore(fresh);
+  await stubSettingsStore(fresh);
   await stubMemoryStore(fresh);
   await stubUsageStore(fresh);
   const freshPage = await fresh.newPage();

@@ -5,6 +5,8 @@ import {
   type Page,
 } from "@playwright/test";
 import { stubMemoryStore } from "./memory-store-stub.ts";
+import { stubSettingsStore } from "./settings-store-stub.ts";
+import { stubUsageStore } from "./usage-store-stub.ts";
 import { stubStream, type StreamStub } from "./stream-stub.ts";
 
 /** One scripted answer of the stubbed model, shaped like the real routes. */
@@ -199,34 +201,10 @@ export async function stubConversationsStore(
   });
 }
 
-/**
- * Stands in for /api/usage per browser context: one global log kept in
- * memory. GET reads, PUT replaces the whole log, DELETE answers 204.
- */
-export async function stubUsageStore(context: BrowserContext): Promise<void> {
-  let records: unknown[] = [];
-  let updatedAt: number | null = null;
-  await context.route("**/api/usage**", async (route) => {
-    const request = route.request();
-    const method = request.method();
-    if (method === "PUT") {
-      const body = request.postDataJSON() as { records?: unknown[] };
-      records = Array.isArray(body.records) ? body.records : [];
-      updatedAt = records.length === 0 ? null : Date.now();
-      await route.fulfill({ json: { updatedAt, count: records.length } });
-      return;
-    }
-    if (method === "DELETE") {
-      records = [];
-      updatedAt = null;
-      await route.fulfill({ status: 204, body: "" });
-      return;
-    }
-    await route.fulfill({ json: { records, updatedAt } });
-  });
-}
-
 export const test = base.extend<{
+  /** True for the few specs that talk to the real /api/settings route. */
+  realSettingsStore: boolean;
+  settingsStore: void;
   model: ModelStub;
   /** True for the few specs that talk to the real /api/bots route. */
   realBotsStore: boolean;
@@ -244,6 +222,14 @@ export const test = base.extend<{
   realMemoryStore: boolean;
   memoryStore: void;
 }>({
+  realSettingsStore: [false, { option: true }],
+  settingsStore: [
+    async ({ context, realSettingsStore }, provide) => {
+      if (!realSettingsStore) await stubSettingsStore(context);
+      await provide();
+    },
+    { auto: true },
+  ],
   realMemoryStore: [false, { option: true }],
   memoryStore: [
     async ({ context, realMemoryStore }, provide) => {
@@ -292,4 +278,4 @@ export const test = base.extend<{
   },
 });
 
-export { expect, stubMemoryStore };
+export { expect, stubMemoryStore, stubSettingsStore, stubUsageStore };

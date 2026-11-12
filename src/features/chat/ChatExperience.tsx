@@ -10,6 +10,8 @@ import { useLocalAuth } from "@/features/auth/use-local-auth.ts";
 import { BotsSyncNotice } from "@/features/bots/sync/BotsSyncNotice.tsx";
 import { ConversationsSyncNotice } from "@/features/conversations/sync/ConversationsSyncNotice.tsx";
 import { useConversationsSync } from "@/features/conversations/sync/use-conversations-sync.ts";
+import { SettingsSyncNotice } from "@/features/settings/sync/SettingsSyncNotice.tsx";
+import { useSettingsSync } from "@/features/settings/sync/use-settings-sync.ts";
 import { MemorySyncNotice } from "@/features/memory/sync/MemorySyncNotice.tsx";
 import { UsageSyncNotice } from "@/features/usage/sync/UsageSyncNotice.tsx";
 import { useUsageSync } from "@/features/usage/sync/use-usage-sync.ts";
@@ -64,6 +66,7 @@ export function ChatExperience() {
   const { messages, persistMessages, getNextId, clearMessages } =
     useBotMessages(activeBot.id);
   const conversationsSync = useConversationsSync();
+  const settingsSync = useSettingsSync();
   const usageSync = useUsageSync();
 
   // The active bot's own skills feed the composer's command palette.
@@ -252,6 +255,11 @@ export function ChatExperience() {
           language={language}
           error={conversationsSync.syncError}
           onDismiss={conversationsSync.dismissSyncError}
+        />
+        <SettingsSyncNotice
+          language={language}
+          error={settingsSync.syncError}
+          onDismiss={settingsSync.dismissSyncError}
         />
         <MemorySyncNotice language={language} />
         <UsageSyncNotice
