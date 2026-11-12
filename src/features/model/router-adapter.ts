@@ -5,7 +5,7 @@ import { openModelStream } from "./open-model-stream.ts";
 import { parseRouterStream } from "./router-stream.ts";
 import { openAiUsage } from "./token-usage.ts";
 import type { StreamingModelAdapter } from "./stream-adapter.ts";
-import { toWireMessages } from "./wire-messages.ts";
+import { toolsBody, toWireMessages } from "./wire-messages.ts";
 import { providerErrorDetail } from "./provider-error-detail.ts";
 
 export type RouterAdapterConfig = {
@@ -54,6 +54,7 @@ export function createRouterAdapter(
           model: model,
           stream: true,
           messages: toWireMessages(request),
+          ...toolsBody(request.tools),
         },
         network: config,
         signal,

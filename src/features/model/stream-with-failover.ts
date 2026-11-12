@@ -39,7 +39,7 @@ type Attempt =
   | {
       kind: "ready";
       adapter: StreamingModelAdapter;
-      firstText: string;
+      first: Extract<ModelStreamChunk, { type: "delta" | "tool_call" }>;
       usage: StreamUsage;
       rest: AsyncIterator<ModelStreamChunk>;
     }
@@ -80,8 +80,9 @@ async function startAttempt(
       return { kind: "aborted" };
     }
     const chunk = next.done ? null : next.value;
-    if (chunk?.type === "delta") {
-      return { kind: "ready", adapter, firstText: chunk.text, usage, rest };
+    // A step is ready at its first text or its first tool call.
+    if (chunk?.type === "delta" || chunk?.type === "tool_call") {
+      return { kind: "ready", adapter, first: chunk, usage, rest };
     }
     if (chunk?.type === "usage") {
       usage = mergeUsage(usage, chunk.usage);
@@ -181,13 +182,17 @@ export async function* streamWithFailover(
   let chars = 0;
   try {
     yield { type: "start", provider: adapter.provider, model: adapter.model };
-    const first = fitReplyChunk(chars, attempt.firstText, maxChars);
-    yield { type: "delta", text: first.text };
-    if (first.exceeded) {
-      yield errorEvent("response_too_long", adapter.provider);
-      return;
+    if (attempt.first.type === "tool_call") {
+      yield attempt.first;
+    } else {
+      const first = fitReplyChunk(chars, attempt.first.text, maxChars);
+      yield { type: "delta", text: first.text };
+      if (first.exceeded) {
+        yield errorEvent("response_too_long", adapter.provider);
+        return;
+      }
+      chars += first.text.length;
     }
-    chars += first.text.length;
     for (;;) {
       const next = await rest.next();
       if (signal.aborted) {
@@ -205,6 +210,8 @@ export async function* streamWithFailover(
           return;
         }
         chars += fit.text.length;
+      } else if (chunk.type === "tool_call") {
+        yield chunk;
       } else if (chunk.type === "usage") {
         usage = mergeUsage(usage, chunk.usage);
       } else {
