@@ -5,12 +5,12 @@ import type { ChatStreamEvent } from "./stream-events.ts";
  * Reading is pull-based, so a slow client slows the upstream read instead of
  * buffering it. When the client goes away, `onCancel` aborts the upstream call.
  */
-export function eventsToNdjson(
-  events: AsyncGenerator<ChatStreamEvent>,
+export function eventsToNdjson<E = ChatStreamEvent>(
+  events: AsyncGenerator<E>,
   onCancel: () => void,
 ): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder();
-  const line = (event: ChatStreamEvent) =>
+  const line = (event: E | ChatStreamEvent) =>
     encoder.encode(`${JSON.stringify(event)}\n`);
 
   return new ReadableStream<Uint8Array>({

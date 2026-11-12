@@ -2,6 +2,7 @@ import {
   handleGetBots,
   handlePutBots,
 } from "../../../features/bots/server/bots-handler.ts";
+import { forgetBotTools } from "../../../features/tools/server/forget-bot-tools.ts";
 import { getLocalStore } from "../../../shared/local-store/local-store.ts";
 
 export const dynamic = "force-dynamic";
@@ -11,5 +12,6 @@ export function GET() {
 }
 
 export function PUT(request: Request) {
-  return handlePutBots(request, getLocalStore());
+  const db = getLocalStore();
+  return handlePutBots(request, db, (removed) => forgetBotTools(db, removed));
 }

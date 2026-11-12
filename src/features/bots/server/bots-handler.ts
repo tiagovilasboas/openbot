@@ -49,10 +49,14 @@ export function handleGetBots(db: DatabaseSync): Response {
   return json(storedState(db));
 }
 
+/** Told which bot ids a write removed, so other domains can clean up. */
+export type BotsRemovedHook = (botIds: string[]) => void;
+
 /** PUT /api/bots: replaces the whole list atomically; any invalid bot rejects it. */
 export async function handlePutBots(
   request: Request,
   db: DatabaseSync,
+  onBotsRemoved?: BotsRemovedHook,
 ): Promise<Response> {
   // The guard checks the declared length; this bounds the bytes actually read.
   const text = await readBodyWithCap(request, bodyLimitFor("PUT", "/api/bots"));
@@ -83,6 +87,10 @@ export async function handlePutBots(
     ...(active !== undefined && { activeBotId: active }),
     ...(main !== undefined && { mainBotId: main }),
   };
+  const before = listBots(db).map((bot) => bot.id);
   replaceBots(db, result.bots, selection);
+  const kept = new Set(result.bots.map((bot) => bot.id));
+  const removed = before.filter((id) => !kept.has(id));
+  if (removed.length > 0) onBotsRemoved?.(removed);
   return json(storedState(db));
 }
