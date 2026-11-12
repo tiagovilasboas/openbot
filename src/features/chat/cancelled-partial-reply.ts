@@ -1,4 +1,4 @@
-import type { ChatReplyOutcome } from "./execute-chat-message.ts";
+import type { ChatReplyOutcome } from "./chat-reply-outcome.ts";
 import type { LiveEntry } from "./live-board.ts";
 
 /**

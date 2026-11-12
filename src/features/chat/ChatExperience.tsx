@@ -7,38 +7,28 @@ import { useComposerAttachments } from "@/features/attachments/use-composer-atta
 import { useAttention } from "@/features/attention/use-attention.ts";
 import { LockScreen } from "@/features/auth/LockScreen.tsx";
 import { useLocalAuth } from "@/features/auth/use-local-auth.ts";
-import { BotsSyncNotice } from "@/features/bots/sync/BotsSyncNotice.tsx";
-import { ConversationsSyncNotice } from "@/features/conversations/sync/ConversationsSyncNotice.tsx";
 import { useConversationsSync } from "@/features/conversations/sync/use-conversations-sync.ts";
-import { SettingsSyncNotice } from "@/features/settings/sync/SettingsSyncNotice.tsx";
 import { useSettingsSync } from "@/features/settings/sync/use-settings-sync.ts";
-import { MemorySyncNotice } from "@/features/memory/sync/MemorySyncNotice.tsx";
-import { UsageSyncNotice } from "@/features/usage/sync/UsageSyncNotice.tsx";
 import { useUsageSync } from "@/features/usage/sync/use-usage-sync.ts";
 import { BotEditModal } from "@/features/bots/BotEditModal.tsx";
-import { botAccent } from "@/features/bots/bot-accent.ts";
-import type { BotProfile } from "@/features/bots/bot-types.ts";
 import { useBots } from "@/features/bots/use-bots.ts";
 import { useGitHubToken } from "@/features/github/use-github-token.ts";
 import { useContextUsage } from "@/features/context-window/use-context-usage.ts";
-import { formatModelBadge } from "@/features/model/model-config.ts";
 import { SettingsModal } from "@/features/model/SettingsModal.tsx";
-import {
-  fetchActiveServerModel,
-  type ActiveServerModelOutcome,
-} from "@/features/model/test-model-connection.ts";
 import { useModelConfig } from "@/features/model/use-model-config.ts";
 import { useMigrateLocalKeys } from "@/features/key-vault/use-migrate-local-keys.ts";
-import { useModelStatus } from "@/features/model/use-model-status.ts";
 import { ChatEmptyState } from "./ChatEmptyState.tsx";
 import { ChatHeader } from "./ChatHeader.tsx";
 import { ChatSidebar } from "./ChatSidebar.tsx";
+import { ChatSyncNotices } from "./ChatSyncNotices.tsx";
 import { ConversationView } from "./ConversationView.tsx";
 import { focusComposer } from "./focus-composer.ts";
 import { rollBackThread, rollbackBlock } from "./roll-back-thread.ts";
+import { useActiveModel } from "./use-active-model.ts";
+import { useBotEditor } from "./use-bot-editor.ts";
 import { useBotMessages } from "./use-bot-messages.ts";
-import { HTML_LANG } from "../language/language.ts";
 import { useChatTurns } from "./use-chat-turns.ts";
+import { useDocumentTheme } from "./use-document-theme.ts";
 import { useLanguage } from "./use-language.ts";
 import { useMessageQueue } from "./use-message-queue.ts";
 
@@ -77,46 +67,21 @@ export function ChatExperience() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [botToEdit, setBotToEdit] = useState<BotProfile | null>(null);
-  const [isBotModalOpen, setIsBotModalOpen] = useState(false);
+  const botEditor = useBotEditor();
 
   const modelConfig = useModelConfig();
   const gitHubToken = useGitHubToken();
-  const [serverModel, setServerModel] =
-    useState<ActiveServerModelOutcome | null>(null);
-
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    document.documentElement.lang = HTML_LANG[language];
-  }, [language]);
-
-  // The active bot's accent drives focus rings, caret, selection and the
-  // bot's own chrome, including portaled sheets, so it lives on <html>.
-  const activeAccent = botAccent(activeBot.avatarColor);
-  useEffect(() => {
-    const root = document.documentElement;
-    root.style.setProperty("--bot-accent", activeAccent);
-    return () => {
-      root.style.removeProperty("--bot-accent");
-    };
-  }, [activeAccent]);
-
-  useEffect(() => {
-    void fetchActiveServerModel().then((server) => setServerModel(server));
-  }, []);
-  useMigrateLocalKeys();
-
-  const isConfigured = Boolean(modelConfig || serverModel?.configured);
-  const { status: modelStatus, recordModelCall } = useModelStatus(
-    modelConfig,
+  useDocumentTheme(language, activeBot);
+  const {
+    serverModel,
     isConfigured,
-  );
-  const activeModelLabel = modelConfig
-    ? formatModelBadge(modelConfig, false, language)
-    : serverModel?.configured
-      ? formatModelBadge(serverModel, false, language)
-      : formatModelBadge(null, false, language);
+    modelStatus,
+    recordModelCall,
+    activeModelLabel,
+  } = useActiveModel(modelConfig, language);
+  useMigrateLocalKeys();
 
   const contextUsage = useContextUsage(
     messages,
@@ -226,14 +191,8 @@ export function ChatExperience() {
           clearQueue();
           setActiveBotId(id);
         }}
-        onCreateBot={() => {
-          setBotToEdit(null);
-          setIsBotModalOpen(true);
-        }}
-        onEditBot={(b) => {
-          setBotToEdit(b);
-          setIsBotModalOpen(true);
-        }}
+        onCreateBot={botEditor.openNew}
+        onEditBot={botEditor.openFor}
         onOpenSettings={() => setIsSettingsOpen(true)}
         onNewChat={startNewChat}
         canStartNewChat={messages.length > 0}
@@ -252,31 +211,14 @@ export function ChatExperience() {
           activeBot={activeBot}
           onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
           isMobileSidebarOpen={isMobileSidebarOpen}
-          onOpenBotEdit={() => {
-            setBotToEdit(activeBot);
-            setIsBotModalOpen(true);
-          }}
+          onOpenBotEdit={() => botEditor.openFor(activeBot)}
         />
-        <BotsSyncNotice
+        <ChatSyncNotices
           language={language}
-          error={syncError}
-          onDismiss={dismissSyncError}
-        />
-        <ConversationsSyncNotice
-          language={language}
-          error={conversationsSync.syncError}
-          onDismiss={conversationsSync.dismissSyncError}
-        />
-        <SettingsSyncNotice
-          language={language}
-          error={settingsSync.syncError}
-          onDismiss={settingsSync.dismissSyncError}
-        />
-        <MemorySyncNotice language={language} />
-        <UsageSyncNotice
-          language={language}
-          error={usageSync.syncError}
-          onDismiss={usageSync.dismissSyncError}
+          bots={{ syncError, dismissSyncError }}
+          conversations={conversationsSync}
+          settings={settingsSync}
+          usage={usageSync}
         />
 
         {messages.length === 0 ? (
@@ -336,17 +278,14 @@ export function ChatExperience() {
       />
 
       <BotEditModal
-        isOpen={isBotModalOpen}
-        bot={botToEdit}
+        isOpen={botEditor.isOpen}
+        bot={botEditor.botToEdit}
         language={language}
-        isMain={botToEdit?.id === mainBotId}
-        canDelete={bots.length > 1 && botToEdit?.id !== mainBotId}
-        onClose={() => {
-          setIsBotModalOpen(false);
-          setBotToEdit(null);
-        }}
+        isMain={botEditor.botToEdit?.id === mainBotId}
+        canDelete={bots.length > 1 && botEditor.botToEdit?.id !== mainBotId}
+        onClose={botEditor.close}
         onSave={(updated) =>
-          botToEdit ? saveBot(updated) : createAndActivateBot(updated)
+          botEditor.botToEdit ? saveBot(updated) : createAndActivateBot(updated)
         }
         onDelete={removeBot}
         onMakeMain={makeMainBot}
