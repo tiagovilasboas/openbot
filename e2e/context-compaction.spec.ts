@@ -75,6 +75,10 @@ test.describe("a thread that fills the window", () => {
     ).toHaveAttribute("aria-expanded", "true");
     await expect(thread.getByText("alpha-old")).toBeVisible();
     await expect(thread.getByText("delta-old")).toBeVisible();
+    // The summary the bot keeps is shown too.
+    await expect(
+      thread.getByRole("region", { name: "O que o bot guardou" }),
+    ).toContainText("SUMMARY-OF-OLD-TURNS");
 
     // The compacted thread is what is stored: it survives a reload.
     await page.reload();

@@ -33,23 +33,34 @@ export function CompactedDivider({ message }: { message: MessageData }) {
       >
         {open ? content.hide : content.show}
       </button>
-      <ol
-        id={archiveId}
-        hidden={!open}
-        aria-label={content.archiveLabel}
-        className="flex flex-col gap-2 rounded-2xl border border-border bg-surface px-4 py-3"
-      >
-        {compacted.archived.map((archived) => (
-          <li key={archived.id} className="flex flex-col gap-0.5">
-            <span className="text-xs font-medium text-subtle">
-              {archived.role === "user" ? content.you : content.bot}
-            </span>
-            <p className="whitespace-pre-wrap break-words text-foreground">
-              {archived.text}
-            </p>
-          </li>
-        ))}
-      </ol>
+      <div id={archiveId} hidden={!open} className="flex flex-col gap-2">
+        <section
+          aria-label={content.summaryLabel}
+          className="flex flex-col gap-0.5 rounded-2xl border border-border bg-surface-secondary px-4 py-3"
+        >
+          <span className="text-xs font-medium text-subtle">
+            {content.summaryLabel}
+          </span>
+          <p className="whitespace-pre-wrap break-words text-foreground">
+            {message.text}
+          </p>
+        </section>
+        <ol
+          aria-label={content.archiveLabel}
+          className="flex flex-col gap-2 rounded-2xl border border-border bg-surface px-4 py-3"
+        >
+          {compacted.archived.map((archived) => (
+            <li key={archived.id} className="flex flex-col gap-0.5">
+              <span className="text-xs font-medium text-subtle">
+                {archived.role === "user" ? content.you : content.bot}
+              </span>
+              <p className="whitespace-pre-wrap break-words text-foreground">
+                {archived.text}
+              </p>
+            </li>
+          ))}
+        </ol>
+      </div>
     </div>
   );
 }

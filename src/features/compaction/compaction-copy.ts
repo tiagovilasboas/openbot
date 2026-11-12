@@ -6,6 +6,8 @@ export interface CompactionCopy {
   show: string;
   hide: string;
   archiveLabel: string;
+  /** Heads the summary the bot keeps instead of the archived messages. */
+  summaryLabel: string;
   you: string;
   bot: string;
   /** Opens the history entry that carries the summary to the model. */
@@ -18,6 +20,7 @@ export const compactionCopy: Record<Language, CompactionCopy> = {
     show: "Mostrar mensagens",
     hide: "Ocultar mensagens",
     archiveLabel: "Mensagens arquivadas",
+    summaryLabel: "O que o bot guardou",
     you: "Você",
     bot: "Assistente",
     summaryPrefix: "Resumo da conversa anterior:",
@@ -27,6 +30,7 @@ export const compactionCopy: Record<Language, CompactionCopy> = {
     show: "Show messages",
     hide: "Hide messages",
     archiveLabel: "Archived messages",
+    summaryLabel: "What the bot kept",
     you: "You",
     bot: "Assistant",
     summaryPrefix: "Earlier conversation summary:",
@@ -36,6 +40,7 @@ export const compactionCopy: Record<Language, CompactionCopy> = {
     show: "Mostrar mensajes",
     hide: "Ocultar mensajes",
     archiveLabel: "Mensajes archivados",
+    summaryLabel: "Lo que el bot guardó",
     you: "Tú",
     bot: "Asistente",
     summaryPrefix: "Resumen de la conversación anterior:",
