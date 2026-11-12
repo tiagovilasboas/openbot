@@ -1,5 +1,5 @@
 import {
-  AUTO_FREE_MODEL,
+  KNOWN_FREE_MODELS,
   pickFreeTextModels,
   type FreeModelItem,
 } from "./free-model-catalog.ts";
@@ -19,30 +19,6 @@ const OPENROUTER_ACCOUNT_MODELS_URL =
   "https://openrouter.ai/api/v1/models/user";
 const OPENROUTER_KEY_URL = "https://openrouter.ai/api/v1/key";
 const CACHE_TTL_MS = 5 * 60 * 1000;
-
-const FALLBACK_FREE_MODELS: FreeModelItem[] = [
-  AUTO_FREE_MODEL,
-  {
-    id: "nvidia/nemotron-3.5-super-vl:free",
-    name: "NVIDIA: Nemotron 3.5 Super VL (free)",
-    contextLength: 1000000,
-  },
-  {
-    id: "nvidia/nemotron-3-ultra-550b-a55b:free",
-    name: "NVIDIA: Nemotron 3 Ultra (free)",
-    contextLength: 1000000,
-  },
-  {
-    id: "google/gemma-4-31b-it:free",
-    name: "Google: Gemma 4 31B (free)",
-    contextLength: 262144,
-  },
-  {
-    id: "cohere/north-mini-code:free",
-    name: "Cohere: North Mini Code (free)",
-    contextLength: 256000,
-  },
-];
 
 let cachedPublic: FreeModelItem[] | null = null;
 let cachedAt = 0;
@@ -87,7 +63,7 @@ export async function listPublicFreeModels(
     return {
       ok: true,
       source: "fallback",
-      models: cachedPublic ?? FALLBACK_FREE_MODELS,
+      models: cachedPublic ?? [...KNOWN_FREE_MODELS],
     };
   }
   cachedPublic = models;

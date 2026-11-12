@@ -17,6 +17,11 @@ test("an empty thread uses no context", () => {
   assert.equal(b.isCompactionRecommended, false);
 });
 
+test("the free models the app offers use their catalog windows", () => {
+  assert.equal(contextWindowFor("google/gemma-4-31b-it:free"), 262144);
+  assert.equal(contextWindowFor("nvidia/nemotron-3.5-super-vl:free"), 1000000);
+});
+
 test("an unknown model gets the conservative default window", () => {
   assert.equal(contextWindowFor("acme/mystery"), DEFAULT_CONTEXT_WINDOW_TOKENS);
   assert.equal(contextWindowFor(undefined), DEFAULT_CONTEXT_WINDOW_TOKENS);
@@ -62,4 +67,11 @@ test("the label says the percentage in every language and warns in words", () =>
   const label = contextUsageLabel(high, "en");
   assert.equal(label.isWarning, true);
   assert.match(label.text, /nearly full/);
+});
+
+test("a thread with text never reads as 0%, an empty one does", () => {
+  const tiny = calculateContextBudget([user("hi")], "openrouter/free");
+  assert.equal(contextUsageLabel(tiny, "pt").text, "<1% do contexto");
+  const empty = calculateContextBudget([], "openrouter/free");
+  assert.equal(contextUsageLabel(empty, "pt").text, "0% do contexto");
 });

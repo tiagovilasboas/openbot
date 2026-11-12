@@ -23,7 +23,7 @@ interface ModelStatusBadgeProps {
 }
 
 const PILL =
-  "inline-flex h-8 min-w-0 max-w-96items-center gap-2 rounded-full border border-border bg-surface px-3 text-xs font-medium text-muted";
+  "inline-flex h-8 min-w-0 max-w-96 items-center gap-2 rounded-full border border-border bg-surface px-3 text-xs font-medium text-muted";
 
 export function ModelStatusBadge({
   label,

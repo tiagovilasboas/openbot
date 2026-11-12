@@ -5,8 +5,8 @@ import {
 } from "./calculate-context-budget.ts";
 
 export interface ContextWindowCopy {
-  usage: (percent: number) => string;
-  nearlyFull: (percent: number) => string;
+  usage: (percent: string) => string;
+  nearlyFull: (percent: string) => string;
 }
 
 export const contextWindowCopy: Record<ChatLanguage, ContextWindowCopy> = {
@@ -34,7 +34,10 @@ export function contextUsageLabel(
   budget: ContextBudget,
   language: ChatLanguage,
 ): ContextUsageLabel {
-  const percent = Math.round(budget.usageRatio * 100);
+  const rounded = Math.round(budget.usageRatio * 100);
+  // A thread that holds anything never reads as empty.
+  const percent =
+    rounded === 0 && budget.totalEstimatedTokens > 0 ? "<1" : String(rounded);
   const copy = contextWindowCopy[language];
   const isWarning = budget.usageRatio >= COMPACTION_THRESHOLD;
   return {

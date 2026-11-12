@@ -14,6 +14,32 @@ export const AUTO_FREE_MODEL: FreeModelItem = {
   description: "Roteia automaticamente para o melhor modelo gratuito ativo.",
 };
 
+/** Free models we know without asking the catalog: the server's fallback list
+ * and the source of context window sizes on the client. */
+export const KNOWN_FREE_MODELS: readonly FreeModelItem[] = [
+  AUTO_FREE_MODEL,
+  {
+    id: "nvidia/nemotron-3.5-super-vl:free",
+    name: "NVIDIA: Nemotron 3.5 Super VL (free)",
+    contextLength: 1000000,
+  },
+  {
+    id: "nvidia/nemotron-3-ultra-550b-a55b:free",
+    name: "NVIDIA: Nemotron 3 Ultra (free)",
+    contextLength: 1000000,
+  },
+  {
+    id: "google/gemma-4-31b-it:free",
+    name: "Google: Gemma 4 31B (free)",
+    contextLength: 262144,
+  },
+  {
+    id: "cohere/north-mini-code:free",
+    name: "Cohere: North Mini Code (free)",
+    contextLength: 256000,
+  },
+];
+
 const DEFAULT_CONTEXT_LENGTH = 262144;
 
 interface CatalogEntry {
