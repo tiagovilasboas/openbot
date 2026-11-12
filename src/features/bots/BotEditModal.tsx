@@ -1,33 +1,25 @@
 "use client";
 
-import { useState } from "react";
 import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
 import {
   BotTemplateExport,
   BotTemplateImport,
 } from "@/features/bot-sharing/BotTemplateFileControls.tsx";
-import type { BotTemplateDraft } from "@/features/bot-sharing/bot-template-file-types.ts";
 import { MemorySection } from "@/features/memory/MemorySection.tsx";
 import { BotSkillsEditor } from "@/features/skills/BotSkillsEditor.tsx";
 import { BotToolsToggle } from "@/features/tools/client/BotToolsToggle.tsx";
-import type { SkillDefinition } from "@/features/skills/skill-types.ts";
 import { FormField, FIELD_CLASS } from "@/shared/ui/FormField.tsx";
 import { ResponsiveSheet, SheetFooter } from "@/shared/ui/ResponsiveSheet.tsx";
 import { AutoTextarea } from "./AutoTextarea.tsx";
-import { BotAvatar } from "./BotAvatar.tsx";
+import { BotEditPreview } from "./BotEditPreview.tsx";
 import { BotAvatarPickers } from "./BotAvatarPickers.tsx";
 import { BotDeleteControl } from "./BotDeleteControl.tsx";
 import { BotModelField, isBotModelIdValid } from "./BotModelField.tsx";
 import { BotMainControl } from "./BotMainControl.tsx";
 import { BotTemplatePicker } from "./BotTemplatePicker.tsx";
-import type { BotTemplate } from "./bot-templates.ts";
-import {
-  BOT_NAME_MAX_LENGTH,
-  type AvatarColor,
-  type AvatarShape,
-  type BotProfile,
-} from "./bot-types.ts";
+import { BOT_NAME_MAX_LENGTH, type BotProfile } from "./bot-types.ts";
 import { getBotsCopy } from "./bots-copy.ts";
+import { useBotEditFields } from "./use-bot-edit-fields.ts";
 import { PromptBudgetNotice } from "./PromptBudgetNotice.tsx";
 import { analyzePromptBudget, promptReserveFor } from "./prompt-budget.ts";
 
@@ -59,22 +51,29 @@ function BotEditForm({
   const isEditing = Boolean(bot?.id && bot.id !== "new");
   const copy = getBotsCopy(language);
 
-  const [name, setName] = useState(bot?.name || "");
-  const [title, setTitle] = useState(bot?.title || "");
-  const [description, setDescription] = useState(bot?.description || "");
-  const [workspaceContext, setWorkspaceContext] = useState(
-    bot?.workspaceContext || "",
-  );
-  const [modelId, setModelId] = useState(bot?.modelId || "");
-  const [avatarShape, setAvatarShape] = useState<AvatarShape>(
-    bot?.avatarShape || "hexagon",
-  );
-  const [avatarColor, setAvatarColor] = useState<AvatarColor>(
-    bot?.avatarColor || "cyan",
-  );
-  const [skills, setSkills] = useState<SkillDefinition[]>(bot?.skills ?? []);
-  const [templateId, setTemplateId] = useState<string | null>(null);
-  const [toolsEnabled, setToolsEnabled] = useState(bot?.toolsEnabled === true);
+  const {
+    name,
+    setName,
+    title,
+    setTitle,
+    description,
+    setDescription,
+    workspaceContext,
+    setWorkspaceContext,
+    modelId,
+    setModelId,
+    avatarShape,
+    setAvatarShape,
+    avatarColor,
+    setAvatarColor,
+    skills,
+    setSkills,
+    templateId,
+    toolsEnabled,
+    setToolsEnabled,
+    handleSelectTemplate,
+    handleImportFile,
+  } = useBotEditFields(bot);
 
   const budgetReport = analyzePromptBudget(
     {
@@ -93,30 +92,6 @@ function BotEditForm({
   );
 
   const isValid = name.trim().length > 0 && isBotModelIdValid(modelId);
-
-  function handleSelectTemplate(tmpl: BotTemplate) {
-    setTemplateId(tmpl.id);
-    setName(tmpl.name);
-    setTitle(tmpl.title);
-    setDescription(tmpl.description);
-    if (tmpl.workspaceContext) {
-      setWorkspaceContext(tmpl.workspaceContext);
-    }
-    setAvatarShape(tmpl.avatarShape);
-    setAvatarColor(tmpl.avatarColor);
-  }
-
-  function handleImportFile(draft: BotTemplateDraft) {
-    setTemplateId(null);
-    setName(draft.name);
-    setTitle(draft.title ?? "");
-    setDescription(draft.description);
-    setWorkspaceContext(draft.workspaceContext ?? "");
-    setModelId(draft.modelId ?? "");
-    setAvatarShape(draft.avatarShape);
-    setAvatarColor(draft.avatarColor);
-    setSkills(draft.skills);
-  }
 
   function handleSave() {
     if (!isValid) return;
@@ -150,24 +125,13 @@ function BotEditForm({
         handleSave();
       }}
     >
-      <div className="flex items-center gap-4">
-        <BotAvatar
-          shape={avatarShape}
-          color={avatarColor}
-          size={64}
-          className="shrink-0"
-        />
-        <div className="min-w-0">
-          <p
-            className={`truncate text-lg font-semibold ${name.trim() ? "text-foreground" : "text-subtle"}`}
-          >
-            {name.trim() || copy.previewNamePlaceholder}
-          </p>
-          <p className="truncate text-[13px] text-muted">
-            {title.trim() || copy.previewRolePlaceholder}
-          </p>
-        </div>
-      </div>
+      <BotEditPreview
+        name={name}
+        title={title}
+        avatarShape={avatarShape}
+        avatarColor={avatarColor}
+        language={language}
+      />
 
       {!isEditing && (
         <BotTemplatePicker
