@@ -31,6 +31,7 @@ import { getSettingsCopy } from "./settings-copy.ts";
 import { SettingsProviderFields } from "./SettingsProviderFields.tsx";
 import { SettingsProviderSelector } from "./SettingsProviderSelector.tsx";
 import { testModelConnection } from "./test-model-connection.ts";
+import { SETTINGS_FORM_DEFAULTS } from "./settings-form-defaults.ts";
 
 export interface SettingsFormProps {
   language: ChatLanguage;
@@ -64,10 +65,12 @@ export function SettingsForm({
   const [routerUrl, setRouterUrl] = useState(
     currentConfig?.provider === "router"
       ? currentConfig.baseUrl
-      : "http://localhost:20128/v1",
+      : SETTINGS_FORM_DEFAULTS.routerUrl,
   );
   const [routerModel, setRouterModel] = useState(
-    currentConfig?.provider === "router" ? currentConfig.model : "o3-mini",
+    currentConfig?.provider === "router"
+      ? currentConfig.model
+      : SETTINGS_FORM_DEFAULTS.routerModel,
   );
 
   const [localUrl, setLocalUrl] = useState(
@@ -82,7 +85,7 @@ export function SettingsForm({
   const [anthropicModel, setAnthropicModel] = useState(
     currentConfig?.provider === "anthropic"
       ? currentConfig.model
-      : "claude-3-5-sonnet-20241022",
+      : SETTINGS_FORM_DEFAULTS.anthropicModel,
   );
 
   const [isTesting, setIsTesting] = useState(false);

@@ -6,6 +6,7 @@ import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
 import { FIELD_CLASS, FormField } from "@/shared/ui/FormField.tsx";
 import type { ModelProviderType } from "./model-config.ts";
 import { SettingsModelPresets } from "./SettingsModelPresets.tsx";
+import { SETTINGS_FORM_DEFAULTS } from "./settings-form-defaults.ts";
 
 interface SettingsProviderFieldsProps {
   provider: ModelProviderType;
@@ -101,7 +102,7 @@ export function SettingsProviderFields({
             label={content.routerUrlLabel}
             value={routerUrl}
             onChange={setRouterUrl}
-            placeholder="http://localhost:20128/v1"
+            placeholder={SETTINGS_FORM_DEFAULTS.routerUrl}
             inputMode="url"
             mono
           />
@@ -109,7 +110,7 @@ export function SettingsProviderFields({
             label={content.routerModelLabel}
             value={routerModel}
             onChange={setRouterModel}
-            placeholder="o3-mini"
+            placeholder={SETTINGS_FORM_DEFAULTS.routerModel}
             mono
           />
         </div>
@@ -164,7 +165,7 @@ export function SettingsProviderFields({
           label={content.anthropicModelLabel}
           value={anthropicModel}
           onChange={setAnthropicModel}
-          placeholder="claude-3-5-sonnet-20241022"
+          placeholder={SETTINGS_FORM_DEFAULTS.anthropicModel}
           mono
         />
       </div>
