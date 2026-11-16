@@ -17,13 +17,9 @@ import { useGitHubToken } from "@/features/github/use-github-token.ts";
 import { useContextUsage } from "@/features/context-window/use-context-usage.ts";
 import { useModelConfig } from "@/features/model/use-model-config.ts";
 import { useMigrateLocalKeys } from "@/features/key-vault/use-migrate-local-keys.ts";
-import { botModelBadge } from "@/features/bots/bot-model-badge.ts";
 import { BotModelNotice } from "@/features/bots/BotModelNotice.tsx";
 import { BotModelPicker } from "@/features/bots/BotModelPicker.tsx";
 import { getBotModelPickerCopy } from "@/features/bots/bot-model-picker-copy.ts";
-import { fillCopy } from "@/features/model/settings-copy.ts";
-import { composerModelChip } from "@/features/bots/composer-model-chip.ts";
-import { useBotModelPicker } from "@/features/bots/use-bot-model-picker.ts";
 import { ChatDialogs } from "./ChatDialogs.tsx";
 import { ChatConversationPane } from "./ChatConversationPane.tsx";
 import { ChatHeader } from "./ChatHeader.tsx";
@@ -35,6 +31,7 @@ import { useActiveModel } from "./use-active-model.ts";
 import { useBotEditor } from "./use-bot-editor.ts";
 import { useBotMessages } from "./use-bot-messages.ts";
 import { useComposerDraft } from "./use-composer-draft.ts";
+import { useChatModelPicker } from "./use-chat-model-picker.ts";
 import { useChatTurns } from "./use-chat-turns.ts";
 import { useDocumentTheme } from "./use-document-theme.ts";
 import { useLanguage } from "./use-language.ts";
@@ -86,12 +83,6 @@ export function ChatExperience() {
     activeModelLabel,
   } = useActiveModel(modelConfig, language);
   const gate = useConnectGate(language, isConfigured, serverModel !== null);
-  const savedModelLabel = botModelBadge(
-    activeModelLabel,
-    modelConfig?.provider ?? serverModel?.provider,
-    activeBot.modelId,
-    language,
-  );
   useMigrateLocalKeys();
   // A provider sending the browser back to finish a Connect opens Settings.
   // (One started from the first-run card returns to the chat instead.)
@@ -142,22 +133,16 @@ export function ChatExperience() {
     clearQueue,
     onReply: noteReply,
   });
-  const modelPicker = useBotModelPicker(
-    activeBot,
+  const { modelPicker, headerModelLabel, composerModel } = useChatModelPicker({
     language,
-    botsState.saveBot,
+    activeBot,
+    saveBot: botsState.saveBot,
     turnModel,
-  );
-  const headerModelLabel = modelPicker.pending
-    ? fillCopy(getBotModelPickerCopy(language).nextBadge, {
-        model: savedModelLabel,
-      })
-    : savedModelLabel;
-
-  const composerModel = {
-    chip: composerModelChip(isConfigured, headerModelLabel, language),
-    onPress: isConfigured ? modelPicker.open : () => setIsSettingsOpen(true),
-  };
+    isConfigured,
+    activeModelLabel,
+    provider: modelConfig?.provider ?? serverModel?.provider,
+    onOpenSettings: () => setIsSettingsOpen(true),
+  });
 
   const blockedRollback = rollbackBlock(
     workingBotIds.includes(activeBot.id),
