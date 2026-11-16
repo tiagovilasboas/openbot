@@ -1,29 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import {
-  configAfterConnect,
-  saveKeyToVault,
-  testConfigFor,
-} from "./manage-connection.ts";
-
-test("a first OpenRouter key starts the chat on the free router, keyless", () => {
-  assert.deepEqual(configAfterConnect("router", null), {
-    provider: "router",
-    baseUrl: "https://openrouter.ai/api/v1",
-    model: "openrouter/free",
-  });
-  assert.equal(configAfterConnect("anthropic", null), null);
-});
-
-test("a key never rewrites the active model config", () => {
-  const active = {
-    provider: "router" as const,
-    baseUrl: "https://openrouter.ai/api/v1",
-    model: "google/gemma-4-31b-it:free",
-  };
-  assert.equal(configAfterConnect("router", active), null);
-  assert.equal(configAfterConnect("anthropic", active), null);
-});
+import { saveKeyToVault, testConfigFor } from "./manage-connection.ts";
 
 test("an OpenRouter key is tried on the active OpenRouter model", () => {
   const config = testConfigFor("router", "sk-or-1", {
