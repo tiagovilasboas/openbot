@@ -6,7 +6,7 @@ import {
   BACKUP_MODELS_MAX,
   parseBackupModelsText,
 } from "@/features/model/backup-models.ts";
-import { getBotsCopy } from "./bots-copy.ts";
+import { getBackupModelsCopy } from "./bot-backup-models-copy.ts";
 
 /** The bot's backup models, typed as ids split by commas (at most three). */
 export function BotBackupModelsField({
@@ -18,21 +18,21 @@ export function BotBackupModelsField({
   language: Language;
   onChange: (value: string) => void;
 }) {
-  const copy = getBotsCopy(language);
+  const copy = getBackupModelsCopy(language);
   const invalid = !parseBackupModelsText(value).ok;
 
   return (
     <FormField
-      label={copy.backupLabel}
-      helper={copy.backupHelper}
-      error={invalid ? copy.backupInvalid : null}
+      label={copy.label}
+      helper={copy.helper}
+      error={invalid ? copy.invalid : null}
     >
       {(control) => (
         <input
           {...control}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder={copy.backupPlaceholder}
+          placeholder={copy.placeholder}
           autoComplete="off"
           autoCapitalize="none"
           spellCheck={false}

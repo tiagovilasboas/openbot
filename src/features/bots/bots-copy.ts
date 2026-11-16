@@ -23,10 +23,6 @@ interface BotsCopy {
   modelPlaceholder: string;
   modelHelper: string;
   modelInvalid: string;
-  backupLabel: string;
-  backupPlaceholder: string;
-  backupHelper: string;
-  backupInvalid: string;
   save: string;
   cancel: string;
   deleteBot: string;
@@ -74,13 +70,6 @@ const PT: BotsCopy = {
     "Vazio usa o modelo global das Configurações. O servidor pode limitar os modelos permitidos.",
   modelInvalid:
     "Use só letras, números e os símbolos . _ : / - (até 100 caracteres).",
-  backupLabel: "Modelos de reserva (opcional)",
-  backupPlaceholder:
-    "ex: google/gemma-4-31b-it:free, nvidia/nemotron-3.5-super-vl:free",
-  backupHelper:
-    "Até 3 ids separados por vírgula, usados em ordem quando o modelo principal falha ou atinge o limite de uso.",
-  backupInvalid:
-    "Use até 3 ids de modelo válidos, separados por vírgula (letras, números e . _ : / -).",
   save: "Salvar bot",
   cancel: "Cancelar",
   deleteBot: "Excluir bot",
@@ -157,13 +146,6 @@ const EN: BotsCopy = {
     "Empty uses the global model from Settings. The server may limit the allowed models.",
   modelInvalid:
     "Use only letters, numbers and the symbols . _ : / - (up to 100 characters).",
-  backupLabel: "Backup models (optional)",
-  backupPlaceholder:
-    "e.g. google/gemma-4-31b-it:free, nvidia/nemotron-3.5-super-vl:free",
-  backupHelper:
-    "Up to 3 comma-separated ids, tried in order when the main model fails or hits its usage limit.",
-  backupInvalid:
-    "Use up to 3 valid model ids separated by commas (letters, numbers and . _ : / -).",
   save: "Save bot",
   cancel: "Cancel",
   deleteBot: "Delete bot",
@@ -241,13 +223,6 @@ const ES: BotsCopy = {
     "Vacío usa el modelo global de Configuración. El servidor puede limitar los modelos permitidos.",
   modelInvalid:
     "Usa solo letras, números y los símbolos . _ : / - (hasta 100 caracteres).",
-  backupLabel: "Modelos de respaldo (opcional)",
-  backupPlaceholder:
-    "ej.: google/gemma-4-31b-it:free, nvidia/nemotron-3.5-super-vl:free",
-  backupHelper:
-    "Hasta 3 ids separados por comas, usados en orden cuando el modelo principal falla o alcanza su límite de uso.",
-  backupInvalid:
-    "Usa hasta 3 ids de modelo válidos separados por comas (letras, números y . _ : / -).",
   save: "Guardar bot",
   cancel: "Cancelar",
   deleteBot: "Eliminar bot",
