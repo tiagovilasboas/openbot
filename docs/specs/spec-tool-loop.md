@@ -12,7 +12,7 @@ Todas as condições valem ao mesmo tempo (`tool-turn-handler.ts`, `tool-route.t
 - O bot tem `toolsEnabled` (opção por bot, no editor).
 - O turno é de um bot único: **não** é o Chief nem um turno de equipe (`crew`).
 - O pedido traz um `botId` válido.
-- O modelo aceita chamadas de ferramenta nativas: hoje, só modelos do roteador cujo catálogo marca `supportsTools`. Anthropic e modelo local não usam ferramentas na v1. Quando o modelo não aceita, o turno corre como chat comum e a rota envia o evento `tools_unavailable`.
+- O modelo aceita chamadas de ferramenta nativas: hoje, só modelos do roteador cujo catálogo marca `supportsTools`, configurados pelo cliente ou pelo ambiente do servidor (`ROUTER_URL`/`ROUTER_MODEL`, desde #138; um endpoint local no ambiente tem prioridade). Anthropic e modelo local não usam ferramentas na v1. Quando o modelo não aceita, o turno corre como chat comum e a rota envia o evento `tools_unavailable`.
 
 Sem essas condições, `POST /api/chat/tools` responde um turno novo exatamente como `/api/chat/stream`, porque o cliente não enxerga a variável do servidor. Um pedido de retomada com a porta desligada recebe 404 `tools_disabled`.
 
