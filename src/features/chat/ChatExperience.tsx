@@ -21,6 +21,7 @@ import { botModelBadge } from "@/features/bots/bot-model-badge.ts";
 import { BotModelNotice } from "@/features/bots/BotModelNotice.tsx";
 import { BotModelPicker } from "@/features/bots/BotModelPicker.tsx";
 import { getBotModelPickerCopy } from "@/features/bots/bot-model-picker-copy.ts";
+import { fillCopy } from "@/features/model/settings-copy.ts";
 import { useBotModelPicker } from "@/features/bots/use-bot-model-picker.ts";
 import { ChatDialogs } from "./ChatDialogs.tsx";
 import { ChatEmptyState } from "./ChatEmptyState.tsx";
@@ -87,8 +88,7 @@ export function ChatExperience() {
     recordModelCall,
     activeModelLabel,
   } = useActiveModel(modelConfig, language);
-  const modelPicker = useBotModelPicker(activeBot, language, botsState.saveBot);
-  const headerModelLabel = botModelBadge(
+  const savedModelLabel = botModelBadge(
     activeModelLabel,
     modelConfig?.provider ?? serverModel?.provider,
     activeBot.modelId,
@@ -115,6 +115,7 @@ export function ChatExperience() {
     liveMessages,
     workingBot,
     workingBotIds,
+    turnModel,
     sendText,
     cancelTurn,
     retryMessage,
@@ -138,6 +139,17 @@ export function ChatExperience() {
     clearQueue,
     onReply: noteReply,
   });
+  const modelPicker = useBotModelPicker(
+    activeBot,
+    language,
+    botsState.saveBot,
+    turnModel,
+  );
+  const headerModelLabel = modelPicker.pending
+    ? fillCopy(getBotModelPickerCopy(language).nextBadge, {
+        model: savedModelLabel,
+      })
+    : savedModelLabel;
 
   useEffect(() => {
     if (messages.length > 0) {

@@ -59,3 +59,43 @@ test("the model badge opens a picker that saves the bot's model", async ({
   await expect.poll(() => model.chatRequests().length).toBe(2);
   expect("modelId" in (model.chatRequests()[1] as ChatBody)).toBe(false);
 });
+
+test("a model picked mid-reply waits for the next message", async ({
+  page,
+  model,
+}) => {
+  await page.route("**/api/model/free", (route) =>
+    route.fulfill({ json: { ok: true, source: "public", models: [] } }),
+  );
+  model.queue({ text: "Slow answer", delayMs: 3000 });
+  await page.goto("/");
+  const app = appPage(page);
+  const picker = page.getByRole("dialog", { name: "Modelo deste bot" });
+
+  await app.send("first question");
+  await expect.poll(() => model.chatRequests().length).toBe(1);
+  expect("modelId" in (model.chatRequests()[0] as ChatBody)).toBe(false);
+
+  await page.getByRole("button", { name: /Escolher modelo do bot/ }).click();
+  await picker
+    .getByRole("textbox", { name: "Outro modelo (id)" })
+    .fill("vendor/next:free");
+  await picker.getByRole("button", { name: "Usar este modelo" }).click();
+
+  await expect(
+    page.getByRole("status").filter({ hasText: "a próxima usa" }),
+  ).toContainText("vendor/next:free");
+  await expect(
+    page.getByRole("button", { name: /próximo: .*vendor\/next:free/ }).first(),
+  ).toBeVisible();
+
+  // The reply in flight ends on its model; the badge then drops "next".
+  await expect(page.getByText("Slow answer").first()).toBeVisible();
+  await expect(page.getByRole("button", { name: /próximo:/ })).toHaveCount(0);
+
+  await app.send("second question");
+  await expect.poll(() => model.chatRequests().length).toBe(2);
+  expect((model.chatRequests()[1] as ChatBody).modelId).toBe(
+    "vendor/next:free",
+  );
+});
