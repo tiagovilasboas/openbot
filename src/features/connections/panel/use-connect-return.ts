@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { refreshSavedKeys } from "../../key-vault/saved-keys-store.ts";
+import { applyModelAfterConnect } from "../api-key/manage-connection.ts";
 import {
   dispatchConnect,
   eventsForOutcome,
@@ -31,7 +32,10 @@ export function useConnectReturn(onReturn: () => void): void {
       dispatchConnect(id, { type: "start" });
       dispatchConnect(id, { type: "returned" });
       const outcome = await finishConnect(returned);
-      if (outcome.status === "connected") await refreshSavedKeys();
+      if (outcome.status === "connected") {
+        await refreshSavedKeys();
+        applyModelAfterConnect(id);
+      }
       // Back to a settled state, then the result as the reducer defines it.
       dispatchConnect(id, { type: "cancel" });
       for (const event of eventsForOutcome(outcome)) dispatchConnect(id, event);

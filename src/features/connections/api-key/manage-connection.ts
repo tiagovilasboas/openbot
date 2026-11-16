@@ -11,16 +11,25 @@ import {
 } from "../../model/model-config.ts";
 import { keyOriginFor } from "../../key-vault/key-origin.ts";
 import { deleteSavedKey, putSavedKey } from "../../key-vault/saved-keys-api.ts";
-import { refreshSavedKeys } from "../../key-vault/saved-keys-store.ts";
+import {
+  readSavedKeysState,
+  refreshSavedKeys,
+} from "../../key-vault/saved-keys-store.ts";
 import { testModelConnection } from "../../model/test-model-connection.ts";
 import type { ConnectionId } from "../core/index.ts";
+import {
+  ANTHROPIC_DEFAULT_MODEL,
+  OPENROUTER_FREE_MODEL,
+  OPENROUTER_URL,
+  configAfterConnect,
+  shouldClearConfigOnDisconnect,
+} from "./model-config-on-connection.ts";
 
 export type KeyCheckOutcome =
   { ok: true; user?: string } | { ok: false; error: string; detail?: string };
 
-const OPENROUTER_URL = "https://openrouter.ai/api/v1";
-const OPENROUTER_TEST_MODEL = "openrouter/free";
-const ANTHROPIC_TEST_MODEL = "claude-haiku-5-5";
+const OPENROUTER_TEST_MODEL = OPENROUTER_FREE_MODEL;
+const ANTHROPIC_TEST_MODEL = ANTHROPIC_DEFAULT_MODEL;
 
 /** The config used to try a model key: the active one when it matches. */
 export function testConfigFor(
@@ -96,25 +105,27 @@ export async function connectKey(
   }
   const active = loadStoredModelConfig();
   if (!(await saveKeyToVault(id, key, active))) return false;
-  const next = configAfterConnect(id, active);
-  if (next) saveStoredModelConfig(next);
   await refreshSavedKeys();
+  applyModelAfterConnect(id);
   return true;
 }
 
-/** A first OpenRouter key with no model set starts on the free router. */
-export function configAfterConnect(
-  id: "router" | "anthropic",
-  active: ClientModelConfig | null,
-): ClientModelConfig | null {
-  if (!active && id === "router") {
-    return {
-      provider: "router",
-      baseUrl: OPENROUTER_URL,
-      model: OPENROUTER_TEST_MODEL,
-    };
+/** Stores a default model for a provider that just connected, if needed. */
+export function applyModelAfterConnect(id: ConnectionId): void {
+  if (id === "github") return;
+  const next = configAfterConnect(
+    id,
+    loadStoredModelConfig(),
+    Object.keys(readSavedKeysState().keys),
+  );
+  if (next) saveStoredModelConfig(next);
+}
+
+/** Drops the stored model config when it relied on the forgotten key. */
+export function clearModelAfterDisconnect(id: ConnectionId): void {
+  if (shouldClearConfigOnDisconnect(id, loadStoredModelConfig())) {
+    clearStoredModelConfig();
   }
-  return null;
 }
 
 /** Forgets the key on the server. */
@@ -125,8 +136,5 @@ export async function disconnectKey(id: ConnectionId): Promise<void> {
   }
   await deleteSavedKey(id);
   await refreshSavedKeys();
-  if (id === "anthropic" && loadStoredModelConfig()?.provider === "anthropic") {
-    // An Anthropic model cannot answer without its key.
-    clearStoredModelConfig();
-  }
+  clearModelAfterDisconnect(id);
 }

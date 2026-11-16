@@ -1,9 +1,8 @@
 import { refreshSavedKeys } from "../../key-vault/saved-keys-store.ts";
 import {
-  clearStoredModelConfig,
-  loadStoredModelConfig,
-} from "../../model/model-config.ts";
-import { disconnectKey } from "../api-key/manage-connection.ts";
+  clearModelAfterDisconnect,
+  disconnectKey,
+} from "../api-key/manage-connection.ts";
 import { disconnectConnection, resetConnectFlow } from "../client/index.ts";
 import type { ConnectionId } from "../core/index.ts";
 
@@ -19,8 +18,5 @@ export async function disconnectService(id: ConnectionId): Promise<void> {
   }
   await disconnectConnection(id);
   await refreshSavedKeys();
-  if (id === "anthropic" && loadStoredModelConfig()?.provider === "anthropic") {
-    // An Anthropic model cannot answer without its key.
-    clearStoredModelConfig();
-  }
+  clearModelAfterDisconnect(id);
 }
