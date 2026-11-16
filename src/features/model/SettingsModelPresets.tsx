@@ -5,6 +5,7 @@ import type { chatCopy } from "@/features/chat/chat-copy.ts";
 import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
 import type { ModelProviderType } from "./model-config.ts";
 import { FreeModelList } from "./FreeModelList.tsx";
+import { OpenRouterAccess } from "./OpenRouterAccess.tsx";
 import { PresetRow } from "./PresetRow.tsx";
 import { fillCopy, getSettingsCopy } from "./settings-copy.ts";
 import { useFreeModels } from "./use-free-models.ts";
@@ -82,17 +83,7 @@ export function SettingsModelPresets({
 
         {isOpenRouter && (
           <div className="flex animate-enter flex-col gap-2">
-            <p className="text-[13px] text-subtle">
-              {content.presetOpenRouterHint}{" "}
-              <a
-                href="https://openrouter.ai/keys"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex min-h-11 items-center text-bot-accent underline underline-offset-2 md:min-h-0"
-              >
-                {s.getKey}
-              </a>
-            </p>
+            <OpenRouterAccess language={language} content={content} />
 
             <div className="flex items-center justify-between gap-3">
               <span

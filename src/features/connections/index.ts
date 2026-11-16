@@ -2,3 +2,4 @@
 export { ConnectionsPanel } from "./panel/ConnectionsPanel.tsx";
 export { useConnectFlow } from "./panel/use-connect-flow.ts";
 export { useConnectReturn } from "./panel/use-connect-return.ts";
+export { ConnectWithProvider } from "./panel/ConnectWithProvider.tsx";
