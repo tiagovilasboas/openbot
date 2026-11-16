@@ -36,8 +36,10 @@ export default defineConfig([
   {
     // Everything outside the connections feature reaches it through its
     // public contract (index.ts) only, never through its internal folders.
+    // The thin routes in src/app/api/connections/ are the HTTP boundary and
+    // import server/index.ts directly.
     files: ["src/**/*.{ts,tsx}"],
-    ignores: ["src/features/connections/**"],
+    ignores: ["src/features/connections/**", "src/app/api/connections/**"],
     rules: {
       "no-restricted-imports": [
         "error",
@@ -114,6 +116,88 @@ export default defineConfig([
               ],
               message:
                 "connections/panel may import core/, its own files and the api-key public functions only.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // The OAuth flow knows core and its own files; network and storage come
+    // in through ports (HttpClient, PendingAuthStore, CredentialStore).
+    files: ["src/features/connections/oauth/**/*.{ts,tsx}"],
+    ignores: ["**/*.test.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: [
+                "../**",
+                "!../core",
+                "!../core/**",
+                "@/**",
+                "react",
+                "react-dom",
+                "react/**",
+                "next",
+                "next/**",
+                "node:*",
+                "@heroui/**",
+              ],
+              message:
+                "connections/oauth imports only connections/core and its own files; reach the outside through ports.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // The only bridge from connections to the key vault.
+    files: ["src/features/connections/credentials/**/*.{ts,tsx}"],
+    ignores: ["**/*.test.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: [
+                "../**",
+                "!../core",
+                "!../core/**",
+                "!../..",
+                "!../../key-vault",
+                "!../../key-vault/**",
+                "@/**",
+                "react",
+                "react-dom",
+                "react/**",
+                "next",
+                "next/**",
+                "@heroui/**",
+              ],
+              message:
+                "connections/credentials imports only connections/core and the key-vault public modules.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // Server handlers and composition: no UI.
+    files: ["src/features/connections/server/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["react", "react-dom", "react/**", "@heroui/**"],
+              message: "connections/server is server-only: no UI imports.",
             },
           ],
         },
