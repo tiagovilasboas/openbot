@@ -8,6 +8,7 @@ import { FreeModelList } from "./FreeModelList.tsx";
 import { PresetRow } from "./PresetRow.tsx";
 import { fillCopy, getSettingsCopy } from "./settings-copy.ts";
 import { useFreeModels } from "./use-free-models.ts";
+import { useLocalServers } from "./use-local-servers.ts";
 
 export interface SettingsModelPresetsProps {
   provider: ModelProviderType;
@@ -20,6 +21,8 @@ export interface SettingsModelPresetsProps {
   onSelectRouterPreset: (url: string, model: string) => void;
   onSelectRouterModel: (model: string) => void;
   onSelectLocalPreset: (url: string, model: string) => void;
+  /** An OpenAI-compatible local server (LM Studio) is used as the router. */
+  onSelectLocalRouter: (url: string, model: string) => void;
 }
 
 export function SettingsModelPresets({
@@ -33,11 +36,14 @@ export function SettingsModelPresets({
   onSelectRouterPreset,
   onSelectRouterModel,
   onSelectLocalPreset,
+  onSelectLocalRouter,
 }: SettingsModelPresetsProps) {
   const s = getSettingsCopy(language);
   const { liveFreeModels, hasLoadedLive, isAccountList } = useFreeModels(
     provider === "router" && routerUrl.includes("openrouter.ai"),
   );
+
+  const localScan = useLocalServers(provider === "local");
 
   if (provider === "router") {
     const isOpenRouter = routerUrl.includes("openrouter.ai");
@@ -143,6 +149,33 @@ export function SettingsModelPresets({
             onSelectLocalPreset("http://localhost:11434", "llama3.2")
           }
         />
+        {localScan.servers.map((server) => {
+          const model = server.models[0] ?? "";
+          const isOllamaServer = server.id === "ollama";
+          return (
+            <PresetRow
+              key={server.id}
+              name={isOllamaServer ? s.localFoundOllama : s.presetLmStudioName}
+              description={fillCopy(s.localFoundDesc, {
+                count: server.models.length,
+              })}
+              badge={s.badgeLocal}
+              selected={isOllamaServer && localUrl.includes(server.baseUrl)}
+              onSelect={() =>
+                isOllamaServer
+                  ? onSelectLocalPreset(server.baseUrl, model)
+                  : onSelectLocalRouter(`${server.baseUrl}/v1`, model)
+              }
+            />
+          );
+        })}
+        <p role="status" className="text-[13px] text-subtle">
+          {!localScan.scanned
+            ? s.localScanning
+            : localScan.servers.length === 0
+              ? s.localNoneFound
+              : ""}
+        </p>
       </div>
     );
   }
