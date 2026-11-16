@@ -11,15 +11,13 @@ import { useLocalAuth } from "@/features/auth/use-local-auth.ts";
 import { useConversationsSync } from "@/features/conversations/sync/use-conversations-sync.ts";
 import { useSettingsSync } from "@/features/settings/sync/use-settings-sync.ts";
 import { useUsageSync } from "@/features/usage/sync/use-usage-sync.ts";
-import { BotEditModal } from "@/features/bots/BotEditModal.tsx";
-import { BotDeletionNotice } from "@/features/bots/BotDeletionNotice.tsx";
-import { canHideBot, visibleBots } from "@/features/bots/bot-visibility.ts";
+import { visibleBots } from "@/features/bots/bot-visibility.ts";
 import { useBots } from "@/features/bots/use-bots.ts";
 import { useGitHubToken } from "@/features/github/use-github-token.ts";
 import { useContextUsage } from "@/features/context-window/use-context-usage.ts";
-import { SettingsModal } from "@/features/model/SettingsModal.tsx";
 import { useModelConfig } from "@/features/model/use-model-config.ts";
 import { useMigrateLocalKeys } from "@/features/key-vault/use-migrate-local-keys.ts";
+import { ChatDialogs } from "./ChatDialogs.tsx";
 import { ChatEmptyState } from "./ChatEmptyState.tsx";
 import { ChatHeader } from "./ChatHeader.tsx";
 import { ChatSidebar } from "./ChatSidebar.tsx";
@@ -43,24 +41,18 @@ export function ChatExperience() {
   const { queueCount, enqueue, dequeue, clearQueue } = useMessageQueue();
 
   // Dots / Grok Bot systems
+  const botsState = useBots();
   const {
     bots,
     activeBot,
     activeBotId,
     setActiveBotId,
-    saveBot,
-    createAndActivateBot,
-    removeBot,
-    undoRemoveBot,
-    pendingDeletedBot,
-    hideBot,
     restoreBot,
     reorderBot,
     mainBotId,
-    makeMainBot,
     syncError,
     dismissSyncError,
-  } = useBots();
+  } = botsState;
   const { messages, persistMessages, getNextId, clearMessages } =
     useBotMessages(activeBot.id);
   const conversationsSync = useConversationsSync();
@@ -276,40 +268,15 @@ export function ChatExperience() {
         )}
       </main>
 
-      <SettingsModal
-        isOpen={isSettingsOpen}
+      <ChatDialogs
         language={language}
         onLanguageChange={setLanguage}
-        currentConfig={modelConfig}
-        hasPassword={auth.hasPassword}
-        authHint={auth.hint}
-        onClose={() => setIsSettingsOpen(false)}
-        onSetupPassword={auth.setupPassword}
-        onRemovePassword={auth.removePassword}
-        onChangePassword={auth.changePassword}
-      />
-
-      <BotDeletionNotice
-        language={language}
-        botName={pendingDeletedBot?.name ?? null}
-        onUndo={undoRemoveBot}
-      />
-
-      <BotEditModal
-        isOpen={botEditor.isOpen}
-        bot={botEditor.botToEdit}
-        language={language}
-        isMain={botEditor.botToEdit?.id === mainBotId}
-        canDelete={bots.length > 1 && botEditor.botToEdit?.id !== mainBotId}
-        onClose={botEditor.close}
-        onSave={(updated) =>
-          botEditor.botToEdit ? saveBot(updated) : createAndActivateBot(updated)
-        }
-        canHide={canHideBot(bots, botEditor.botToEdit?.id ?? "", mainBotId)}
-        onHide={hideBot}
-        onRestore={restoreBot}
-        onDelete={removeBot}
-        onMakeMain={makeMainBot}
+        isSettingsOpen={isSettingsOpen}
+        onCloseSettings={() => setIsSettingsOpen(false)}
+        modelConfig={modelConfig}
+        auth={auth}
+        bots={botsState}
+        botEditor={botEditor}
       />
     </div>
   );
