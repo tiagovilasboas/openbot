@@ -3,6 +3,7 @@ import {
   expect,
   stubBotsStore,
   stubConversationsStore,
+  seedStoredModel,
   stubKeysStore,
   stubSettingsStore,
   stubMemoryStore,
@@ -42,6 +43,7 @@ test("an exported backup imports into a fresh browser profile", async ({
   const fresh = await browser.newContext({ serviceWorkers: "block" });
   // A context made here skips the fixture: give it its own empty stores, so
   // the backup alone fills it and the real server stores stay untouched.
+  await seedStoredModel(fresh);
   await stubBotsStore(fresh);
   await stubKeysStore(fresh);
   await stubConversationsStore(fresh);

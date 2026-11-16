@@ -29,6 +29,8 @@ export interface SidebarNavProps {
   attentionCounts?: Readonly<Record<string, number>>;
   /** The bot whose tool turn waits for the user's approval. */
   approvalBotId?: string | null;
+  /** Set while no model is connected: bots cannot be used, and this says why. */
+  agentsLockedReason?: string;
   onSelectBot: (botId: string) => void;
   onReorderBot?: (botId: string, toIndex: number) => void;
   onCreateBot: () => void;
@@ -58,6 +60,7 @@ export function SidebarPanel({
   workingBotIds,
   attentionCounts,
   approvalBotId,
+  agentsLockedReason,
   onSelectBot,
   onReorderBot,
   onCreateBot,
@@ -106,24 +109,35 @@ export function SidebarPanel({
           >
             {content.sidebarBotsGroup}
           </p>
-          <SidebarBotList
-            language={language}
-            bots={shownBots}
-            activeBotId={activeBotId}
-            mainBotId={mainBotId}
-            workingBotIds={workingBotIds}
-            attentionCounts={attentionCounts}
-            onSelectBot={onSelectBot}
-            onEditBot={onEditBot}
-            onReorderBot={onReorderBot}
-          />
-          <div className="mt-0.5">
-            <SidebarActionRow
-              icon={<CreateBotGlyph />}
-              label={content.sidebarCreateBot}
-              onPress={onCreateBot}
+          {agentsLockedReason && (
+            <p role="status" className="px-3 pb-2 text-[13px] text-muted">
+              {agentsLockedReason}
+            </p>
+          )}
+          <fieldset
+            disabled={Boolean(agentsLockedReason)}
+            className="m-0 min-w-0 border-0 p-0 disabled:opacity-50"
+          >
+            <SidebarBotList
+              language={language}
+              bots={shownBots}
+              activeBotId={activeBotId}
+              mainBotId={mainBotId}
+              workingBotIds={workingBotIds}
+              attentionCounts={attentionCounts}
+              onSelectBot={onSelectBot}
+              onEditBot={onEditBot}
+              onReorderBot={onReorderBot}
             />
-          </div>
+            <div className="mt-0.5">
+              <SidebarActionRow
+                icon={<CreateBotGlyph />}
+                label={content.sidebarCreateBot}
+                onPress={onCreateBot}
+                disabled={Boolean(agentsLockedReason)}
+              />
+            </div>
+          </fieldset>
           {onRestoreBot && (
             <SidebarHiddenBots
               language={language}

@@ -80,6 +80,26 @@ export async function stubModel(context: BrowserContext): Promise<ModelStub> {
   };
 }
 
+/**
+ * Stores a model in the profile before the app loads, so the connect-first
+ * gate is open. The id is unknown on purpose: it keeps the default context
+ * window that the compaction specs size their threads for.
+ */
+export async function seedStoredModel(context: BrowserContext): Promise<void> {
+  await context.addInitScript(() => {
+    if (!localStorage.getItem("openbot_model_config")) {
+      localStorage.setItem(
+        "openbot_model_config",
+        JSON.stringify({
+          provider: "router",
+          baseUrl: "https://openrouter.ai/api/v1",
+          model: "e2e/stub-model",
+        }),
+      );
+    }
+  });
+}
+
 /** Writes and reads like a person: composer, sidebar, settings. */
 export function appPage(page: Page) {
   return {
@@ -213,6 +233,9 @@ export async function stubConversationsStore(
 }
 
 export const test = base.extend<{
+  /** False for the specs of the connect-first gate: no model is stored. */
+  configuredModel: boolean;
+  modelSeed: void;
   /** True for the few specs that talk to the real /api/settings route. */
   realSettingsStore: boolean;
   settingsStore: void;
@@ -233,6 +256,16 @@ export const test = base.extend<{
   realMemoryStore: boolean;
   memoryStore: void;
 }>({
+  // The gate locks agents and composer until a model exists, so specs start
+  // with one stored locally; first-run specs opt out with `configuredModel`.
+  configuredModel: [true, { option: true }],
+  modelSeed: [
+    async ({ context, configuredModel }, provide) => {
+      if (configuredModel) await seedStoredModel(context);
+      await provide();
+    },
+    { auto: true },
+  ],
   realSettingsStore: [false, { option: true }],
   settingsStore: [
     async ({ context, realSettingsStore }, provide) => {

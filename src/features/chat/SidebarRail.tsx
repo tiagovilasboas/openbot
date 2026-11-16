@@ -64,6 +64,7 @@ export function SidebarRail({
   activeBotId,
   workingBotIds = [],
   attentionCounts = {},
+  agentsLockedReason,
   onSelectBot,
   onCreateBot,
   onOpenSettings,
@@ -105,7 +106,10 @@ export function SidebarRail({
             return (
               <li key={bot.id}>
                 <RailButton
-                  label={[bot.name, ...status].join(", ")}
+                  label={[bot.name, ...status, agentsLockedReason ?? ""]
+                    .filter(Boolean)
+                    .join(", ")}
+                  disabled={Boolean(agentsLockedReason)}
                   isCurrent={isActive}
                   onPress={() => onSelectBot(bot.id)}
                 >
@@ -124,7 +128,11 @@ export function SidebarRail({
             );
           })}
           <li>
-            <RailButton label={content.sidebarCreateBot} onPress={onCreateBot}>
+            <RailButton
+              label={content.sidebarCreateBot}
+              onPress={onCreateBot}
+              disabled={Boolean(agentsLockedReason)}
+            >
               <CreateBotGlyph />
             </RailButton>
           </li>
