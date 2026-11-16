@@ -31,6 +31,48 @@ test("start free without a saved key says a key is needed and offers connect", a
   ).toBeVisible();
 
   await page.getByRole("button", { name: "Conectar chave" }).click();
+  // The connect form opens in place of Settings; Back returns to the card.
+  await expect(page.getByLabel("Chave de API")).toBeVisible();
+  await expect(page.getByRole("tab", { name: "Conexões" })).toHaveCount(0);
+});
+
+test("connect from the choice pastes a key and lands in the chat with a model", async ({
+  page,
+  model,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Conectar um provedor" }).click();
+  await expect(page.getByLabel("Chave de API")).toBeVisible();
+
+  // Back returns to the choice without connecting anything.
+  await page.getByRole("button", { name: "Voltar para conexões" }).click();
+  await expect(
+    page.getByRole("button", { name: "Começar grátis" }),
+  ).toBeVisible();
+  expect(await storedConfig(page)).toBeNull();
+
+  await page.getByRole("button", { name: "Conectar um provedor" }).click();
+  await page.getByLabel("Chave de API").fill("sk-or-v1-e2e-first-run");
+  await page.getByRole("button", { name: "Testar e conectar" }).click();
+
+  // The card (form included) leaves and the chat has a model active.
+  await expect(page.getByLabel("Chave de API")).toBeHidden();
+  await expect(
+    page.getByRole("button", { name: "Voltar para conexões" }),
+  ).toBeHidden();
+  await expect
+    .poll(async () => JSON.parse((await storedConfig(page)) ?? "{}").provider)
+    .toBe("router");
+  await expect(
+    page.getByRole("heading", { name: "Comece em um minuto" }),
+  ).toHaveCount(0);
+  expect(model.chatRequests()).toHaveLength(0);
+});
+
+test("other providers opens Settings", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Conectar um provedor" }).click();
+  await page.getByRole("button", { name: "Outros provedores" }).click();
   await expect(page.getByRole("tab", { name: "Conexões" })).toBeVisible();
 });
 

@@ -27,6 +27,8 @@ interface ConnectionDetailProps {
   showSecretLabel: string;
   hideSecretLabel: string;
   onBack: () => void;
+  /** Runs just before the browser leaves for the provider's page. */
+  onBegin?: () => void;
 }
 
 /** One service at a time: its key, a link to create one, test and connect. */
@@ -38,6 +40,7 @@ export function ConnectionDetail({
   showSecretLabel,
   hideSecretLabel,
   onBack,
+  onBegin,
 }: ConnectionDetailProps) {
   const c = getConnectionsCopy(language);
   const [key, setKey] = useState(savedToken ?? "");
@@ -109,6 +112,7 @@ export function ConnectionDetail({
         id={entry.id}
         name={entry.name}
         language={language}
+        onBegin={onBegin}
       />
 
       <div className="flex flex-col gap-1">

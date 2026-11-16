@@ -97,7 +97,7 @@ export function ChatEmptyState({
               <FirstRunCard
                 language={language}
                 isConfigured={Boolean(isConfigured)}
-                onConnect={onOpenSettings}
+                onOpenSettings={onOpenSettings}
                 onStarter={(prompt) => {
                   if (!draft) onDraftChange(prompt);
                 }}
