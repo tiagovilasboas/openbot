@@ -4,6 +4,8 @@ Base: [REA dos 68 casos de uso](../spikes/openbot-run/README.md). Aqui entram s�
 os casos **Parcial**, **Trazer**, **Adaptar** e **Depois**. Os 17 casos **Fora**
 e os 9 que já temos não geram task.
 
+Antes de cada task, confira o [mapa de módulos e reúso](../architecture/module-reuse-map.md).
+
 Regras de corte: cada task tem no máximo 5 pontos e vira um PR; no máximo 3 PRs
 abertos ao mesmo tempo; contrato externo ou comportamento visível vai em PR
 próprio, por último dentro do domínio.

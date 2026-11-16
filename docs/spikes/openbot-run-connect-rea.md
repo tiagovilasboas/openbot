@@ -108,10 +108,10 @@ criar processo filho. Nunca é gravada no arquivo de extensão.
 
 ## 5. Arquitetura: camada de conexões isolada
 
-Hoje `src/features/connections/` é só a tela, e `manage-connection.ts` importa
-direto de `model/`, `key-vault/` e `github/`. A camada nova inverte isso: a
-feature passa a ser o dono do "como conectar", e o resto do app só consome um
-contrato público.
+Antes do CON-2, `src/features/connections/` era só a tela e importava direto de
+`model/`, `key-vault/` e `github/`. Desde o CON-2 a tela está em `panel/`, o
+fluxo de chave em `api-key/` e o resto do app entra só por `index.ts`. As
+pendências dessa fronteira estão no [mapa de módulos](../architecture/module-reuse-map.md).
 
 ```
 src/features/connections/
