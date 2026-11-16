@@ -70,3 +70,16 @@ test("a reply without delegation lines stays untouched", () => {
   assert.equal(parsed.delegations.length, 0);
   assert.equal(parsed.visibleText, reply);
 });
+
+test("a delegation to a hidden bot is ignored like an unknown bot", async () => {
+  const { CREW_PRESETS } = await import("../bots/crew-presets.ts");
+  const [chief, engineering] = CREW_PRESETS;
+  const bots = [chief!, { ...engineering!, hidden: true }];
+  const parsed = parseDelegations(
+    `@delegate Engineering: fix the build`,
+    bots,
+    chief!.id,
+  );
+  assert.equal(parsed.delegations.length, 0);
+  assert.equal(parsed.visibleText, "");
+});

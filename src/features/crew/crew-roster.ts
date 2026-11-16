@@ -1,4 +1,5 @@
 import type { BotProfile } from "../bots/bot-types.ts";
+import { visibleBots } from "../bots/bot-visibility.ts";
 import type { ChatLanguage } from "../chat/respond-to-message.ts";
 import { crewCopy } from "./crew-copy.ts";
 
@@ -41,7 +42,7 @@ export function buildCrewRoster(
   language: ChatLanguage,
 ): string {
   const copy = crewCopy[language];
-  const crew = bots.filter((bot) => bot.id !== chief.id);
+  const crew = visibleBots(bots).filter((bot) => bot.id !== chief.id);
   if (crew.length === 0) return "";
 
   const lines = crew.map((bot) => {
