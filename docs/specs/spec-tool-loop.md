@@ -47,6 +47,10 @@ O corpo é o do chat comum mais os campos abaixo. A resposta é um fluxo NDJSON 
 
 Outros códigos da rota: 400 `invalid_request`, 413 `payload_too_large`, 429 `too_many_streams`, 503 `no_provider_configured`.
 
+### Modelos de reserva
+
+O pedido pode trazer `backupModelIds` (até 3), validado por `parseChatRequest` e filtrado pela lista `OPENBOT_ALLOWED_MODELS` como na rota de stream; o modelo principal fora da lista continua sendo recusado com 400. Cada passo do laço usa a mesma política de `streamWithFailover` (sem duplicá-la): a troca só acontece **antes de o passo produzir qualquer saída**, isto é, antes do primeiro texto ou da primeira chamada de ferramenta. Como as chamadas só rodam depois que o passo termina, uma troca nunca repete uma chamada aprovada ou já executada: a transcrição (resultados já embrulhados como dado externo) segue para o modelo de reserva como dado. Depois de um passo ter começado a emitir, uma falha vira evento `error` e não há nova tentativa. Quando um passo migra para um modelo de reserva, os passos seguintes do turno ficam nele, em vez de consultar de novo o modelo que falhou, e o primeiro aviso `failover` vai no `done` final (o servidor registra `model.failover` a cada troca). Uma retomada por `turnId` começa de novo pelo modelo principal do pedido; o resumo (`argsDigest`, bot, idioma, mensagens) não inclui modelos, então a retomada pode usar outro modelo de reserva sem afetar as aprovações.
+
 ## 4. Limites
 
 Valores de `tool-budget.ts`, `pending-turns-repository.ts` e das definições das ferramentas. Passos e chamadas contam também entre retomadas.

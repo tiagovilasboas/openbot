@@ -1,4 +1,4 @@
-import type { ModelRequest } from "../../model/model-adapter.ts";
+import type { FailoverInfo, ModelRequest } from "../../model/model-adapter.ts";
 import type { ChatStreamEvent } from "../../model/stream-events.ts";
 import {
   streamWithFailover,
@@ -14,6 +14,13 @@ type StepDeps = Omit<StreamWithFailoverOptions, "request"> & {
   /** Called once, the first time the turn falls back to plain chat. */
   onToolsUnavailable: () => void;
 };
+
+async function* mapEvents(
+  events: AsyncGenerator<ChatStreamEvent>,
+  map: (event: ChatStreamEvent) => ChatStreamEvent,
+): AsyncGenerator<ChatStreamEvent> {
+  for await (const event of events) yield map(event);
+}
 
 /** Auth and rate limits say nothing about tool support; other 4xx might. */
 function rejectsTools(event: ChatStreamEvent): boolean {
@@ -54,12 +61,47 @@ export function flattenTranscript(
 }
 
 /**
+ * Failover state of one turn. A step fails over only before it produced
+ * anything, so a switch never repeats a tool call; calls only run after a
+ * step has ended. Once a step moved to a backup model the next steps stay
+ * there instead of asking the failed model again, and the first switch is
+ * still reported on the final `done`.
+ */
+function failoverMemory(request: ModelRequest) {
+  let model: string | undefined;
+  let first: FailoverInfo | undefined;
+  return {
+    apply: (req: ModelRequest): ModelRequest =>
+      model ? { ...req, modelId: model } : req,
+    watch(event: ChatStreamEvent): ChatStreamEvent {
+      if (event.type !== "done") return event;
+      if (event.failover) {
+        first ??= event.failover;
+        // Only a backup id belongs to the primary provider; a configured
+        // fallback has its own model and is asked again by each step.
+        if (request.backupModelIds?.includes(event.failover.toModel)) {
+          model = event.failover.toModel;
+        }
+        return event;
+      }
+      return first ? { ...event, failover: first } : event;
+    },
+  };
+}
+
+/**
  * One model step for the loop. With native tools it sends the specs and the
  * transcript; a 4xx on such a request is retried once as plain chat, and
  * from then on the whole turn stays plain, with earlier exchanges flattened.
  */
 export function createToolStep(deps: StepDeps): StepFn {
-  const { request, capability, onToolsUnavailable, ...stream } = deps;
+  const { request, capability, onToolsUnavailable, ...base } = deps;
+  const memory = failoverMemory(request);
+  const stream = (req: ModelRequest) =>
+    mapEvents(
+      streamWithFailover({ ...base, request: memory.apply(req) }),
+      memory.watch,
+    );
   let toolsOk = capability === "native";
   let announced = false;
   const fallBack = () => {
@@ -71,28 +113,19 @@ export function createToolStep(deps: StepDeps): StepFn {
 
   return async function* step(input) {
     if (!toolsOk || !input.tools) {
-      yield* streamWithFailover({
-        ...stream,
-        request: flattenTranscript(request, input.toolTranscript),
-      });
+      yield* stream(flattenTranscript(request, input.toolTranscript));
       return;
     }
-    const events = streamWithFailover({
-      ...stream,
-      request: {
-        ...request,
-        tools: input.tools,
-        toolTranscript: input.toolTranscript,
-      },
+    const events = stream({
+      ...request,
+      tools: input.tools,
+      toolTranscript: input.toolTranscript,
     });
     const first = await events.next();
     if (!first.done && rejectsTools(first.value)) {
       await events.return(undefined);
       fallBack();
-      yield* streamWithFailover({
-        ...stream,
-        request: flattenTranscript(request, input.toolTranscript),
-      });
+      yield* stream(flattenTranscript(request, input.toolTranscript));
       return;
     }
     if (first.done) return;
