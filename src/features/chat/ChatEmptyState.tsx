@@ -4,9 +4,10 @@ import { BotAvatar } from "@/features/bots/BotAvatar.tsx";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
 import type { ComposerAttachments } from "@/features/attachments/use-composer-attachments.ts";
 import type { SkillDefinition } from "@/features/skills/skill-types.ts";
+import { FirstRunCard } from "@/features/onboarding/FirstRunCard.tsx";
 import { chatCopy } from "./chat-copy.ts";
 import { ChatComposer } from "./ChatComposer.tsx";
-import { PlugIcon, TerminalIcon } from "./ComposerIcons.tsx";
+import { TerminalIcon } from "./ComposerIcons.tsx";
 import type { ChatLanguage } from "./respond-to-message.ts";
 import { SuggestionChips } from "./SuggestionChips.tsx";
 import { WelcomeStarters } from "./WelcomeStarters.tsx";
@@ -64,7 +65,6 @@ export function ChatEmptyState({
   onSend,
   onSelectPrompt,
 }: ChatEmptyStateProps) {
-  const content = chatCopy[language];
   const { title, subtitle } = greetingFor(language, activeBot, mainBotId);
 
   return (
@@ -93,18 +93,15 @@ export function ChatEmptyState({
               {subtitle}
             </p>
 
-            {!isConfigured && onOpenSettings && (
-              <p className="mt-5 max-w-sm text-balance text-[13px] leading-5 text-muted">
-                <PlugIcon className="mr-1.5 inline size-4 align-[-3px] text-subtle" />
-                {content.connectAiNotice}{" "}
-                <button
-                  type="button"
-                  onClick={onOpenSettings}
-                  className="-my-3 inline-flex min-h-11 items-center rounded-full px-1.5 align-middle font-medium text-foreground underline decoration-border underline-offset-4 transition-[text-decoration-color,transform] duration-(--duration-micro) ease-out-expo hover:decoration-foreground active:scale-[0.97]"
-                >
-                  {content.connectAiSetup}
-                </button>
-              </p>
+            {onOpenSettings && (
+              <FirstRunCard
+                language={language}
+                isConfigured={Boolean(isConfigured)}
+                onConnect={onOpenSettings}
+                onStarter={(prompt) => {
+                  if (!draft) onDraftChange(prompt);
+                }}
+              />
             )}
           </div>
         </div>
