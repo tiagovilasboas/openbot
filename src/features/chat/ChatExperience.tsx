@@ -17,6 +17,11 @@ import { useGitHubToken } from "@/features/github/use-github-token.ts";
 import { useContextUsage } from "@/features/context-window/use-context-usage.ts";
 import { useModelConfig } from "@/features/model/use-model-config.ts";
 import { useMigrateLocalKeys } from "@/features/key-vault/use-migrate-local-keys.ts";
+import { botModelBadge } from "@/features/bots/bot-model-badge.ts";
+import { BotModelNotice } from "@/features/bots/BotModelNotice.tsx";
+import { BotModelPicker } from "@/features/bots/BotModelPicker.tsx";
+import { getBotModelPickerCopy } from "@/features/bots/bot-model-picker-copy.ts";
+import { useBotModelPicker } from "@/features/bots/use-bot-model-picker.ts";
 import { ChatDialogs } from "./ChatDialogs.tsx";
 import { ChatEmptyState } from "./ChatEmptyState.tsx";
 import { ChatHeader } from "./ChatHeader.tsx";
@@ -82,6 +87,13 @@ export function ChatExperience() {
     recordModelCall,
     activeModelLabel,
   } = useActiveModel(modelConfig, language);
+  const modelPicker = useBotModelPicker(activeBot, language, botsState.saveBot);
+  const headerModelLabel = botModelBadge(
+    activeModelLabel,
+    modelConfig?.provider ?? serverModel?.provider,
+    activeBot.modelId,
+    language,
+  );
   useMigrateLocalKeys();
   // A provider sending the browser back to finish a Connect opens Settings.
   useConnectReturn(openSettings);
@@ -206,16 +218,27 @@ export function ChatExperience() {
         <ChatHeader
           language={language}
           onLanguageChange={setLanguage}
-          activeModelLabel={activeModelLabel}
+          activeModelLabel={headerModelLabel}
           modelStatus={modelStatus}
           contextUsage={contextUsage}
           onOpenSettings={() => setIsSettingsOpen(true)}
+          onOpenModelPicker={modelPicker.open}
+          modelPickerLabel={getBotModelPickerCopy(language).pickerButton}
           hasMessages={messages.length > 0}
           onNewChat={startNewChat}
           activeBot={activeBot}
           onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
           isMobileSidebarOpen={isMobileSidebarOpen}
           onOpenBotEdit={() => botEditor.openFor(activeBot)}
+        />
+        <BotModelNotice message={modelPicker.notice} />
+        <BotModelPicker
+          isOpen={modelPicker.isOpen}
+          language={language}
+          modelId={activeBot.modelId}
+          onChoose={modelPicker.choose}
+          onClose={modelPicker.close}
+          onOpenSettings={() => setIsSettingsOpen(true)}
         />
         <ChatSyncNotices
           language={language}

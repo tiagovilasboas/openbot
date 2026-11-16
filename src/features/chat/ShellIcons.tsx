@@ -51,6 +51,15 @@ export function NewChatIcon(props: IconProps) {
   );
 }
 
+export function ModelChipIcon(props: IconProps) {
+  return (
+    <ShellIcon {...props}>
+      <rect x="6.5" y="6.5" width="11" height="11" rx="2" />
+      <path d="M9.5 3.5v3M14.5 3.5v3M9.5 17.5v3M14.5 17.5v3M3.5 9.5h3M3.5 14.5h3M17.5 9.5h3M17.5 14.5h3" />
+    </ShellIcon>
+  );
+}
+
 export function PlusIcon(props: IconProps) {
   return (
     <ShellIcon {...props}>

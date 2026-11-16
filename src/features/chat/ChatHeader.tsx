@@ -11,7 +11,7 @@ import { chatCopy } from "./chat-copy.ts";
 import { LanguageToggle } from "./LanguageToggle.tsx";
 import type { ChatLanguage } from "./respond-to-message.ts";
 import { BrandMark } from "@/shared/brand/BrandMark.tsx";
-import { MenuIcon, NewChatIcon } from "./ShellIcons.tsx";
+import { MenuIcon, ModelChipIcon, NewChatIcon } from "./ShellIcons.tsx";
 
 interface ChatHeaderProps {
   language: ChatLanguage;
@@ -19,6 +19,10 @@ interface ChatHeaderProps {
   activeModelLabel: string;
   modelStatus: ModelStatus;
   onOpenSettings?: () => void;
+  /** Opens the per-bot model picker; the badge prefers it over settings. */
+  onOpenModelPicker?: () => void;
+  /** Names the picker action for assistive tech. */
+  modelPickerLabel?: string;
   hasMessages?: boolean;
   onNewChat?: () => void;
   activeBot?: BotProfile;
@@ -44,6 +48,8 @@ export function ChatHeader({
   activeModelLabel,
   modelStatus,
   onOpenSettings,
+  onOpenModelPicker,
+  modelPickerLabel,
   hasMessages,
   onNewChat,
   activeBot,
@@ -123,12 +129,28 @@ export function ChatHeader({
             status={modelStatus}
             statusNote={statusNote}
             contextUsage={contextUsage}
-            onPress={onOpenSettings}
+            onPress={onOpenModelPicker ?? onOpenSettings}
             actionLabel={
-              onOpenSettings ? content.headerModelSettings : undefined
+              onOpenModelPicker
+                ? modelPickerLabel
+                : onOpenSettings
+                  ? content.headerModelSettings
+                  : undefined
             }
           />
         </div>
+
+        {onOpenModelPicker && (
+          <button
+            type="button"
+            aria-label={modelPickerLabel}
+            title={activeModelLabel}
+            onClick={onOpenModelPicker}
+            className={`${ICON_BUTTON} md:hidden`}
+          >
+            <ModelChipIcon />
+          </button>
+        )}
 
         <div className="hidden md:block">
           <LanguageToggle language={language} onChange={onLanguageChange} />
