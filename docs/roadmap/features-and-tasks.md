@@ -34,19 +34,19 @@ Este documento rastreia todas as features e casos de uso (UC-01 a UC-12) derivad
 
 ## 2. Wave 2: Contexto, Repositórios e Memória (Próxima Onda)
 
-| ID          | Caso de Uso | Feature                                         | Pontos | Dependência |  Status   |
-| :---------- | :---------- | :---------------------------------------------- | :----: | :---------: | :-------: |
-| **FEAT-08** | UC-10       | **Anexos de Arquivos e Repositórios Locais**    |   5    |   FEAT-06   | Planejado |
-| **FEAT-09** | UC-09       | **Monitoramento de Contexto & Auto-Compaction** |   5    |      —      | Planejado |
-| **FEAT-10** | UC-02       | **Instalação PWA Real e HTTPS Local**           |   3    |      —      | Planejado |
+| ID          | Caso de Uso | Feature                                         | Pontos | Dependência |         Status         |
+| :---------- | :---------- | :---------------------------------------------- | :----: | :---------: | :--------------------: |
+| **FEAT-08** | UC-10       | **Anexos de Arquivos e Repositórios Locais**    |   5    |   FEAT-06   |       Planejado        |
+| **FEAT-09** | UC-09       | **Monitoramento de Contexto & Auto-Compaction** |   5    |      —      | Concluído (#128, #129) |
+| **FEAT-10** | UC-02       | **Instalação PWA Real e HTTPS Local**           |   3    |      —      |       Planejado        |
 
 ### Tarefas da Wave 2:
 
 - [ ] **TASK-08.1**: Suporte a upload/leitura de arquivos locais de texto/código no `ChatComposer`.
 - [ ] **TASK-08.2**: Armazenamento indexado local dos arquivos atrelados ao workspace do bot.
 - [ ] **TASK-08.3**: Injeção ponderada de trechos relevantes no contexto do modelo.
-- [ ] **TASK-09.1**: Contador de bytes e estimativa de tokens acumulados na conversa.
-- [ ] **TASK-09.2**: Gatilho de compactação/resumo quando o histórico ultrapassar 80% da janela.
+- [x] **TASK-09.1** (#128): Contador de bytes e estimativa de tokens acumulados na conversa.
+- [x] **TASK-09.2** (#129): Gatilho de compactação/resumo quando o histórico chegar a 75% da janela.
 - [ ] **TASK-10.1**: Validação de manifesto PWA e Service Worker em dispositivos iOS e Android reais.
 
 ---

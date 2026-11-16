@@ -49,8 +49,8 @@ _Especificação completa em [spec-workspaces-files.md](../specs/spec-workspaces
 - [ ] **TASK-F2.2 (2 pts):** Handler de drag-and-drop global de arquivos com overlay visual.
 - [ ] **TASK-F2.3 (3 pts):** Persistência de arquivos de workspace no `IndexedDB` local.
 - [ ] **TASK-F2.4 (3 pts):** Renderizador de anexos colapsáveis no balão de mensagem (`ChatMessageItem.tsx`).
-- [ ] **TASK-F2.5 (3 pts):** Monitor de tokens em tempo real e cálculo da janela de contexto (`calculateContextBudget`).
-- [ ] **TASK-F2.6 (3 pts):** Algoritmo de Auto-Compaction de turnos antigos em bloco de memória consolidada.
+- [x] **TASK-F2.5 (3 pts, #128):** Monitor de tokens em tempo real e cálculo da janela de contexto (`calculateContextBudget`).
+- [x] **TASK-F2.6 (3 pts, #129):** Algoritmo de Auto-Compaction de turnos antigos em bloco de memória consolidada.
 - [ ] **TASK-F2.7 (2 pts):** Validação de instalação PWA real no iOS e Android via HTTPS local.
 
 ---

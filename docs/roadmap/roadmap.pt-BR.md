@@ -122,6 +122,22 @@ Decisão do mantenedor em 2026-11-10: **sem voz**. Origem: o REA do Grok Bot ins
 
 Estado em 2026-11-11: 5.9 a 5.11 entraram na onda 3 sem depender da chave. Para fechar 5.8, o dono roda `bash scripts/run-real-model.sh` e o relatório passa a mostrar o motivo de cada troca de modelo.
 
+## Etapa 6 — armazenamento no servidor, contexto e ferramentas
+
+Origem: decisão de guardar os dados no servidor local e de dar ferramentas aos bots com aprovação. Cada item é um PR já mesclado na `main`; a evidência é o código e os testes do repositório.
+
+| Ordem | Entrega                                                                                         | Status                            |
+| ----- | ----------------------------------------------------------------------------------------------- | :-------------------------------- |
+| 6.1   | Banco SQLite local, acesso só de loopback sem `OPENBOT_ACCESS_TOKEN`, escuta em `127.0.0.1`     | **Concluído** (#114 a #116)       |
+| 6.2   | Bots, conversas, memória, uso e ajustes no servidor; cofre de chaves cifrado (`/api/keys`)      | **Concluído** (#117 a #126)       |
+| 6.3   | Linha de atividade enquanto um turno corre                                                      | **Concluído** (#127)              |
+| 6.4   | Medidor da janela de contexto no selo do modelo                                                 | **Concluído** (#128)              |
+| 6.5   | Compactação de conversas longas em resumo, com as mensagens arquivadas atrás de um divisor      | **Concluído** (#129)              |
+| 6.6   | Laço de ferramentas com aprovação (`/api/chat/tools`, atrás de `OPENBOT_TOOLS`), cartão e chips | **Concluído** (#130 a #135)       |
+| 6.7   | Rodada com modelo real que chame uma ferramenta, passe pela aprovação e retome                  | Aberto (depende da chave do dono) |
+
+Detalhes: [BFF e front](../specs/spec-mvp-features-bff-front.md), [compactação](../specs/spec-context-compaction.md), [laço de ferramentas](../specs/spec-tool-loop.md). A rodada real da interface (5.8) segue pendente e vale também para compactação e ferramentas: nenhuma delas foi vista com um modelo real.
+
 ## Aceite do MVP
 
 - Parear um celular, reiniciar e retomar a conversa; negar sessão expirada ou revogada.
@@ -148,4 +164,4 @@ Estado em 2026-11-11: 5.9 a 5.11 entraram na onda 3 sem depender da chave. Para 
 
 Medir na mesma suíte: tarefas aceitas, falhas críticas, correções humanas, latência, tokens, tentativas e custo por tarefa aceita. Registrar versão, configuração, hardware e amostra; não afirmar melhora ou paridade sem baseline comparável. Nenhum baseline existe ainda.
 
-Decisões abertas incluem armazenamento de segredos, registro e escopos OAuth, certificado e pareamento, descoberta de skills pelos dois agentes e suporte do runtime ao modelo Liquid. O uso de HeroUI no protótipo ainda precisa de validação em dispositivos. Não há cronograma de release definido.
+As chaves de provedor já ficam num cofre cifrado no servidor (6.2). Decisões abertas incluem registro e escopos OAuth, certificado e pareamento, descoberta de skills pelos dois agentes e suporte do runtime ao modelo Liquid. O uso de HeroUI no protótipo ainda precisa de validação em dispositivos. Não há cronograma de release definido.
