@@ -4,8 +4,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useConnectReturn } from "@/features/connections/index.ts";
 import { useConnectGate } from "@/features/onboarding/use-connect-gate.ts";
 import { consumeFirstRunConnect } from "@/features/onboarding/first-run-return.ts";
-import { messageFitsRequest } from "@/features/attachments/request-size.ts";
-import { toPayloads } from "@/features/attachments/attachment-summary.ts";
 import { useComposerAttachments } from "@/features/attachments/use-composer-attachments.ts";
 import { useAttention } from "@/features/attention/use-attention.ts";
 import { LockScreen } from "@/features/auth/LockScreen.tsx";
@@ -34,11 +32,11 @@ import { ChatSidebar } from "./ChatSidebar.tsx";
 import { ChatSyncNotices } from "./ChatSyncNotices.tsx";
 import { ConversationView } from "./ConversationView.tsx";
 import { NewChatUndoNotice } from "./NewChatUndoNotice.tsx";
-import { focusComposer } from "./focus-composer.ts";
-import { rollBackThread, rollbackBlock } from "./roll-back-thread.ts";
+import { rollbackBlock } from "./roll-back-thread.ts";
 import { useActiveModel } from "./use-active-model.ts";
 import { useBotEditor } from "./use-bot-editor.ts";
 import { useBotMessages } from "./use-bot-messages.ts";
+import { useComposerDraft } from "./use-composer-draft.ts";
 import { useChatTurns } from "./use-chat-turns.ts";
 import { useDocumentTheme } from "./use-document-theme.ts";
 import { useLanguage } from "./use-language.ts";
@@ -47,7 +45,6 @@ import { useNewChatUndo } from "./use-new-chat-undo.ts";
 
 export function ChatExperience() {
   const [language, setLanguage] = useLanguage();
-  const [draft, setDraft] = useState("");
   const attachments = useComposerAttachments();
   const auth = useLocalAuth();
   const { queueCount, enqueue, dequeue, clearQueue } = useMessageQueue();
@@ -177,37 +174,22 @@ export function ChatExperience() {
     }
   }, [messages, liveMessages, busy]);
 
-  function sendMessage(value = draft) {
-    const text = value.trim();
-    if (!text || gate.locked) return;
-    if (!messageFitsRequest(text, toPayloads(attachments.items))) {
-      attachments.reportTooBig();
-      return;
-    }
-    sendText(text, attachments.take());
-    setDraft("");
-  }
-
   const blockedRollback = rollbackBlock(
     workingBotIds.includes(activeBot.id),
     queueCount,
   );
 
-  /** Cuts the thread before a user message and puts its text back to edit. */
-  function rollBack(messageId: number) {
-    if (blockedRollback) return;
-    const result = rollBackThread(messages, messageId);
-    if (!result) return;
-    persistMessages(result.messages);
-    setDraft(result.text);
-    focusComposer(language);
-  }
-
-  function clearThread() {
-    resetConversation();
-    setDraft("");
-    attachments.clear();
-  }
+  const { draft, setDraft, sendMessage, rollBack, clearThread } =
+    useComposerDraft({
+      language,
+      locked: gate.locked,
+      attachments,
+      messages,
+      persistMessages,
+      blockedRollback,
+      sendText,
+      resetConversation,
+    });
 
   const newChatUndo = useNewChatUndo({
     botId: activeBot.id,
