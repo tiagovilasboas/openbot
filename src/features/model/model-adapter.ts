@@ -18,6 +18,8 @@ export type ModelRequest = {
   systemPrompt?: string;
   /** Replaces the configured model for this call only. */
   modelId?: string;
+  /** Models tried, in order, on the same provider before any generic fallback. */
+  backupModelIds?: string[];
   /** Tools the model may call; absent keeps the request plain chat. */
   tools?: ToolSpec[];
   /** Earlier tool calls and their results, replayed after the messages. */
@@ -36,6 +38,8 @@ export type FailoverInfo = {
   fromModel: string;
   toModel: string;
   reason: string;
+  /** Seconds until the provider's usage limit resets, when it said so. */
+  resetSeconds?: number;
 };
 
 export type ModelResult =

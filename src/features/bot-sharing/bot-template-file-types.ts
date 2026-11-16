@@ -25,6 +25,7 @@ export interface TemplateFileBot {
   description: string;
   workspaceContext?: string;
   modelId?: string;
+  backupModelIds?: string[];
   avatarShape: AvatarShape;
   avatarColor: AvatarColor;
   skills: TemplateFileSkill[];
@@ -45,6 +46,7 @@ export interface BotTemplateDraft {
   description: string;
   workspaceContext?: string;
   modelId?: string;
+  backupModelIds?: string[];
   avatarShape: AvatarShape;
   avatarColor: AvatarColor;
   /** Always marked imported: the text came from a file, not from the user. */

@@ -1,5 +1,6 @@
 "use client";
 
+import { describeResetWait } from "./reset-wait.ts";
 import { chatCopy } from "./chat-copy.ts";
 import type { ChatLanguage } from "./respond-to-message.ts";
 
@@ -8,6 +9,7 @@ interface FailoverNoticeProps {
   fromModel: string;
   toModel: string;
   reason: string;
+  resetSeconds?: number;
 }
 
 export function FailoverNotice({
@@ -15,8 +17,10 @@ export function FailoverNotice({
   fromModel,
   toModel,
   reason,
+  resetSeconds,
 }: FailoverNoticeProps) {
   const content = chatCopy[language];
+  const wait = describeResetWait(resetSeconds, language);
   return (
     <div className="flex items-start gap-2.5 rounded-xl bg-warning-soft px-3 py-2 text-[13px] leading-snug">
       <svg
@@ -40,6 +44,7 @@ export function FailoverNotice({
           {" > "}
           <span className="font-mono text-xs">{toModel}</span>
           {reason ? ` (${content.failoverReasonLabel}: ${reason})` : ""}
+          {wait ? ` ${wait}.` : ""}
         </span>
       </p>
     </div>

@@ -217,6 +217,11 @@ export function SettingsForm({
           setLocalModel={setLocalModel}
           anthropicModel={anthropicModel}
           setAnthropicModel={setAnthropicModel}
+          onUseLocalRouter={(url, model) => {
+            setProvider("router");
+            setRouterUrl(url);
+            setRouterModel(model);
+          }}
         />
 
         {missingKeyProvider && (

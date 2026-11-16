@@ -21,6 +21,8 @@ interface SettingsProviderFieldsProps {
   setLocalModel: (val: string) => void;
   anthropicModel: string;
   setAnthropicModel: (val: string) => void;
+  /** Switches to the router provider, pointed at a local OpenAI-style server. */
+  onUseLocalRouter: (url: string, model: string) => void;
 }
 
 interface TextRowProps {
@@ -73,6 +75,7 @@ export function SettingsProviderFields({
   setLocalModel,
   anthropicModel,
   setAnthropicModel,
+  onUseLocalRouter,
 }: SettingsProviderFieldsProps) {
   if (provider === "router") {
     return (
@@ -91,6 +94,7 @@ export function SettingsProviderFields({
           }}
           onSelectRouterModel={(model) => setRouterModel(model)}
           onSelectLocalPreset={() => {}}
+          onSelectLocalRouter={() => {}}
         />
         <div className="flex flex-col gap-3 md:gap-4">
           <TextRow
@@ -130,6 +134,7 @@ export function SettingsProviderFields({
             setLocalUrl(url);
             setLocalModel(model);
           }}
+          onSelectLocalRouter={onUseLocalRouter}
         />
         <div className="flex flex-col gap-3 md:gap-4">
           <TextRow

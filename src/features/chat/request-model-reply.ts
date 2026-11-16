@@ -17,6 +17,8 @@ export interface ModelReplyOptions {
   timeoutMs?: number;
   /** The bot's own model; empty means the global model setting. */
   modelId?: string;
+  /** The bot's backup models, tried in order when its model fails. */
+  backupModelIds?: string[];
   /** The bot's memory notes, raw: the server delimits them as data. */
   memory?: string[];
   /** Files of this turn, raw: the server delimits them as data. */
@@ -35,6 +37,8 @@ export type FailoverDetail = {
   fromModel: string;
   toModel: string;
   reason: string;
+  /** Seconds until the provider's usage limit resets, when it said so. */
+  resetSeconds?: number;
 };
 
 export type ModelReplyOutcome =
@@ -78,6 +82,7 @@ export async function requestModelReply(
       call.signal,
       failureOfThrow,
       options.modelId,
+      options.backupModelIds,
       options.memory,
       options.attachments,
     );
@@ -95,6 +100,7 @@ async function fetchReply(
   signal: AbortSignal,
   failureOfThrow: () => ModelFailure,
   modelId?: string,
+  backupModelIds?: string[],
   memory?: string[],
   attachments?: AttachmentPayload[],
 ): Promise<ModelReplyOutcome> {
@@ -112,6 +118,9 @@ async function fetchReply(
           ...(config ? { config } : {}),
           ...(systemPrompt ? { systemPrompt } : {}),
           ...(modelId ? { modelId } : {}),
+          ...(backupModelIds && backupModelIds.length > 0
+            ? { backupModelIds }
+            : {}),
           ...(memory && memory.length > 0 ? { memory } : {}),
           ...(attachments && attachments.length > 0 ? { attachments } : {}),
         }),

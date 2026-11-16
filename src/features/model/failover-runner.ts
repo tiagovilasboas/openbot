@@ -1,4 +1,6 @@
 import { logFailover } from "./failover-log.ts";
+import { usableBackupModelIds } from "./backup-models.ts";
+import { failoverInfoFor } from "./usage-limit-reset.ts";
 import { createRouterAdapter } from "./router-adapter.ts";
 import { selectAdapter } from "./select-adapter.ts";
 import type { StreamingModelAdapter } from "./stream-adapter.ts";
@@ -76,6 +78,29 @@ export async function executeWithFailover({
     return primaryResult;
   }
 
+  // The bot's backup models come first, each tried once on the same provider.
+  const failedModel = request.modelId ?? primaryAdapter.model;
+  for (const backupId of usableBackupModelIds(
+    request.backupModelIds,
+    failedModel,
+    env,
+  )) {
+    const backup = await primaryAdapter.generateReply({
+      ...request,
+      modelId: backupId,
+    });
+    if (backup.ok) {
+      const failover = failoverInfoFor(
+        failedModel ?? primaryAdapter.provider,
+        backupId,
+        primaryResult.detail ?? primaryResult.code,
+      );
+      logFailover(failover);
+      return { ...backup, failover };
+    }
+    if (backup.code === "blocked_base_url") break;
+  }
+
   const secondaryAdapter =
     fallbackAdapter ??
     resolveAutoFallbackAdapter(primaryAdapter, request, env, fetchImpl);
@@ -85,14 +110,14 @@ export async function executeWithFailover({
   }
 
   // The per-call model just failed: the fallback uses its own model.
-  const { modelId, ...fallbackRequest } = request;
+  const { modelId, backupModelIds: _backups, ...fallbackRequest } = request;
   const fallbackResult = await secondaryAdapter.generateReply(fallbackRequest);
   if (fallbackResult.ok) {
-    const failover = {
-      fromModel: modelId ?? primaryAdapter.model ?? primaryAdapter.provider,
-      toModel: secondaryAdapter.model ?? secondaryAdapter.provider,
-      reason: primaryResult.detail ?? primaryResult.code,
-    };
+    const failover = failoverInfoFor(
+      modelId ?? primaryAdapter.model ?? primaryAdapter.provider,
+      secondaryAdapter.model ?? secondaryAdapter.provider,
+      primaryResult.detail ?? primaryResult.code,
+    );
     logFailover(failover);
     return {
       ok: true,

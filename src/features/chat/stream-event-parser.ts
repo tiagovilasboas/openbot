@@ -72,13 +72,23 @@ function modelEvent(raw: Record<string, unknown>): ModelTextEvent | null {
       const fromModel = text(failover?.fromModel);
       const toModel = text(failover?.toModel);
       const reason = text(failover?.reason);
+      const resetSeconds = failover?.resetSeconds;
       const usage = readTokenUsage(raw.usage);
       return {
         type: "done",
         provider: text(raw.provider) ?? "",
         ...(usage ? { usage } : {}),
         ...(fromModel && toModel && reason
-          ? { failover: { fromModel, toModel, reason } }
+          ? {
+              failover: {
+                fromModel,
+                toModel,
+                reason,
+                ...(typeof resetSeconds === "number" && resetSeconds > 0
+                  ? { resetSeconds }
+                  : {}),
+              },
+            }
           : {}),
       };
     }
@@ -88,6 +98,9 @@ function modelEvent(raw: Record<string, unknown>): ModelTextEvent | null {
         code: failureKind(raw.code),
         provider: text(raw.provider) ?? null,
         ...(typeof raw.status === "number" ? { status: raw.status } : {}),
+        ...(typeof raw.resetSeconds === "number" && raw.resetSeconds > 0
+          ? { resetSeconds: raw.resetSeconds }
+          : {}),
       };
     default:
       return null;

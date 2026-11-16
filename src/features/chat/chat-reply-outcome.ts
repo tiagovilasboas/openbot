@@ -12,7 +12,12 @@ export interface ChatReplyOutcome {
   text: string;
   delegatedBot?: BotProfile;
   github?: { repo: GitHubRepoRef; items: GitHubItem[] };
-  failover?: { fromModel: string; toModel: string; reason: string };
+  failover?: {
+    fromModel: string;
+    toModel: string;
+    reason: string;
+    resetSeconds?: number;
+  };
   /** The text is what arrived before the reply broke off or was cancelled. */
   incomplete?: IncompleteKind;
   /** Set when the turn reached the model, so the header dot can follow it. */

@@ -120,7 +120,15 @@ function readFailover(raw: unknown): MessageData["failover"] {
   if (fromModel === null || toModel === null || reason === null) {
     return undefined;
   }
-  return { fromModel, toModel, reason };
+  const reset = raw.resetSeconds;
+  return {
+    fromModel,
+    toModel,
+    reason,
+    ...(typeof reset === "number" && reset > 0 && reset <= 604_800
+      ? { resetSeconds: Math.floor(reset) }
+      : {}),
+  };
 }
 
 /**

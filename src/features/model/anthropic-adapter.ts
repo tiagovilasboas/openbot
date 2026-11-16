@@ -86,7 +86,11 @@ export function createAnthropicAdapter(
           typeof errorPayload?.error?.message === "string"
             ? errorPayload.error.message.trim()
             : null;
-        const detail = providerErrorDetail(response.status, msg);
+        const detail = providerErrorDetail(
+          response.status,
+          msg,
+          response.headers,
+        );
         return {
           ok: false,
           code: "provider_rejected",

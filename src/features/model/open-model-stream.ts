@@ -91,6 +91,7 @@ export async function openModelStream(
       detail: providerErrorDetail(
         response.status,
         typeof message === "string" ? message.trim() : null,
+        response.headers,
       ),
     };
   }
