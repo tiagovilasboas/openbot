@@ -1,4 +1,5 @@
 import type { ModelFailure } from "../model/classify-model-failure.ts";
+import { describeResetWait } from "./reset-wait.ts";
 import { chatCopy } from "./chat-copy.ts";
 import type { ChatLanguage } from "./respond-to-message.ts";
 
@@ -22,7 +23,9 @@ export function describeModelFailure(
     case "access_required":
       return content.modelErrorAccessRequired;
     case "rate_limit":
-      return content.modelErrorRateLimit;
+      return failure.resetSeconds
+        ? `${content.modelErrorRateLimit} ${describeResetWait(failure.resetSeconds, language)}.`
+        : content.modelErrorRateLimit;
     case "model_unavailable":
       return content.modelErrorModel;
     case "blocked_url":

@@ -121,6 +121,7 @@ export const chatCopyEs = {
   viaBot: "vía",
   failoverNotice: "Failover automático",
   failoverReasonLabel: "Motivo",
+  limitResetsIn: "El límite se renueva en",
   codeLabel: "código",
   githubItemPR: "Pull request",
   githubItemIssue: "Issue",

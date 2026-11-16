@@ -1,6 +1,8 @@
 import { logFailover } from "./failover-log.ts";
 import { classifyModelFailure } from "./classify-model-failure.ts";
 import { resolveAutoFallbackAdapter } from "./failover-runner.ts";
+import { usableBackupModelIds } from "./backup-models.ts";
+import { failoverInfoFor } from "./usage-limit-reset.ts";
 import type {
   FailoverInfo,
   FetchLike,
@@ -115,7 +117,48 @@ function errorEvent(
     code: failure.kind,
     provider,
     ...(failure.status ? { status: failure.status } : {}),
+    ...(failure.resetSeconds ? { resetSeconds: failure.resetSeconds } : {}),
   };
+}
+
+type BackedUp = { attempt: Attempt; failover?: FailoverInfo };
+
+/**
+ * Tries the bot's backup models in order on the primary adapter. Returns the
+ * first one that answers (or an abort), or null when none did, so the generic
+ * fallbacks still run. Each model is tried once: there is no retry loop.
+ */
+async function tryBackupModels(
+  primary: StreamingModelAdapter,
+  request: ModelRequest,
+  first: Extract<Attempt, { kind: "failed" }>,
+  options: StreamWithFailoverOptions,
+): Promise<BackedUp | null> {
+  const failedModel = request.modelId ?? primary.model;
+  const backups = usableBackupModelIds(
+    request.backupModelIds,
+    failedModel,
+    options.env ?? {},
+  );
+  for (const modelId of backups) {
+    const next = await startAttempt(
+      primary,
+      { ...request, modelId },
+      options.signal,
+    );
+    if (next.kind === "aborted") return { attempt: next };
+    if (next.kind === "ready") {
+      const failover = failoverInfoFor(
+        failedModel ?? primary.provider,
+        modelId,
+        first.detail ?? first.code,
+      );
+      logFailover(failover);
+      return { attempt: next, failover };
+    }
+    if (next.code === "blocked_base_url") return null;
+  }
+  return null;
 }
 
 /** What to say when the signal fired: nothing if the client left, else a timeout. */
@@ -139,6 +182,16 @@ export async function* streamWithFailover(
   let failover: FailoverInfo | undefined;
 
   if (attempt.kind === "failed" && attempt.code !== "blocked_base_url") {
+    // The bot's backup models come first: same provider, another model.
+    // A usage limit is not waited out; the next model answers instead.
+    const backedUp = await tryBackupModels(primary, request, attempt, options);
+    if (backedUp) {
+      attempt = backedUp.attempt;
+      failover = backedUp.failover;
+    }
+  }
+
+  if (attempt.kind === "failed" && attempt.code !== "blocked_base_url") {
     const secondary =
       options.fallback ??
       resolveAutoFallbackAdapter(
@@ -150,14 +203,18 @@ export async function* streamWithFailover(
     if (secondary) {
       const first = attempt;
       // The bot's model id belongs to the primary provider, not the fallback.
-      const { modelId: _primaryModelId, ...fallbackRequest } = request;
+      const {
+        modelId: _primaryModelId,
+        backupModelIds: _backups,
+        ...fallbackRequest
+      } = request;
       const second = await startAttempt(secondary, fallbackRequest, signal);
       if (second.kind === "ready") {
-        failover = {
-          fromModel: primary.model ?? primary.provider,
-          toModel: secondary.model ?? secondary.provider,
-          reason: first.detail ?? first.code,
-        };
+        failover = failoverInfoFor(
+          primary.model ?? primary.provider,
+          secondary.model ?? secondary.provider,
+          first.detail ?? first.code,
+        );
         logFailover(failover);
       }
       attempt =

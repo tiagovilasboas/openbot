@@ -1,3 +1,5 @@
+import { resetSecondsOfDetail } from "./usage-limit-reset.ts";
+
 /**
  * Why a model call failed, in terms a person can act on. Adapters report
  * upstream errors as a detail like "401: No auth credentials found" or
@@ -21,6 +23,8 @@ export interface ModelFailure {
   kind: ModelFailureKind;
   /** Upstream HTTP status, when the provider answered. */
   status?: number;
+  /** For a usage limit: seconds until it resets, when the provider said. */
+  resetSeconds?: number;
 }
 
 function statusOf(detail: string | undefined): number | undefined {
@@ -61,7 +65,14 @@ export function classifyModelFailure(
   const text = typeof detail === "string" ? detail : undefined;
   const status = statusOf(text);
   if (status === 401 || status === 403) return { kind: "auth", status };
-  if (status === 429) return { kind: "rate_limit", status };
+  if (status === 429) {
+    const resetSeconds = resetSecondsOfDetail(text);
+    return {
+      kind: "rate_limit",
+      status,
+      ...(resetSeconds !== undefined ? { resetSeconds } : {}),
+    };
+  }
   // OpenRouter answers 404 "No endpoints found" or 400 "not a valid model ID".
   if (status === 404 || (status === 400 && /model/i.test(text ?? ""))) {
     return { kind: "model_unavailable", status };

@@ -5,6 +5,7 @@ import {
   BotTemplateExport,
   BotTemplateImport,
 } from "@/features/bot-sharing/BotTemplateFileControls.tsx";
+import { parseBackupModelsText } from "@/features/model/backup-models.ts";
 import { MemorySection } from "@/features/memory/MemorySection.tsx";
 import { BotSkillsEditor } from "@/features/skills/BotSkillsEditor.tsx";
 import { BotToolsToggle } from "@/features/tools/client/BotToolsToggle.tsx";
@@ -13,12 +14,14 @@ import { ResponsiveSheet } from "@/shared/ui/ResponsiveSheet.tsx";
 import { AutoTextarea } from "./AutoTextarea.tsx";
 import { BotEditPreview } from "./BotEditPreview.tsx";
 import { BotAvatarPickers } from "./BotAvatarPickers.tsx";
+import { BotBackupModelsField } from "./BotBackupModelsField.tsx";
 import { BotEditFooter } from "./BotEditFooter.tsx";
 import { BotHideControl } from "./BotHideControl.tsx";
 import { BotModelField, isBotModelIdValid } from "./BotModelField.tsx";
 import { BotMainControl } from "./BotMainControl.tsx";
 import { BotTemplatePicker } from "./BotTemplatePicker.tsx";
 import { BOT_NAME_MAX_LENGTH, type BotProfile } from "./bot-types.ts";
+import { buildEditedBot } from "./build-edited-bot.ts";
 import { getBotsCopy } from "./bots-copy.ts";
 import { useBotEditFields } from "./use-bot-edit-fields.ts";
 import { PromptBudgetNotice } from "./PromptBudgetNotice.tsx";
@@ -70,6 +73,8 @@ function BotEditForm({
     setWorkspaceContext,
     modelId,
     setModelId,
+    backupModelsText,
+    setBackupModelsText,
     avatarShape,
     setAvatarShape,
     avatarColor,
@@ -99,7 +104,9 @@ function BotEditForm({
     promptReserveFor(isMain, language),
   );
 
-  const isValid = name.trim().length > 0 && isBotModelIdValid(modelId);
+  const backups = parseBackupModelsText(backupModelsText);
+  const isValid =
+    name.trim().length > 0 && isBotModelIdValid(modelId) && backups.ok;
 
   function closeAfter(action: (id: string) => void, id: string) {
     action(id);
@@ -107,27 +114,12 @@ function BotEditForm({
   }
 
   function handleSave() {
-    if (!isValid) return;
-    const now = new Date().toISOString();
-    const updated: BotProfile = {
-      id:
-        bot?.id && bot.id !== "new"
-          ? bot.id
-          : `bot_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-      name: name.trim(),
-      title: title.trim() || undefined,
-      description: description.trim() || copy.defaultDescription,
-      workspaceContext: workspaceContext.trim() || undefined,
-      modelId: modelId.trim() || undefined,
-      avatarShape,
-      avatarColor,
-      skills,
-      ...(toolsEnabled ? { toolsEnabled: true } : {}),
-      ...(bot?.hidden ? { hidden: true } : {}),
-      createdAt: bot?.createdAt || now,
-      updatedAt: now,
-    };
-    onSave(updated);
+    if (!isValid || !backups.ok) return;
+    const text = { name, title, description, workspaceContext, modelId };
+    const look = { avatarShape, avatarColor, skills, toolsEnabled };
+    const values = { ...text, ...look, backupModelIds: backups.ids };
+    const defaults = { defaultDescription: copy.defaultDescription };
+    onSave(buildEditedBot(bot, values, defaults));
     onClose();
   }
 
@@ -223,6 +215,12 @@ function BotEditForm({
         value={modelId}
         language={language}
         onChange={setModelId}
+      />
+
+      <BotBackupModelsField
+        value={backupModelsText}
+        language={language}
+        onChange={setBackupModelsText}
       />
 
       <BotSkillsEditor

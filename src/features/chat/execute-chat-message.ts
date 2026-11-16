@@ -158,7 +158,13 @@ export async function executeChatMessage({
     shape: (text: string) => string = (text) => text,
     files?: AttachmentPayload[],
   ) => {
-    const options = { signal, modelId, memory, attachments: files };
+    const options = {
+      signal,
+      modelId,
+      backupModelIds: (speaker ?? executingBot).backupModelIds,
+      memory,
+      attachments: files,
+    };
     if (!board) {
       return requestModelReply(
         language,

@@ -27,6 +27,9 @@ export function buildBotTemplateFile(
         ? { workspaceContext: bot.workspaceContext }
         : {}),
       ...(bot.modelId ? { modelId: bot.modelId } : {}),
+      ...(bot.backupModelIds?.length
+        ? { backupModelIds: bot.backupModelIds }
+        : {}),
       avatarShape: bot.avatarShape,
       avatarColor: bot.avatarColor,
       skills: bot.skills.map((skill) => ({

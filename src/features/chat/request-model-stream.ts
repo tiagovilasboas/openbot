@@ -116,6 +116,9 @@ export async function requestModelStream(
             ...(config ? { config } : {}),
             ...(systemPrompt ? { systemPrompt } : {}),
             ...(options.modelId ? { modelId: options.modelId } : {}),
+            ...(options.backupModelIds && options.backupModelIds.length > 0
+              ? { backupModelIds: options.backupModelIds }
+              : {}),
             ...(options.memory && options.memory.length > 0
               ? { memory: options.memory }
               : {}),
@@ -192,6 +195,7 @@ export async function requestModelStream(
           failure = {
             kind: event.code,
             ...(event.status ? { status: event.status } : {}),
+            ...(event.resetSeconds ? { resetSeconds: event.resetSeconds } : {}),
           };
           break;
         }

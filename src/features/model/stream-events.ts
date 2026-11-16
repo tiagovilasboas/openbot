@@ -30,4 +30,6 @@ export type ChatStreamEvent =
       code: ModelFailureKind;
       provider: string | null;
       status?: number;
+      /** For a usage limit: seconds until it resets. */
+      resetSeconds?: number;
     };

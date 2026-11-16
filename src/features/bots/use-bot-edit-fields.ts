@@ -13,6 +13,10 @@ export function useBotEditFields(bot: BotProfile | null) {
     bot?.workspaceContext || "",
   );
   const [modelId, setModelId] = useState(bot?.modelId || "");
+  // Typed as text (ids split by commas); parsed when the form is saved.
+  const [backupModelsText, setBackupModelsText] = useState(
+    (bot?.backupModelIds ?? []).join(", "),
+  );
   const [avatarShape, setAvatarShape] = useState<AvatarShape>(
     bot?.avatarShape || "hexagon",
   );
@@ -42,6 +46,7 @@ export function useBotEditFields(bot: BotProfile | null) {
     setDescription(draft.description);
     setWorkspaceContext(draft.workspaceContext ?? "");
     setModelId(draft.modelId ?? "");
+    setBackupModelsText((draft.backupModelIds ?? []).join(", "));
     setAvatarShape(draft.avatarShape);
     setAvatarColor(draft.avatarColor);
     setSkills(draft.skills);
@@ -58,6 +63,8 @@ export function useBotEditFields(bot: BotProfile | null) {
     setWorkspaceContext,
     modelId,
     setModelId,
+    backupModelsText,
+    setBackupModelsText,
     avatarShape,
     setAvatarShape,
     avatarColor,

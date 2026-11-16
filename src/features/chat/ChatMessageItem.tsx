@@ -51,6 +51,7 @@ export interface MessageData {
     fromModel: string;
     toModel: string;
     reason: string;
+    resetSeconds?: number;
   };
   /**
    * Set on the marker that stands for compacted history: `text` is the
@@ -184,6 +185,7 @@ export function ChatMessageItem({
           fromModel={message.failover.fromModel}
           toModel={message.failover.toModel}
           reason={message.failover.reason}
+          resetSeconds={message.failover.resetSeconds}
         />
       )}
 

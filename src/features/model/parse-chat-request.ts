@@ -6,6 +6,7 @@ import { appendMemoryBlock } from "../memory/memory-block.ts";
 import { validateClientModelConfig } from "./model-config.ts";
 import { MAX_SYSTEM_PROMPT_CHARS } from "./system-prompt-limit.ts";
 import { parseModelId } from "./model-id.ts";
+import { parseBackupModelIds } from "./backup-models.ts";
 
 const maxMessages = 50;
 const maxTextLength = 4000;
@@ -42,6 +43,7 @@ export function parseChatRequest(payload: unknown): ParsedChatRequest {
     fallbackConfig,
     systemPrompt,
     modelId,
+    backupModelIds,
     memory,
     attachments,
   } = payload as Record<string, unknown>;
@@ -73,6 +75,9 @@ export function parseChatRequest(payload: unknown): ParsedChatRequest {
 
   const parsedModelId = parseModelId(modelId);
   if (!parsedModelId.ok) return { ok: false };
+
+  const parsedBackups = parseBackupModelIds(backupModelIds);
+  if (!parsedBackups.ok) return { ok: false };
 
   const trimmedSystemPrompt =
     typeof systemPrompt === "string" ? systemPrompt.trim() : "";
@@ -107,6 +112,9 @@ export function parseChatRequest(payload: unknown): ParsedChatRequest {
         : {}),
       ...(fullSystemPrompt ? { systemPrompt: fullSystemPrompt } : {}),
       ...(parsedModelId.modelId ? { modelId: parsedModelId.modelId } : {}),
+      ...(parsedBackups.ids.length > 0
+        ? { backupModelIds: parsedBackups.ids }
+        : {}),
     },
   };
 }

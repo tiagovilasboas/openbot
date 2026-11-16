@@ -42,6 +42,8 @@ export interface BotProfile {
   workspaceContext?: string;
   /** This bot's own model id; empty means the global model setting. */
   modelId?: string;
+  /** Up to three models tried, in order, when the main one fails. */
+  backupModelIds?: string[];
   /**
    * The bot may use the server's tools (asking first for anything that
    * changes data). Only its own single-bot turns: never a crew turn.

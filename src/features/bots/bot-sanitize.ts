@@ -11,6 +11,7 @@ import {
   type AvatarShape,
   type BotProfile,
 } from "./bot-types.ts";
+import { sanitizeBackupModelIds } from "../model/backup-models.ts";
 import { sanitizeModelId } from "../model/model-id.ts";
 import { isValidBotId } from "./bot-id.ts";
 import { sanitizeSkill } from "../skills/skill-definition.ts";
@@ -58,6 +59,12 @@ function sanitizeBotSkills(
 function optionalModelId(raw: unknown): { modelId?: string } {
   const modelId = sanitizeModelId(raw);
   return modelId ? { modelId } : {};
+}
+
+/** A spread-ready `backupModelIds`: absent when the stored list is empty. */
+function optionalBackupModelIds(raw: unknown): { backupModelIds?: string[] } {
+  const backupModelIds = sanitizeBackupModelIds(raw);
+  return backupModelIds.length > 0 ? { backupModelIds } : {};
 }
 
 export function sanitizeBotProfile(
@@ -119,6 +126,7 @@ export function sanitizeBotProfile(
         ? obj.workspaceContext.trim().slice(0, BOT_TEXT_MAX_LENGTH)
         : undefined,
     ...optionalModelId(obj.modelId),
+    ...optionalBackupModelIds(obj.backupModelIds),
     ...(obj.toolsEnabled === true ? { toolsEnabled: true } : {}),
     ...(obj.hidden === true ? { hidden: true } : {}),
     avatarShape: shape,
