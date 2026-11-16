@@ -24,6 +24,8 @@ import { BotModelNotice } from "@/features/bots/BotModelNotice.tsx";
 import { BotModelPicker } from "@/features/bots/BotModelPicker.tsx";
 import { getBotModelPickerCopy } from "@/features/bots/bot-model-picker-copy.ts";
 import { fillCopy } from "@/features/model/settings-copy.ts";
+import { ComposerModelProvider } from "@/features/bots/composer-model-context.ts";
+import { composerModelChip } from "@/features/bots/composer-model-chip.ts";
 import { useBotModelPicker } from "@/features/bots/use-bot-model-picker.ts";
 import { ChatDialogs } from "./ChatDialogs.tsx";
 import { ChatEmptyState } from "./ChatEmptyState.tsx";
@@ -161,6 +163,11 @@ export function ChatExperience() {
       })
     : savedModelLabel;
 
+  const composerModel = {
+    chip: composerModelChip(isConfigured, headerModelLabel, language),
+    onPress: isConfigured ? modelPicker.open : () => setIsSettingsOpen(true),
+  };
+
   useEffect(() => {
     if (messages.length > 0) {
       // Smooth scrolling would queue up behind every frame of a streaming reply.
@@ -280,48 +287,50 @@ export function ChatExperience() {
           usage={usageSync}
         />
 
-        {messages.length === 0 || gate.locked ? (
-          <ChatEmptyState
-            language={language}
-            draft={draft}
-            busy={busy}
-            skills={activeBotSkills}
-            bots={mentionableBots}
-            activeBot={activeBot}
-            mainBotId={mainBotId}
-            isConfigured={isConfigured}
-            composerLockedReason={gate.composerReason}
-            attachments={attachments}
-            onOpenSettings={() => setIsSettingsOpen(true)}
-            onDraftChange={setDraft}
-            onSend={() => void sendMessage()}
-            onSelectPrompt={(prompt) => void sendMessage(prompt)}
-          />
-        ) : (
-          <ConversationView
-            language={language}
-            messages={messages}
-            liveMessages={liveMessages}
-            activeBot={activeBot}
-            busy={busy}
-            thinkingBot={workingBot ?? activeBot}
-            draft={draft}
-            queueCount={queueCount}
-            isConfigured={isConfigured}
-            activeBotSkills={activeBotSkills}
-            bots={mentionableBots}
-            attachments={attachments}
-            messagesEndRef={messagesEndRef}
-            onDraftChange={setDraft}
-            onSend={() => void sendMessage()}
-            onOpenSettings={() => setIsSettingsOpen(true)}
-            onCancel={cancelTurn}
-            onRetry={retryMessage}
-            rollbackBlocked={blockedRollback}
-            onRollBack={rollBack}
-            toolTurn={toolTurn}
-          />
-        )}
+        <ComposerModelProvider value={composerModel}>
+          {messages.length === 0 || gate.locked ? (
+            <ChatEmptyState
+              language={language}
+              draft={draft}
+              busy={busy}
+              skills={activeBotSkills}
+              bots={mentionableBots}
+              activeBot={activeBot}
+              mainBotId={mainBotId}
+              isConfigured={isConfigured}
+              composerLockedReason={gate.composerReason}
+              attachments={attachments}
+              onOpenSettings={() => setIsSettingsOpen(true)}
+              onDraftChange={setDraft}
+              onSend={() => void sendMessage()}
+              onSelectPrompt={(prompt) => void sendMessage(prompt)}
+            />
+          ) : (
+            <ConversationView
+              language={language}
+              messages={messages}
+              liveMessages={liveMessages}
+              activeBot={activeBot}
+              busy={busy}
+              thinkingBot={workingBot ?? activeBot}
+              draft={draft}
+              queueCount={queueCount}
+              isConfigured={isConfigured}
+              activeBotSkills={activeBotSkills}
+              bots={mentionableBots}
+              attachments={attachments}
+              messagesEndRef={messagesEndRef}
+              onDraftChange={setDraft}
+              onSend={() => void sendMessage()}
+              onOpenSettings={() => setIsSettingsOpen(true)}
+              onCancel={cancelTurn}
+              onRetry={retryMessage}
+              rollbackBlocked={blockedRollback}
+              onRollBack={rollBack}
+              toolTurn={toolTurn}
+            />
+          )}
+        </ComposerModelProvider>
       </main>
 
       <NewChatUndoNotice
