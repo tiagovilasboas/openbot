@@ -33,7 +33,8 @@ const clip = (text, n = 140) =>
 function describe(summary) {
   const calls = summary.toolCalls.map((c) => c.name).join(",") || "none";
   const results = summary.toolResults.map((r) => (r.ok ? "ok" : "fail"));
-  return `end=${summary.end}, tool_call=${calls}, tool_result=${results.join(",") || "none"}, tools_unavailable=${summary.toolsUnavailable}`;
+  const end = summary.errorCode ? `error:${summary.errorCode}` : summary.end;
+  return `end=${end}, tool_call=${calls}, tool_result=${results.join(",") || "none"}, tools_unavailable=${summary.toolsUnavailable}`;
 }
 
 /** One step: runs, judges, never throws; a thrown error becomes a tag. */
