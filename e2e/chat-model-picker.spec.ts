@@ -99,3 +99,73 @@ test("a model picked mid-reply waits for the next message", async ({
     "vendor/next:free",
   );
 });
+
+test("the composer chip picks a model for the next turn on a phone", async ({
+  page,
+  model,
+}) => {
+  await page.route("**/api/model/free", (route) =>
+    route.fulfill({
+      json: {
+        ok: true,
+        source: "public",
+        models: [{ id: "vendor/picked:free", name: "Picked Model (free)" }],
+      },
+    }),
+  );
+  await page.addInitScript(() =>
+    localStorage.setItem(
+      "openbot_model_config",
+      JSON.stringify({
+        provider: "router",
+        baseUrl: "https://openrouter.ai/api/v1",
+        model: "openrouter/free",
+      }),
+    ),
+  );
+  await page.setViewportSize({ width: 375, height: 760 });
+  await page.goto("/");
+  const app = appPage(page);
+  const picker = page.getByRole("dialog", { name: "Modelo deste bot" });
+  await app.send("hello");
+  await expect(page.getByText("Stub reply").first()).toBeVisible();
+
+  const chip = page.getByRole("button", { name: /^Modelo do bot: .* Trocar$/ });
+  await expect(chip).toBeVisible();
+  const box = await app.composer.boundingBox();
+  const chipBox = await chip.boundingBox();
+  expect(chipBox && box && chipBox.x + chipBox.width <= 375).toBe(true);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBe(true);
+
+  await chip.focus();
+  await page.keyboard.press("Enter");
+  await picker.getByRole("radio", { name: /Picked Model/ }).click();
+  await expect(picker).toBeHidden();
+  await expect(
+    page.getByRole("button", { name: /Modelo do bot: .*vendor\/picked:free/ }),
+  ).toContainText("picked:free");
+  await page.screenshot({ path: "test-results/composer-model-chip-375.png" });
+
+  await app.send("again");
+  await expect.poll(() => model.chatRequests().length).toBe(2);
+  expect((model.chatRequests()[1] as ChatBody).modelId).toBe(
+    "vendor/picked:free",
+  );
+});
+
+test.describe("without a model", () => {
+  test.use({ configuredModel: false });
+
+  test("the composer chip says Conectar and stays locked with the composer", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await expect(
+      page.getByRole("button", { name: "Conectar um modelo" }),
+    ).toBeDisabled();
+  });
+});

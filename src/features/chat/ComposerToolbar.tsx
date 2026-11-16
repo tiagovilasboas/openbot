@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { ComposerModelChip } from "@/features/bots/ComposerModelChip.tsx";
 import { chatCopy } from "./chat-copy.ts";
 import {
   ArrowUpIcon,
@@ -89,15 +90,18 @@ export function ComposerToolbar({
         {content.composerHint}
       </p>
 
-      <button
-        type="submit"
-        disabled={!canSend}
-        aria-label={sendLabel}
-        title={sendLabel}
-        className="ml-auto flex size-11 shrink-0 items-center justify-center rounded-full bg-foreground text-background transition-[opacity,transform] duration-(--duration-micro) ease-out-expo hover:opacity-90 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40"
-      >
-        {busy ? <QueueIcon /> : <ArrowUpIcon />}
-      </button>
+      <div className="ml-auto flex min-w-0 items-center gap-1">
+        <ComposerModelChip />
+        <button
+          type="submit"
+          disabled={!canSend}
+          aria-label={sendLabel}
+          title={sendLabel}
+          className="flex size-11 shrink-0 items-center justify-center rounded-full bg-foreground text-background transition-[opacity,transform] duration-(--duration-micro) ease-out-expo hover:opacity-90 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40"
+        >
+          {busy ? <QueueIcon /> : <ArrowUpIcon />}
+        </button>
+      </div>
     </div>
   );
 }
