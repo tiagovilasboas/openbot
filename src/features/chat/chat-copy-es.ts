@@ -51,6 +51,7 @@ export const chatCopyEs = {
   cancelLabel: "Cancelar respuesta",
   retryHint: "No hay respuesta a este mensaje.",
   retryAction: "Intentar de nuevo",
+  openSettingsAction: "Abrir configuración",
   settings: "Configuración",
   settingsTitle: "Configuración de OpenBot",
   settingsSubtitle:

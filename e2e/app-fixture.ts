@@ -15,6 +15,8 @@ export interface StubbedReply {
   text?: string;
   /** Anything but 200 returns `{ error }` like the real route does. */
   status?: number;
+  /** The upstream detail of a failure, like "401: No auth credentials". */
+  detail?: string;
   delayMs?: number;
   /** Token counts the stubbed provider reports; absent means none. */
   usage?: { inputTokens?: number; outputTokens?: number };
@@ -49,7 +51,11 @@ export async function stubModel(context: BrowserContext): Promise<ModelStub> {
     if (status !== 200) {
       await route.fulfill({
         status,
-        json: { error: "provider_error", provider: "stub", detail: "stub" },
+        json: {
+          error: "provider_error",
+          provider: "stub",
+          detail: reply.detail ?? "stub",
+        },
       });
       return;
     }

@@ -15,6 +15,7 @@ import type { ToolStep } from "../tools/client/tool-steps.ts";
 import { createToolTurnLog } from "../tools/client/tool-turn-log.ts";
 import { toolsCopy } from "../tools/client/tools-copy.ts";
 import { describeModelFailure } from "./describe-model-failure.ts";
+import { replyFailureOf, type ReplyFailure } from "./reply-failure.ts";
 import { incompleteKindOf, type IncompleteKind } from "./incomplete-reply.ts";
 import type { FailoverDetail, HistoryMessage } from "./request-model-reply.ts";
 import {
@@ -46,6 +47,7 @@ export type ToolTurnReply = {
   text: string;
   failover?: FailoverDetail;
   incomplete?: IncompleteKind;
+  failure?: ReplyFailure;
   modelCall?: ModelCallResult;
   toolSteps?: ToolStep[];
   toolsUnavailable?: true;
@@ -91,6 +93,11 @@ export function expiredToolReply(
     ...stepsField(expirePending(turn.steps)),
   };
 }
+
+const failureOf = (failure: ModelFailure) => {
+  const kind = replyFailureOf(failure);
+  return kind ? { failure: kind } : {};
+};
 
 const failedCall = (failure: ModelFailure) =>
   failure.kind === "cancelled" ? {} : { modelCall: "failed" as const };
@@ -185,7 +192,10 @@ export async function streamToolTurn(input: {
     case "unavailable":
       return {
         produced: false,
-        reply: { text: getUnconfiguredModelMessage(language) },
+        reply: {
+          text: getUnconfiguredModelMessage(language),
+          failure: "unconfigured",
+        },
       };
     case "error":
       return {
@@ -193,7 +203,10 @@ export async function streamToolTurn(input: {
         reply: {
           ...(before
             ? { text: before, incomplete: incompleteKindOf(outcome.failure) }
-            : { text: describeModelFailure(outcome.failure, language) }),
+            : {
+                text: describeModelFailure(outcome.failure, language),
+                ...failureOf(outcome.failure),
+              }),
           ...failedCall(outcome.failure),
           ...stepsField(steps),
           ...notice,

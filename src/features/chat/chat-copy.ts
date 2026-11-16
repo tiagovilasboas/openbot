@@ -53,6 +53,7 @@ export const chatCopy = {
     cancelLabel: "Cancelar resposta",
     retryHint: "Sem resposta para esta mensagem.",
     retryAction: "Tentar de novo",
+    openSettingsAction: "Abrir configurações",
     settings: "Configurações",
     settingsTitle: "Configurações do OpenBot",
     settingsSubtitle:
@@ -215,6 +216,7 @@ export const chatCopy = {
     cancelLabel: "Cancel reply",
     retryHint: "No reply to this message.",
     retryAction: "Try again",
+    openSettingsAction: "Open settings",
     settings: "Settings",
     settingsTitle: "OpenBot Settings",
     settingsSubtitle: "Configure your AI model and external tool connections.",

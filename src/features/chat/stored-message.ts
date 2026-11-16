@@ -11,6 +11,7 @@ import type { MessageData } from "./ChatMessageItem.tsx";
 import { readCompacted } from "../compaction/read-compacted.ts";
 import { sanitizeToolSteps } from "../tools/client/tool-steps.ts";
 import { readIncompleteKind } from "./incomplete-reply.ts";
+import { readReplyFailure } from "./reply-failure.ts";
 
 /** Messages kept per bot; the newest win. */
 export const STORED_MESSAGES_MAX = 500;
@@ -165,6 +166,8 @@ export function sanitizeStoredMessage(
   if (attachments) message.attachments = attachments;
   const incomplete = readIncompleteKind(raw.incomplete);
   if (incomplete) message.incomplete = incomplete;
+  const failure = readReplyFailure(raw.failure);
+  if (failure && raw.role === "assistant") message.failure = failure;
   const failover = readFailover(raw.failover);
   if (failover) message.failover = failover;
   const toolSteps = sanitizeToolSteps(raw.toolSteps);

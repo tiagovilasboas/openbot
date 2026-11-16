@@ -9,6 +9,7 @@ import type { BotProfile } from "../bots/bot-types.ts";
 import type { MessageData } from "../chat/ChatMessageItem.tsx";
 import { readCompacted } from "../compaction/read-compacted.ts";
 import { readIncompleteKind } from "../chat/incomplete-reply.ts";
+import { readReplyFailure } from "../chat/reply-failure.ts";
 import { sanitizeCrewStep } from "../crew/crew-step-record.ts";
 import { sanitizeToolSteps } from "../tools/client/tool-steps.ts";
 import {
@@ -105,6 +106,8 @@ function sanitizeMessage(raw: unknown, nested = false): MessageData | null {
   if (crewStep && message.delegatedBot) message.crewStep = crewStep;
   const incomplete = readIncompleteKind(raw.incomplete);
   if (incomplete) message.incomplete = incomplete;
+  const failure = readReplyFailure(raw.failure);
+  if (failure && message.role === "assistant") message.failure = failure;
   const attachments = sanitizeAttachments(raw.attachments);
   if (attachments.length > 0) message.attachments = attachments;
   const toolSteps = sanitizeToolSteps(raw.toolSteps);
