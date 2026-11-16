@@ -120,6 +120,7 @@ export function sanitizeBotProfile(
         : undefined,
     ...optionalModelId(obj.modelId),
     ...(obj.toolsEnabled === true ? { toolsEnabled: true } : {}),
+    ...(obj.hidden === true ? { hidden: true } : {}),
     avatarShape: shape,
     avatarColor: color,
     skills,

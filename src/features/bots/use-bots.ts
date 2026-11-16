@@ -4,6 +4,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   useSyncExternalStore,
 } from "react";
@@ -34,6 +35,13 @@ import {
   subscribeBotsSyncErrors,
 } from "./sync/browser-bots-sync.ts";
 import type { BotsSyncErrorCode } from "./sync/bots-sync-failure.ts";
+import {
+  scheduleDeletion,
+  undoTimeLeft,
+  withoutPendingDeletion,
+  type PendingDeletion,
+} from "./bot-deletion.ts";
+import { canHideBot, setBotHidden } from "./bot-visibility.ts";
 import { reorderBots } from "./reorder-bots.ts";
 import {
   loadStoredMainBotId,
@@ -68,11 +76,29 @@ export function useBots() {
 
   const dismissSyncError = useCallback(() => setSyncError(null), []);
 
-  const bots = useSyncExternalStore(
+  // A deletion waits out its undo window in memory; the bot stays stored
+  // until then, so a reload mid-window reverts it and loses nothing.
+  const [pendingDeletion, setPendingState] = useState<PendingDeletion | null>(
+    null,
+  );
+  const pendingRef = useRef<PendingDeletion | null>(null);
+  const setPendingDeletion = useCallback((next: PendingDeletion | null) => {
+    pendingRef.current = next;
+    setPendingState(next);
+  }, []);
+
+  const storedBots = useSyncExternalStore(
     subscribeBots,
     loadBotsFromStorage,
     getServerBots,
   );
+  const bots = useMemo(
+    () => withoutPendingDeletion(storedBots, pendingDeletion),
+    [storedBots, pendingDeletion],
+  );
+  const pendingDeletedBot = pendingDeletion
+    ? (storedBots.find((b) => b.id === pendingDeletion.botId) ?? null)
+    : null;
 
   const rawActiveBotId = useSyncExternalStore(
     subscribeActiveBotId,
@@ -146,7 +172,7 @@ export function useBots() {
     }
   }, []);
 
-  const removeBot = useCallback((id: string) => {
+  const commitDeletion = useCallback((id: string) => {
     const currentBots = loadBotsFromStorage();
     const mainId = resolveMainBotId(loadStoredMainBotId(), currentBots);
     const result = deleteBotFromList(
@@ -165,6 +191,60 @@ export function useBots() {
     pushBots();
   }, []);
 
+  /** Hides the bot now and deletes it for good once the undo window ends. */
+  const removeBot = useCallback(
+    (id: string) => {
+      const current = withoutPendingDeletion(
+        loadBotsFromStorage(),
+        pendingRef.current,
+      );
+      const mainId = resolveMainBotId(loadStoredMainBotId(), current);
+      const refused =
+        deleteBotFromList(current, id, mainId).bots.length === current.length;
+      if (refused) return;
+      const { pending, commitNow } = scheduleDeletion(
+        pendingRef.current,
+        id,
+        Date.now(),
+      );
+      if (commitNow) commitDeletion(commitNow);
+      setPendingDeletion(pending);
+    },
+    [commitDeletion, setPendingDeletion],
+  );
+
+  const undoRemoveBot = useCallback(
+    () => setPendingDeletion(null),
+    [setPendingDeletion],
+  );
+
+  useEffect(() => {
+    if (!pendingDeletion) return;
+    const timer = setTimeout(
+      () => {
+        setPendingDeletion(null);
+        commitDeletion(pendingDeletion.botId);
+      },
+      undoTimeLeft(pendingDeletion, Date.now()),
+    );
+    return () => clearTimeout(timer);
+  }, [pendingDeletion, commitDeletion, setPendingDeletion]);
+
+  const hideBot = useCallback((id: string) => {
+    const currentBots = loadBotsFromStorage();
+    const mainId = resolveMainBotId(loadStoredMainBotId(), currentBots);
+    if (!canHideBot(currentBots, id, mainId)) return;
+    saveBotsToStorage(setBotHidden(currentBots, id, true));
+    // A hidden bot is not where the user is working: go to the main bot.
+    if (loadActiveBotId() === id && mainId) saveActiveBotId(mainId);
+    pushBots();
+  }, []);
+
+  const restoreBot = useCallback((id: string) => {
+    saveBotsToStorage(setBotHidden(loadBotsFromStorage(), id, false));
+    pushBots();
+  }, []);
+
   const activeBot =
     bots.find((b) => b.id === activeBotId) || bots[0] || DEFAULT_BOT;
 
@@ -176,6 +256,10 @@ export function useBots() {
     saveBot,
     createAndActivateBot,
     removeBot,
+    undoRemoveBot,
+    pendingDeletedBot,
+    hideBot,
+    restoreBot,
     reorderBot,
     mainBotId,
     makeMainBot,

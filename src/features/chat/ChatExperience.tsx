@@ -12,6 +12,8 @@ import { useConversationsSync } from "@/features/conversations/sync/use-conversa
 import { useSettingsSync } from "@/features/settings/sync/use-settings-sync.ts";
 import { useUsageSync } from "@/features/usage/sync/use-usage-sync.ts";
 import { BotEditModal } from "@/features/bots/BotEditModal.tsx";
+import { BotDeletionNotice } from "@/features/bots/BotDeletionNotice.tsx";
+import { canHideBot, visibleBots } from "@/features/bots/bot-visibility.ts";
 import { useBots } from "@/features/bots/use-bots.ts";
 import { useGitHubToken } from "@/features/github/use-github-token.ts";
 import { useContextUsage } from "@/features/context-window/use-context-usage.ts";
@@ -49,6 +51,10 @@ export function ChatExperience() {
     saveBot,
     createAndActivateBot,
     removeBot,
+    undoRemoveBot,
+    pendingDeletedBot,
+    hideBot,
+    restoreBot,
     reorderBot,
     mainBotId,
     makeMainBot,
@@ -70,6 +76,7 @@ export function ChatExperience() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const openSettings = useCallback(() => setIsSettingsOpen(true), []);
   const botEditor = useBotEditor();
+  const mentionableBots = visibleBots(bots);
 
   const modelConfig = useModelConfig();
   const gitHubToken = useGitHubToken();
@@ -197,6 +204,7 @@ export function ChatExperience() {
         }}
         onCreateBot={botEditor.openNew}
         onEditBot={botEditor.openFor}
+        onRestoreBot={restoreBot}
         onOpenSettings={() => setIsSettingsOpen(true)}
         onNewChat={startNewChat}
         canStartNewChat={messages.length > 0}
@@ -231,7 +239,7 @@ export function ChatExperience() {
             draft={draft}
             busy={busy}
             skills={activeBotSkills}
-            bots={bots}
+            bots={mentionableBots}
             activeBot={activeBot}
             mainBotId={mainBotId}
             isConfigured={isConfigured}
@@ -253,7 +261,7 @@ export function ChatExperience() {
             queueCount={queueCount}
             isConfigured={isConfigured}
             activeBotSkills={activeBotSkills}
-            bots={bots}
+            bots={mentionableBots}
             attachments={attachments}
             messagesEndRef={messagesEndRef}
             onDraftChange={setDraft}
@@ -281,6 +289,12 @@ export function ChatExperience() {
         onChangePassword={auth.changePassword}
       />
 
+      <BotDeletionNotice
+        language={language}
+        botName={pendingDeletedBot?.name ?? null}
+        onUndo={undoRemoveBot}
+      />
+
       <BotEditModal
         isOpen={botEditor.isOpen}
         bot={botEditor.botToEdit}
@@ -291,6 +305,9 @@ export function ChatExperience() {
         onSave={(updated) =>
           botEditor.botToEdit ? saveBot(updated) : createAndActivateBot(updated)
         }
+        canHide={canHideBot(bots, botEditor.botToEdit?.id ?? "", mainBotId)}
+        onHide={hideBot}
+        onRestore={restoreBot}
         onDelete={removeBot}
         onMakeMain={makeMainBot}
       />

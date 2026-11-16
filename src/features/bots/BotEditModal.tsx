@@ -14,6 +14,7 @@ import { AutoTextarea } from "./AutoTextarea.tsx";
 import { BotEditPreview } from "./BotEditPreview.tsx";
 import { BotAvatarPickers } from "./BotAvatarPickers.tsx";
 import { BotDeleteControl } from "./BotDeleteControl.tsx";
+import { BotHideControl } from "./BotHideControl.tsx";
 import { BotModelField, isBotModelIdValid } from "./BotModelField.tsx";
 import { BotMainControl } from "./BotMainControl.tsx";
 import { BotTemplatePicker } from "./BotTemplatePicker.tsx";
@@ -34,6 +35,10 @@ interface BotEditModalProps {
   onSave: (bot: BotProfile) => void;
   onDelete?: (id: string) => void;
   onMakeMain?: (id: string) => void;
+  /** Hiding is offered only where it is allowed (not the main bot). */
+  canHide?: boolean;
+  onHide?: (id: string) => void;
+  onRestore?: (id: string) => void;
 }
 
 type BotEditFormProps = Omit<BotEditModalProps, "isOpen">;
@@ -47,6 +52,9 @@ function BotEditForm({
   onSave,
   onDelete,
   onMakeMain,
+  canHide = false,
+  onHide,
+  onRestore,
 }: BotEditFormProps) {
   const isEditing = Boolean(bot?.id && bot.id !== "new");
   const copy = getBotsCopy(language);
@@ -110,6 +118,7 @@ function BotEditForm({
       avatarColor,
       skills,
       ...(toolsEnabled ? { toolsEnabled: true } : {}),
+      ...(bot?.hidden ? { hidden: true } : {}),
       createdAt: bot?.createdAt || now,
       updatedAt: now,
     };
@@ -237,6 +246,21 @@ function BotEditForm({
           language={language}
           isMain={isMain}
           onMakeMain={() => onMakeMain(bot.id)}
+        />
+      )}
+
+      {isEditing && bot && onHide && onRestore && (bot.hidden || canHide) && (
+        <BotHideControl
+          language={language}
+          isHidden={bot.hidden === true}
+          onHide={() => {
+            onHide(bot.id);
+            onClose();
+          }}
+          onRestore={() => {
+            onRestore(bot.id);
+            onClose();
+          }}
         />
       )}
 

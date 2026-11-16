@@ -47,6 +47,8 @@ export interface BotProfile {
    * changes data). Only its own single-bot turns: never a crew turn.
    */
   toolsEnabled?: boolean;
+  /** Tucked away in the sidebar's "Hidden" group and out of @ mentions. */
+  hidden?: boolean;
   avatarShape: AvatarShape;
   avatarColor: AvatarColor;
   /** Skills this bot owns: they enter its prompt and its / palette only. */

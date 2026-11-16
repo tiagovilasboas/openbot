@@ -9,6 +9,7 @@ import { ChatComposer } from "./ChatComposer.tsx";
 import { PlugIcon, TerminalIcon } from "./ComposerIcons.tsx";
 import type { ChatLanguage } from "./respond-to-message.ts";
 import { SuggestionChips } from "./SuggestionChips.tsx";
+import { WelcomeStarters } from "./WelcomeStarters.tsx";
 
 export interface ChatEmptyStateProps {
   language: ChatLanguage;
@@ -123,12 +124,21 @@ export function ChatEmptyState({
               onSend={onSend}
             />
           </div>
-          <SuggestionChips
-            language={language}
-            isHidden={Boolean(draft)}
-            className="order-1 pb-3 group-has-[[data-composer-palette]]/dock:pointer-events-none group-has-[[data-composer-palette]]/dock:opacity-0 md:order-2 md:pb-0 md:pt-5"
-            onSelectPrompt={onSelectPrompt}
-          />
+          {activeBot && activeBot.id !== mainBotId ? (
+            <WelcomeStarters
+              language={language}
+              bot={activeBot}
+              className="order-1 pb-3 group-has-[[data-composer-palette]]/dock:pointer-events-none group-has-[[data-composer-palette]]/dock:opacity-0 md:order-2 md:pb-0 md:pt-5"
+              onPick={onDraftChange}
+            />
+          ) : (
+            <SuggestionChips
+              language={language}
+              isHidden={Boolean(draft)}
+              className="order-1 pb-3 group-has-[[data-composer-palette]]/dock:pointer-events-none group-has-[[data-composer-palette]]/dock:opacity-0 md:order-2 md:pb-0 md:pt-5"
+              onSelectPrompt={onSelectPrompt}
+            />
+          )}
         </div>
       </div>
     </section>
