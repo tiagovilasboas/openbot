@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ConnectionsPanel } from "@/features/connections/ConnectionsPanel.tsx";
+import { ConnectionsPanel } from "@/features/connections/index.ts";
 import { SettingsSecuritySection } from "@/features/auth/SettingsSecuritySection.tsx";
 import { BackupSection } from "@/features/backup/BackupSection.tsx";
 import { chatCopy } from "@/features/chat/chat-copy.ts";

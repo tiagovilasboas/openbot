@@ -1,5 +1,5 @@
-import type { ChatLanguage } from "../chat/respond-to-message.ts";
-import type { ConnectionId } from "./connection-catalog.ts";
+import type { ChatLanguage } from "../../chat/respond-to-message.ts";
+import type { ConnectionId } from "../core/index.ts";
 
 /** Copy for the Connections tab. One entry per language. */
 export const connectionsCopy = {

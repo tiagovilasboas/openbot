@@ -1,19 +1,19 @@
 import {
   clearStoredGitHubToken,
   saveStoredGitHubToken,
-} from "../github/github-config.ts";
-import { testGitHubToken } from "../github/test-github-token.ts";
+} from "../../github/github-config.ts";
+import { testGitHubToken } from "../../github/test-github-token.ts";
 import {
   clearStoredModelConfig,
   loadStoredModelConfig,
   saveStoredModelConfig,
   type ClientModelConfig,
-} from "../model/model-config.ts";
-import { keyOriginFor } from "../key-vault/key-origin.ts";
-import { deleteSavedKey, putSavedKey } from "../key-vault/saved-keys-api.ts";
-import { refreshSavedKeys } from "../key-vault/saved-keys-store.ts";
-import { testModelConnection } from "../model/test-model-connection.ts";
-import type { ConnectionId } from "./connection-catalog.ts";
+} from "../../model/model-config.ts";
+import { keyOriginFor } from "../../key-vault/key-origin.ts";
+import { deleteSavedKey, putSavedKey } from "../../key-vault/saved-keys-api.ts";
+import { refreshSavedKeys } from "../../key-vault/saved-keys-store.ts";
+import { testModelConnection } from "../../model/test-model-connection.ts";
+import type { ConnectionId } from "../core/index.ts";
 
 export type KeyCheckOutcome =
   { ok: true; user?: string } | { ok: false; error: string; detail?: string };

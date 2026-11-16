@@ -15,7 +15,7 @@ import {
   connectKey,
   disconnectKey,
   type KeyCheckOutcome,
-} from "./manage-connection.ts";
+} from "../api-key/manage-connection.ts";
 
 interface ConnectionDetailProps {
   entry: ConnectionEntry;

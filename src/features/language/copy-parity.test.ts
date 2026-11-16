@@ -7,7 +7,7 @@ import { backupCopy } from "../backup/backup-copy.ts";
 import { getBotTemplateFileCopy } from "../bot-sharing/bot-template-file-copy.ts";
 import { getBotsCopy } from "../bots/bots-copy.ts";
 import { chatCopy } from "../chat/chat-copy.ts";
-import { connectionsCopy } from "../connections/connections-copy.ts";
+import { connectionsCopy } from "../connections/copy.ts";
 import { crewCopy } from "../crew/crew-copy.ts";
 import { crewRoomCopy } from "../crew/crew-room-copy.ts";
 import { getMemoryCopy } from "../memory/memory-copy.ts";

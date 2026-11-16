@@ -1,5 +1,4 @@
-/** The services Open Bot connects to with a key or token. */
-export type ConnectionId = "router" | "anthropic" | "github";
+import type { ConnectionId } from "../core/index.ts";
 
 export type ConnectionGroup = "models" | "tools";
 

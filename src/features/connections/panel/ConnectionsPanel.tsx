@@ -5,11 +5,11 @@ import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
 import { useGitHubToken } from "@/features/github/use-github-token.ts";
 import { useModelConfig } from "@/features/model/use-model-config.ts";
 import { useSavedKeys } from "@/features/key-vault/use-saved-keys.ts";
+import type { ConnectionId } from "../core/index.ts";
 import {
   CONNECTIONS,
   findConnection,
   type ConnectionGroup,
-  type ConnectionId,
 } from "./connection-catalog.ts";
 import { ConnectionDetail } from "./ConnectionDetail.tsx";
 import { ConnectionRow } from "./ConnectionRow.tsx";
