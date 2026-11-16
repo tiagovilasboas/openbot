@@ -12,6 +12,8 @@ interface ConnectWithProviderProps {
   id: ConnectionId;
   name: string;
   language: ChatLanguage;
+  /** Runs just before the browser leaves for the provider's page. */
+  onBegin?: () => void;
 }
 
 /** Whether this origin can take the provider's redirect back. After mount only. */
@@ -32,6 +34,7 @@ export function ConnectWithProvider({
   id,
   name,
   language,
+  onBegin,
 }: ConnectWithProviderProps) {
   const c = getConnectionsCopy(language);
   const isOAuth = useOAuthRoute(id);
@@ -48,6 +51,7 @@ export function ConnectWithProvider({
       return;
     }
     dispatchConnect(id, { type: "opened" });
+    onBegin?.();
     window.location.assign(started.authorizeUrl);
   }
 

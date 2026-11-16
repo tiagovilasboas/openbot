@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useConnectReturn } from "@/features/connections/index.ts";
+import { consumeFirstRunConnect } from "@/features/onboarding/first-run-return.ts";
 import { messageFitsRequest } from "@/features/attachments/request-size.ts";
 import { toPayloads } from "@/features/attachments/attachment-summary.ts";
 import { useComposerAttachments } from "@/features/attachments/use-composer-attachments.ts";
@@ -98,7 +99,12 @@ export function ChatExperience() {
   );
   useMigrateLocalKeys();
   // A provider sending the browser back to finish a Connect opens Settings.
-  useConnectReturn(openSettings);
+  // (One started from the first-run card returns to the chat instead.)
+  useConnectReturn(
+    useCallback(() => {
+      if (!consumeFirstRunConnect()) setIsSettingsOpen(true);
+    }, []),
+  );
 
   const contextUsage = useContextUsage(
     messages,

@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { ConnectProvider } from "@/features/connections/index.ts";
 import { useSavedKeys } from "@/features/key-vault/use-saved-keys.ts";
 import { saveStoredModelConfig } from "@/features/model/model-config.ts";
 import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
+import { markFirstRunConnect } from "./first-run-return.ts";
 import { firstRunCopy } from "./first-run-copy.ts";
 import { START_FREE_CONFIG, firstRunStep } from "./first-run-state.ts";
 
@@ -11,8 +13,8 @@ interface FirstRunCardProps {
   language: ChatLanguage;
   /** A model (the user's or the server's) is ready to answer. */
   isConfigured: boolean;
-  /** Opens Settings, where a provider is connected. */
-  onConnect: () => void;
+  /** Opens Settings, for providers other than OpenRouter. */
+  onOpenSettings: () => void;
   /** Puts the starter task in the composer. */
   onStarter: (prompt: string) => void;
 }
@@ -31,11 +33,12 @@ const secondaryButton =
 export function FirstRunCard({
   language,
   isConfigured,
-  onConnect,
+  onOpenSettings,
   onStarter,
 }: FirstRunCardProps) {
   const copy = firstRunCopy[language];
   const [startedFree, setStartedFree] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
   const { keys, loaded } = useSavedKeys();
   const step = firstRunStep({
     isConfigured,
@@ -45,6 +48,29 @@ export function FirstRunCard({
   });
 
   if (step === "hidden") return null;
+
+  if (isConnecting) {
+    return (
+      <section
+        aria-label={copy.connect}
+        className="mt-6 flex w-full max-w-sm animate-enter flex-col gap-3 rounded-2xl border border-border bg-surface p-4 text-left"
+      >
+        <ConnectProvider
+          id="router"
+          language={language}
+          onBack={() => setIsConnecting(false)}
+          onBegin={markFirstRunConnect}
+        />
+        <button
+          type="button"
+          onClick={onOpenSettings}
+          className="min-h-11 self-start text-[13px] font-medium text-muted underline underline-offset-2"
+        >
+          {copy.otherProviders}
+        </button>
+      </section>
+    );
+  }
 
   const startFree = () => {
     saveStoredModelConfig(START_FREE_CONFIG);
@@ -76,7 +102,11 @@ export function FirstRunCard({
           <p className="-mt-1.5 text-center text-[12px] text-subtle">
             {copy.startFreeHint}
           </p>
-          <button type="button" onClick={onConnect} className={secondaryButton}>
+          <button
+            type="button"
+            onClick={() => setIsConnecting(true)}
+            className={secondaryButton}
+          >
             {copy.connect}
           </button>
           <p className="-mt-1.5 text-center text-[12px] text-subtle">
@@ -109,7 +139,11 @@ export function FirstRunCard({
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={onConnect} className={primaryButton}>
+            <button
+              type="button"
+              onClick={() => setIsConnecting(true)}
+              className={primaryButton}
+            >
               {copy.connectKey}
             </button>
             <a

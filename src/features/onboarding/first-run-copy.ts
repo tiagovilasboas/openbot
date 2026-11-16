@@ -13,6 +13,7 @@ const pt = {
     "Os modelos gratuitos do OpenRouter também pedem uma chave. Crie uma em openrouter.ai/keys (é grátis) e conecte aqui.",
   getKey: "Obter chave",
   connectKey: "Conectar chave",
+  otherProviders: "Outros provedores",
   starterPrompt: "Oi! O que você consegue fazer por mim?",
 };
 
@@ -31,6 +32,7 @@ const en: FirstRunCopy = {
     "OpenRouter's free models also need a key. Create one at openrouter.ai/keys (it is free) and connect it here.",
   getKey: "Get a key",
   connectKey: "Connect key",
+  otherProviders: "Other providers",
   starterPrompt: "Hi! What can you do for me?",
 };
 
@@ -47,6 +49,7 @@ const es: FirstRunCopy = {
     "Los modelos gratuitos de OpenRouter también piden una clave. Crea una en openrouter.ai/keys (es gratis) y conéctala aquí.",
   getKey: "Obtener clave",
   connectKey: "Conectar clave",
+  otherProviders: "Otros proveedores",
   starterPrompt: "¡Hola! ¿Qué puedes hacer por mí?",
 };
 
