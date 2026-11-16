@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { useConnectReturn } from "@/features/connections/index.ts";
 import { useConnectGate } from "@/features/onboarding/use-connect-gate.ts";
 import { consumeFirstRunConnect } from "@/features/onboarding/first-run-return.ts";
@@ -22,15 +22,13 @@ import { BotModelNotice } from "@/features/bots/BotModelNotice.tsx";
 import { BotModelPicker } from "@/features/bots/BotModelPicker.tsx";
 import { getBotModelPickerCopy } from "@/features/bots/bot-model-picker-copy.ts";
 import { fillCopy } from "@/features/model/settings-copy.ts";
-import { ComposerModelProvider } from "@/features/bots/composer-model-context.ts";
 import { composerModelChip } from "@/features/bots/composer-model-chip.ts";
 import { useBotModelPicker } from "@/features/bots/use-bot-model-picker.ts";
 import { ChatDialogs } from "./ChatDialogs.tsx";
-import { ChatEmptyState } from "./ChatEmptyState.tsx";
+import { ChatConversationPane } from "./ChatConversationPane.tsx";
 import { ChatHeader } from "./ChatHeader.tsx";
 import { ChatSidebar } from "./ChatSidebar.tsx";
 import { ChatSyncNotices } from "./ChatSyncNotices.tsx";
-import { ConversationView } from "./ConversationView.tsx";
 import { NewChatUndoNotice } from "./NewChatUndoNotice.tsx";
 import { rollbackBlock } from "./roll-back-thread.ts";
 import { useActiveModel } from "./use-active-model.ts";
@@ -68,9 +66,6 @@ export function ChatExperience() {
   const settingsSync = useSettingsSync();
   const usageSync = useUsageSync();
 
-  // The active bot's own skills feed the composer's command palette.
-  const activeBotSkills = activeBot.skills;
-
   // Sidebar & Modals state
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false);
@@ -81,7 +76,6 @@ export function ChatExperience() {
 
   const modelConfig = useModelConfig();
   const gitHubToken = useGitHubToken();
-  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useDocumentTheme(language, activeBot);
   const {
@@ -164,15 +158,6 @@ export function ChatExperience() {
     chip: composerModelChip(isConfigured, headerModelLabel, language),
     onPress: isConfigured ? modelPicker.open : () => setIsSettingsOpen(true),
   };
-
-  useEffect(() => {
-    if (messages.length > 0) {
-      // Smooth scrolling would queue up behind every frame of a streaming reply.
-      messagesEndRef.current?.scrollIntoView({
-        behavior: liveMessages.length > 0 ? "auto" : "smooth",
-      });
-    }
-  }, [messages, liveMessages, busy]);
 
   const blockedRollback = rollbackBlock(
     workingBotIds.includes(activeBot.id),
@@ -269,50 +254,32 @@ export function ChatExperience() {
           usage={usageSync}
         />
 
-        <ComposerModelProvider value={composerModel}>
-          {messages.length === 0 || gate.locked ? (
-            <ChatEmptyState
-              language={language}
-              draft={draft}
-              busy={busy}
-              skills={activeBotSkills}
-              bots={mentionableBots}
-              activeBot={activeBot}
-              mainBotId={mainBotId}
-              isConfigured={isConfigured}
-              composerLockedReason={gate.composerReason}
-              attachments={attachments}
-              onOpenSettings={() => setIsSettingsOpen(true)}
-              onDraftChange={setDraft}
-              onSend={() => void sendMessage()}
-              onSelectPrompt={(prompt) => void sendMessage(prompt)}
-            />
-          ) : (
-            <ConversationView
-              language={language}
-              messages={messages}
-              liveMessages={liveMessages}
-              activeBot={activeBot}
-              busy={busy}
-              thinkingBot={workingBot ?? activeBot}
-              draft={draft}
-              queueCount={queueCount}
-              isConfigured={isConfigured}
-              activeBotSkills={activeBotSkills}
-              bots={mentionableBots}
-              attachments={attachments}
-              messagesEndRef={messagesEndRef}
-              onDraftChange={setDraft}
-              onSend={() => void sendMessage()}
-              onOpenSettings={() => setIsSettingsOpen(true)}
-              onCancel={cancelTurn}
-              onRetry={retryMessage}
-              rollbackBlocked={blockedRollback}
-              onRollBack={rollBack}
-              toolTurn={toolTurn}
-            />
-          )}
-        </ComposerModelProvider>
+        <ChatConversationPane
+          language={language}
+          messages={messages}
+          liveMessages={liveMessages}
+          activeBot={activeBot}
+          workingBot={workingBot}
+          mainBotId={mainBotId}
+          busy={busy}
+          draft={draft}
+          queueCount={queueCount}
+          isConfigured={isConfigured}
+          activeBotSkills={activeBot.skills}
+          mentionableBots={mentionableBots}
+          attachments={attachments}
+          composerModel={composerModel}
+          locked={gate.locked}
+          composerLockedReason={gate.composerReason}
+          rollbackBlocked={blockedRollback}
+          toolTurn={toolTurn}
+          onDraftChange={setDraft}
+          onSend={sendMessage}
+          onOpenSettings={() => setIsSettingsOpen(true)}
+          onCancel={cancelTurn}
+          onRetry={retryMessage}
+          onRollBack={rollBack}
+        />
       </main>
 
       <NewChatUndoNotice
