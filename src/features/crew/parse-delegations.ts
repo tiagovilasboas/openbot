@@ -1,4 +1,5 @@
 import type { BotProfile } from "../bots/bot-types.ts";
+import { visibleBots } from "../bots/bot-visibility.ts";
 
 export interface Delegation {
   bot: BotProfile;
@@ -22,14 +23,14 @@ function normalizeName(value: string): string {
 
 function findBot(target: string, bots: BotProfile[]): BotProfile | undefined {
   const wanted = normalizeName(target);
-  return bots.find(
+  return visibleBots(bots).find(
     (bot) =>
       normalizeName(bot.name) === wanted || normalizeName(bot.id) === wanted,
   );
 }
 
 /**
- * Reads the Chief's reply for `@delegate <Bot>: <task>` lines. Unknown bots,
+ * Reads the Chief's reply for `@delegate <Bot>: <task>` lines. Unknown or hidden bots,
  * the Chief itself, empty tasks and repeated bots are dropped; every
  * delegation-shaped line leaves the visible text either way.
  */

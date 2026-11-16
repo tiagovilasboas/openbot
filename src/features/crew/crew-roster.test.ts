@@ -88,3 +88,12 @@ test("the roster teaches the @delegate line format", () => {
 test("a Chief alone gets no roster", () => {
   assert.equal(buildCrewRoster(chief, [chief], "en"), "");
 });
+
+test("a hidden bot is left out of the roster", () => {
+  const bots = CREW_PRESETS.map((bot) =>
+    bot.id === engineering.id ? { ...bot, hidden: true } : bot,
+  );
+  const roster = buildCrewRoster(chief, bots, "en");
+  assert.doesNotMatch(roster, /Engineering/);
+  assert.match(roster, /@/);
+});
