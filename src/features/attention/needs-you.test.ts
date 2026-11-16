@@ -73,6 +73,8 @@ test("only an interrupted last reply counts as failed", () => {
   assert.equal(lastReplyFailed([message({ incomplete: "error" })]), true);
   assert.equal(lastReplyFailed([message({ incomplete: "cancelled" })]), false);
   assert.equal(lastReplyFailed([message({ incomplete: "too_long" })]), false);
+  assert.equal(lastReplyFailed([message({ failure: "auth" })]), true);
+  assert.equal(lastReplyFailed([message({ failure: "unconfigured" })]), true);
   assert.equal(
     lastReplyFailed([
       message({ incomplete: "error" }),

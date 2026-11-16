@@ -11,10 +11,13 @@ export interface NeedsYouItem {
   count?: number;
 }
 
-/** The last reply broke off with an error, so a retry could help. */
+/** The last reply is an error message or broke off, so the user must act. */
 export function lastReplyFailed(messages: readonly MessageData[]): boolean {
   const last = messages[messages.length - 1];
-  return last?.role === "assistant" && last.incomplete === "error";
+  return (
+    last?.role === "assistant" &&
+    (last.incomplete === "error" || last.failure !== undefined)
+  );
 }
 
 export interface NeedsYouInput {

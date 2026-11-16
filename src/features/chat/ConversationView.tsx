@@ -106,6 +106,7 @@ export function ConversationView({
                   activeBot={activeBot}
                   crewRoom={crewRooms.get(message.id)}
                   onOpenSettings={onOpenSettings}
+                  offerFailureAction={!busy && index === messages.length - 1}
                   onRetry={
                     busy || !answered ? undefined : () => onRetry(answered.id)
                   }

@@ -6,6 +6,7 @@ import type {
 } from "@/features/github/github-types.ts";
 import type { ModelCallResult } from "@/features/model/model-status.ts";
 import type { IncompleteKind } from "./incomplete-reply.ts";
+import type { ReplyFailure } from "./reply-failure.ts";
 import type { ToolPauseDraft, ToolTurnReply } from "./tool-turn-reply.ts";
 
 export interface ChatReplyOutcome {
@@ -20,6 +21,8 @@ export interface ChatReplyOutcome {
   };
   /** The text is what arrived before the reply broke off or was cancelled. */
   incomplete?: IncompleteKind;
+  /** The text is an error message; this is why, for its action. */
+  failure?: ReplyFailure;
   /** Set when the turn reached the model, so the header dot can follow it. */
   modelCall?: ModelCallResult;
   /** Set when the Chief delegated: its kickoff and each specialist's reply. */

@@ -24,9 +24,11 @@ import {
   incompleteNote,
   type IncompleteKind,
 } from "./incomplete-reply.ts";
+import { FailureActions } from "./FailureActions.tsx";
 import { FailoverNotice } from "./FailoverNotice.tsx";
 import { FormattedMessage } from "./FormattedMessage.tsx";
 import type { ChatLanguage } from "./respond-to-message.ts";
+import type { ReplyFailure } from "./reply-failure.ts";
 import type { RollbackBlock } from "./roll-back-thread.ts";
 import { RollbackControl } from "./RollbackControl.tsx";
 
@@ -47,6 +49,8 @@ export interface MessageData {
   attachments?: AttachmentSummary[];
   /** The text is partial: the reply broke off or the user cancelled it. */
   incomplete?: IncompleteKind;
+  /** The reply is an error message, not an answer: why it failed. */
+  failure?: ReplyFailure;
   failover?: {
     fromModel: string;
     toModel: string;
@@ -75,6 +79,8 @@ interface ChatMessageItemProps {
   onOpenSettings?: () => void;
   /** Resends the user message this partial reply answered. */
   onRetry?: () => void;
+  /** Offer the failure's action; only the newest reply gets it. */
+  offerFailureAction?: boolean;
   rollback?: MessageRollback;
   /** On a delegated turn's final reply: the room that shows how it went. */
   crewRoom?: CrewRoomView;
@@ -85,7 +91,9 @@ interface ChatMessageItemProps {
 export function ChatMessageItem({
   message,
   activeBot,
+  onOpenSettings,
   onRetry,
+  offerFailureAction,
   rollback,
   crewRoom,
   liveSteps,
@@ -167,6 +175,15 @@ export function ChatMessageItem({
             </button>
           )}
         </div>
+      )}
+
+      {message.failure && offerFailureAction && (
+        <FailureActions
+          failure={message.failure}
+          language={message.language}
+          onOpenSettings={onOpenSettings}
+          onRetry={onRetry}
+        />
       )}
 
       {message.github && (

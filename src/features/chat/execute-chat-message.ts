@@ -27,6 +27,7 @@ import { crewReplyFields } from "./crew-reply-fields.ts";
 import { createLiveBoard, type LiveEntry } from "./live-board.ts";
 import { fitHistoryToBytes, limitHistory } from "./request-history.ts";
 import { incompleteKindOf } from "./incomplete-reply.ts";
+import { replyFailureOf } from "./reply-failure.ts";
 import { requestModelReply } from "./request-model-reply.ts";
 import { requestModelStream } from "./request-model-stream.ts";
 import {
@@ -34,6 +35,11 @@ import {
   type ChatLanguage,
 } from "./respond-to-message.ts";
 import { streamToolTurn } from "./tool-turn-reply.ts";
+
+const failureField = (failure: ModelFailure) => {
+  const kind = replyFailureOf(failure);
+  return kind ? { failure: kind } : {};
+};
 
 export async function executeChatMessage({
   text,
@@ -200,6 +206,7 @@ export async function executeChatMessage({
     delegatedBot,
     // A cancel is the user's choice, not the model failing: no failed status.
     ...(failure.kind === "cancelled" ? {} : { modelCall: "failed" as const }),
+    ...failureField(failure),
   });
 
   const outcome = await askAndCount(
@@ -217,8 +224,10 @@ export async function executeChatMessage({
       ? parseDelegations(outcome.text, bots, executingBot.id).visibleText
       : outcome.text;
     if (!kept) return failedReply(outcome.failure);
+    // Text arrived: it is an answer cut short, not an error message.
+    const { failure: _failure, ...cutShort } = failedReply(outcome.failure);
     return {
-      ...failedReply(outcome.failure),
+      ...cutShort,
       text: kept,
       incomplete: incompleteKindOf(outcome.failure),
     };
@@ -286,7 +295,11 @@ export async function executeChatMessage({
     };
   }
   if (outcome.kind === "unavailable") {
-    return { text: getUnconfiguredModelMessage(language), delegatedBot };
+    return {
+      text: getUnconfiguredModelMessage(language),
+      delegatedBot,
+      failure: "unconfigured",
+    };
   }
   // The plain routes never pause, so only an error is left.
   return failedReply(
