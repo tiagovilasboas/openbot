@@ -195,6 +195,7 @@ export function ChatExperience() {
         mainBotId={mainBotId}
         workingBotIds={workingBotIds}
         attentionCounts={attentionCounts}
+        approvalBotId={toolTurn.paused?.botId}
         onReorderBot={reorderBot}
         isMobileOpen={isMobileSidebarOpen}
         isDesktopCollapsed={isDesktopCollapsed}
