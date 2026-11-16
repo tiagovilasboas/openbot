@@ -13,9 +13,10 @@ import { describeKeyFailure } from "./describe-key-failure.ts";
 import {
   checkConnectionKey,
   connectKey,
-  disconnectKey,
   type KeyCheckOutcome,
 } from "../api-key/manage-connection.ts";
+import { ConnectWithProvider } from "./ConnectWithProvider.tsx";
+import { disconnectService } from "./disconnect-connection.ts";
 
 interface ConnectionDetailProps {
   entry: ConnectionEntry;
@@ -80,7 +81,7 @@ export function ConnectionDetail({
   }
 
   async function handleDisconnect() {
-    await disconnectKey(entry.id);
+    await disconnectService(entry.id);
     onBack();
   }
 
@@ -103,6 +104,12 @@ export function ConnectionDetail({
         </h3>
         <p className="text-[13px] text-subtle">{c.descriptions[entry.id]}</p>
       </header>
+
+      <ConnectWithProvider
+        id={entry.id}
+        name={entry.name}
+        language={language}
+      />
 
       <div className="flex flex-col gap-1">
         <FormField

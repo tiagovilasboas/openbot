@@ -123,6 +123,40 @@ export default defineConfig([
     },
   },
   {
+    // The HTTP client speaks to /api/connections: no UI, no server wiring, no
+    // flow internals, and never a credential.
+    files: ["src/features/connections/client/**/*.{ts,tsx}"],
+    ignores: ["**/*.test.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: [
+                "react",
+                "react-dom",
+                "react/**",
+                "next",
+                "next/**",
+                "@heroui/**",
+                "node:*",
+                "../panel/**",
+                "../server/**",
+                "../oauth/**",
+                "../cli-login/**",
+                "../credentials/**",
+                "../api-key/**",
+              ],
+              message:
+                "connections/client imports only connections/core, server-guard and its own files.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     // The OAuth flow knows core and its own files; network and storage come
     // in through ports (HttpClient, PendingAuthStore, CredentialStore).
     files: ["src/features/connections/oauth/**/*.{ts,tsx}"],
