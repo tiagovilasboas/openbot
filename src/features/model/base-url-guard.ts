@@ -7,7 +7,15 @@ export type HostResolver = (hostname: string) => Promise<string[]>;
 export type BlockReason =
   "invalid_url" | "credentials" | "blocked_host" | "blocked_address";
 
-export type BaseUrlVerdict = { ok: true } | { ok: false; reason: BlockReason };
+/**
+ * The addresses a hostname was checked against. The connection must use
+ * exactly these (see pinned-dispatcher.ts), never a fresh DNS answer.
+ */
+export type PinnedHost = { hostname: string; addresses: string[] };
+
+/** `pin` is null for an IP literal host: there is nothing to resolve. */
+export type BaseUrlVerdict =
+  { ok: true; pin: PinnedHost | null } | { ok: false; reason: BlockReason };
 
 const METADATA_HOSTNAMES = new Set([
   "metadata",
@@ -18,10 +26,18 @@ const METADATA_HOSTNAMES = new Set([
   "metadata.azure.com",
 ]);
 
+// RFC 6761: localhost names always mean loopback, without asking DNS.
+const LOOPBACK_ADDRESSES = ["127.0.0.1", "::1"];
+
 export const defaultHostResolver: HostResolver = async (hostname) => {
   const records = await lookup(hostname, { all: true });
   return records.map((record) => record.address);
 };
+
+/** Lower case without the trailing root dot, as the guard compares names. */
+export function normalizeHostname(hostname: string): string {
+  return hostname.toLowerCase().replace(/\.$/, "");
+}
 
 function isLoopbackName(hostname: string): boolean {
   return hostname === "localhost" || hostname.endsWith(".localhost");
@@ -36,14 +52,14 @@ function isAllowedAddress(address: string): boolean {
  * Decides whether the server may call a client-supplied model base URL.
  *
  * Policy: http(s) only, no embedded credentials, no cloud metadata names,
- * and no private, link-local, CGNAT, unspecified or multicast addresses,
- * either as a literal host or among the addresses the name resolves to.
- * Loopback stays allowed because local routers and Ollama are supported.
+ * and no private, link-local, CGNAT, documentation, unspecified, multicast
+ * or reserved addresses, either as a literal host or among the addresses
+ * the name resolves to. Loopback stays allowed because local routers and
+ * Ollama are supported.
  *
- * DNS rebinding: the name is resolved here and again by fetch, so an
- * attacker-controlled DNS server could answer differently the second time.
- * Node's fetch offers no portable way to pin the checked address without a
- * custom dispatcher, so that window is a documented residual risk.
+ * DNS rebinding: the name is resolved once, here, and the verdict carries
+ * the checked addresses as a pin. The caller connects to the pin, so a DNS
+ * server cannot answer differently between the check and the connection.
  */
 export async function checkBaseUrl(
   rawUrl: string,
@@ -62,7 +78,7 @@ export async function checkBaseUrl(
     return { ok: false, reason: "credentials" };
   }
 
-  const hostname = url.hostname.toLowerCase().replace(/\.$/, "");
+  const hostname = normalizeHostname(url.hostname);
   if (!hostname) return { ok: false, reason: "invalid_url" };
   if (METADATA_HOSTNAMES.has(hostname)) {
     return { ok: false, reason: "blocked_host" };
@@ -72,18 +88,20 @@ export async function checkBaseUrl(
   if (literal) {
     return literal === "blocked"
       ? { ok: false, reason: "blocked_address" }
-      : { ok: true };
+      : { ok: true, pin: null };
   }
-  if (isLoopbackName(hostname)) return { ok: true };
+  if (isLoopbackName(hostname)) {
+    return { ok: true, pin: { hostname, addresses: LOOPBACK_ADDRESSES } };
+  }
 
   let addresses: string[];
   try {
     addresses = await resolver(hostname);
   } catch {
-    // Unresolvable: fetch fails on its own and is reported as unreachable.
-    return { ok: true };
+    // Unresolvable: an empty pin makes the connection fail as unreachable.
+    return { ok: true, pin: { hostname, addresses: [] } };
   }
   return addresses.every(isAllowedAddress)
-    ? { ok: true }
+    ? { ok: true, pin: { hostname, addresses } }
     : { ok: false, reason: "blocked_address" };
 }
