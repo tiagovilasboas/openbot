@@ -2,7 +2,7 @@ import { LANGUAGES } from "../language/language.ts";
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { connectionsCopy } from "../connections/connections-copy.ts";
+import { connectionsCopy } from "../connections/copy.ts";
 import { settingsCopy } from "../model/settings-copy.ts";
 import { chatCopy } from "./chat-copy.ts";
 

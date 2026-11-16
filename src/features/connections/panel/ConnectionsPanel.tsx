@@ -5,12 +5,13 @@ import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
 import { useGitHubToken } from "@/features/github/use-github-token.ts";
 import { useModelConfig } from "@/features/model/use-model-config.ts";
 import { useSavedKeys } from "@/features/key-vault/use-saved-keys.ts";
+import type { ConnectionId } from "../core/index.ts";
 import {
   CONNECTIONS,
   findConnection,
   type ConnectionGroup,
-  type ConnectionId,
 } from "./connection-catalog.ts";
+import { ConnectNotice } from "./ConnectNotice.tsx";
 import { ConnectionDetail } from "./ConnectionDetail.tsx";
 import { ConnectionRow } from "./ConnectionRow.tsx";
 import { getConnectionsCopy } from "./connections-copy.ts";
@@ -39,22 +40,18 @@ export function ConnectionsPanel({
     return id === "github" ? Boolean(gitHubToken) : Boolean(keys[id]);
   }
 
-  if (openId) {
-    return (
-      <ConnectionDetail
-        key={openId}
-        entry={findConnection(openId)}
-        language={language}
-        savedToken={openId === "github" ? gitHubToken : null}
-        isSaved={isSaved(openId)}
-        showSecretLabel={showSecretLabel}
-        hideSecretLabel={hideSecretLabel}
-        onBack={() => setOpenId(null)}
-      />
-    );
-  }
-
-  return (
+  const body = openId ? (
+    <ConnectionDetail
+      key={openId}
+      entry={findConnection(openId)}
+      language={language}
+      savedToken={openId === "github" ? gitHubToken : null}
+      isSaved={isSaved(openId)}
+      showSecretLabel={showSecretLabel}
+      hideSecretLabel={hideSecretLabel}
+      onBack={() => setOpenId(null)}
+    />
+  ) : (
     <div className="flex flex-col gap-4">
       {GROUPS.map((group) => (
         <section key={group} className="flex flex-col gap-1.5">
@@ -82,6 +79,13 @@ export function ConnectionsPanel({
           </ul>
         </section>
       ))}
+    </div>
+  );
+
+  return (
+    <div className="flex flex-col gap-4">
+      <ConnectNotice language={language} />
+      {body}
     </div>
   );
 }

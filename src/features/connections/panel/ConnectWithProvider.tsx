@@ -1,0 +1,68 @@
+"use client";
+
+import { useSyncExternalStore } from "react";
+import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
+import { fillCopy } from "@/features/model/settings-copy.ts";
+import { dispatchConnect, startConnect } from "../client/index.ts";
+import { connectRoute, isInFlight, type ConnectionId } from "../core/index.ts";
+import { getConnectionsCopy } from "./connections-copy.ts";
+import { useConnectFlow } from "./use-connect-flow.ts";
+
+interface ConnectWithProviderProps {
+  id: ConnectionId;
+  name: string;
+  language: ChatLanguage;
+}
+
+/** Whether this origin can take the provider's redirect back. After mount only. */
+function useOAuthRoute(id: ConnectionId): boolean {
+  return useSyncExternalStore(
+    subscribeNever,
+    () => connectRoute(id, window.location.origin).connect === "oauth",
+    () => false,
+  );
+}
+
+function subscribeNever(): () => void {
+  return () => {};
+}
+
+/** "Connect with X": opens the provider's page; the paste-key form is the other way. */
+export function ConnectWithProvider({
+  id,
+  name,
+  language,
+}: ConnectWithProviderProps) {
+  const c = getConnectionsCopy(language);
+  const isOAuth = useOAuthRoute(id);
+  const flow = useConnectFlow();
+  const isBusy = flow.id === id && isInFlight(flow.state);
+
+  if (!isOAuth) return null;
+
+  async function begin() {
+    dispatchConnect(id, { type: "start" });
+    const started = await startConnect(id);
+    if (!started.ok) {
+      dispatchConnect(id, { type: "failed", reason: started.reason });
+      return;
+    }
+    dispatchConnect(id, { type: "opened" });
+    window.location.assign(started.authorizeUrl);
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      <button
+        type="button"
+        disabled={isBusy}
+        aria-busy={isBusy}
+        onClick={() => void begin()}
+        className="min-h-11 w-full rounded-full bg-bot-accent px-5 text-sm font-medium text-white transition-opacity active:scale-[0.97] disabled:opacity-60"
+      >
+        {fillCopy(c.connectWith, { name })}
+      </button>
+      <p className="text-center text-[13px] text-subtle">{c.orPasteKey}</p>
+    </div>
+  );
+}

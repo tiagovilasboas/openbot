@@ -1,6 +1,6 @@
-import type { ChatLanguage } from "../chat/respond-to-message.ts";
-import { classifyModelFailure } from "../model/classify-model-failure.ts";
-import type { ConnectionId } from "./connection-catalog.ts";
+import type { ChatLanguage } from "../../chat/respond-to-message.ts";
+import { classifyModelFailure } from "../../model/classify-model-failure.ts";
+import type { ConnectionId } from "../core/index.ts";
 import { getConnectionsCopy } from "./connections-copy.ts";
 
 /**

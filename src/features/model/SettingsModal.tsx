@@ -1,7 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { ConnectionsPanel } from "@/features/connections/ConnectionsPanel.tsx";
+import {
+  ConnectionsPanel,
+  useConnectFlow,
+} from "@/features/connections/index.ts";
 import { SettingsSecuritySection } from "@/features/auth/SettingsSecuritySection.tsx";
 import { BackupSection } from "@/features/backup/BackupSection.tsx";
 import { chatCopy } from "@/features/chat/chat-copy.ts";
@@ -52,6 +55,14 @@ export function SettingsModal({
   const [activeTab, setActiveTab] = useState<SettingsTabId>(initialTab);
   const t = chatCopy[language];
   const s = getSettingsCopy(language);
+
+  // A Connect that starts or ends shows its notice on the Connections tab.
+  const connectPhase = useConnectFlow().state.phase;
+  const [seenPhase, setSeenPhase] = useState(connectPhase);
+  if (seenPhase !== connectPhase) {
+    setSeenPhase(connectPhase);
+    if (isOpen && connectPhase !== "idle") setActiveTab("connections");
+  }
 
   return (
     <ResponsiveSheet

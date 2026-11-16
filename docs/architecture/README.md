@@ -2,6 +2,7 @@
 
 OpenBot follows **Screaming Architecture**, **Dependency Rule**, **SRP**, and **Clean Code**.
 
+- **[Mapa de módulos e reúso](module-reuse-map.md):** o que isolar, o que reaproveitar e onde as tasks do roadmap se cruzam.
 - **[Camadas e Estrutura do Sistema](layers.md):** Mapa completo das 4 camadas (Apresentação, Aplicação, Domínio e Infraestrutura/Adaptadores).
 - **[Contrato de Portas de Entrega](delivery-gates.md):** Git hooks versionados, checks de qualidade estáticos e CI gate para o repositório.
 - **[Especificação do MVP](mvp.md):** Escopo inicial e contratos de leitura para desenvolvedores.

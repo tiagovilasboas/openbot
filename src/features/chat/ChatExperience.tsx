@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useConnectReturn } from "@/features/connections/index.ts";
 import { messageFitsRequest } from "@/features/attachments/request-size.ts";
 import { toPayloads } from "@/features/attachments/attachment-summary.ts";
 import { useComposerAttachments } from "@/features/attachments/use-composer-attachments.ts";
@@ -67,6 +68,7 @@ export function ChatExperience() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const openSettings = useCallback(() => setIsSettingsOpen(true), []);
   const botEditor = useBotEditor();
 
   const modelConfig = useModelConfig();
@@ -82,6 +84,8 @@ export function ChatExperience() {
     activeModelLabel,
   } = useActiveModel(modelConfig, language);
   useMigrateLocalKeys();
+  // A provider sending the browser back to finish a Connect opens Settings.
+  useConnectReturn(openSettings);
 
   const contextUsage = useContextUsage(
     messages,
