@@ -1,5 +1,6 @@
 # Roadmap
 
+- **[Paridade com o openbot.run por domínio](openbot-run-parity.md):** roadmap atual, com tasks de até 5 pontos tiradas da [REA dos 68 casos de uso](../spikes/openbot-run/README.md).
 - **[Roadmap Master: Do MVP ao Produto Completo](full-product-roadmap.md):** Planejamento executivo em 6 fases para paridade total com o `openbot.run` em PWA.
 - **[Rastreabilidade de Features & Tasks](features-and-tasks.md):** Decomposição técnica em tarefas de 1 a 5 Story Points.
 - **[Roadmap Detalhado em Português](roadmap.pt-BR.md):** Metas de engenharia e contratos de entrega inicial para desenvolvedores.
