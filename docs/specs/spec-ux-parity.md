@@ -36,10 +36,10 @@ Legend follows the REA: **Tem** (we have it), **Parcial** (base exists, a part o
 | 3.6 Team and automation       | Falta      | Crew exists; routines, channels and automation do not               | ROT-_, CRW-_ (not UX) |
 | 3.7 Workspace and tools       | Parcial    | No per-agent folder, no per-tool level, no voice                    | TOL-1, TOL-4, APP-4   |
 
-Current work in progress, not re-planned here:
+Delivered since this map was written:
 
-- **UX-1**: per-bot model picker opened from the chat header badge (another agent).
-- **UX-2**: Connect button in the Modelo tab's OpenRouter preset (another agent).
+- **UX-1** (#149): per-bot model picker opened from the chat header badge.
+- **UX-2** (#148): Connect button in the Modelo tab's OpenRouter preset.
 
 ---
 
@@ -134,7 +134,7 @@ The Chief of Staff is pinned through `mainBotId`.
 
 **Our screen.** `ChatHeader.tsx` shows the identity (tapping it opens the bot editor), the `ModelStatusBadge.tsx` with context usage (#128), a language toggle and a new-chat button. The model badge sits in `hidden md:flex`, so it is not shown on phones. The badge opens global Settings. `use-active-model.ts` resolves the active model from the global config or the server. Per-agent model and backups are in the bot editor (#143).
 
-**In progress (UX-1).** The picker from the badge. This spec only sets the acceptance criteria below.
+**Delivered (UX-1, #149).** The picker from the badge. This spec only sets the acceptance criteria below.
 
 **Gap.**
 

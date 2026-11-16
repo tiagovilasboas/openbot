@@ -121,22 +121,22 @@ Telas, fluxos e critérios de aceite estão na [especificação de paridade de U
 
 Prioridade visível: primeiro a primeira execução terminar numa conversa funcionando, depois o modelo por agente no chat e, por último, a navegação centrada no agente.
 
-Fatias em andamento (outro agente, registradas aqui sem replanejar): **UX-2** e **UX-1**. Os pontos marcados com `*` são estimativa, não medida.
+Fatias entregues: **UX-2** (#148) e **UX-1** (#149). Os pontos marcados com `*` são estimativa, não medida.
 
-| Ordem | Fatia                   | Entrega                                                                                        | Referências            | Pts | Depende de   | Grupo |
-| ----: | ----------------------- | ---------------------------------------------------------------------------------------------- | ---------------------- | --: | ------------ | ----- |
-|     1 | UX-2 **(em andamento)** | Botão Conectar no preset OpenRouter da aba Modelo                                              | CON-4, PR-03           |  3* | —            | G1    |
-|     2 | UX-1 **(em andamento)** | Seletor de modelo do agente aberto pelo badge do cabeçalho                                     | AG-24, PR-08           |  3* | —            | G1    |
-|     3 | UX-3                    | Primeira execução: "começar grátis" termina no chat com modelo ativo e tarefa inicial no campo | PR-01, substitui APP-2 |   3 | —            | G1    |
-|     4 | UX-4                    | Primeira execução: passo "conectar" usa o diálogo da UX-2 e volta ao chat                      | PR-01                  |   3 | UX-2, UX-3   | G2    |
-|     5 | UX-5                    | Troca de modelo durante turno vale na próxima mensagem, com estado visível                     | AG-24                  |   3 | UX-1         | G2    |
-|     6 | UX-6                    | Modelo do agente visível no cabeçalho do celular, com o mesmo seletor                          | AU-09                  |   2 | UX-1, UX-5   | G3    |
-|     7 | UX-7                    | Seção "precisam de você" acima da lista de agentes, com link para o chat                       | TL-13, AG-11, AG-12    |   3 | —            | G1    |
-|     8 | UX-8                    | Trocar entre os 9 primeiros agentes pelo teclado, na ordem da lista                            | TL-13                  |   2 | UX-7         | G2    |
-|     9 | UX-9                    | Envio idempotente com id de cliente e "tentar de novo" sem duplicar                            | AG-06, CHT-1           |   3 | UX-5         | G3    |
-|    10 | UX-10                   | Modo "corrigir o rumo" por agente (é a CHT-2; não replanejar)                                  | AG-07, CHT-2           |   5 | UX-9         | G3    |
-|    11 | UX-12                   | Provedores em lista, com página por provedor, liga/desliga e menu de ações                     | PR-07, PR-11, PR-19    |   5 | UX-2         | G2    |
-|    12 | UX-11                   | Listar e revogar "sempre permitir" em Configurações                                            | AG-12, TOL-1           |   3 | UX-12, TOL-1 | G3    |
+| Ordem | Fatia                    | Entrega                                                                                        | Referências            | Pts | Depende de   | Grupo |
+| ----: | ------------------------ | ---------------------------------------------------------------------------------------------- | ---------------------- | --: | ------------ | ----- |
+|     1 | UX-2 **(entregue #148)** | Botão Conectar no preset OpenRouter da aba Modelo                                              | CON-4, PR-03           |  3* | —            | G1    |
+|     2 | UX-1 **(entregue #149)** | Seletor de modelo do agente aberto pelo badge do cabeçalho                                     | AG-24, PR-08           |  3* | —            | G1    |
+|     3 | UX-3                     | Primeira execução: "começar grátis" termina no chat com modelo ativo e tarefa inicial no campo | PR-01, substitui APP-2 |   3 | —            | G1    |
+|     4 | UX-4                     | Primeira execução: passo "conectar" usa o diálogo da UX-2 e volta ao chat                      | PR-01                  |   3 | UX-2, UX-3   | G2    |
+|     5 | UX-5                     | Troca de modelo durante turno vale na próxima mensagem, com estado visível                     | AG-24                  |   3 | UX-1         | G2    |
+|     6 | UX-6                     | Modelo do agente visível no cabeçalho do celular, com o mesmo seletor                          | AU-09                  |   2 | UX-1, UX-5   | G3    |
+|     7 | UX-7                     | Seção "precisam de você" acima da lista de agentes, com link para o chat                       | TL-13, AG-11, AG-12    |   3 | —            | G1    |
+|     8 | UX-8                     | Trocar entre os 9 primeiros agentes pelo teclado, na ordem da lista                            | TL-13                  |   2 | UX-7         | G2    |
+|     9 | UX-9                     | Envio idempotente com id de cliente e "tentar de novo" sem duplicar                            | AG-06, CHT-1           |   3 | UX-5         | G3    |
+|    10 | UX-10                    | Modo "corrigir o rumo" por agente (é a CHT-2; não replanejar)                                  | AG-07, CHT-2           |   5 | UX-9         | G3    |
+|    11 | UX-12                    | Provedores em lista, com página por provedor, liga/desliga e menu de ações                     | PR-07, PR-11, PR-19    |   5 | UX-2         | G2    |
+|    12 | UX-11                    | Listar e revogar "sempre permitir" em Configurações                                            | AG-12, TOL-1           |   3 | UX-12, TOL-1 | G3    |
 
 Total: 35 pontos. Nenhuma fatia passa de 5.
 
