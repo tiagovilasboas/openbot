@@ -9,11 +9,12 @@ import { MemorySection } from "@/features/memory/MemorySection.tsx";
 import { BotSkillsEditor } from "@/features/skills/BotSkillsEditor.tsx";
 import { BotToolsToggle } from "@/features/tools/client/BotToolsToggle.tsx";
 import { FormField, FIELD_CLASS } from "@/shared/ui/FormField.tsx";
-import { ResponsiveSheet, SheetFooter } from "@/shared/ui/ResponsiveSheet.tsx";
+import { ResponsiveSheet } from "@/shared/ui/ResponsiveSheet.tsx";
 import { AutoTextarea } from "./AutoTextarea.tsx";
 import { BotEditPreview } from "./BotEditPreview.tsx";
 import { BotAvatarPickers } from "./BotAvatarPickers.tsx";
-import { BotDeleteControl } from "./BotDeleteControl.tsx";
+import { BotEditFooter } from "./BotEditFooter.tsx";
+import { BotHideControl } from "./BotHideControl.tsx";
 import { BotModelField, isBotModelIdValid } from "./BotModelField.tsx";
 import { BotMainControl } from "./BotMainControl.tsx";
 import { BotTemplatePicker } from "./BotTemplatePicker.tsx";
@@ -34,6 +35,10 @@ interface BotEditModalProps {
   onSave: (bot: BotProfile) => void;
   onDelete?: (id: string) => void;
   onMakeMain?: (id: string) => void;
+  /** Hiding is offered only where it is allowed (not the main bot). */
+  canHide?: boolean;
+  onHide?: (id: string) => void;
+  onRestore?: (id: string) => void;
 }
 
 type BotEditFormProps = Omit<BotEditModalProps, "isOpen">;
@@ -47,6 +52,9 @@ function BotEditForm({
   onSave,
   onDelete,
   onMakeMain,
+  canHide = false,
+  onHide,
+  onRestore,
 }: BotEditFormProps) {
   const isEditing = Boolean(bot?.id && bot.id !== "new");
   const copy = getBotsCopy(language);
@@ -93,6 +101,11 @@ function BotEditForm({
 
   const isValid = name.trim().length > 0 && isBotModelIdValid(modelId);
 
+  function closeAfter(action: (id: string) => void, id: string) {
+    action(id);
+    onClose();
+  }
+
   function handleSave() {
     if (!isValid) return;
     const now = new Date().toISOString();
@@ -110,6 +123,7 @@ function BotEditForm({
       avatarColor,
       skills,
       ...(toolsEnabled ? { toolsEnabled: true } : {}),
+      ...(bot?.hidden ? { hidden: true } : {}),
       createdAt: bot?.createdAt || now,
       updatedAt: now,
     };
@@ -240,40 +254,28 @@ function BotEditForm({
         />
       )}
 
+      {isEditing && bot && onHide && onRestore && (bot.hidden || canHide) && (
+        <BotHideControl
+          language={language}
+          isHidden={bot.hidden === true}
+          onHide={() => closeAfter(onHide, bot.id)}
+          onRestore={() => closeAfter(onRestore, bot.id)}
+        />
+      )}
+
       {isEditing && bot && <BotTemplateExport bot={bot} language={language} />}
 
-      <SheetFooter>
-        <div className="flex items-center justify-between gap-2">
-          <div>
-            {isEditing && canDelete && onDelete && bot && (
-              <BotDeleteControl
-                language={language}
-                onConfirm={() => {
-                  onDelete(bot.id);
-                  onClose();
-                }}
-              />
-            )}
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="min-h-11 rounded-full border border-border bg-surface px-5 text-[15px] font-medium text-foreground transition-colors hover:bg-surface-secondary active:scale-[0.97] md:text-sm"
-            >
-              {copy.cancel}
-            </button>
-            <button
-              type="button"
-              disabled={!isValid}
-              onClick={handleSave}
-              className="min-h-11 rounded-full bg-foreground px-5 text-[15px] font-semibold text-background transition-transform active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40 md:text-sm"
-            >
-              {copy.save}
-            </button>
-          </div>
-        </div>
-      </SheetFooter>
+      <BotEditFooter
+        language={language}
+        isValid={isValid}
+        onClose={onClose}
+        onSave={handleSave}
+        onDelete={
+          isEditing && canDelete && onDelete && bot
+            ? () => closeAfter(onDelete, bot.id)
+            : undefined
+        }
+      />
     </form>
   );
 }

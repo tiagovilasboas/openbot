@@ -26,7 +26,24 @@ test("a bot can be created, edited and deleted", async ({ page }) => {
   await page.getByRole("button", { name: "Excluir bot" }).click();
   await page.getByRole("button", { name: "Confirmar" }).click();
   await expect(app.botRows()).toHaveCount(9);
-  await expect(page.getByText("Ops Bot Prime")).toHaveCount(0);
+  const notice = page.getByRole("status").filter({
+    hasText: "Ops Bot Prime excluído.",
+  });
+  await expect(notice).toBeVisible();
+
+  // Undo inside the window brings the bot back.
+  await notice.getByRole("button", { name: "Desfazer" }).click();
+  await expect(app.botRows()).toHaveCount(10);
+  await expect(app.botRows().last()).toContainText("Ops Bot Prime");
+
+  // Without undo, the deletion settles once the window ends.
+  await page.getByRole("button", { name: "Editar Ops Bot Prime" }).click();
+  await page.getByRole("button", { name: "Excluir bot" }).click();
+  await page.getByRole("button", { name: "Confirmar" }).click();
+  await expect(app.botRows()).toHaveCount(9);
+  await expect(page.getByText("Ops Bot Prime")).toHaveCount(0, {
+    timeout: 12_000,
+  });
 });
 
 test("the main bot cannot be deleted; making another bot main moves it to the top", async ({

@@ -31,6 +31,14 @@ interface BotsCopy {
   mainBot: string;
   mainBotHint: string;
   makeMain: string;
+  /** `{bot}` is the deleted bot's name. */
+  deletedNotice: string;
+  undoDelete: string;
+  hideBot: string;
+  hideBotHint: string;
+  restoreBot: string;
+  hiddenGroup: string;
+  hiddenGroupToggle: string;
   defaultDescription: string;
   shapes: Record<AvatarShape, string>;
   colors: Record<AvatarColor, string>;
@@ -70,6 +78,13 @@ const PT: BotsCopy = {
   mainBot: "Bot principal",
   mainBotHint: "Lidera a equipe e não pode ser excluído.",
   makeMain: "Tornar principal",
+  deletedNotice: "{bot} excluído.",
+  undoDelete: "Desfazer",
+  hideBot: "Ocultar bot",
+  hideBotHint: "Sai da lista e das menções com @. Você pode restaurar depois.",
+  restoreBot: "Restaurar bot",
+  hiddenGroup: "Ocultos",
+  hiddenGroupToggle: "Mostrar ou recolher os bots ocultos",
   defaultDescription: "Você é um assistente conciso e prestativo.",
   shapes: {
     hexagon: "Hexágono",
@@ -139,6 +154,13 @@ const EN: BotsCopy = {
   mainBot: "Main bot",
   mainBotHint: "Leads the crew and cannot be deleted.",
   makeMain: "Make main",
+  deletedNotice: "{bot} deleted.",
+  undoDelete: "Undo",
+  hideBot: "Hide bot",
+  hideBotHint: "Leaves the list and @ mentions. You can restore it later.",
+  restoreBot: "Restore bot",
+  hiddenGroup: "Hidden",
+  hiddenGroupToggle: "Show or collapse the hidden bots",
   defaultDescription: "You are a concise, helpful assistant.",
   shapes: {
     hexagon: "Hexagon",
@@ -209,6 +231,14 @@ const ES: BotsCopy = {
   mainBot: "Bot principal",
   mainBotHint: "Lidera el equipo y no se puede eliminar.",
   makeMain: "Hacer principal",
+  deletedNotice: "{bot} eliminado.",
+  undoDelete: "Deshacer",
+  hideBot: "Ocultar bot",
+  hideBotHint:
+    "Sale de la lista y de las menciones con @. Puedes restaurarlo después.",
+  restoreBot: "Restaurar bot",
+  hiddenGroup: "Ocultos",
+  hiddenGroupToggle: "Mostrar u ocultar los bots ocultos",
   defaultDescription: "Eres un asistente conciso y servicial.",
   shapes: {
     hexagon: "Hexágono",

@@ -64,6 +64,7 @@ export function ChatSidebar(props: ChatSidebarProps) {
     onSelectBot,
     onCreateBot,
     onEditBot,
+    onRestoreBot,
     onOpenSettings,
     onLock,
     onNewChat,
@@ -153,6 +154,7 @@ export function ChatSidebar(props: ChatSidebarProps) {
               onSelectBot={thenClose(onSelectBot)}
               onCreateBot={thenClose(onCreateBot)}
               onEditBot={thenClose(onEditBot)}
+              onRestoreBot={onRestoreBot}
               onOpenSettings={thenClose(onOpenSettings)}
               onLock={onLock && thenClose(onLock)}
               onNewChat={onNewChat && thenClose(onNewChat)}

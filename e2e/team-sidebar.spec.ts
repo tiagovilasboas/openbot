@@ -19,9 +19,9 @@ test("bots are reordered by keyboard, the main bot stays on top and the order pe
   await handle.press("ArrowDown");
   await expect(app.botRows().nth(1)).toContainText("Publishing");
   await expect(app.botRows().nth(2)).toContainText("Engineering");
-  await expect(page.getByRole("status")).toContainText(
-    "Engineering na posição 3 de 9",
-  );
+  await expect(
+    page.getByRole("status").filter({ hasText: "posição" }),
+  ).toContainText("Engineering na posição 3 de 9");
   // The handle keeps the focus, so the next arrow keeps moving the same bot.
   await expect(handle).toBeFocused();
   await handle.press("ArrowDown");

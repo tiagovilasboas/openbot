@@ -7,6 +7,7 @@ import type {
 import { AttentionBadge } from "@/features/attention/AttentionBadge.tsx";
 import { attentionLabel } from "@/features/attention/attention-copy.ts";
 import { BotAvatar } from "@/features/bots/BotAvatar.tsx";
+import { getBotsCopy } from "@/features/bots/bots-copy.ts";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
 import { BotWorkingDot } from "./BotWorkingDot.tsx";
 import { chatCopy } from "./chat-copy.ts";
@@ -34,6 +35,8 @@ interface SidebarBotRowProps {
   rowRef: (el: HTMLElement | null) => void;
   onSelect: () => void;
   onEdit: () => void;
+  /** Hidden bots only: brings the bot back to the main list. */
+  onRestore?: () => void;
 }
 
 const ROW_BUTTON =
@@ -53,8 +56,10 @@ export function SidebarBotRow({
   rowRef,
   onSelect,
   onEdit,
+  onRestore,
 }: SidebarBotRowProps) {
   const content = chatCopy[language];
+  const restoreLabel = getBotsCopy(language).restoreBot;
 
   return (
     <li
@@ -69,7 +74,7 @@ export function SidebarBotRow({
         type="button"
         aria-current={isActive ? "page" : undefined}
         onClick={onSelect}
-        className={`${ROW_BUTTON} ${reorder ? "pr-[5.5rem]" : "pr-12"} ${
+        className={`${ROW_BUTTON} ${reorder || onRestore ? "pr-[5.5rem]" : "pr-12"} ${
           isActive ? "bg-surface-tertiary" : "hover:bg-surface"
         }`}
       >
@@ -117,6 +122,18 @@ export function SidebarBotRow({
           }`}
         >
           <GripIcon className="size-4" />
+        </button>
+      )}
+
+      {onRestore && (
+        <button
+          type="button"
+          aria-label={`${restoreLabel}: ${bot.name}`}
+          title={restoreLabel}
+          onClick={onRestore}
+          className={`${SIDE_BUTTON} right-11 size-11`}
+        >
+          <span aria-hidden="true">↺</span>
         </button>
       )}
 

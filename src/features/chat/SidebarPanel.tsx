@@ -7,6 +7,8 @@ import { chatCopy } from "./chat-copy.ts";
 import type { ChatLanguage } from "./respond-to-message.ts";
 import { SidebarActionRow } from "./SidebarActionRow.tsx";
 import { SidebarBotList } from "./SidebarBotList.tsx";
+import { SidebarHiddenBots } from "./SidebarHiddenBots.tsx";
+import { hiddenBots, visibleBots } from "@/features/bots/bot-visibility.ts";
 import {
   LockIcon,
   NewChatIcon,
@@ -28,6 +30,7 @@ export interface SidebarNavProps {
   onReorderBot?: (botId: string, toIndex: number) => void;
   onCreateBot: () => void;
   onEditBot: (bot: BotProfile) => void;
+  onRestoreBot?: (botId: string) => void;
   onOpenSettings: () => void;
   hasPassword?: boolean;
   onLock?: () => void;
@@ -55,6 +58,7 @@ export function SidebarPanel({
   onReorderBot,
   onCreateBot,
   onEditBot,
+  onRestoreBot,
   onOpenSettings,
   hasPassword,
   onLock,
@@ -63,6 +67,8 @@ export function SidebarPanel({
 }: SidebarNavProps) {
   const content = chatCopy[language];
   const botsLabelId = useId();
+  const shownBots = visibleBots(bots);
+  const tuckedAway = hiddenBots(bots);
 
   return (
     <>
@@ -89,7 +95,7 @@ export function SidebarPanel({
           </p>
           <SidebarBotList
             language={language}
-            bots={bots}
+            bots={shownBots}
             activeBotId={activeBotId}
             mainBotId={mainBotId}
             workingBotIds={workingBotIds}
@@ -105,6 +111,16 @@ export function SidebarPanel({
               onPress={onCreateBot}
             />
           </div>
+          {onRestoreBot && (
+            <SidebarHiddenBots
+              language={language}
+              bots={tuckedAway}
+              activeBotId={activeBotId}
+              onSelectBot={onSelectBot}
+              onEditBot={onEditBot}
+              onRestoreBot={onRestoreBot}
+            />
+          )}
         </div>
       </nav>
 

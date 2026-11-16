@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { AttentionBadge } from "@/features/attention/AttentionBadge.tsx";
 import { attentionLabel } from "@/features/attention/attention-copy.ts";
 import { BotAvatar } from "@/features/bots/BotAvatar.tsx";
+import { visibleBots } from "@/features/bots/bot-visibility.ts";
 import { BotWorkingDot } from "./BotWorkingDot.tsx";
 import { chatCopy } from "./chat-copy.ts";
 import { CreateBotGlyph, type SidebarNavProps } from "./SidebarPanel.tsx";
@@ -93,7 +94,7 @@ export function SidebarRail({
           aria-label={content.sidebarBotsGroup}
           className="mt-4 flex flex-col items-center gap-1"
         >
-          {bots.map((bot) => {
+          {visibleBots(bots).map((bot) => {
             const isActive = bot.id === activeBotId;
             const isWorking = workingBotIds.includes(bot.id);
             const unseen = attentionCounts[bot.id] ?? 0;
