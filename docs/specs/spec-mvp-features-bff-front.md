@@ -6,29 +6,32 @@ O que vale aqui é a **divisão de responsabilidades** e a **ordem de entrega**.
 
 ## 1. Onde estamos
 
-Já entregue e na `main`: chat com modelo, vários bots, bot principal que delega à equipe, skills por bot, fila de mensagens, failover, resumo de GitHub, bloqueio local, backup, template de bot em arquivo, cancelar com erros claros, guard de API, proteção contra SSRF e testes e2e.
+Já entregue e na `main`: chat com modelo, vários bots, bot principal que delega à equipe, skills por bot, fila de mensagens, failover, resumo de GitHub, bloqueio local, backup, template de bot em arquivo, cancelar com erros claros, guard de API, proteção contra SSRF, testes e2e, armazenamento local no servidor (SQLite) com cofre de chaves cifrado, compactação de conversas longas e o laço de ferramentas com aprovação (atrás de `OPENBOT_TOOLS`).
 
 Ainda não provado: **uma resposta de modelo real** (item 4.5 do roadmap). Enquanto isso não existir, o produto não deve ser chamado de funcional.
 
 ## 2. Regra de divisão: BFF e front
 
-O Open Bot é **local-first**. O BFF (as rotas `src/app/api` do Next) é **sem estado**: não tem banco, não guarda conversa e não guarda bot. O front é dono dos dados do usuário.
+O Open Bot é **local-first**: os dados ficam na máquina de quem roda o servidor. O BFF (as rotas `src/app/api` do Next) **guarda estado local** num banco SQLite (`src/shared/local-store`, arquivo `openbot.db` em `OPENBOT_DATA_DIR` ou, sem ela, em `~/.openbot`; pasta `0700`, arquivos `0600`). Cada domínio tem a sua tabela e as suas migrações: bots (`/api/bots`), conversas (`/api/conversations`), memória (`/api/memory`), uso (`/api/usage`), ajustes (`/api/settings`) e as chaves de provedor (`/api/keys`, cofre cifrado). O servidor é a fonte da verdade; o `localStorage` do navegador é só um **cache de leitura** que o front espelha a partir dele.
 
-| Responsabilidade                               | Fica no BFF                                         | Fica no front                                                   |
-| ---------------------------------------------- | --------------------------------------------------- | --------------------------------------------------------------- |
-| Falar com o provedor de modelo                 | Sim: adaptador, timeout, failover, tradução de erro | Não                                                             |
-| Segredos do servidor (`.env`, token do GitHub) | Sim, nunca saem dele                                | Não                                                             |
-| Chaves que o usuário digita (provedor)         | Recebe por requisição, valida e não registra        | Guarda no navegador e envia a cada chamada (decisão da seção 6) |
-| Validar tamanho, formato, origem e taxa        | Sim (`proxy.ts`, `parse-chat-request`)              | Não confia nele; valida o que lê de volta                       |
-| Proteção contra SSRF e `baseUrl`               | Sim                                                 | Não                                                             |
-| Marcar texto externo como dado nos prompts     | Sim, no montador do servidor                        | Envia o texto cru e rotulado                                    |
-| Conversas, bots, skills, memória, backup       | Não                                                 | Sim (`localStorage` hoje, IndexedDB quando crescer)             |
-| Orquestração da equipe (delegar, sintetizar)   | Não                                                 | Sim (`run-crew-turn`), chamando o BFF uma vez por passo         |
-| Fila de mensagens, cancelar, retentar          | Não                                                 | Sim                                                             |
-| Contagem de uso (tokens)                       | Devolve o que o provedor informou                   | Soma e mostra por bot                                           |
-| Streaming                                      | Transporta eventos tipados                          | Renderiza aos poucos e guarda o que chegou                      |
-| Bloqueio por senha local                       | Não                                                 | Sim (PBKDF2 no navegador)                                       |
-| Tarefas agendadas                              | Necessário, mas **fora do MVP**                     | Só mostra e liga ou desliga                                     |
+Quem chama a API: sem `OPENBOT_ACCESS_TOKEN`, só um chamador de loopback é atendido (outro recebe 403 `access_token_required`); com o token definido, todo chamador precisa enviá-lo como `Authorization: Bearer`. Os scripts `dev` e `start` escutam apenas em `127.0.0.1`.
+
+| Responsabilidade                               | Fica no BFF                                                           | Fica no front                                                         |
+| ---------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| Falar com o provedor de modelo                 | Sim: adaptador, timeout, failover, tradução de erro                   | Não                                                                   |
+| Segredos do servidor (`.env`, token do GitHub) | Sim, nunca saem dele                                                  | Não                                                                   |
+| Chaves de provedor que o usuário digita        | Cofre cifrado (AES-256-GCM) no banco; injeta a chave certa na chamada | Envia a chave uma vez para `/api/keys`; não a guarda (seção 6)        |
+| Validar tamanho, formato, origem e taxa        | Sim (`proxy.ts`, `parse-chat-request`)                                | Não confia nele; valida o que lê de volta                             |
+| Proteção contra SSRF e `baseUrl`               | Sim                                                                   | Não                                                                   |
+| Marcar texto externo como dado nos prompts     | Sim, no montador do servidor                                          | Envia o texto cru e rotulado                                          |
+| Conversas, bots, skills, memória, uso, ajustes | Sim: tabelas SQLite por domínio, fonte da verdade                     | Cache de leitura (`localStorage`) e edição; sincroniza com o servidor |
+| Backup (exportar e importar)                   | Não                                                                   | Sim                                                                   |
+| Orquestração da equipe (delegar, sintetizar)   | Não                                                                   | Sim (`run-crew-turn`), chamando o BFF uma vez por passo               |
+| Fila de mensagens, cancelar, retentar          | Não                                                                   | Sim                                                                   |
+| Contagem de uso (tokens)                       | Devolve o que o provedor informou e guarda o registro de uso          | Soma e mostra por bot                                                 |
+| Streaming                                      | Transporta eventos tipados                                            | Renderiza aos poucos e guarda o que chegou                            |
+| Bloqueio por senha local                       | Não                                                                   | Sim (PBKDF2 no navegador)                                             |
+| Tarefas agendadas                              | Necessário, mas **fora do MVP**                                       | Só mostra e liga ou desliga                                           |
 
 Contrato entre os dois: cada rota do BFF recebe JSON validado e responde com um tipo discriminado. Nenhuma regra de negócio de um lado repete a do outro: o front decide **o que perguntar e o que guardar**, o BFF decide **como e com que limites chamar de fora**.
 
@@ -79,12 +82,13 @@ Seguindo Screaming Architecture e a regra de dependência, cada feature tem um d
 
 ## 6. Decisões a registrar
 
-1. **Chaves de provedor digitadas pelo usuário** hoje ficam no navegador e viajam em cada chamada. Isso é aceitável para um aparelho pessoal, mas contradiz a regra "segredo só no servidor". Escolher: manter assim com aviso claro, ou guardar a chave no servidor depois do pareamento (item 2.2 do roadmap). Até lá, o BFF não pode registrar o corpo das requisições.
+1. **Chaves de provedor digitadas pelo usuário** ficam no cofre do servidor (`src/features/key-vault`, #117 e #121): cifradas com AES-256-GCM, com o provedor e a origem ligados ao texto cifrado (uma linha movida para outro provedor ou origem não abre). A chave mestra vem de `OPENBOT_VAULT_KEY` (base64 de 32 bytes) ou, sem ela, do arquivo `vault.key` (`0600`) criado na pasta de dados. `/api/keys` lista só provedor, origem e data, nunca o valor, e uma chave só é usada na origem para a qual foi salva. Chaves que uma versão antiga deixou no navegador são movidas para o cofre e só saem do navegador depois que o servidor responde 200. O BFF não registra o corpo das requisições.
 2. **Onde mora a memória**: por bot, global ou por espaço. Recomendado: por bot, com opção de promover para global depois.
-3. **Armazenamento**: `localStorage` basta até o anexo e o histórico crescerem; planejar IndexedDB em F7.
+3. **Armazenamento**: o servidor guarda tudo em SQLite (seção 2). O `localStorage` do navegador é cache; a decisão sobre IndexedDB para anexos grandes (F7) continua em aberto.
 4. **Texto vindo de arquivo, de memória ou de skill importada** é sempre dado, nunca instrução. Todo montador de prompt usa o delimitador já existente.
 
 ## 7. O que não é verificado ainda
 
 - O comportamento de streaming depende de cada provedor expor fluxo; é preciso confirmar com o provedor real antes de F3.
 - A divisão acima descreve o código de hoje, lido na `main`. Mudanças em curso podem exigir ajuste.
+- As seções 3 a 5 (features F1 a F11 e a ordem das ondas) foram escritas antes do armazenamento no servidor e não foram revisadas aqui; o que está entregue consta no [roadmap](../roadmap/roadmap.pt-BR.md).
