@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useConnectReturn } from "@/features/connections/index.ts";
+import { useConnectGate } from "@/features/onboarding/use-connect-gate.ts";
 import { consumeFirstRunConnect } from "@/features/onboarding/first-run-return.ts";
 import { messageFitsRequest } from "@/features/attachments/request-size.ts";
 import { toPayloads } from "@/features/attachments/attachment-summary.ts";
@@ -91,6 +92,7 @@ export function ChatExperience() {
     recordModelCall,
     activeModelLabel,
   } = useActiveModel(modelConfig, language);
+  const gate = useConnectGate(language, isConfigured, serverModel !== null);
   const savedModelLabel = botModelBadge(
     activeModelLabel,
     modelConfig?.provider ?? serverModel?.provider,
@@ -170,7 +172,7 @@ export function ChatExperience() {
 
   function sendMessage(value = draft) {
     const text = value.trim();
-    if (!text) return;
+    if (!text || gate.locked) return;
     if (!messageFitsRequest(text, toPayloads(attachments.items))) {
       attachments.reportTooBig();
       return;
@@ -230,11 +232,13 @@ export function ChatExperience() {
         onLock={auth.lock}
         onToggleDesktopCollapse={() => setIsDesktopCollapsed((v) => !v)}
         onCloseMobile={() => setIsMobileSidebarOpen(false)}
+        agentsLockedReason={gate.agentsReason}
         onSelectBot={(id) => {
+          if (gate.locked) return;
           clearQueue();
           setActiveBotId(id);
         }}
-        onCreateBot={botEditor.openNew}
+        onCreateBot={gate.locked ? openSettings : botEditor.openNew}
         onEditBot={botEditor.openFor}
         onRestoreBot={restoreBot}
         onOpenSettings={() => setIsSettingsOpen(true)}
@@ -276,7 +280,7 @@ export function ChatExperience() {
           usage={usageSync}
         />
 
-        {messages.length === 0 ? (
+        {messages.length === 0 || gate.locked ? (
           <ChatEmptyState
             language={language}
             draft={draft}
@@ -286,6 +290,7 @@ export function ChatExperience() {
             activeBot={activeBot}
             mainBotId={mainBotId}
             isConfigured={isConfigured}
+            composerLockedReason={gate.composerReason}
             attachments={attachments}
             onOpenSettings={() => setIsSettingsOpen(true)}
             onDraftChange={setDraft}

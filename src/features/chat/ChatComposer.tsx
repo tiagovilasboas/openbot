@@ -26,6 +26,8 @@ interface ChatComposerProps {
   mode?: "hero" | "docked";
   /** Without a model the placeholder says so; sending and commands still work. */
   isConfigured?: boolean;
+  /** Why the composer is locked; set, it is disabled and says so. */
+  disabledReason?: string;
   skills?: SkillDefinition[];
   bots?: BotProfile[];
   /** The files waiting on the message; without it the composer has no attach. */
@@ -40,6 +42,7 @@ export function ChatComposer({
   busy,
   mode = "docked",
   isConfigured = true,
+  disabledReason,
   skills = [],
   bots = [],
   attachments,
@@ -69,8 +72,10 @@ export function ChatComposer({
   }, [draft]);
 
   function submit() {
-    if (canSend) onSend();
+    if (canSend && !disabledReason) onSend();
   }
+
+  const reasonId = `${paletteId}-reason`;
 
   return (
     <form
@@ -102,8 +107,10 @@ export function ChatComposer({
         />
       )}
 
-      <div
-        className={`flex w-full cursor-text flex-col rounded-3xl border bg-surface transition-colors duration-(--duration-ui) ease-out-expo focus-within:border-[color:color-mix(in_oklab,var(--bot-accent)_45%,var(--border))] ${
+      <fieldset
+        disabled={Boolean(disabledReason)}
+        aria-describedby={disabledReason ? reasonId : undefined}
+        className={`m-0 flex w-full min-w-0 cursor-text flex-col disabled:opacity-60 rounded-3xl border bg-surface transition-colors duration-(--duration-ui) ease-out-expo focus-within:border-[color:color-mix(in_oklab,var(--bot-accent)_45%,var(--border))] ${
           drop.dragging ? "border-dashed border-bot-accent" : "border-border"
         }`}
         {...(attachments ? drop.handlers : {})}
@@ -129,9 +136,10 @@ export function ChatComposer({
           aria-controls={palette.kind ? paletteId : undefined}
           aria-activedescendant={activeOption}
           placeholder={
-            isConfigured
+            disabledReason ??
+            (isConfigured
               ? content.composerPlaceholder
-              : content.composerNoModelPlaceholder
+              : content.composerNoModelPlaceholder)
           }
           enterKeyHint={isCoarsePointer ? "enter" : "send"}
           autoComplete="off"
@@ -167,7 +175,15 @@ export function ChatComposer({
             textareaRef.current?.focus();
           }}
         />
-      </div>
+      </fieldset>
+      {disabledReason && (
+        <p
+          id={reasonId}
+          className="mt-2 px-4 text-center text-[13px] text-muted"
+        >
+          {disabledReason}
+        </p>
+      )}
     </form>
   );
 }

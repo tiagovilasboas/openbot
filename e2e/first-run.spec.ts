@@ -1,5 +1,7 @@
 import { appPage, expect, test } from "./app-fixture.ts";
 
+test.use({ configuredModel: false });
+
 const storedConfig = (page: import("@playwright/test").Page) =>
   page.evaluate(() => localStorage.getItem("openbot_model_config"));
 
@@ -125,5 +127,39 @@ test("a profile with a model never sees the first-run card", async ({
   ).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Comece em um minuto" }),
+  ).toHaveCount(0);
+});
+
+test("without a connection agents are locked, the composer says why, and a key unlocks them", async ({
+  page,
+  model,
+}) => {
+  await page.goto("/");
+  const app = appPage(page);
+
+  await expect(app.composer).toBeDisabled();
+  await expect(
+    page.getByText("Conecte um provedor acima para começar a conversar"),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Conecte um provedor para usar os agentes"),
+  ).toBeVisible();
+  await expect(app.botRows().first()).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Criar bot" })).toBeDisabled();
+  // Settings stays reachable while locked.
+  await expect(
+    page.getByRole("button", { name: "Configurações" }),
+  ).toBeEnabled();
+
+  await page.getByRole("button", { name: "Conectar um provedor" }).click();
+  await page.getByLabel("Chave de API").fill("sk-or-v1-e2e-gate");
+  await page.getByRole("button", { name: "Testar e conectar" }).click();
+
+  expect(model.chatRequests()).toHaveLength(0);
+  await expect(app.composer).toBeEnabled();
+  await expect(app.botRows().first()).toBeEnabled();
+  await expect(page.getByRole("button", { name: "Criar bot" })).toBeEnabled();
+  await expect(
+    page.getByText("Conecte um provedor para usar os agentes"),
   ).toHaveCount(0);
 });

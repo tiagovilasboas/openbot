@@ -21,6 +21,8 @@ export interface ChatEmptyStateProps {
   activeBot?: BotProfile;
   mainBotId?: string;
   isConfigured?: boolean;
+  /** No model yet: the composer is locked and says why. */
+  composerLockedReason?: string;
   attachments?: ComposerAttachments;
   onOpenSettings?: () => void;
   onDraftChange: (value: string) => void;
@@ -59,6 +61,7 @@ export function ChatEmptyState({
   activeBot,
   mainBotId,
   isConfigured,
+  composerLockedReason,
   attachments,
   onOpenSettings,
   onDraftChange,
@@ -111,6 +114,7 @@ export function ChatEmptyState({
             <ChatComposer
               mode="hero"
               isConfigured={isConfigured}
+              disabledReason={composerLockedReason}
               language={language}
               draft={draft}
               busy={busy}
@@ -121,7 +125,8 @@ export function ChatEmptyState({
               onSend={onSend}
             />
           </div>
-          {activeBot && activeBot.id !== mainBotId ? (
+          {composerLockedReason ? null : activeBot &&
+            activeBot.id !== mainBotId ? (
             <WelcomeStarters
               language={language}
               bot={activeBot}

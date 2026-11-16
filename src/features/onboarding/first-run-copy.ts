@@ -15,6 +15,8 @@ const pt = {
   connectKey: "Conectar chave",
   otherProviders: "Outros provedores",
   starterPrompt: "Oi! O que você consegue fazer por mim?",
+  agentsLocked: "Conecte um provedor para usar os agentes",
+  composerLocked: "Conecte um provedor acima para começar a conversar",
 };
 
 type FirstRunCopy = typeof pt;
@@ -34,6 +36,8 @@ const en: FirstRunCopy = {
   connectKey: "Connect key",
   otherProviders: "Other providers",
   starterPrompt: "Hi! What can you do for me?",
+  agentsLocked: "Connect a provider to use the agents",
+  composerLocked: "Connect a provider above to start chatting",
 };
 
 const es: FirstRunCopy = {
@@ -51,6 +55,8 @@ const es: FirstRunCopy = {
   connectKey: "Conectar clave",
   otherProviders: "Otros proveedores",
   starterPrompt: "¡Hola! ¿Qué puedes hacer por mí?",
+  agentsLocked: "Conecta un proveedor para usar los agentes",
+  composerLocked: "Conecta un proveedor arriba para empezar a chatear",
 };
 
 export const firstRunCopy: Record<ChatLanguage, FirstRunCopy> = { pt, en, es };
