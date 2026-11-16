@@ -156,8 +156,6 @@ export const chatCopyEs = {
   mentionPaletteEmptyHint: "Revisa el nombre que escribiste después de la @.",
   queueMessageLabel: "Agregar a la cola",
   botGreeting: "¿Cómo puede ayudarte {bot} hoy?",
-  connectAiNotice: "Conecta una IA gratuita con OpenRouter o un modelo local.",
-  connectAiSetup: "Configurar",
   suggestionsLabel: "Sugerencias para empezar",
   summarySampleQuery: "Resumen de hoy",
   gitHubIssuesQuery: "issues de tiagovilasboas/openbot",
