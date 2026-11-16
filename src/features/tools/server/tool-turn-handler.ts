@@ -171,6 +171,7 @@ async function streamToolTurn(
   const capability = await lookup(
     modelRequest.config,
     modelRequest.modelId,
+    env,
   ).catch(() => "none" as const);
   const stop = new AbortController();
   const signal = createStreamSignal(
