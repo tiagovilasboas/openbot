@@ -29,6 +29,7 @@ import { ChatHeader } from "./ChatHeader.tsx";
 import { ChatSidebar } from "./ChatSidebar.tsx";
 import { ChatSyncNotices } from "./ChatSyncNotices.tsx";
 import { ConversationView } from "./ConversationView.tsx";
+import { NewChatUndoNotice } from "./NewChatUndoNotice.tsx";
 import { focusComposer } from "./focus-composer.ts";
 import { rollBackThread, rollbackBlock } from "./roll-back-thread.ts";
 import { useActiveModel } from "./use-active-model.ts";
@@ -38,6 +39,7 @@ import { useChatTurns } from "./use-chat-turns.ts";
 import { useDocumentTheme } from "./use-document-theme.ts";
 import { useLanguage } from "./use-language.ts";
 import { useMessageQueue } from "./use-message-queue.ts";
+import { useNewChatUndo } from "./use-new-chat-undo.ts";
 
 export function ChatExperience() {
   const [language, setLanguage] = useLanguage();
@@ -186,11 +188,18 @@ export function ChatExperience() {
     focusComposer(language);
   }
 
-  function startNewChat() {
+  function clearThread() {
     resetConversation();
     setDraft("");
     attachments.clear();
   }
+
+  const newChatUndo = useNewChatUndo({
+    botId: activeBot.id,
+    messages,
+    persistMessages,
+    startNewChat: clearThread,
+  });
 
   if (auth.hasPassword && auth.isLocked) {
     return (
@@ -223,7 +232,7 @@ export function ChatExperience() {
         onEditBot={botEditor.openFor}
         onRestoreBot={restoreBot}
         onOpenSettings={() => setIsSettingsOpen(true)}
-        onNewChat={startNewChat}
+        onNewChat={newChatUndo.newChatWithUndo}
         canStartNewChat={messages.length > 0}
       />
 
@@ -238,7 +247,7 @@ export function ChatExperience() {
           onOpenModelPicker={modelPicker.open}
           modelPickerLabel={getBotModelPickerCopy(language).pickerButton}
           hasMessages={messages.length > 0}
-          onNewChat={startNewChat}
+          onNewChat={newChatUndo.newChatWithUndo}
           activeBot={activeBot}
           onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
           isMobileSidebarOpen={isMobileSidebarOpen}
@@ -303,6 +312,12 @@ export function ChatExperience() {
           />
         )}
       </main>
+
+      <NewChatUndoNotice
+        language={language}
+        visible={newChatUndo.canUndo}
+        onUndo={newChatUndo.undo}
+      />
 
       <ChatDialogs
         language={language}
