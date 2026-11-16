@@ -8,6 +8,7 @@ import type { ChatLanguage } from "./respond-to-message.ts";
 import { SidebarActionRow } from "./SidebarActionRow.tsx";
 import { SidebarBotList } from "./SidebarBotList.tsx";
 import { SidebarHiddenBots } from "./SidebarHiddenBots.tsx";
+import { NeedsYouSection } from "@/features/attention/NeedsYouSection.tsx";
 import { hiddenBots, visibleBots } from "@/features/bots/bot-visibility.ts";
 import {
   LockIcon,
@@ -26,6 +27,8 @@ export interface SidebarNavProps {
   workingBotIds?: readonly string[];
   /** Replies per bot the user has not seen yet. */
   attentionCounts?: Readonly<Record<string, number>>;
+  /** The bot whose tool turn waits for the user's approval. */
+  approvalBotId?: string | null;
   onSelectBot: (botId: string) => void;
   onReorderBot?: (botId: string, toIndex: number) => void;
   onCreateBot: () => void;
@@ -54,6 +57,7 @@ export function SidebarPanel({
   mainBotId,
   workingBotIds,
   attentionCounts,
+  approvalBotId,
   onSelectBot,
   onReorderBot,
   onCreateBot,
@@ -85,6 +89,15 @@ export function SidebarPanel({
             emphasis
           />
         )}
+
+        <NeedsYouSection
+          language={language}
+          bots={shownBots}
+          activeBotId={activeBotId}
+          approvalBotId={approvalBotId}
+          attentionCounts={attentionCounts}
+          onSelectBot={onSelectBot}
+        />
 
         <div role="group" aria-labelledby={botsLabelId} className="mt-5">
           <p
