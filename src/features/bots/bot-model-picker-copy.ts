@@ -17,6 +17,9 @@ interface BotModelPickerCopy {
   pickerButton: string;
   changedTo: string;
   changedToDefault: string;
+  pendingTo: string;
+  pendingToDefault: string;
+  nextBadge: string;
 }
 
 const COPY: Record<Language, BotModelPickerCopy> = {
@@ -39,6 +42,11 @@ const COPY: Record<Language, BotModelPickerCopy> = {
     pickerButton: "Escolher modelo do bot",
     changedTo: "{name} usa agora o modelo {model}",
     changedToDefault: "{name} usa agora o modelo padrão",
+    pendingTo:
+      "{name} termina esta resposta no modelo atual; a próxima usa {model}",
+    pendingToDefault:
+      "{name} termina esta resposta no modelo atual; a próxima usa o modelo padrão",
+    nextBadge: "próximo: {model}",
   },
   en: {
     title: "This bot's model",
@@ -59,6 +67,11 @@ const COPY: Record<Language, BotModelPickerCopy> = {
     pickerButton: "Choose the bot's model",
     changedTo: "{name} now uses the model {model}",
     changedToDefault: "{name} now uses the default model",
+    pendingTo:
+      "{name} finishes this reply on the current model; the next one uses {model}",
+    pendingToDefault:
+      "{name} finishes this reply on the current model; the next one uses the default model",
+    nextBadge: "next: {model}",
   },
   es: {
     title: "Modelo de este bot",
@@ -79,6 +92,11 @@ const COPY: Record<Language, BotModelPickerCopy> = {
     pickerButton: "Elegir el modelo del bot",
     changedTo: "{name} ahora usa el modelo {model}",
     changedToDefault: "{name} ahora usa el modelo predeterminado",
+    pendingTo:
+      "{name} termina esta respuesta con el modelo actual; la próxima usa {model}",
+    pendingToDefault:
+      "{name} termina esta respuesta con el modelo actual; la próxima usa el modelo predeterminado",
+    nextBadge: "siguiente: {model}",
   },
 };
 

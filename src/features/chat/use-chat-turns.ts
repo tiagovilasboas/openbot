@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   recallAttachments,
   rememberAttachments,
@@ -12,6 +12,7 @@ import {
 import type { AttachmentPayload } from "@/features/attachments/parse-attachments.ts";
 import type { Attachment } from "@/features/attachments/read-attachment.ts";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
+import type { InFlightTurnModel } from "@/features/bots/pending-bot-model.ts";
 import type { ClientModelConfig } from "@/features/model/model-config.ts";
 import { refreshMemoryFromServer } from "@/features/memory/sync/browser-memory-sync.ts";
 import type { ModelCallResult } from "@/features/model/model-status.ts";
@@ -84,11 +85,18 @@ export function useChatTurns(input: ChatTurnsInput) {
   const [live, setLive] = useState<MessageData[]>([]);
   // The bot that took the message in flight, even if the user moves to another.
   const [turnBotId, setTurnBotId] = useState<string | null>(null);
+  // The model that turn started with; a later pick waits for the next turn.
+  const [turnModel, setTurnModel] = useState<InFlightTurnModel | null>(null);
   const [toolSteps, setToolSteps] = useState<LiveToolStep[]>([]);
   // The bot whose last turn ran without tools, for a one-line notice.
   const [unavailableBotId, setUnavailableBotId] = useState<string | null>(null);
   const conversationIdRef = useRef(0);
   const turnAbortRef = useRef<AbortController | null>(null);
+  // A queued turn starts from an older render; it reads the bot as saved now.
+  const latestBotRef = useRef(activeBot);
+  useEffect(() => {
+    latestBotRef.current = activeBot;
+  }, [activeBot]);
   const compactThread = useTurnCompaction({
     language,
     activeBot,
@@ -113,6 +121,7 @@ export function useChatTurns(input: ChatTurnsInput) {
   /** The turn is over: free the composer, then answer the next queued one. */
   function settleTurn(botId: string, conversationId: number) {
     setWorkingBot(null);
+    setTurnModel(null);
     setBusy(false);
     if (conversationIdRef.current !== conversationId) return;
     const nextQueued = dequeue();
@@ -143,7 +152,10 @@ export function useChatTurns(input: ChatTurnsInput) {
     // A new message ends a turn still waiting for approval.
     approval.drop();
     setUnavailableBotId(null);
-    const turn = beginTurn(activeBot.id);
+    const latest = latestBotRef.current;
+    const turnBot = latest.id === activeBot.id ? latest : activeBot;
+    setTurnModel({ botId: turnBot.id, modelId: turnBot.modelId });
+    const turn = beginTurn(turnBot.id);
     const { controller } = turn;
     // A thread filling the window is folded into a summary first; on any
     // failure the turn goes out as it is.
@@ -159,7 +171,7 @@ export function useChatTurns(input: ChatTurnsInput) {
         text: turnText,
         language,
         history,
-        activeBot,
+        activeBot: turnBot,
         bots,
         mainBotId,
         gitHubToken,
@@ -266,6 +278,7 @@ export function useChatTurns(input: ChatTurnsInput) {
     approval.drop();
     clearMessages();
     setLive([]);
+    setTurnModel(null);
     setBusy(false);
   }
 
@@ -279,6 +292,7 @@ export function useChatTurns(input: ChatTurnsInput) {
     liveMessages: live,
     workingBot,
     workingBotIds: workingIds,
+    turnModel,
     sendText,
     cancelTurn,
     retryMessage,
