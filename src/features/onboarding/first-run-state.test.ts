@@ -10,6 +10,7 @@ const base = {
   startedFree: false,
   savedKeys: {},
   savedKeysLoaded: true,
+  savedKeysFailed: false,
 };
 const openRouterKey = {
   router: {
@@ -79,6 +80,26 @@ test("while the key list is loading, the card says it is checking", () => {
       savedKeysLoaded: false,
     }),
     "checking",
+  );
+});
+
+test("a failed key list is its own step, with a way to retry", () => {
+  assert.equal(
+    firstRunStep({
+      ...base,
+      isConfigured: true,
+      startedFree: true,
+      savedKeysLoaded: false,
+      savedKeysFailed: true,
+    }),
+    "load-failed",
+  );
+});
+
+test("a failed key list does not change the choice before a model exists", () => {
+  assert.equal(
+    firstRunStep({ ...base, savedKeysLoaded: false, savedKeysFailed: true }),
+    "choose",
   );
 });
 

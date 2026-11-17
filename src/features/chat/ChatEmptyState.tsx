@@ -23,6 +23,8 @@ export interface ChatEmptyStateProps {
   isConfigured?: boolean;
   /** No model yet: the composer is locked and says why. */
   composerLockedReason?: string;
+  /** The server has not said yet whether it has a model: no first-run card. */
+  connectChecking?: boolean;
   attachments?: ComposerAttachments;
   onOpenSettings?: () => void;
   onDraftChange: (value: string) => void;
@@ -62,6 +64,7 @@ export function ChatEmptyState({
   mainBotId,
   isConfigured,
   composerLockedReason,
+  connectChecking,
   attachments,
   onOpenSettings,
   onDraftChange,
@@ -100,6 +103,7 @@ export function ChatEmptyState({
               <FirstRunCard
                 language={language}
                 isConfigured={Boolean(isConfigured)}
+                isChecking={Boolean(connectChecking)}
                 onOpenSettings={onOpenSettings}
                 onStarter={(prompt) => {
                   if (!draft) onDraftChange(prompt);

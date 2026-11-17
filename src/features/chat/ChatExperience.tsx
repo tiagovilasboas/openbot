@@ -267,6 +267,7 @@ export function ChatExperience() {
           composerModel={composerModel}
           locked={gate.locked}
           composerLockedReason={gate.composerReason}
+          connectChecking={gate.checking}
           rollbackBlocked={blockedRollback}
           toolTurn={toolTurn}
           onDraftChange={setDraft}

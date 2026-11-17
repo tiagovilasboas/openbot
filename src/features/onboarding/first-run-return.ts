@@ -48,13 +48,25 @@ export function cameBackToFirstRun(
   }
 }
 
-/** Forgets the return, once the user retried or moved on. */
+/**
+ * Forgets a first-run Connect, begun or returned: once the user retried,
+ * went back or moved on. Later Connects (from Settings) then start clean.
+ */
 export function clearFirstRunReturn(
   storage: FlagStorage | null = session(),
 ): void {
   try {
+    storage?.removeItem(KEY);
     storage?.removeItem(RETURNED);
   } catch {
     // Nothing to clear without storage.
   }
+}
+
+/** Once a model is ready the first-run Connect is over, whatever its outcome was. */
+export function settleFirstRunConnect(
+  isConfigured: boolean,
+  storage: FlagStorage | null = session(),
+): void {
+  if (isConfigured) clearFirstRunReturn(storage);
 }

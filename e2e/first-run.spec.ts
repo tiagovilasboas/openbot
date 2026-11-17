@@ -195,3 +195,62 @@ test("without a connection agents are locked, the composer says why, and a key u
     page.getByText("Conecte um provedor para usar os agentes"),
   ).toHaveCount(0);
 });
+
+test("with a server model, the first-run buttons never appear while the gate checks", async ({
+  page,
+}) => {
+  await page.route("**/api/model/test", async (route) => {
+    if (route.request().method() !== "GET") return route.fallback();
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    await route.fulfill({
+      json: { configured: true, provider: "router", model: "e2e/server" },
+    });
+  });
+  // Records every moment the card's buttons exist, not only the end state.
+  await page.addInitScript(() => {
+    const w = window as unknown as { __firstRunSeen: boolean };
+    w.__firstRunSeen = false;
+    new MutationObserver(() => {
+      if (document.body?.textContent?.includes("Começar grátis"))
+        w.__firstRunSeen = true;
+    }).observe(document, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+    });
+  });
+  await page.goto("/");
+  await page.waitForTimeout(800);
+  await expect(
+    page.getByRole("button", { name: "Começar grátis" }),
+  ).toHaveCount(0);
+  await page.waitForTimeout(1500);
+  expect(
+    await page.evaluate(
+      () => (window as unknown as { __firstRunSeen: boolean }).__firstRunSeen,
+    ),
+  ).toBe(false);
+});
+
+test("when the saved keys cannot be listed, the card offers Try again instead of waiting", async ({
+  page,
+}) => {
+  let failing = true;
+  await page.route("**/api/keys**", (route) =>
+    failing
+      ? route.fulfill({ status: 500, json: { error: "down" } })
+      : route.fallback(),
+  );
+  await page.goto("/");
+  await page.getByRole("button", { name: "Começar grátis" }).click();
+
+  const notice = page.getByRole("alert").filter({ hasText: "chaves salvas" });
+  await expect(notice).toBeVisible();
+  await expect(page.getByText("Verificando se há uma chave")).toHaveCount(0);
+
+  failing = false;
+  await notice.getByRole("button", { name: "Tentar de novo" }).click();
+  await expect(
+    page.getByText("Falta uma chave gratuita do OpenRouter"),
+  ).toBeVisible();
+});
