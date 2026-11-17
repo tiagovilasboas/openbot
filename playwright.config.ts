@@ -3,7 +3,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { defineConfig, devices } from "@playwright/test";
 
-const PORT = 3800;
+// Parallel checkouts each need their own port: with a shared one, a run
+// reuses whatever server is already there and tests another checkout's code.
+const PORT = Number(process.env.OPENBOT_E2E_PORT) || 3800;
 const isCI = Boolean(process.env.CI);
 // The server keeps bots in a data dir: every run gets a fresh one, so the
 // specs never touch ~/.openbot. A reused server keeps the dir it started with.
