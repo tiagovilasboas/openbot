@@ -41,7 +41,8 @@ test("a connected key lives on the server, never in the browser", async ({
   // The reload still shows it connected, and chat requests carry no key.
   await page.reload();
   await app.openSettingsTab("Conexões");
-  await expect(page.getByText("Conectado", { exact: true })).toBeVisible();
+  // The seeded chat model runs on OpenRouter, so its row reads "in use".
+  await expect(page.getByText("Em uso", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Fechar configurações" }).click();
   await expect(page.getByRole("tab", { name: "Conexões" })).toBeHidden();
   await app.send("hello");
