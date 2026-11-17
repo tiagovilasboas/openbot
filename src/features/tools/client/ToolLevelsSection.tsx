@@ -9,7 +9,7 @@ import { toolLabel } from "./tools-copy.ts";
 
 // Native radios give arrow-key navigation for free; the label is the 44px target.
 const OPTION =
-  "flex min-h-11 min-w-11 flex-1 cursor-pointer items-center justify-center rounded-full px-3 text-[15px] font-medium text-subtle transition-colors has-[:checked]:bg-surface-tertiary has-[:checked]:text-foreground has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-(--bot-accent)has-[:disabled]:opacity-40 md:text-sm";
+  "flex min-h-11 min-w-11 flex-1 cursor-pointer items-center justify-center rounded-full px-3 text-[15px] font-medium text-subtle transition-colors has-[:checked]:bg-surface-tertiary has-[:checked]:text-foreground has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-(--bot-accent) md:text-sm";
 
 /**
  * One level per tool, for every bot: ask, allow or block. The levels live on
@@ -34,7 +34,10 @@ export function ToolLevelsSection({ language }: { language: ChatLanguage }) {
     };
   }, []);
 
+  // The radios stay enabled while a save is out, so keyboard focus is kept;
+  // a second change is ignored until the first one answers.
   async function choose(name: string, level: ToolLevel) {
+    if (busy) return;
     setBusy(true);
     const list = await saveLevel(name, level);
     setBusy(false);
@@ -66,7 +69,7 @@ export function ToolLevelsSection({ language }: { language: ChatLanguage }) {
           {tools.map((tool) => (
             <li key={tool.name} className="rounded-2xl bg-surface px-4 py-2">
               <fieldset
-                disabled={busy}
+                aria-busy={busy}
                 className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between"
               >
                 <legend className="sr-only">
