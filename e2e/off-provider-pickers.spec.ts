@@ -53,7 +53,7 @@ test("a switched-off provider leaves the Model form and the bot picker, and retu
 
   // Switch OpenRouter off in Connections.
   await app.openSettingsTab("Conexões");
-  await page.getByRole("button", { name: /OpenRouter/ }).click();
+  await page.getByRole("button", { name: /^OpenRouter/ }).click();
   const toggle = page.getByRole("switch", { name: "Usar OpenRouter" });
   await toggle.click();
   await expect(toggle).toHaveAttribute("aria-checked", "false");
@@ -90,7 +90,7 @@ test("a switched-off provider leaves the Model form and the bot picker, and retu
 
   // On again: models are back and the warning is gone.
   await app.openSettingsTab("Conexões");
-  await page.getByRole("button", { name: /OpenRouter/ }).click();
+  await page.getByRole("button", { name: /^OpenRouter/ }).click();
   await page.getByRole("switch", { name: "Usar OpenRouter" }).click();
   await page.getByRole("button", { name: "Fechar configurações" }).click();
   await pill.click();
