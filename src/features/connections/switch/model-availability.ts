@@ -49,3 +49,17 @@ export function modelUsability(
 ): Usability {
   return connectionUsability(connectionForModelId(modelId), off);
 }
+
+/**
+ * What the next message would run on: the bot's own model when it has one,
+ * else the global provider type.
+ */
+export function nextTurnUsability(
+  ownModelId: string | undefined,
+  providerType: string | undefined,
+  off: readonly ConnectionId[],
+): Usability {
+  return ownModelId?.trim()
+    ? modelUsability(ownModelId, off)
+    : providerTypeUsability(providerType, off);
+}

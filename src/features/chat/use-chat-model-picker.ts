@@ -1,7 +1,11 @@
 "use client";
 
 import { useEffect } from "react";
-import { reportRunningTurn } from "@/features/connections/index.ts";
+import {
+  reportRunningTurn,
+  useOffProviders,
+} from "@/features/connections/index.ts";
+import { nextTurnUsability } from "@/features/connections/copy.ts";
 import { botModelBadge } from "@/features/bots/bot-model-badge.ts";
 import { getBotModelPickerCopy } from "@/features/bots/bot-model-picker-copy.ts";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
@@ -50,8 +54,19 @@ export function useChatModelPicker({
         model: savedModelLabel,
       })
     : savedModelLabel;
+  // The next message runs on the bot's own model, else on the global provider.
+  const usability = nextTurnUsability(
+    activeBot.modelId,
+    provider,
+    useOffProviders(),
+  );
   const composerModel: ComposerModelControl = {
-    chip: composerModelChip(isConfigured, headerModelLabel, language),
+    chip: composerModelChip(
+      isConfigured,
+      headerModelLabel,
+      language,
+      usability,
+    ),
     onPress: isConfigured ? modelPicker.open : onOpenSettings,
   };
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { AlertIcon } from "@/shared/ui/FieldIcons.tsx";
 import { ModelChipIcon } from "../chat/ShellIcons.tsx";
 import { useComposerModel } from "./composer-model-context.ts";
 
@@ -25,6 +26,7 @@ export function ComposerModelChip() {
   const control = useComposerModel();
   if (!control) return null;
   const { chip, onPress } = control;
+  const warn = chip.tone === "warning";
   return (
     <button
       type="button"
@@ -33,9 +35,18 @@ export function ComposerModelChip() {
       aria-haspopup="dialog"
       onMouseDown={(event) => event.preventDefault()}
       onClick={onPress}
-      className="flex h-9 min-w-0 max-w-[8.5rem] items-center gap-1.5 rounded-full border border-border bg-surface-secondary px-2.5 text-xs font-medium text-muted transition-[background-color,border-color,color,transform] duration-(--duration-micro) ease-out-expo hover:border-foreground/30 hover:bg-surface-tertiary hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50 md:max-w-[16rem]"
+      data-tone={chip.tone}
+      className={`flex h-9 min-w-0 max-w-[8.5rem] items-center gap-1.5 rounded-full border px-2.5 text-xs font-medium transition-[background-color,border-color,color,transform] duration-(--duration-micro) ease-out-expo focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50 md:max-w-[16rem] ${
+        warn
+          ? "border-warning/40 bg-warning-soft text-warning hover:border-warning"
+          : "border-border bg-surface-secondary text-muted hover:border-foreground/30 hover:bg-surface-tertiary hover:text-foreground"
+      }`}
     >
-      <ModelChipIcon className="size-3.5" />
+      {warn ? (
+        <AlertIcon className="size-3.5 shrink-0" />
+      ) : (
+        <ModelChipIcon className="size-3.5" />
+      )}
       <span className="min-w-0 truncate">{chip.text}</span>
       <ChevronDownIcon />
     </button>

@@ -11,6 +11,7 @@ export {
   connectionForProviderType,
   connectionUsability,
   modelUsability,
+  nextTurnUsability,
   providerTypeUsability,
   type Usability,
 } from "./switch/model-availability.ts";
