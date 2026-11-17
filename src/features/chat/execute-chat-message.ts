@@ -2,12 +2,10 @@ import type { AttachmentPayload } from "@/features/attachments/parse-attachments
 import { historyByteBudget } from "@/features/attachments/request-size.ts";
 import { buildBotSystemPrompt } from "@/features/bots/bot-system-prompt.ts";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
-import { chiefPlainReply } from "@/features/crew/chief-plain-reply.ts";
 import { crewCopy } from "@/features/crew/crew-copy.ts";
 import { buildCrewRoster } from "@/features/crew/crew-roster.ts";
 import { liveChiefText } from "@/features/crew/live-chief-text.ts";
 import { parseDelegations } from "@/features/crew/parse-delegations.ts";
-import { runCrewTurn } from "@/features/crew/run-crew-turn.ts";
 import { detectGitHubRequest } from "@/features/github/detect-github-request.ts";
 import type { LiveToolStep } from "@/features/tools/client/live-tool-steps.ts";
 import { toolTurnFor } from "@/features/tools/client/tool-route.ts";
@@ -23,7 +21,7 @@ import type { ChatReplyOutcome } from "./chat-reply-outcome.ts";
 import { findMentionedBot } from "./find-mentioned-bot.ts";
 import { failedReply as modelFailureReply } from "./model-failure-reply.ts";
 import { githubRequestReply } from "./github-request-reply.ts";
-import { crewReplyFields } from "./crew-reply-fields.ts";
+import { crewTurnReply } from "./crew-turn-reply.ts";
 import { createLiveBoard, type LiveEntry } from "./live-board.ts";
 import { fitHistoryToBytes, limitHistory } from "./request-history.ts";
 import { incompleteKindOf } from "./incomplete-reply.ts";
@@ -226,66 +224,21 @@ export async function executeChatMessage({
     };
   }
   if (outcome.kind === "text") {
-    const crewTurn = isChief
-      ? await runCrewTurn({
-          chief: executingBot,
-          chiefPrompt: botPrompt,
-          chiefReply: outcome.text,
-          bots,
-          history,
-          userText: text,
-          language,
-          onBotWorking,
-          memoryFor,
-          onKickoff: (kickoff) => board?.settle(kickoff),
-          askModel: async ({
-            systemPrompt,
-            messages,
-            modelId,
-            memory,
-            speaker,
-          }) => {
-            const reply = await askAndCount(
-              systemPrompt,
-              messages,
-              modelId,
-              memory,
-              speaker,
-            );
-            if (reply.kind === "partial") {
-              // A broken stream keeps what arrived; a cancel keeps nothing here
-              // (the user's cancel stores the live entries instead).
-              const kind = incompleteKindOf(reply.failure);
-              if (kind !== "cancelled") {
-                board?.keep();
-                return { ok: false, partial: { text: reply.text, kind } };
-              }
-            }
-            if (reply.kind !== "text") {
-              board?.drop();
-              return { ok: false };
-            }
-            board?.keep();
-            return { ok: true, text: reply.text };
-          },
-        })
-      : null;
-    return {
-      text: crewTurn
-        ? (crewTurn.synthesis ?? crewCopy[language].synthesisFailed)
-        : isChief
-          ? chiefPlainReply(outcome.text, bots, executingBot.id, language)
-          : outcome.text,
-      ...crewReplyFields(crewTurn),
+    return crewTurnReply({
+      reply: outcome,
+      executingBot,
       delegatedBot,
-      ...(crewTurn?.synthesisIncomplete
-        ? {
-            incomplete: crewTurn.synthesisIncomplete,
-            modelCall: "failed" as const,
-          }
-        : { modelCall: "ok" as const }),
-      ...(outcome.failover ? { failover: outcome.failover } : {}),
-    };
+      isChief,
+      botPrompt,
+      bots,
+      history,
+      text,
+      language,
+      board,
+      onBotWorking,
+      memoryFor,
+      askAndCount,
+    });
   }
   if (outcome.kind === "unavailable") {
     return {
