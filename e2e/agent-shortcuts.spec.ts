@@ -1,9 +1,25 @@
+import type { Page } from "@playwright/test";
 import { appPage, expect, test } from "./app-fixture.ts";
+
+/**
+ * Opens the app and waits for the first bots sync to finish. A fresh browser
+ * seeds the server with a PUT, and its answer sets the active agent again, so
+ * a shortcut pressed before it lands would be undone.
+ */
+async function openChat(page: Page): Promise<void> {
+  const seeded = page.waitForResponse(
+    (response) =>
+      response.url().endsWith("/api/bots") &&
+      response.request().method() === "PUT",
+  );
+  await page.goto("/");
+  await seeded;
+}
 
 test("Alt plus a digit switches to the Nth agent and focuses the composer", async ({
   page,
 }) => {
-  await page.goto("/");
+  await openChat(page);
   const app = appPage(page);
   await expect(app.botRows()).toHaveCount(9);
   await expect(app.botRows().nth(0)).toHaveAttribute("aria-current", "page");
@@ -28,7 +44,7 @@ test("Alt plus a digit switches to the Nth agent and focuses the composer", asyn
 test("the shortcut works again and again without clicking anywhere", async ({
   page,
 }) => {
-  await page.goto("/");
+  await openChat(page);
   const app = appPage(page);
   await expect(app.botRows()).toHaveCount(9);
 
@@ -46,7 +62,7 @@ test("the shortcut works again and again without clicking anywhere", async ({
 test("Alt plus a digit does nothing in any other text field", async ({
   page,
 }) => {
-  await page.goto("/");
+  await openChat(page);
   const app = appPage(page);
   await expect(app.botRows()).toHaveCount(9);
   await page.evaluate(() => {
@@ -78,7 +94,7 @@ test.describe("without a connected model", () => {
   test.use({ configuredModel: false });
 
   test("the shortcut stays locked with the agents", async ({ page }) => {
-    await page.goto("/");
+    await openChat(page);
     const app = appPage(page);
     await expect(app.botRows().nth(0)).toHaveAttribute("aria-current", "page");
     await page.keyboard.press("Alt+Digit3");
