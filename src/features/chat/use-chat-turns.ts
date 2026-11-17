@@ -23,7 +23,8 @@ import { storeTurnReply } from "./store-turn-reply.ts";
 import { threadUpTo } from "./thread-sequencing.ts";
 import { loadBotMessages } from "./use-bot-messages.ts";
 import type { ToolTurnView } from "./tool-turn-view.ts";
-import { useLatestBot } from "./use-latest-bot.ts";
+import { settingsForTurn } from "./turn-settings.ts";
+import { useLatestTurnSettings } from "./use-latest-turn-settings.ts";
 import { useToolApproval } from "./use-tool-approval.ts";
 import type { ChatTurnsInput } from "./chat-turns-input.ts";
 import { workingBotIds } from "./working-bots.ts";
@@ -62,14 +63,16 @@ export function useChatTurns(input: ChatTurnsInput) {
   const [unavailableBotId, setUnavailableBotId] = useState<string | null>(null);
   const conversationIdRef = useRef(0);
   const turnAbortRef = useRef<AbortController | null>(null);
-  const latestBotRef = useLatestBot(activeBot);
-  const compactThread = useTurnCompaction({
+  const latestSettingsRef = useLatestTurnSettings({
     language,
     activeBot,
+    bots,
+    mainBotId,
+    gitHubToken,
     modelConfig,
     contextModel,
-    persistMessages,
   });
+  const compactThread = useTurnCompaction(persistMessages);
 
   const beginTurn = (botId: string) =>
     startLiveTurn(
@@ -118,13 +121,14 @@ export function useChatTurns(input: ChatTurnsInput) {
     // A new message ends a turn still waiting for approval.
     approval.drop();
     setUnavailableBotId(null);
-    const latest = latestBotRef.current;
-    const turnBot = latest.id === activeBot.id ? latest : activeBot;
+    // A queued turn starts from an older render: read what is saved now.
+    const settings = settingsForTurn(latestSettingsRef.current, activeBot);
+    const turnBot = settings.activeBot;
     setTurnModel({ botId: turnBot.id, modelId: turnBot.modelId });
     const turn = beginTurn(turnBot.id);
     // A thread filling the window is folded into a summary first; on any
     // failure the turn goes out as it is.
-    await compactThread(userMessageId, turn.signal);
+    await compactThread(settings, userMessageId, turn.signal);
     // Read the stored thread, not a render closure, so queued messages stay.
     const history = historyFromThread(
       threadUpTo(loadBotMessages(activeBot.id), userMessageId),
@@ -132,13 +136,13 @@ export function useChatTurns(input: ChatTurnsInput) {
 
     const { reply, cancelled } = await runModelTurn(turn, {
       text: turnText,
-      language,
+      language: settings.language,
       history,
       activeBot: turnBot,
-      bots,
-      mainBotId,
-      gitHubToken,
-      modelConfig,
+      bots: settings.bots,
+      mainBotId: settings.mainBotId,
+      gitHubToken: settings.gitHubToken,
+      modelConfig: settings.modelConfig,
       attachments,
       clientMessageId: clientIdOf(loadBotMessages(activeBot.id), userMessageId),
       onBotWorking: setWorkingBot,
@@ -149,7 +153,7 @@ export function useChatTurns(input: ChatTurnsInput) {
     if (conversationIdRef.current === conversationId) {
       const replyMessages = storeTurnReply({
         reply,
-        language,
+        language: settings.language,
         modelBadge,
         getNextId,
         thread: loadBotMessages(activeBot.id),

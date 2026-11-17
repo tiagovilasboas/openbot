@@ -45,6 +45,20 @@ export function agentShortcutHint(index: number): string | undefined {
     : undefined;
 }
 
+/** Marks the app's own chat composer, whatever the language of its label. */
+export const COMPOSER_ATTRIBUTE = "data-chat-composer";
+
+/**
+ * True where the shortcut must stay out of the way: any field being edited
+ * except the chat composer. The shortcut reads the physical key and calls
+ * `preventDefault`, so nothing is typed in the composer.
+ */
+export function shortcutBlockedByTarget(target: EventTarget | null): boolean {
+  if (!isTypingTarget(target)) return false;
+  const el = target as { hasAttribute?: (name: string) => boolean };
+  return !el.hasAttribute?.(COMPOSER_ATTRIBUTE);
+}
+
 /** True where a key press belongs to text entry or a control being edited. */
 export function isTypingTarget(target: EventTarget | null): boolean {
   const el = target as {
