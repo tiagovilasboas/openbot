@@ -19,6 +19,11 @@ import type { ModelCallResult } from "@/features/model/model-status.ts";
 import type { LiveToolStep } from "@/features/tools/client/live-tool-steps.ts";
 import type { MessageData } from "./ChatMessageItem.tsx";
 import { raceCancel } from "./cancel-turn.ts";
+import {
+  clientIdOf,
+  isAlreadySent,
+  newClientMessageId,
+} from "./client-message-id.ts";
 import { cancelledPartialReply } from "./cancelled-partial-reply.ts";
 import { historyFromThread } from "@/features/compaction/history-from-thread.ts";
 import { useTurnCompaction } from "@/features/compaction/use-turn-compaction.ts";
@@ -177,6 +182,10 @@ export function useChatTurns(input: ChatTurnsInput) {
         gitHubToken,
         modelConfig,
         attachments,
+        clientMessageId: clientIdOf(
+          loadBotMessages(activeBot.id),
+          userMessageId,
+        ),
         onBotWorking: setWorkingBot,
         onLive: turn.live,
         onToolSteps: turn.steps,
@@ -220,7 +229,13 @@ export function useChatTurns(input: ChatTurnsInput) {
   }
 
   /** Stores the user's message and answers it now, or queues it while busy. */
-  function sendText(text: string, files: Attachment[] = []) {
+  function sendText(
+    text: string,
+    files: Attachment[] = [],
+    clientId = newClientMessageId(),
+  ) {
+    // The same send arriving twice is stored and answered once.
+    if (isAlreadySent(loadBotMessages(activeBot.id), clientId)) return;
     const conversationId = conversationIdRef.current;
     const userMsgId = getNextId();
     const attachments = toPayloads(files);
@@ -228,6 +243,7 @@ export function useChatTurns(input: ChatTurnsInput) {
     const userMessage: MessageData = {
       id: userMsgId,
       role: "user",
+      clientId,
       language,
       text,
       ...(files.length > 0 ? { attachments: toSummaries(files) } : {}),

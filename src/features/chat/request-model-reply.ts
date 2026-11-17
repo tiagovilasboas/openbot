@@ -7,6 +7,7 @@ import {
 import type { AttachmentPayload } from "../attachments/parse-attachments.ts";
 import type { ClientModelConfig } from "../model/model-config.ts";
 import { readTokenUsage, type TokenUsage } from "../model/token-usage.ts";
+import { clientMessageIdHeaders } from "./client-message-id.ts";
 import { createCallSignal } from "./call-timeout.ts";
 import type { ChatLanguage } from "./respond-to-message.ts";
 
@@ -23,6 +24,8 @@ export interface ModelReplyOptions {
   memory?: string[];
   /** Files of this turn, raw: the server delimits them as data. */
   attachments?: AttachmentPayload[];
+  /** Client id of the user's send; the server can tell a repeat from a new one. */
+  clientMessageId?: string;
   /** Tells offline from unreachable; defaults to navigator.onLine. */
   isOnline?: () => boolean;
 }
@@ -85,6 +88,7 @@ export async function requestModelReply(
       options.backupModelIds,
       options.memory,
       options.attachments,
+      options.clientMessageId,
     );
   } finally {
     call.dispose();
@@ -103,6 +107,7 @@ async function fetchReply(
   backupModelIds?: string[],
   memory?: string[],
   attachments?: AttachmentPayload[],
+  clientMessageId?: string,
 ): Promise<ModelReplyOutcome> {
   let response: Response;
   try {
@@ -111,7 +116,10 @@ async function fetchReply(
       withApiHeaders({
         method: "POST",
         signal,
-        headers: { "content-type": "application/json" },
+        headers: {
+          "content-type": "application/json",
+          ...clientMessageIdHeaders(clientMessageId),
+        },
         body: JSON.stringify({
           language,
           messages,

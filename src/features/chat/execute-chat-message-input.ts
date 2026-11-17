@@ -32,6 +32,8 @@ export interface ExecuteChatMessageInput {
    * them: a delegated specialist is not sent the user's files.
    */
   attachments?: AttachmentPayload[];
+  /** Client id of this send; only the user's own model call carries it. */
+  clientMessageId?: string;
   /** Hears each finished reply of a bot; defaults to the device's usage log. */
   onUsage?: (botId: string, usage: TokenUsage | undefined) => void;
   /** A tool changed the bot's notes on the server. */

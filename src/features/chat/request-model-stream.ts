@@ -17,6 +17,7 @@ import {
   type ModelReplyOutcome,
 } from "./request-model-reply.ts";
 import type { ChatLanguage } from "./respond-to-message.ts";
+import { clientMessageIdHeaders } from "./client-message-id.ts";
 import { parseTurnEvent } from "./stream-event-parser.ts";
 import {
   streamRouteFor,
@@ -109,7 +110,10 @@ export async function requestModelStream(
         withApiHeaders({
           method: "POST",
           signal: call.signal,
-          headers: { "content-type": "application/json" },
+          headers: {
+            "content-type": "application/json",
+            ...clientMessageIdHeaders(options.clientMessageId),
+          },
           body: JSON.stringify({
             language,
             messages,
