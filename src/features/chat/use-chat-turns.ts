@@ -1,14 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  recallAttachments,
-  rememberAttachments,
-} from "@/features/attachments/attachment-stash.ts";
-import {
-  toPayloads,
-  toSummaries,
-} from "@/features/attachments/attachment-summary.ts";
+import { recallAttachments } from "@/features/attachments/attachment-stash.ts";
 import type { AttachmentPayload } from "@/features/attachments/parse-attachments.ts";
 import type { Attachment } from "@/features/attachments/read-attachment.ts";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
@@ -27,6 +20,7 @@ import { startLiveTurn } from "./live-turn.ts";
 import { buildReplyMessages } from "./reply-messages.ts";
 import { dropRepliesTo } from "./retry-partial-reply.ts";
 import { runModelTurn } from "./run-model-turn.ts";
+import { storeUserMessage } from "./store-user-message.ts";
 import { insertReplyAfter, threadUpTo } from "./thread-sequencing.ts";
 import { loadBotMessages } from "./use-bot-messages.ts";
 import type { ToolTurnView } from "./tool-turn-view.ts";
@@ -193,17 +187,16 @@ export function useChatTurns(input: ChatTurnsInput) {
     if (isAlreadySent(loadBotMessages(activeBot.id), clientId)) return;
     const conversationId = conversationIdRef.current;
     const userMsgId = getNextId();
-    const attachments = toPayloads(files);
-    rememberAttachments(activeBot.id, userMsgId, attachments);
-    const userMessage: MessageData = {
+    const attachments = storeUserMessage({
+      botId: activeBot.id,
       id: userMsgId,
-      role: "user",
       clientId,
       language,
       text,
-      ...(files.length > 0 ? { attachments: toSummaries(files) } : {}),
-    };
-    persistMessages([...loadBotMessages(activeBot.id), userMessage]);
+      files,
+      thread: loadBotMessages(activeBot.id),
+      persistMessages,
+    });
 
     if (busy) {
       enqueue({ id: userMsgId, text, conversationId, attachments });
