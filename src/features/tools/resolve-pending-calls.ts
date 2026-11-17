@@ -1,4 +1,4 @@
-import { policyFor } from "./tool-policy.ts";
+import { decideTool } from "./tool-policy.ts";
 import {
   recordRefusal,
   runAndRecord,
@@ -33,7 +33,18 @@ export async function* resolvePendingCalls(
     };
     if (state.answered.has(call.id)) continue;
     const tool = input.tools.get(call.name);
-    const policy = tool ? policyFor(tool, input.botId, input.grants) : "ask";
+    const gate = tool
+      ? decideTool(tool, input.botId, input.grants, input.levels)
+      : "ask";
+    const policy = gate === "block" ? "ask" : gate;
+    // A tool blocked after the pause is refused even if the user approved it.
+    if (gate === "block") {
+      yield* recordRefusal(state, input, call, "tool_blocked", {
+        policy,
+        decision: "rejected",
+      });
+      continue;
+    }
     const decision = decisions.find((item) => item.callId === call.id);
     const intact =
       input.digest(pending.argsJson) === pending.argsDigest &&

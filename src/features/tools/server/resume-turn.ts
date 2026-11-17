@@ -3,6 +3,7 @@ import type { ResumeDecision } from "../tool-loop-types.ts";
 import type { ToolRegistry } from "../tool-registry.ts";
 import { digestArgs } from "./audit-repository.ts";
 import { grantTool } from "./grants-repository.ts";
+import { listToolLevels } from "./levels-repository.ts";
 import { decodePendingTurn, type DecodedTurn } from "./pending-turn-codec.ts";
 import {
   closePendingTurn,
@@ -75,7 +76,7 @@ export function claimTurn(
 
 /**
  * Records always-allow for the bound "always" decisions, and only for tools
- * that offer it. Nothing else (model, skills, imports) can create a grant.
+ * that offer it and are not blocked. Nothing else (model, skills, imports) can create a grant.
  */
 export function recordGrants(
   db: DatabaseSync,
@@ -85,9 +86,13 @@ export function recordGrants(
   turn: DecodedTurn,
   now: number,
 ): void {
+  const levels = listToolLevels(db);
   for (const decision of resume.decisions) {
     if (decision.decision !== "always") continue;
     const name = boundDecision(turn, decision);
-    if (name && tools.get(name)?.allowAlways) grantTool(db, botId, name, now);
+    if (!name || !tools.get(name)?.allowAlways) continue;
+    // A tool blocked during the pause is refused, so it earns no grant either.
+    if (Object.hasOwn(levels, name) && levels[name] === "block") continue;
+    grantTool(db, botId, name, now);
   }
 }
