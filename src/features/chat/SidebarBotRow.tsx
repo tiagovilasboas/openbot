@@ -31,6 +31,8 @@ interface SidebarBotRowProps {
   isWorking: boolean;
   /** Replies the user has not seen yet. */
   unseenReplies?: number;
+  /** The digit that switches to this bot with Alt (Option); main list only. */
+  shortcutHint?: string;
   reorder?: RowReorder;
   rowRef: (el: HTMLElement | null) => void;
   onSelect: () => void;
@@ -52,6 +54,7 @@ export function SidebarBotRow({
   isActive,
   isWorking,
   unseenReplies = 0,
+  shortcutHint,
   reorder,
   rowRef,
   onSelect,
@@ -73,6 +76,7 @@ export function SidebarBotRow({
       <button
         type="button"
         aria-current={isActive ? "page" : undefined}
+        aria-keyshortcuts={shortcutHint ? `Alt+${shortcutHint}` : undefined}
         onClick={onSelect}
         className={`${ROW_BUTTON} ${reorder || onRestore ? "pr-[5.5rem]" : "pr-12"} ${
           isActive ? "bg-surface-tertiary" : "hover:bg-surface"
@@ -98,6 +102,15 @@ export function SidebarBotRow({
             </span>
           )}
         </span>
+        {shortcutHint && (
+          <kbd
+            aria-hidden="true"
+            title={`Alt+${shortcutHint}`}
+            className="ml-auto hidden shrink-0 rounded-md border border-separator px-1.5 font-mono text-[11px] leading-5 text-subtle pointer-fine:inline"
+          >
+            {shortcutHint}
+          </kbd>
+        )}
         {isWorking && <span className="sr-only">, {content.botWorking}</span>}
         {unseenReplies > 0 && (
           <span className="sr-only">

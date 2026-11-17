@@ -36,6 +36,7 @@ import { useChatTurns } from "./use-chat-turns.ts";
 import { useDocumentTheme } from "./use-document-theme.ts";
 import { useLanguage } from "./use-language.ts";
 import { useMessageQueue } from "./use-message-queue.ts";
+import { useAgentShortcuts } from "./use-agent-shortcuts.ts";
 import { useNewChatUndo } from "./use-new-chat-undo.ts";
 
 export function ChatExperience() {
@@ -84,6 +85,15 @@ export function ChatExperience() {
   } = useActiveModel(modelConfig, language);
   const gate = useConnectGate(language, isConfigured, serverModel !== null);
   useMigrateLocalKeys();
+  useAgentShortcuts({
+    language,
+    bots,
+    locked: gate.locked,
+    onSelect: (id) => {
+      clearQueue();
+      setActiveBotId(id);
+    },
+  });
   // A provider sending the browser back to finish a Connect opens Settings.
   // (One started from the first-run card returns to the chat instead.)
   useConnectReturn(
