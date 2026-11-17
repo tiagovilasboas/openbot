@@ -5,3 +5,12 @@ export {
   OPENROUTER_FREE_MODEL,
   OPENROUTER_URL,
 } from "./api-key/model-config-on-connection.ts";
+export { offProviderCopy, providerName } from "./switch/off-provider-copy.ts";
+export {
+  connectionForModelId,
+  connectionForProviderType,
+  connectionUsability,
+  modelUsability,
+  providerTypeUsability,
+  type Usability,
+} from "./switch/model-availability.ts";
