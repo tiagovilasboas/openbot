@@ -2,6 +2,7 @@
 
 import { useId } from "react";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
+import { agentShortcutHint } from "./agent-shortcut.ts";
 import { chatCopy } from "./chat-copy.ts";
 import type { ChatLanguage } from "./respond-to-message.ts";
 import { SidebarBotRow } from "./SidebarBotRow.tsx";
@@ -47,7 +48,7 @@ export function SidebarBotList({
   return (
     <>
       <ul className="flex flex-col gap-0.5">
-        {reorder.order.map((bot) => {
+        {reorder.order.map((bot, index) => {
           const movable = canReorder && bot.id !== mainBotId;
           return (
             <SidebarBotRow
@@ -57,6 +58,7 @@ export function SidebarBotList({
               role={
                 bot.id === mainBotId ? content.chiefOfStaffTitle : bot.title
               }
+              shortcutHint={agentShortcutHint(index)}
               isActive={bot.id === activeBotId}
               isWorking={workingBotIds.includes(bot.id)}
               unseenReplies={attentionCounts[bot.id] ?? 0}
