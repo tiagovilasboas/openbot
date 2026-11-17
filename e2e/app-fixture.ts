@@ -116,7 +116,9 @@ export function appPage(page: Page) {
     /** The select button of each bot row, in sidebar order (name + role). */
     botRows: () => page.locator("nav li > button:first-child"),
     async openSettingsTab(tab: string) {
-      await page.getByRole("button", { name: "Configurações" }).click();
+      await page
+        .getByRole("button", { name: "Configurações", exact: true })
+        .click();
       await page.getByRole("tab", { name: tab }).click();
     },
   };
