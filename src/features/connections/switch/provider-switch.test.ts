@@ -4,6 +4,7 @@ import {
   describeProviderState,
   parseOffProviders,
   refuseWhileRunning,
+  validateOffProviders,
   withProviderOff,
 } from "./provider-switch.ts";
 
@@ -38,4 +39,17 @@ test("a running turn refuses changes to its own provider only", () => {
   assert.equal(refuseWhileRunning("router", "router"), "turnRunning");
   assert.equal(refuseWhileRunning("anthropic", "router"), null);
   assert.equal(refuseWhileRunning("router", null), null);
+});
+
+test("a saved off list is valid only as known providers, each once", () => {
+  assert.deepEqual(validateOffProviders([]), []);
+  assert.deepEqual(validateOffProviders(["anthropic", "router"]), [
+    "anthropic",
+    "router",
+  ]);
+  assert.equal(validateOffProviders(["router", "router"]), undefined);
+  assert.equal(validateOffProviders(["router", "openai"]), undefined);
+  assert.equal(validateOffProviders([7]), undefined);
+  assert.equal(validateOffProviders("router"), undefined);
+  assert.equal(validateOffProviders(null), undefined);
 });

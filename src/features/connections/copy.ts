@@ -7,6 +7,8 @@ export {
   OPENROUTER_URL,
 } from "./api-key/model-config-on-connection.ts";
 export { offProviderCopy, providerName } from "./switch/off-provider-copy.ts";
+export { validateOffProviders } from "./switch/provider-switch.ts";
+export type { ConnectionId } from "./core/index.ts";
 export {
   connectionForModelId,
   connectionForProviderType,

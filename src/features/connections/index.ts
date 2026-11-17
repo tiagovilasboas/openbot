@@ -6,8 +6,11 @@ export { ConnectProvider } from "./panel/ConnectProvider.tsx";
 export { ConnectWithProvider } from "./panel/ConnectWithProvider.tsx";
 /** Chat reports the provider a running turn uses, so it cannot be switched off or disconnected meanwhile. */
 /** Pickers also read which providers are switched off, to leave them out. */
+/** The settings sync keeps the off list on the server, which refuses those providers. */
 export {
+  loadStoredOffProviders,
   reportRunningTurn,
   useOffProviders,
+  writeOffProviders,
 } from "./switch/provider-switch-store.ts";
 export { OffProviderNotice } from "./switch/OffProviderNotice.tsx";

@@ -102,6 +102,29 @@ test("an anthropic config is kept without its key too", async () => {
   });
 });
 
+test("the providers switched off round-trip and refuse anything unknown", async () => {
+  await withDb(async (db) => {
+    const saved = await put(db, {
+      settings: { providersOff: ["anthropic", "router"] },
+    });
+    assert.equal(saved.status, 200);
+    assert.deepEqual(await handleGetSettings(db).json(), {
+      settings: { providersOff: ["anthropic", "router"] },
+    });
+    await put(db, { settings: { providersOff: [] } });
+    assert.deepEqual(readSettings(db), { providersOff: [] });
+    for (const providersOff of [["openai"], ["router", "router"], "router"]) {
+      const refused = await put(db, { settings: { providersOff } });
+      assert.equal(refused.status, 400);
+      assert.deepEqual(await refused.json(), {
+        error: "invalid_setting",
+        key: "providersOff",
+      });
+    }
+    assert.deepEqual(readSettings(db), { providersOff: [] });
+  });
+});
+
 test("an unknown key is refused with unknown_setting", async () => {
   await withDb(async (db) => {
     await put(db, { settings: { language: "en" } });

@@ -1,6 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { notifySettingsChanged } from "../../settings/settings-sync-port.ts";
 import type { ConnectionId } from "../core/index.ts";
 import { parseOffProviders, withProviderOff } from "./provider-switch.ts";
 
@@ -35,12 +36,31 @@ export function readOffProviders(): ConnectionId[] {
   return cached;
 }
 
-export function writeOffProviders(next: readonly ConnectionId[]): void {
+/** The saved list; undefined while this browser never saved one. */
+export function loadStoredOffProviders(): ConnectionId[] | undefined {
+  try {
+    return window.localStorage.getItem(STORAGE_KEY) === null
+      ? undefined
+      : readOffProviders();
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Saves the list and queues it for the server, which refuses an off
+ * provider. The load passes `sync: false` to mirror the server's list.
+ */
+export function writeOffProviders(
+  next: readonly ConnectionId[],
+  options: { sync?: boolean } = {},
+): void {
   const raw = JSON.stringify(next);
   window.localStorage.setItem(STORAGE_KEY, raw);
   cachedRaw = raw;
   cached = [...next];
   emit();
+  if (options.sync !== false) notifySettingsChanged({ providersOff: cached });
 }
 
 export function useOffProviders(): readonly ConnectionId[] {
