@@ -13,9 +13,7 @@ import type { AttachmentPayload } from "@/features/attachments/parse-attachments
 import type { Attachment } from "@/features/attachments/read-attachment.ts";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
 import type { InFlightTurnModel } from "@/features/bots/pending-bot-model.ts";
-import type { ClientModelConfig } from "@/features/model/model-config.ts";
 import { refreshMemoryFromServer } from "@/features/memory/sync/browser-memory-sync.ts";
-import type { ModelCallResult } from "@/features/model/model-status.ts";
 import type { LiveToolStep } from "@/features/tools/client/live-tool-steps.ts";
 import type { MessageData } from "./ChatMessageItem.tsx";
 import { raceCancel } from "./cancel-turn.ts";
@@ -33,35 +31,12 @@ import { executeChatMessage } from "./execute-chat-message.ts";
 import { startLiveTurn } from "./live-turn.ts";
 import { buildReplyMessages } from "./reply-messages.ts";
 import { dropRepliesTo } from "./retry-partial-reply.ts";
-import type { ChatLanguage } from "./respond-to-message.ts";
 import { insertReplyAfter, threadUpTo } from "./thread-sequencing.ts";
 import { loadBotMessages } from "./use-bot-messages.ts";
 import type { ToolTurnView } from "./tool-turn-view.ts";
 import { useToolApproval } from "./use-tool-approval.ts";
-import type { QueuedMessage } from "./use-message-queue.ts";
+import type { ChatTurnsInput } from "./chat-turns-input.ts";
 import { workingBotIds } from "./working-bots.ts";
-
-interface ChatTurnsInput {
-  language: ChatLanguage;
-  activeBot: BotProfile;
-  bots: BotProfile[];
-  mainBotId: string;
-  gitHubToken: string | null;
-  modelConfig: ClientModelConfig | null;
-  /** The model whose window the thread is measured against. */
-  contextModel: string | undefined;
-  /** Shown on replies only when a model is configured. */
-  modelBadge: string | undefined;
-  recordModelCall: (result?: ModelCallResult) => void;
-  persistMessages: (messages: MessageData[]) => void;
-  getNextId: () => number;
-  clearMessages: () => void;
-  enqueue: (item: QueuedMessage) => void;
-  dequeue: () => QueuedMessage | undefined;
-  clearQueue: () => void;
-  /** A bot's reply was stored (not one the user cancelled). */
-  onReply: (botId: string) => void;
-}
 
 /** Sends the user's text, answers it turn by turn and runs the queue. */
 export function useChatTurns(input: ChatTurnsInput) {
