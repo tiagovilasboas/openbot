@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { messageFitsRequest } from "@/features/attachments/request-size.ts";
 import { toPayloads } from "@/features/attachments/attachment-summary.ts";
 import type { Attachment } from "@/features/attachments/read-attachment.ts";
 import type { ComposerAttachments } from "@/features/attachments/use-composer-attachments.ts";
 import type { MessageData } from "./ChatMessageItem.tsx";
+import { sendIdFor, type LastSend } from "./client-message-id.ts";
 import { focusComposer } from "./focus-composer.ts";
 import type { ChatLanguage } from "./respond-to-message.ts";
 import { rollBackThread, type RollbackBlock } from "./roll-back-thread.ts";
@@ -18,7 +19,7 @@ interface ComposerDraftInput {
   messages: MessageData[];
   persistMessages: (next: MessageData[]) => void;
   blockedRollback: RollbackBlock | null;
-  sendText: (text: string, files?: Attachment[]) => void;
+  sendText: (text: string, files?: Attachment[], clientId?: string) => void;
   resetConversation: () => void;
 }
 
@@ -34,6 +35,7 @@ export function useComposerDraft({
   resetConversation,
 }: ComposerDraftInput) {
   const [draft, setDraft] = useState("");
+  const lastSendRef = useRef<LastSend | null>(null);
 
   function sendMessage(value = draft) {
     const text = value.trim();
@@ -42,7 +44,9 @@ export function useComposerDraft({
       attachments.reportTooBig();
       return;
     }
-    sendText(text, attachments.take());
+    // A double submit of the same text keeps one id, so it is stored once.
+    lastSendRef.current = sendIdFor(lastSendRef.current, text, Date.now());
+    sendText(text, attachments.take(), lastSendRef.current.id);
     setDraft("");
   }
 

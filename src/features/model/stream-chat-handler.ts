@@ -12,6 +12,7 @@ import {
 import { modelNotAllowedResponse } from "./allowed-models.ts";
 import type { FetchLike } from "./model-adapter.ts";
 import { eventsToNdjson } from "./ndjson-stream.ts";
+import { readIdempotencyKey } from "./idempotency-key.ts";
 import { parseChatRequest } from "./parse-chat-request.ts";
 import { selectAdapter } from "./select-adapter.ts";
 import { createStreamSignal, STREAM_TIMEOUT_MS } from "./stream-signal.ts";
@@ -57,6 +58,9 @@ export async function handleChatStream(
     keyLookup = noKeyLookup,
   }: StreamChatOptions,
 ): Promise<Response> {
+  if (!readIdempotencyKey(request.headers).ok) {
+    return Response.json({ error: "invalid_request" }, { status: 400 });
+  }
   const payload: unknown = await request.json().catch(() => null);
   const parsed = parseChatRequest(payload);
   if (!parsed.ok) {

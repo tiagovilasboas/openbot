@@ -55,6 +55,7 @@ export async function executeChatMessage({
   signal,
   memoryFor = memoryTextsForRequest,
   attachments = [],
+  clientMessageId,
   onUsage = recordUsageCall,
   onMemoryChanged = () => undefined,
   onToolSteps,
@@ -163,9 +164,11 @@ export async function executeChatMessage({
     speaker: BotProfile | undefined,
     shape: (text: string) => string = (text) => text,
     files?: AttachmentPayload[],
+    sendId?: string,
   ) => {
     const options = {
       signal,
+      clientMessageId: sendId,
       modelId,
       backupModelIds: (speaker ?? executingBot).backupModelIds,
       memory,
@@ -217,6 +220,7 @@ export async function executeChatMessage({
     undefined,
     isChief ? (t) => liveChiefText(t, bots, executingBot.id) : undefined,
     attachments,
+    clientMessageId,
   );
   if (outcome.kind === "partial") {
     // Keep what arrived; a Chief's delegation lines are not part of it.

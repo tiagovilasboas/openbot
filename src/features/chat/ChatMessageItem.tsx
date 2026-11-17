@@ -37,6 +37,8 @@ export interface MessageData {
   language: ChatLanguage;
   role: "assistant" | "user";
   text: string;
+  /** On a user message: the client id of its send; a retry reuses it. */
+  clientId?: string;
   delegatedBot?: BotProfile;
   /** On a specialist's reply: the task it was given and how it went. */
   crewStep?: CrewStepRecord;

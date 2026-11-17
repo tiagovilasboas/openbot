@@ -1,3 +1,4 @@
+import { isClientMessageId } from "./client-message-id.ts";
 import { isLanguage } from "../language/language.ts";
 import type { AttachmentSummary } from "@/features/attachments/attachment-summary.ts";
 import { sanitizeBotProfile } from "../bots/bot-storage.ts";
@@ -154,6 +155,9 @@ export function sanitizeStoredMessage(
     text: raw.text.slice(0, STORED_TEXT_MAX),
   };
 
+  if (raw.role === "user" && isClientMessageId(raw.clientId)) {
+    message.clientId = raw.clientId;
+  }
   const delegatedBot = sanitizeBotProfile(raw.delegatedBot);
   if (delegatedBot) message.delegatedBot = delegatedBot;
   const crewStep = sanitizeCrewStep(raw.crewStep);

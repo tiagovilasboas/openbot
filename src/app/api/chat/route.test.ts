@@ -247,3 +247,24 @@ test("a failing fallback surfaces the fallback's error as 502", async () => {
     "500: upstream_error",
   );
 });
+
+test("a malformed send id is refused before any model call", async () => {
+  let calls = 0;
+  globalThis.fetch = (async () => {
+    calls += 1;
+    return completion("never");
+  }) as typeof fetch;
+
+  const response = await POST(
+    new Request("http://localhost/api/chat", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "idempotency-key": "bad key!",
+      },
+      body: JSON.stringify(validBody()),
+    }),
+  );
+  assert.equal(response.status, 400);
+  assert.equal(calls, 0);
+});

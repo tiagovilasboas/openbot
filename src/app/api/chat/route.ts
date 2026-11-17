@@ -1,5 +1,6 @@
 import { modelNotAllowedResponse } from "../../../features/model/allowed-models.ts";
 import { executeWithFailover } from "../../../features/model/failover-runner.ts";
+import { readIdempotencyKey } from "../../../features/model/idempotency-key.ts";
 import { parseChatRequest } from "../../../features/model/parse-chat-request.ts";
 import { withVaultKeys } from "../../../features/key-vault/apply-vault-keys.ts";
 import { vaultKeyLookup } from "../../../features/key-vault/vault-key-lookup.ts";
@@ -8,6 +9,9 @@ import { selectAdapter } from "../../../features/model/select-adapter.ts";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
+  if (!readIdempotencyKey(request.headers).ok) {
+    return Response.json({ error: "invalid_request" }, { status: 400 });
+  }
   const payload: unknown = await request.json().catch(() => null);
   const parsed = parseChatRequest(payload);
   if (!parsed.ok) {

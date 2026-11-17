@@ -27,6 +27,8 @@ export interface ModelStub {
   queue: (...replies: StubbedReply[]) => void;
   /** Bodies of the /api/chat calls received so far. */
   chatRequests: () => unknown[];
+  /** The client send id header of each /api/chat call, in order. */
+  chatSendIds: () => (string | undefined)[];
   /** The streaming route; unscripted, it answers 503 and the app falls back
    * to /api/chat, so every spec above keeps using `queue`. */
   stream: StreamStub;
@@ -40,11 +42,13 @@ const DEFAULT_REPLY = "Stub reply";
 export async function stubModel(context: BrowserContext): Promise<ModelStub> {
   const scripted: StubbedReply[] = [];
   const received: unknown[] = [];
+  const sendIds: (string | undefined)[] = [];
   const stream = await stubStream(context);
   const tools = await stubTools(context);
 
   await context.route("**/api/chat", async (route) => {
     received.push(route.request().postDataJSON());
+    sendIds.push(route.request().headers()["idempotency-key"]);
     const reply = scripted.shift() ?? {};
     if (reply.delayMs) await new Promise((r) => setTimeout(r, reply.delayMs));
     const status = reply.status ?? 200;
@@ -75,6 +79,7 @@ export async function stubModel(context: BrowserContext): Promise<ModelStub> {
   return {
     queue: (...replies) => void scripted.push(...replies),
     chatRequests: () => received,
+    chatSendIds: () => sendIds,
     stream,
     tools,
   };
