@@ -18,6 +18,21 @@ export function holdClearedThread(
 }
 
 /**
+ * The held thread while it can still be undone, or null for good. A message
+ * in the thread or another active bot ends the window; emptying the thread
+ * again later (a rollback) or coming back to the bot does not reopen it.
+ */
+export function stillHeld(
+  held: ClearedThread | null,
+  activeBotId: string,
+  currentMessages: MessageData[],
+): ClearedThread | null {
+  if (!held) return null;
+  if (held.botId !== activeBotId || currentMessages.length > 0) return null;
+  return held;
+}
+
+/**
  * The messages to put back, or none once the window has closed: another bot
  * is active, or the thread already has new messages that restoring would drop.
  */

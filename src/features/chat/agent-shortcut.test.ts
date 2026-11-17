@@ -3,6 +3,8 @@ import test from "node:test";
 
 import type { BotProfile } from "@/features/bots/bot-types.ts";
 import {
+  COMPOSER_ATTRIBUTE,
+  shortcutBlockedByTarget,
   agentAtShortcut,
   agentShortcutHint,
   agentShortcutNumber,
@@ -65,6 +67,25 @@ test("rows show digits 1 to 9 and nothing after", () => {
   assert.equal(agentShortcutHint(8), "9");
   assert.equal(agentShortcutHint(9), undefined);
   assert.equal(agentShortcutHint(-1), undefined);
+});
+
+test("the chat composer does not block the shortcut, other fields do", () => {
+  const composer = {
+    tagName: "TEXTAREA",
+    hasAttribute: (name: string) => name === COMPOSER_ATTRIBUTE,
+  };
+  const otherTextarea = { tagName: "TEXTAREA", hasAttribute: () => false };
+  assert.equal(shortcutBlockedByTarget(composer as never), false);
+  assert.equal(shortcutBlockedByTarget(otherTextarea as never), true);
+  assert.equal(
+    shortcutBlockedByTarget({
+      tagName: "INPUT",
+      hasAttribute: () => false,
+    } as never),
+    true,
+  );
+  assert.equal(shortcutBlockedByTarget({ tagName: "BUTTON" } as never), false);
+  assert.equal(shortcutBlockedByTarget(null), false);
 });
 
 test("text fields and editable regions count as typing", () => {

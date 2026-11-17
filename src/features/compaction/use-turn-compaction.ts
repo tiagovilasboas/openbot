@@ -1,31 +1,26 @@
 import { buildBotSystemPrompt } from "../bots/bot-system-prompt.ts";
-import type { BotProfile } from "../bots/bot-types.ts";
 import type { MessageData } from "../chat/ChatMessageItem.tsx";
-import type { ChatLanguage } from "../chat/respond-to-message.ts";
+import type { TurnSettings } from "../chat/turn-settings.ts";
 import { loadBotMessages } from "../chat/use-bot-messages.ts";
-import type { ClientModelConfig } from "../model/model-config.ts";
 import { recordUsageCall } from "../usage/usage-storage.ts";
 import { compactBeforeTurn } from "./compact-before-turn.ts";
 
-interface TurnCompactionInput {
-  language: ChatLanguage;
-  activeBot: BotProfile;
-  modelConfig: ClientModelConfig | null;
-  /** The model whose window the thread is measured against. */
-  contextModel: string | undefined;
-  persistMessages: (messages: MessageData[]) => void;
-}
-
 /**
- * Gives the chat turn one step to run first: compact the active bot's stored
- * thread when it fills the model's window. It never throws and never blocks
- * the turn on failure.
+ * Gives the chat turn one step to run first: compact the turn bot's stored
+ * thread when it fills the model's window. The settings come from the turn,
+ * not from the render that built this function. It never throws and never
+ * blocks the turn on failure.
  */
-export function useTurnCompaction(input: TurnCompactionInput) {
-  const { language, activeBot, modelConfig, contextModel, persistMessages } =
-    input;
-  return (userMessageId: number, signal: AbortSignal): Promise<boolean> =>
-    compactBeforeTurn({
+export function useTurnCompaction(
+  persistMessages: (messages: MessageData[]) => void,
+) {
+  return (
+    settings: TurnSettings,
+    userMessageId: number,
+    signal: AbortSignal,
+  ): Promise<boolean> => {
+    const { language, activeBot, modelConfig, contextModel } = settings;
+    return compactBeforeTurn({
       readThread: () => loadBotMessages(activeBot.id),
       userMessageId,
       language,
@@ -38,4 +33,5 @@ export function useTurnCompaction(input: TurnCompactionInput) {
       persist: persistMessages,
       onUsage: recordUsageCall,
     });
+  };
 }
