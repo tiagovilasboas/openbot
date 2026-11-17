@@ -1,4 +1,5 @@
 import type { ClientModelConfig } from "../../model/model-config.ts";
+import { isOpenRouterUrl } from "./openrouter-url.ts";
 
 export type ModelConnectionId = "router" | "anthropic";
 
@@ -7,9 +8,7 @@ export const OPENROUTER_FREE_MODEL = "openrouter/free";
 export const ANTHROPIC_DEFAULT_MODEL = "claude-haiku-5-5";
 
 function isOpenRouter(config: ClientModelConfig): boolean {
-  return (
-    config.provider === "router" && config.baseUrl.includes("openrouter.ai")
-  );
+  return config.provider === "router" && isOpenRouterUrl(config.baseUrl);
 }
 
 /** The model a freshly connected provider starts on. */

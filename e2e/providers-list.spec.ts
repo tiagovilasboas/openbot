@@ -20,7 +20,7 @@ test("providers: list with states, a page per provider, and an off switch", asyn
   await page.getByLabel("Chave de API").fill("sk-or-v1-e2e-list-key");
   await page.getByRole("button", { name: "Testar e conectar" }).click();
   await expect(page.getByText("Conectado. A chave funcionou.")).toBeVisible();
-  await expect(page.getByText("Salva neste aparelho")).toBeVisible();
+  await expect(page.getByText("Salva neste servidor Open Bot")).toBeVisible();
   await expect(page.getByText("Modelo em uso: e2e/stub-model")).toBeVisible();
 
   // Off keeps the key and takes the model out of chat.
@@ -31,7 +31,7 @@ test("providers: list with states, a page per provider, and an off switch", asyn
   expect(
     await page.evaluate(() => localStorage.getItem("openbot_model_config")),
   ).toBeNull();
-  await expect(page.getByText("Salva neste aparelho")).toBeVisible();
+  await expect(page.getByText("Salva neste servidor Open Bot")).toBeVisible();
 
   await page.getByRole("button", { name: "Voltar para conexões" }).click();
   await expect(router).toContainText("Desativado");

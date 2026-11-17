@@ -3,6 +3,7 @@
 import type { Language } from "../language/language.ts";
 import type { chatCopy } from "@/features/chat/chat-copy.ts";
 import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
+import { isOpenRouterUrl } from "@/features/connections/copy.ts";
 import type { ModelProviderType } from "./model-config.ts";
 import { FreeModelList } from "./FreeModelList.tsx";
 import { OpenRouterAccess } from "./OpenRouterAccess.tsx";
@@ -41,13 +42,13 @@ export function SettingsModelPresets({
 }: SettingsModelPresetsProps) {
   const s = getSettingsCopy(language);
   const { liveFreeModels, hasLoadedLive, isAccountList } = useFreeModels(
-    provider === "router" && routerUrl.includes("openrouter.ai"),
+    provider === "router" && isOpenRouterUrl(routerUrl),
   );
 
   const localScan = useLocalServers(provider === "local");
 
   if (provider === "router") {
-    const isOpenRouter = routerUrl.includes("openrouter.ai");
+    const isOpenRouter = isOpenRouterUrl(routerUrl);
     const is9Router =
       routerUrl.includes(":3000") || routerUrl.includes(":20128");
 
