@@ -47,7 +47,7 @@ test("connect from the choice pastes a key and lands in the chat with a model", 
   await expect(page.getByLabel("Chave de API")).toBeVisible();
 
   // Back returns to the choice without connecting anything.
-  await page.getByRole("button", { name: "Voltar para conexões" }).click();
+  await page.getByRole("button", { name: "Voltar" }).click();
   await expect(
     page.getByRole("button", { name: "Começar grátis" }),
   ).toBeVisible();
@@ -59,9 +59,7 @@ test("connect from the choice pastes a key and lands in the chat with a model", 
 
   // The card (form included) leaves and the chat has a model active.
   await expect(page.getByLabel("Chave de API")).toBeHidden();
-  await expect(
-    page.getByRole("button", { name: "Voltar para conexões" }),
-  ).toBeHidden();
+  await expect(page.getByRole("button", { name: "Voltar" })).toBeHidden();
   await expect
     .poll(async () => JSON.parse((await storedConfig(page)) ?? "{}").provider)
     .toBe("router");
@@ -69,6 +67,40 @@ test("connect from the choice pastes a key and lands in the chat with a model", 
     page.getByRole("heading", { name: "Comece em um minuto" }),
   ).toHaveCount(0);
   expect(model.chatRequests()).toHaveLength(0);
+});
+
+test("a failed connect return shows a notice on the card and Try again reopens the form", async ({
+  page,
+}) => {
+  await page.route("**/api/connections/router/callback", (route) =>
+    route.fulfill({
+      status: 400,
+      contentType: "application/json",
+      body: JSON.stringify({ status: "failed", reason: "denied" }),
+    }),
+  );
+  await page.addInitScript(() => {
+    if (!sessionStorage.getItem("e2e_seeded")) {
+      sessionStorage.setItem("e2e_seeded", "1");
+      sessionStorage.setItem("openbot_first_run_connect", "1");
+    }
+  });
+  await page.goto("/?connect=router&state=s&error=access_denied");
+
+  const notice = page.getByRole("alert").filter({ hasText: "conectar" });
+  await expect(notice).toContainText("Não foi possível conectar");
+  // The failure stays on the chat card; Settings did not open.
+  await expect(page.getByRole("tab", { name: "Conexões" })).toHaveCount(0);
+
+  await notice.getByRole("button", { name: "Tentar de novo" }).click();
+  await expect(page.getByLabel("Chave de API")).toBeVisible();
+  await page.getByRole("button", { name: "Voltar" }).click();
+  await expect(
+    page.getByRole("button", { name: "Começar grátis" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("alert").filter({ hasText: "conectar" }),
+  ).toHaveCount(0);
 });
 
 test("other providers opens Settings", async ({ page }) => {

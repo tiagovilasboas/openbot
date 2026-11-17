@@ -1,11 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { ConnectProvider } from "@/features/connections/index.ts";
+import {
+  ConnectProvider,
+  useConnectFlow,
+} from "@/features/connections/index.ts";
 import { useSavedKeys } from "@/features/key-vault/use-saved-keys.ts";
 import { saveStoredModelConfig } from "@/features/model/model-config.ts";
 import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
-import { markFirstRunConnect } from "./first-run-return.ts";
+import {
+  cameBackToFirstRun,
+  clearFirstRunReturn,
+  markFirstRunConnect,
+} from "./first-run-return.ts";
+import { showFirstRunFailure } from "./first-run-failure.ts";
 import { firstRunCopy } from "./first-run-copy.ts";
 import { START_FREE_CONFIG, firstRunStep } from "./first-run-state.ts";
 
@@ -39,6 +47,7 @@ export function FirstRunCard({
   const copy = firstRunCopy[language];
   const [startedFree, setStartedFree] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
+  const flow = useConnectFlow();
   const { keys, loaded } = useSavedKeys();
   const step = firstRunStep({
     isConfigured,
@@ -58,6 +67,7 @@ export function FirstRunCard({
         <ConnectProvider
           id="router"
           language={language}
+          backLabel={copy.back}
           onBack={() => setIsConnecting(false)}
           onBegin={markFirstRunConnect}
         />
@@ -72,6 +82,12 @@ export function FirstRunCard({
     );
   }
 
+  const showFailure = showFirstRunFailure(flow, cameBackToFirstRun());
+  const retryConnect = () => {
+    clearFirstRunReturn();
+    setIsConnecting(true);
+  };
+
   const startFree = () => {
     saveStoredModelConfig(START_FREE_CONFIG);
     setStartedFree(true);
@@ -83,6 +99,22 @@ export function FirstRunCard({
       aria-labelledby="first-run-title"
       className="mt-6 flex w-full max-w-sm animate-enter flex-col gap-3 rounded-2xl border border-border bg-surface p-4 text-left"
     >
+      {showFailure && (
+        <div
+          role="alert"
+          className="flex flex-wrap items-center gap-x-3 text-[13px] text-danger"
+        >
+          <span>{copy.connectFailed}</span>
+          <button
+            type="button"
+            onClick={retryConnect}
+            className="min-h-11 font-medium underline underline-offset-2"
+          >
+            {copy.retry}
+          </button>
+        </div>
+      )}
+
       {step === "choose" && (
         <>
           <div>
