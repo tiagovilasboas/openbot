@@ -16,21 +16,17 @@ import type { InFlightTurnModel } from "@/features/bots/pending-bot-model.ts";
 import { refreshMemoryFromServer } from "@/features/memory/sync/browser-memory-sync.ts";
 import type { LiveToolStep } from "@/features/tools/client/live-tool-steps.ts";
 import type { MessageData } from "./ChatMessageItem.tsx";
-import { raceCancel } from "./cancel-turn.ts";
 import {
   clientIdOf,
   isAlreadySent,
   newClientMessageId,
 } from "./client-message-id.ts";
-import { cancelledPartialReply } from "./cancelled-partial-reply.ts";
 import { historyFromThread } from "@/features/compaction/history-from-thread.ts";
 import { useTurnCompaction } from "@/features/compaction/use-turn-compaction.ts";
-import { chatCopy } from "./chat-copy.ts";
-import type { ChatReplyOutcome } from "./chat-reply-outcome.ts";
-import { executeChatMessage } from "./execute-chat-message.ts";
 import { startLiveTurn } from "./live-turn.ts";
 import { buildReplyMessages } from "./reply-messages.ts";
 import { dropRepliesTo } from "./retry-partial-reply.ts";
+import { runModelTurn } from "./run-model-turn.ts";
 import { insertReplyAfter, threadUpTo } from "./thread-sequencing.ts";
 import { loadBotMessages } from "./use-bot-messages.ts";
 import type { ToolTurnView } from "./tool-turn-view.ts";
@@ -145,36 +141,20 @@ export function useChatTurns(input: ChatTurnsInput) {
       threadUpTo(loadBotMessages(activeBot.id), userMessageId),
     );
 
-    const result = await raceCancel(
-      controller.signal,
-      executeChatMessage({
-        text: turnText,
-        language,
-        history,
-        activeBot: turnBot,
-        bots,
-        mainBotId,
-        gitHubToken,
-        modelConfig,
-        attachments,
-        clientMessageId: clientIdOf(
-          loadBotMessages(activeBot.id),
-          userMessageId,
-        ),
-        onBotWorking: setWorkingBot,
-        onLive: turn.live,
-        onToolSteps: turn.steps,
-        onMemoryChanged: (botId) => void refreshMemoryFromServer(botId),
-        signal: controller.signal,
-      }),
-    );
-    turn.end();
-    const reply: ChatReplyOutcome =
-      result === "cancelled"
-        ? (cancelledPartialReply(turn.latest()) ?? {
-            text: chatCopy[language].cancelledNote,
-          })
-        : result;
+    const { reply, cancelled } = await runModelTurn(turn, {
+      text: turnText,
+      language,
+      history,
+      activeBot: turnBot,
+      bots,
+      mainBotId,
+      gitHubToken,
+      modelConfig,
+      attachments,
+      clientMessageId: clientIdOf(loadBotMessages(activeBot.id), userMessageId),
+      onBotWorking: setWorkingBot,
+      onMemoryChanged: (botId) => void refreshMemoryFromServer(botId),
+    });
     recordModelCall(reply.modelCall);
 
     if (conversationIdRef.current === conversationId) {
@@ -197,7 +177,7 @@ export function useChatTurns(input: ChatTurnsInput) {
           replyMessages[replyMessages.length - 1].id,
         );
       }
-      if (result !== "cancelled") onReply(activeBot.id);
+      if (!cancelled) onReply(activeBot.id);
     }
     // If another message was queued in the meantime, it is answered next.
     settleTurn(activeBot.id, conversationId);
