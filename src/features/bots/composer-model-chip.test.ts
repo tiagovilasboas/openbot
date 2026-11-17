@@ -16,6 +16,15 @@ test("the pending next label stays visible in the chip", () => {
   assert.match(chip.ariaLabel, /próximo: vendor\/x:free/);
 });
 
+test("the provider prefix leaves the visible text but not the tooltip", () => {
+  const chip = composerModelChip(true, "Router: vendor/picked:free", "en");
+  assert.equal(chip.text, "picked:free");
+  assert.equal(chip.title, "Router: vendor/picked:free");
+  assert.match(chip.ariaLabel, /Router: vendor\/picked:free/);
+  const next = composerModelChip(true, "next: Local: llama3", "en");
+  assert.equal(next.text, "next: llama3");
+});
+
 test("without a model the chip says connect and opens settings", () => {
   assert.deepEqual(composerModelChip(false, "ignored", "en"), {
     text: "Connect",

@@ -25,6 +25,8 @@ const COPY: Record<Language, ComposerModelChipCopy> = {
   },
 };
 
+const PROVIDER_PREFIX = /\b(?:Router|Roteador|Local|Anthropic): /g;
+
 export interface ComposerModelChipView {
   /** What the chip shows: the model, or "Connect" without one. */
   text: string;
@@ -49,9 +51,11 @@ export function composerModelChip(
       action: "connect",
     };
   }
-  // Drop the vendor prefix of model ids (also behind a "next:" marker); the
-  // tooltip keeps the full label.
-  const text = modelLabel.replace(/\S+\//g, "").trim() || modelLabel;
+  // Drop the provider prefix ("Router: ") and the vendor prefix of model ids
+  // (also behind a "next:" marker); the tooltip keeps the full label.
+  const text =
+    modelLabel.replace(PROVIDER_PREFIX, "").replace(/\S+\//g, "").trim() ||
+    modelLabel;
   return {
     text,
     ariaLabel: fillCopy(copy.pickAria, { model: modelLabel }),
