@@ -19,37 +19,57 @@ export type StreamReplayOptions = {
   maxEntries?: number;
   /** Most bytes kept for one stream; a longer stream is simply not stored. */
   maxEntryBytes?: number;
+  /** How long a sharer waits for the next line before it gives up. */
+  followIdleMs?: number;
   now?: () => number;
 };
 
 const decoder = new TextDecoder();
 
-/** A finished reply ends with a `done` event; an `error` line is a failure. */
-function isDoneLine(chunk: Uint8Array | undefined): boolean {
-  if (!chunk) return false;
+function lineType(chunk: Uint8Array | undefined): unknown {
+  if (!chunk) return undefined;
   try {
     const event: unknown = JSON.parse(decoder.decode(chunk));
-    return (
-      typeof event === "object" &&
-      event !== null &&
-      (event as { type?: unknown }).type === "done"
-    );
+    return typeof event === "object" && event !== null
+      ? (event as { type?: unknown }).type
+      : undefined;
   } catch {
-    return false;
+    return undefined;
   }
 }
+
+/** A finished reply ends with a `done` event; an `error` line is a failure. */
+const isDoneLine = (chunk: Uint8Array | undefined) =>
+  lineType(chunk) === "done";
+
+/** `done` and `error` close a stream; after either, nothing more is owed. */
+function isTerminalLine(chunk: Uint8Array | undefined): boolean {
+  const type = lineType(chunk);
+  return type === "done" || type === "error";
+}
+
+const encoder = new TextEncoder();
+
+/** The closing line a sharer gets when the stream it follows did not finish. */
+const errorLine = (code: "unknown" | "timeout") =>
+  encoder.encode(
+    `${JSON.stringify({ type: "error", code, provider: null })}\n`,
+  );
 
 /**
  * Remembers successful NDJSON streams per send id for a short time, so a
  * repeated send replays the stored lines instead of calling the model again.
  * A request that arrives while the first stream runs reads the lines seen so
- * far, then the live ones. Failed, cancelled and oversized streams are never
- * kept. In-memory and bounded by TTL, entry count and bytes per entry.
+ * far, then the live ones; if that stream does not finish, the sharer's copy
+ * ends with an `error` line. Failed, cancelled and oversized streams are never
+ * kept. In-memory: stored streams are bounded by TTL, entry count and bytes
+ * per entry; running ones by the stream slots of the handler.
  */
 export function createStreamReplay(options: StreamReplayOptions = {}) {
   const ttlMs = options.ttlMs ?? 10 * 60_000;
   const maxEntries = options.maxEntries ?? 100;
   const maxEntryBytes = options.maxEntryBytes ?? 512 * 1024;
+  const followIdleMs = options.followIdleMs ?? 60_000;
   const now = options.now ?? Date.now;
   const entries = new Map<string, Entry>();
 
@@ -76,16 +96,21 @@ export function createStreamReplay(options: StreamReplayOptions = {}) {
     entry.status = status;
     if (status === "done") {
       entry.expiresAt = now() + ttlMs;
-    } else {
-      entry.chunks = [];
-      if (entries.get(key) === entry) entries.delete(key);
+    } else if (entries.get(key) === entry) {
+      // Sharers still read the lines seen so far; the table forgets it now.
+      entries.delete(key);
     }
     notify(entry);
   }
 
-  /** Lines already seen, then the live ones; ends when the first one ends. */
+  /**
+   * Lines already seen, then the live ones. A stream that failed, was
+   * cancelled, grew past the cap or went quiet for too long ends here with an
+   * `error` line, so the reader never takes a cut reply for a whole one.
+   */
   function follow(entry: Entry): ReadableStream<Uint8Array> {
     let index = 0;
+    let stopWaiting = () => {};
     return new ReadableStream<Uint8Array>({
       async pull(controller) {
         for (;;) {
@@ -96,11 +121,35 @@ export function createStreamReplay(options: StreamReplayOptions = {}) {
             return;
           }
           if (entry.status !== "running") {
+            const last = entry.chunks[entry.chunks.length - 1];
+            if (!isTerminalLine(last)) controller.enqueue(errorLine("unknown"));
             controller.close();
             return;
           }
-          await new Promise<void>((resolve) => entry.wake.add(resolve));
+          const woken = await new Promise<boolean>((resolve) => {
+            const wake = () => {
+              clearTimeout(timer);
+              resolve(true);
+            };
+            const timer = setTimeout(() => {
+              entry.wake.delete(wake);
+              resolve(false);
+            }, followIdleMs);
+            stopWaiting = () => {
+              clearTimeout(timer);
+              entry.wake.delete(wake);
+            };
+            entry.wake.add(wake);
+          });
+          if (!woken) {
+            controller.enqueue(errorLine("timeout"));
+            controller.close();
+            return;
+          }
         }
+      },
+      cancel() {
+        stopWaiting();
       },
     });
   }
