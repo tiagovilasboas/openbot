@@ -13,6 +13,8 @@ import { modelNotAllowedResponse } from "./allowed-models.ts";
 import type { FetchLike } from "./model-adapter.ts";
 import { eventsToNdjson } from "./ndjson-stream.ts";
 import { readIdempotencyKey } from "./idempotency-key.ts";
+import { fingerprintBody } from "./send-replay.ts";
+import { chatStreamReplay, type createStreamReplay } from "./stream-replay.ts";
 import { parseChatRequest } from "./parse-chat-request.ts";
 import { selectAdapter } from "./select-adapter.ts";
 import { createStreamSignal, STREAM_TIMEOUT_MS } from "./stream-signal.ts";
@@ -29,6 +31,8 @@ export type StreamChatOptions = {
   slots?: StreamSlots;
   /** Where a config with no key finds its saved one; none by default. */
   keyLookup?: KeyLookup;
+  /** Remembers finished streams per send id; defaults to the shared one. */
+  replay?: ReturnType<typeof createStreamReplay>;
 };
 
 /** Runs the events and gives the slot back however the stream ends. */
@@ -56,9 +60,11 @@ export async function handleChatStream(
     timeoutMs = STREAM_TIMEOUT_MS,
     slots = sharedStreamSlots(env),
     keyLookup = noKeyLookup,
+    replay = chatStreamReplay,
   }: StreamChatOptions,
 ): Promise<Response> {
-  if (!readIdempotencyKey(request.headers).ok) {
+  const idempotency = readIdempotencyKey(request.headers);
+  if (!idempotency.ok) {
     return Response.json({ error: "invalid_request" }, { status: 400 });
   }
   const payload: unknown = await request.json().catch(() => null);
@@ -70,7 +76,44 @@ export async function handleChatStream(
   const notAllowed = modelNotAllowedResponse(env, parsed.request.modelId);
   if (notAllowed) return notAllowed;
 
-  const modelRequest = withVaultKeys(parsed.request, keyLookup);
+  const start = () =>
+    startStream(request, parsed.request, {
+      env,
+      fetchImpl,
+      timeoutMs,
+      slots,
+      keyLookup,
+    });
+  if (!idempotency.key) return start();
+
+  // A repeated send id replays the stored lines; only finished streams stay.
+  const result = replay.run(idempotency.key, fingerprintBody(payload), start);
+  if (result.kind === "conflict") {
+    return Response.json({ error: "idempotency_conflict" }, { status: 409 });
+  }
+  return result.response;
+}
+
+type ParsedRequest = Extract<
+  ReturnType<typeof parseChatRequest>,
+  { ok: true }
+>["request"];
+
+type StartOptions = {
+  env: Env;
+  fetchImpl?: FetchLike;
+  timeoutMs: number;
+  slots: StreamSlots;
+  keyLookup: KeyLookup;
+};
+
+/** Picks the provider, takes a slot and starts the NDJSON response. */
+function startStream(
+  request: Request,
+  parsedRequest: ParsedRequest,
+  { env, fetchImpl, timeoutMs, slots, keyLookup }: StartOptions,
+): Response {
+  const modelRequest = withVaultKeys(parsedRequest, keyLookup);
   const primary = selectAdapter(env, modelRequest.config, fetchImpl);
   if (!primary) {
     return Response.json({ error: "no_provider_configured" }, { status: 503 });
