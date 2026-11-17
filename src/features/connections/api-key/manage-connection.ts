@@ -24,6 +24,8 @@ import {
   configAfterConnect,
   shouldClearConfigOnDisconnect,
 } from "./model-config-on-connection.ts";
+import { isOpenRouterUrl } from "./openrouter-url.ts";
+import { clearProviderOff } from "../switch/provider-switch-store.ts";
 
 export type KeyCheckOutcome =
   { ok: true; user?: string } | { ok: false; error: string; detail?: string };
@@ -39,7 +41,7 @@ export function testConfigFor(
 ): ClientModelConfig {
   if (id === "router") {
     const usesOpenRouter =
-      active?.provider === "router" && active.baseUrl.includes("openrouter.ai");
+      active?.provider === "router" && isOpenRouterUrl(active.baseUrl);
     return {
       provider: "router",
       baseUrl: usesOpenRouter ? active.baseUrl : OPENROUTER_URL,
@@ -101,6 +103,7 @@ export async function connectKey(
 ): Promise<boolean> {
   if (id === "github") {
     saveStoredGitHubToken(key);
+    applyModelAfterConnect(id);
     return true;
   }
   const active = loadStoredModelConfig();
@@ -110,8 +113,12 @@ export async function connectKey(
   return true;
 }
 
-/** Stores a default model for a provider that just connected, if needed. */
+/**
+ * What every successful connect does, pasted key or OAuth return: the provider
+ * is in use again (its off flag goes), and gets a default model if needed.
+ */
 export function applyModelAfterConnect(id: ConnectionId): void {
+  clearProviderOff(id);
   if (id === "github") return;
   const next = configAfterConnect(
     id,

@@ -6,17 +6,26 @@ import {
 import { disconnectConnection, resetConnectFlow } from "../client/index.ts";
 import type { ConnectionId } from "../core/index.ts";
 
+/** The server did not confirm the delete: nothing local was changed. */
+export type DisconnectResult =
+  { ok: true } | { ok: false; reason: "disconnectFailed" };
+
 /**
- * Forgets a service. Model keys go through the connections route and the saved
- * state is read again, so the rest of the app sees no key.
+ * Forgets a service. Model keys go through the connections route; the saved
+ * state and the stored model change only after the server confirmed the
+ * delete, so a failure leaves everything as it was.
  */
-export async function disconnectService(id: ConnectionId): Promise<void> {
+export async function disconnectService(
+  id: ConnectionId,
+  remove: (id: ConnectionId) => Promise<boolean> = disconnectConnection,
+): Promise<DisconnectResult> {
   resetConnectFlow();
   if (id === "github") {
     await disconnectKey(id);
-    return;
+    return { ok: true };
   }
-  await disconnectConnection(id);
+  if (!(await remove(id))) return { ok: false, reason: "disconnectFailed" };
   await refreshSavedKeys();
   clearModelAfterDisconnect(id);
+  return { ok: true };
 }

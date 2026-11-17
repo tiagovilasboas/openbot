@@ -77,3 +77,15 @@ test("a key the server did not save reports false", async () => {
     false,
   );
 });
+
+test("a lookalike host is not tried as OpenRouter", () => {
+  const config = testConfigFor("router", "sk-or-1", {
+    provider: "router",
+    baseUrl: "https://openrouter.ai.example.net/v1",
+    model: "m",
+  });
+  assert.equal(
+    config.provider === "router" && config.baseUrl,
+    "https://openrouter.ai/api/v1",
+  );
+});
