@@ -20,14 +20,13 @@ import { detectSummaryRequest } from "@/features/summary/detect-summary-request.
 import { executeSummary } from "@/features/summary/execute-summary.ts";
 import type { ExecuteChatMessageInput } from "./execute-chat-message-input.ts";
 import type { ChatReplyOutcome } from "./chat-reply-outcome.ts";
-import { describeModelFailure } from "./describe-model-failure.ts";
 import { findMentionedBot } from "./find-mentioned-bot.ts";
+import { failedReply as modelFailureReply } from "./model-failure-reply.ts";
 import { githubRequestReply } from "./github-request-reply.ts";
 import { crewReplyFields } from "./crew-reply-fields.ts";
 import { createLiveBoard, type LiveEntry } from "./live-board.ts";
 import { fitHistoryToBytes, limitHistory } from "./request-history.ts";
 import { incompleteKindOf } from "./incomplete-reply.ts";
-import { replyFailureOf } from "./reply-failure.ts";
 import { requestModelReply } from "./request-model-reply.ts";
 import { requestModelStream } from "./request-model-stream.ts";
 import {
@@ -35,11 +34,6 @@ import {
   type ChatLanguage,
 } from "./respond-to-message.ts";
 import { streamToolTurn } from "./tool-turn-reply.ts";
-
-const failureField = (failure: ModelFailure) => {
-  const kind = replyFailureOf(failure);
-  return kind ? { failure: kind } : {};
-};
 
 export async function executeChatMessage({
   text,
@@ -204,13 +198,8 @@ export async function executeChatMessage({
     }
     return outcome;
   };
-  const failedReply = (failure: ModelFailure): ChatReplyOutcome => ({
-    text: describeModelFailure(failure, language),
-    delegatedBot,
-    // A cancel is the user's choice, not the model failing: no failed status.
-    ...(failure.kind === "cancelled" ? {} : { modelCall: "failed" as const }),
-    ...failureField(failure),
-  });
+  const failedReply = (failure: ModelFailure) =>
+    modelFailureReply(failure, language, delegatedBot);
 
   const outcome = await askAndCount(
     fullSystemPrompt,
