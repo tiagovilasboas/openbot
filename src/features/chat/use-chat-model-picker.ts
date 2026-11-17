@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect } from "react";
+import { reportRunningTurn } from "@/features/connections/index.ts";
 import { botModelBadge } from "@/features/bots/bot-model-badge.ts";
 import { getBotModelPickerCopy } from "@/features/bots/bot-model-picker-copy.ts";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
@@ -52,6 +54,16 @@ export function useChatModelPicker({
     chip: composerModelChip(isConfigured, headerModelLabel, language),
     onPress: isConfigured ? modelPicker.open : onOpenSettings,
   };
+
+  // Connections refuses to switch off or disconnect a provider mid-turn.
+  const running =
+    turnModel && (provider === "router" || provider === "anthropic")
+      ? provider
+      : null;
+  useEffect(() => {
+    reportRunningTurn(running);
+    return () => reportRunningTurn(null);
+  }, [running]);
 
   return { modelPicker, headerModelLabel, composerModel };
 }

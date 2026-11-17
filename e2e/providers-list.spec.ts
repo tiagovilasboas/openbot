@@ -43,3 +43,22 @@ test("providers: list with states, a page per provider, and an off switch", asyn
   await page.getByRole("button", { name: "Voltar para conexões" }).click();
   await expect(router).toContainText("Em uso");
 });
+
+test("providers: the switch is refused while a reply is running", async ({
+  page,
+  model,
+}) => {
+  model.queue({ text: "slow reply", delayMs: 4000 });
+  await page.goto("/");
+  const app = appPage(page);
+  await app.send("hello");
+  await app.openSettingsTab("Conexões");
+  await page.getByRole("button", { name: /OpenRouter/ }).click();
+
+  const toggle = page.getByRole("switch", { name: "Usar OpenRouter" });
+  await toggle.click();
+  await expect(
+    page.getByText("Uma resposta está em andamento com OpenRouter."),
+  ).toBeVisible();
+  await expect(toggle).toHaveAttribute("aria-checked", "true");
+});
