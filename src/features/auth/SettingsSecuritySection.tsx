@@ -6,6 +6,7 @@ import { FIELD_CLASS, FormField } from "@/shared/ui/FormField.tsx";
 import { SecretInput } from "@/shared/ui/SecretInput.tsx";
 import type { ChatLanguage } from "../chat/respond-to-message.ts";
 import { ToolGrantsSection } from "../tools/client/ToolGrantsSection.tsx";
+import { ToolLevelsSection } from "../tools/client/ToolLevelsSection.tsx";
 import { SecurityManageForm } from "./SecurityManageForm.tsx";
 import { getSecurityCopy } from "./security-copy.ts";
 
@@ -168,6 +169,8 @@ export function SettingsSecuritySection({
           }}
         />
       )}
+
+      <ToolLevelsSection language={language} />
 
       <ToolGrantsSection language={language} />
 

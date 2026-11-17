@@ -90,6 +90,7 @@ export function loopInput(
     botId: "bot_1",
     tools: createToolRegistry(tools),
     grants: [],
+    levels: {},
     step,
     budget: emptyBudget(),
     transcript: [],

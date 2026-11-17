@@ -38,6 +38,12 @@ export const TOOLS_MIGRATIONS: readonly MigrationStep[] = [
     args_sha256 TEXT NOT NULL,
     duration_ms INTEGER NOT NULL
   )`,
+  // One level per tool name, for every bot. No row means "ask".
+  `CREATE TABLE tool_levels (
+    tool_name TEXT PRIMARY KEY,
+    level TEXT NOT NULL CHECK (level IN ('allow','block')),
+    updated_at INTEGER NOT NULL
+  )`,
 ];
 
 const migrated = new WeakSet<DatabaseSync>();

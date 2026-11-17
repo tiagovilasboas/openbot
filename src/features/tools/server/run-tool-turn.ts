@@ -10,6 +10,7 @@ import type { ToolRegistry } from "../tool-registry.ts";
 import type { ToolTurnEvent } from "../tool-turn-events.ts";
 import { appendAudit, digestArgs } from "./audit-repository.ts";
 import { listGrants } from "./grants-repository.ts";
+import { listToolLevels } from "./levels-repository.ts";
 import type { DecodedTurn } from "./pending-turn-codec.ts";
 import { createPendingTurn } from "./pending-turns-repository.ts";
 import type { ResumeRequest } from "./resume-turn.ts";
@@ -43,6 +44,7 @@ export async function* runToolTurn(
     botId: run.botId,
     tools: run.tools,
     grants: listGrants(run.db, run.botId),
+    levels: listToolLevels(run.db),
     step: run.step,
     budget: run.resume?.turn.budget ?? emptyBudget(),
     transcript: run.resume?.turn.transcript ?? [],

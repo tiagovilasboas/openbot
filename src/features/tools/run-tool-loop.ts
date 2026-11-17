@@ -15,7 +15,7 @@ import type {
   ToolLoopInput,
   ToolLoopOutcome,
 } from "./tool-loop-types.ts";
-import { policyFor } from "./tool-policy.ts";
+import { decideTool } from "./tool-policy.ts";
 import { toolSpecs } from "./tool-registry.ts";
 import { validateCall } from "./validate-args.ts";
 
@@ -65,7 +65,11 @@ export async function* runToolLoop(
   input: ToolLoopInput,
 ): AsyncGenerator<ToolLoopEvent, ToolLoopOutcome> {
   const state = createLoopState(input);
-  const specs = toolSpecs(input.tools);
+  // A blocked tool is not offered; handleCalls still refuses it if the model
+  // asks for it anyway.
+  const specs = toolSpecs(input.tools).filter(
+    (spec) => input.levels[spec.name] !== "block",
+  );
   let started = false;
   let usage: Done["usage"];
 
@@ -91,7 +95,7 @@ export async function* runToolLoop(
     let result: StepResult = { kind: "aborted" };
     const calls: ToolCallChunk[] = [];
     for await (const event of input.step({
-      ...(offer ? { tools: specs } : {}),
+      ...(offer && specs.length > 0 ? { tools: specs } : {}),
       toolTranscript: [...state.transcript],
     })) {
       if (event.type === "start") {
@@ -155,7 +159,10 @@ async function* handleCalls(
     if (state.answered.has(call.id) || thisStep.has(call.id)) continue;
     thisStep.add(call.id);
     const tool = input.tools.get(call.name);
-    const policy = tool ? policyFor(tool, input.botId, input.grants) : "auto";
+    const decision = tool
+      ? decideTool(tool, input.botId, input.grants, input.levels)
+      : "auto";
+    const policy = decision === "block" ? "ask" : decision;
     const preview = previewOf(`${call.name} ${call.argsJson}`);
     yield {
       type: "tool_call",
@@ -178,6 +185,13 @@ async function* handleCalls(
     }
     taken += 1;
     state.budget = counted.budget;
+    if (decision === "block") {
+      yield* recordRefusal(state, input, call, "tool_blocked", {
+        policy,
+        decision: "rejected",
+      });
+      continue;
+    }
     const validated = chunk.argsError
       ? ({ ok: false, code: "bad_json" } as const)
       : validateCall(call, input.tools);

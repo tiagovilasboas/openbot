@@ -3,7 +3,7 @@ import type { ChatStreamEvent } from "../model/stream-events.ts";
 import type { ToolExchange, ToolSpec } from "../model/tool-wire.ts";
 import type { ToolBudget } from "./tool-budget.ts";
 import type { ApprovalDecision, ToolPolicy } from "./tool-definition.ts";
-import type { ToolGrant } from "./tool-policy.ts";
+import type { ToolGrant, ToolLevels } from "./tool-policy.ts";
 import type { ToolRegistry } from "./tool-registry.ts";
 
 /** What one model step gets: the tools on offer and the exchanges so far. */
@@ -56,6 +56,8 @@ export type ToolLoopInput = {
   botId: string;
   tools: ToolRegistry;
   grants: readonly ToolGrant[];
+  /** The user's level per tool, for every bot; a missing tool is "ask". */
+  levels: ToolLevels;
   step: StepFn;
   /** Steps and calls already spent in this turn (they span resumes). */
   budget: ToolBudget;
