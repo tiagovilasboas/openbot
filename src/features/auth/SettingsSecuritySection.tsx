@@ -5,6 +5,7 @@ import { AlertIcon, CheckIcon, LockIcon } from "@/shared/ui/FieldIcons.tsx";
 import { FIELD_CLASS, FormField } from "@/shared/ui/FormField.tsx";
 import { SecretInput } from "@/shared/ui/SecretInput.tsx";
 import type { ChatLanguage } from "../chat/respond-to-message.ts";
+import { ToolGrantsSection } from "../tools/client/ToolGrantsSection.tsx";
 import { SecurityManageForm } from "./SecurityManageForm.tsx";
 import { getSecurityCopy } from "./security-copy.ts";
 
@@ -167,6 +168,8 @@ export function SettingsSecuritySection({
           }}
         />
       )}
+
+      <ToolGrantsSection language={language} />
 
       <p className="flex items-start gap-2 text-[13px] text-subtle">
         <LockIcon className="mt-0.5 size-4 shrink-0" />
