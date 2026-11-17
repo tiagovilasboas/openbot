@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { recallAttachments } from "@/features/attachments/attachment-stash.ts";
 import type { AttachmentPayload } from "@/features/attachments/parse-attachments.ts";
 import type { Attachment } from "@/features/attachments/read-attachment.ts";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
@@ -17,11 +16,11 @@ import {
 import { historyFromThread } from "@/features/compaction/history-from-thread.ts";
 import { useTurnCompaction } from "@/features/compaction/use-turn-compaction.ts";
 import { startLiveTurn } from "./live-turn.ts";
-import { buildReplyMessages } from "./reply-messages.ts";
-import { dropRepliesTo } from "./retry-partial-reply.ts";
+import { prepareRetry } from "./prepare-retry.ts";
 import { runModelTurn } from "./run-model-turn.ts";
 import { storeUserMessage } from "./store-user-message.ts";
-import { insertReplyAfter, threadUpTo } from "./thread-sequencing.ts";
+import { storeTurnReply } from "./store-turn-reply.ts";
+import { threadUpTo } from "./thread-sequencing.ts";
 import { loadBotMessages } from "./use-bot-messages.ts";
 import type { ToolTurnView } from "./tool-turn-view.ts";
 import { useToolApproval } from "./use-tool-approval.ts";
@@ -152,18 +151,15 @@ export function useChatTurns(input: ChatTurnsInput) {
     recordModelCall(reply.modelCall);
 
     if (conversationIdRef.current === conversationId) {
-      const replyMessages = buildReplyMessages(reply, {
+      const replyMessages = storeTurnReply({
+        reply,
         language,
         modelBadge,
-        nextId: getNextId,
+        getNextId,
+        thread: loadBotMessages(activeBot.id),
+        userMessageId,
+        persistMessages,
       });
-      persistMessages(
-        insertReplyAfter(
-          loadBotMessages(activeBot.id),
-          userMessageId,
-          replyMessages,
-        ),
-      );
       if (reply.toolsUnavailable) setUnavailableBotId(activeBot.id);
       if (reply.toolPause) {
         approval.hold(
@@ -214,23 +210,18 @@ export function useChatTurns(input: ChatTurnsInput) {
   /** Answers a user message left without a reply, e.g. after a reload. */
   function retryMessage(userMessageId: number) {
     if (busy) return;
-    const stored = loadBotMessages(activeBot.id);
-    const message = stored.find(
-      (m) => m.id === userMessageId && m.role === "user",
+    const retry = prepareRetry(
+      loadBotMessages(activeBot.id),
+      userMessageId,
+      activeBot.id,
+      persistMessages,
     );
-    if (message) {
-      // A partial reply is replaced by the new answer, not kept beside it.
-      const rest = dropRepliesTo(stored, userMessageId);
-      if (rest.length !== stored.length) persistMessages(rest);
-      // The file text is not stored: a retry sends it only while it is still
-      // in memory from this session.
+    if (retry) {
       void processTurn(
-        message.text,
-        message.id,
+        retry.text,
+        retry.id,
         conversationIdRef.current,
-        message.attachments?.length
-          ? recallAttachments(activeBot.id, message.id)
-          : [],
+        retry.attachments,
       );
     }
   }
