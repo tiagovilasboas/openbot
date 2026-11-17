@@ -26,21 +26,31 @@ function run(options: {
   put?: ApiResult;
   local?: LocalSnapshot | null;
   unsynced?: boolean;
+  /** The agent open in the browser, and a pick made mid-request. */
+  active?: string;
+  pickDuringGet?: string;
+  pickDuringPut?: string;
 }) {
+  let active = options.active ?? a!.id;
   const puts: BotsPayload[] = [];
   const mirrored: BotsServerState[] = [];
   const failures: SyncFailure[] = [];
   const flags: boolean[] = [];
   const api: BotsApi = {
-    get: async () => options.get,
+    get: async () => {
+      active = options.pickDuringGet ?? active;
+      return options.get;
+    },
     put: async (payload) => {
       puts.push(payload);
+      active = options.pickDuringPut ?? active;
       return options.put ?? down;
     },
   };
   const outcome = syncBotsOnLoad({
     api,
     readLocal: () => options.local ?? null,
+    readActiveBotId: () => active,
     isUnsynced: () => options.unsynced ?? false,
     setUnsynced: (value) => flags.push(value),
     mirror: (state) => mirrored.push(state),
@@ -140,4 +150,34 @@ test("unsynced edits are imported over the server list", async () => {
   });
   assert.equal((await r.outcome).source, "imported");
   assert.equal(r.puts.length, 1);
+});
+
+test("an agent picked while the presets are being seeded stays picked", async () => {
+  const r = run({
+    get: okState([]),
+    put: okState([a!, b!]),
+    pickDuringPut: b!.id,
+  });
+  const outcome = await r.outcome;
+  assert.equal(outcome.source, "seeded");
+  assert.equal(outcome.pickedDuringLoad, true);
+  // The bots are stored, the server's older open agent is not.
+  assert.deepEqual(r.mirrored[0]!.bots, [a, b]);
+  assert.equal(r.mirrored[0]!.activeBotId, null);
+});
+
+test("an agent picked while the server list is being read stays picked", async () => {
+  const r = run({ get: okState([a!, b!]), pickDuringGet: b!.id });
+  const outcome = await r.outcome;
+  assert.equal(outcome.source, "server");
+  assert.equal(outcome.pickedDuringLoad, true);
+  assert.equal(r.mirrored[0]!.activeBotId, null);
+  assert.equal(r.mirrored[0]!.mainBotId, a!.id);
+});
+
+test("with no pick during the load the server's open agent is mirrored", async () => {
+  const r = run({ get: okState([a!, b!]), active: b!.id });
+  const outcome = await r.outcome;
+  assert.equal(outcome.pickedDuringLoad, false);
+  assert.equal(r.mirrored[0]!.activeBotId, a!.id);
 });

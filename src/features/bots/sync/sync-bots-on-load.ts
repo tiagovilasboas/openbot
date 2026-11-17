@@ -10,6 +10,8 @@ import type {
 export interface LoadDeps {
   api: BotsApi;
   readLocal(): LocalSnapshot | null;
+  /** The agent this browser has open right now. */
+  readActiveBotId(): string;
   isUnsynced(): boolean;
   setUnsynced(value: boolean): void;
   /** Makes the browser's own copy match the server (the read cache). */
@@ -24,7 +26,33 @@ export interface LoadOutcome {
   serverMainBotId: string | null;
   /** Whether the bot list is trusted enough to prune orphan bot data. */
   canPrune: boolean;
+  /**
+   * An agent was picked while the load was in flight. The pick was kept in
+   * the browser and still has to be sent to the server.
+   */
+  pickedDuringLoad: boolean;
 }
+
+/**
+ * Mirrors the server's answer, except the open agent when the person picked
+ * one after the load began: their pick is newer than the answer.
+ */
+function mirrorKeepingPick(
+  deps: LoadDeps,
+  state: BotsServerState,
+  activeAtStart: string,
+): boolean {
+  const picked = deps.readActiveBotId() !== activeAtStart;
+  deps.mirror(picked ? { ...state, activeBotId: null } : state);
+  return picked;
+}
+
+const usedLocal = (local: LocalSnapshot | null): LoadOutcome => ({
+  source: "local",
+  serverMainBotId: null,
+  canPrune: local !== null,
+  pickedDuringLoad: false,
+});
 
 /**
  * The first load of the bots: the server is the source of truth, and the
@@ -32,6 +60,7 @@ export interface LoadOutcome {
  * bots are used as they are and the next load tries again.
  */
 export async function syncBotsOnLoad(deps: LoadDeps): Promise<LoadOutcome> {
+  const activeAtStart = deps.readActiveBotId();
   const server = await deps.api.get();
   const local = deps.readLocal();
   const decision = decideBotsLoad({
@@ -42,30 +71,29 @@ export async function syncBotsOnLoad(deps: LoadDeps): Promise<LoadOutcome> {
   });
 
   if (decision.action === "use-server") {
-    deps.mirror(decision.state);
     return {
       source: "server",
       serverMainBotId: decision.state.mainBotId,
       canPrune: true,
+      pickedDuringLoad: mirrorKeepingPick(deps, decision.state, activeAtStart),
     };
   }
-  if (decision.action === "use-local") {
-    return { source: "local", serverMainBotId: null, canPrune: local !== null };
-  }
+  if (decision.action === "use-local") return usedLocal(local);
 
   const result = await deps.api.put(decision.payload);
   const imported = decision.action === "import";
   if (result.ok) {
-    deps.mirror(result.state);
+    const picked = mirrorKeepingPick(deps, result.state, activeAtStart);
     deps.setUnsynced(false);
     return {
       source: imported ? "imported" : "seeded",
       serverMainBotId: result.state.mainBotId,
       // Seeded presets say nothing about which other bots once existed.
       canPrune: imported,
+      pickedDuringLoad: picked,
     };
   }
   deps.reportFailure(result.failure);
   deps.setUnsynced(true);
-  return { source: "local", serverMainBotId: null, canPrune: local !== null };
+  return usedLocal(local);
 }

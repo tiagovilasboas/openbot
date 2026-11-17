@@ -59,6 +59,39 @@ test("the shortcut works again and again without clicking anywhere", async ({
   await expect(app.composer).toHaveValue("");
 });
 
+test("an agent picked before the first bots sync answers stays picked", async ({
+  page,
+}) => {
+  // Holds the seed back, so the pick lands while it is still in flight.
+  await page.route("**/api/bots", async (route) => {
+    if (route.request().method() === "PUT") {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+    await route.fallback();
+  });
+  const seeded = page.waitForResponse(
+    (response) =>
+      response.url().endsWith("/api/bots") &&
+      response.request().method() === "PUT",
+  );
+  await page.goto("/");
+  const app = appPage(page);
+  await expect(app.botRows()).toHaveCount(9);
+
+  await page.keyboard.press("Alt+Digit2");
+  await expect(app.botRows().nth(1)).toHaveAttribute("aria-current", "page");
+  await seeded;
+  // The server's answer names the first agent; the pick is newer.
+  const resent = await page.waitForRequest(
+    (request) =>
+      request.url().endsWith("/api/bots") && request.method() === "PUT",
+  );
+  expect(resent.postDataJSON().activeBotId).not.toBe(
+    resent.postDataJSON().bots[0].id,
+  );
+  await expect(app.botRows().nth(1)).toHaveAttribute("aria-current", "page");
+});
+
 test("Alt plus a digit does nothing in any other text field", async ({
   page,
 }) => {
