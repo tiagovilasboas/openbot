@@ -5,10 +5,7 @@ import {
   reportRunningTurn,
   useOffProviders,
 } from "@/features/connections/index.ts";
-import {
-  modelUsability,
-  providerTypeUsability,
-} from "@/features/connections/copy.ts";
+import { nextTurnUsability } from "@/features/connections/copy.ts";
 import { botModelBadge } from "@/features/bots/bot-model-badge.ts";
 import { getBotModelPickerCopy } from "@/features/bots/bot-model-picker-copy.ts";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
@@ -58,11 +55,11 @@ export function useChatModelPicker({
       })
     : savedModelLabel;
   // The next message runs on the bot's own model, else on the global provider.
-  const off = useOffProviders();
-  const ownModel = activeBot.modelId?.trim();
-  const usability = ownModel
-    ? modelUsability(ownModel, off)
-    : providerTypeUsability(provider, off);
+  const usability = nextTurnUsability(
+    activeBot.modelId,
+    provider,
+    useOffProviders(),
+  );
   const composerModel: ComposerModelControl = {
     chip: composerModelChip(
       isConfigured,

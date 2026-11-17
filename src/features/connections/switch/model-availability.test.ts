@@ -4,6 +4,7 @@ import {
   connectionForModelId,
   connectionForProviderType,
   modelUsability,
+  nextTurnUsability,
   providerTypeUsability,
 } from "./model-availability.ts";
 
@@ -38,4 +39,27 @@ test("local servers, unknown ids and an empty off list stay usable", () => {
   });
   assert.deepEqual(modelUsability("llama3", ["router"]), { usable: true });
   assert.deepEqual(modelUsability("openrouter/free", []), { usable: true });
+});
+
+test("the next turn follows the bot's own model, else the global provider", () => {
+  // No own model: the global provider type decides.
+  assert.deepEqual(nextTurnUsability(undefined, "router", ["router"]), {
+    usable: false,
+    provider: "router",
+  });
+  assert.deepEqual(nextTurnUsability("  ", "anthropic", ["anthropic"]), {
+    usable: false,
+    provider: "anthropic",
+  });
+  assert.deepEqual(nextTurnUsability(undefined, "local", ["router"]), {
+    usable: true,
+  });
+  // An own model wins over the global provider.
+  assert.deepEqual(nextTurnUsability("claude-x", "router", ["router"]), {
+    usable: true,
+  });
+  assert.deepEqual(nextTurnUsability("vendor/x", "anthropic", ["router"]), {
+    usable: false,
+    provider: "router",
+  });
 });
