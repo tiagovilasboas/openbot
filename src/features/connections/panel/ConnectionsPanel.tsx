@@ -15,6 +15,8 @@ import { ConnectNotice } from "./ConnectNotice.tsx";
 import { ConnectionDetail } from "./ConnectionDetail.tsx";
 import { ConnectionRow } from "./ConnectionRow.tsx";
 import { getConnectionsCopy } from "./connections-copy.ts";
+import { useOffProviders } from "../switch/provider-switch-store.ts";
+import { describeProviderState } from "../switch/provider-switch.ts";
 
 interface ConnectionsPanelProps {
   language: ChatLanguage;
@@ -34,6 +36,7 @@ export function ConnectionsPanel({
   const { keys } = useSavedKeys();
   const gitHubToken = useGitHubToken();
   const activeConfig = useModelConfig();
+  const offProviders = useOffProviders();
   const [openId, setOpenId] = useState<ConnectionId | null>(null);
 
   function isSaved(id: ConnectionId): boolean {
@@ -47,6 +50,10 @@ export function ConnectionsPanel({
       language={language}
       savedToken={openId === "github" ? gitHubToken : null}
       isSaved={isSaved(openId)}
+      providerPage={{
+        isOff: offProviders.includes(openId),
+        activeConfig,
+      }}
       showSecretLabel={showSecretLabel}
       hideSecretLabel={hideSecretLabel}
       onBack={() => setOpenId(null)}
@@ -64,14 +71,18 @@ export function ConnectionsPanel({
                 <ConnectionRow
                   key={entry.id}
                   name={entry.name}
-                  description={
-                    activeConfig?.provider === entry.id
-                      ? c.inUse
-                      : c.descriptions[entry.id]
-                  }
-                  isConnected={isSaved(entry.id)}
-                  connectedLabel={c.connected}
-                  connectLabel={c.connect}
+                  description={c.descriptions[entry.id]}
+                  state={describeProviderState({
+                    isSaved: isSaved(entry.id),
+                    isInUse: activeConfig?.provider === entry.id,
+                    isOff: offProviders.includes(entry.id),
+                  })}
+                  labels={{
+                    notConfigured: c.connect,
+                    connected: c.connected,
+                    inUse: c.stateInUse,
+                    off: c.stateOff,
+                  }}
                   onOpen={() => setOpenId(entry.id)}
                 />
               ),

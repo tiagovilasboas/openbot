@@ -1,13 +1,14 @@
 "use client";
 
 import { ChevronRightIcon } from "@/shared/ui/FieldIcons.tsx";
+import type { ProviderState } from "../switch/provider-switch.ts";
 
 interface ConnectionRowProps {
   name: string;
   description: string;
-  isConnected: boolean;
-  connectedLabel: string;
-  connectLabel: string;
+  state: ProviderState;
+  /** The words for each state, from the connections copy. */
+  labels: Record<ProviderState, string>;
   onOpen: () => void;
 }
 
@@ -15,9 +16,8 @@ interface ConnectionRowProps {
 export function ConnectionRow({
   name,
   description,
-  isConnected,
-  connectedLabel,
-  connectLabel,
+  state,
+  labels,
   onOpen,
 }: ConnectionRowProps) {
   return (
@@ -35,13 +35,19 @@ export function ConnectionRow({
             {description}
           </span>
         </span>
-        {isConnected ? (
-          <span className="shrink-0 rounded-full bg-success-soft px-2.5 py-0.5 text-xs font-medium text-success">
-            {connectedLabel}
+        {state === "notConfigured" ? (
+          <span className="shrink-0 rounded-full border border-border px-3 py-0.5 text-[13px] font-medium text-foreground">
+            {labels.notConfigured}
           </span>
         ) : (
-          <span className="shrink-0 rounded-full border border-border px-3 py-0.5 text-[13px] font-medium text-foreground">
-            {connectLabel}
+          <span
+            className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${
+              state === "off"
+                ? "bg-surface-secondary text-subtle"
+                : "bg-success-soft text-success"
+            }`}
+          >
+            {labels[state]}
           </span>
         )}
         <ChevronRightIcon className="size-4 shrink-0 text-subtle" />

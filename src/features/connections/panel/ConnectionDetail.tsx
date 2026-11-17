@@ -16,7 +16,11 @@ import {
   type KeyCheckOutcome,
 } from "../api-key/manage-connection.ts";
 import { ConnectWithProvider } from "./ConnectWithProvider.tsx";
-import { disconnectService } from "./disconnect-connection.ts";
+import { disconnectProvider } from "../switch/set-provider-enabled.ts";
+import {
+  ProviderPageSection,
+  type ProviderPageState,
+} from "./ProviderPageSection.tsx";
 
 interface ConnectionDetailProps {
   entry: ConnectionEntry;
@@ -27,6 +31,8 @@ interface ConnectionDetailProps {
   showSecretLabel: string;
   hideSecretLabel: string;
   onBack: () => void;
+  /** Set where the service has its own page: model, key status and switch. */
+  providerPage?: ProviderPageState;
   /** Overrides the Back label where it leads somewhere other than the list. */
   backLabel?: string;
   /** Runs just before the browser leaves for the provider's page. */
@@ -42,6 +48,7 @@ export function ConnectionDetail({
   showSecretLabel,
   hideSecretLabel,
   onBack,
+  providerPage,
   backLabel,
   onBegin,
 }: ConnectionDetailProps) {
@@ -87,7 +94,14 @@ export function ConnectionDetail({
   }
 
   async function handleDisconnect() {
-    await disconnectService(entry.id);
+    const change = await disconnectProvider(entry.id);
+    if (!change.ok) {
+      setResult({
+        ok: false,
+        message: fillCopy(c.refusedRunning, { name: entry.name }),
+      });
+      return;
+    }
     onBack();
   }
 
@@ -110,6 +124,15 @@ export function ConnectionDetail({
         </h3>
         <p className="text-[13px] text-subtle">{c.descriptions[entry.id]}</p>
       </header>
+
+      {providerPage && (
+        <ProviderPageSection
+          entry={entry}
+          language={language}
+          isSaved={isSaved}
+          {...providerPage}
+        />
+      )}
 
       <ConnectWithProvider
         id={entry.id}
