@@ -67,3 +67,13 @@ test("disconnect keeps configs that never used that key", () => {
   assert.equal(shouldClearConfigOnDisconnect("github", freeRouter), false);
   assert.equal(shouldClearConfigOnDisconnect("router", null), false);
 });
+
+test("a router on a lookalike host is not cleared as OpenRouter", () => {
+  const lookalike: ClientModelConfig = {
+    provider: "router",
+    baseUrl: "https://openrouter.ai.example.net/v1",
+    model: "m",
+  };
+  assert.equal(shouldClearConfigOnDisconnect("router", lookalike), false);
+  assert.equal(configAfterConnect("anthropic", lookalike), null);
+});

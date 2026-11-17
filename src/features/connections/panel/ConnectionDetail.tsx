@@ -98,7 +98,12 @@ export function ConnectionDetail({
     if (!change.ok) {
       setResult({
         ok: false,
-        message: fillCopy(c.refusedRunning, { name: entry.name }),
+        message: fillCopy(
+          change.reason === "turnRunning"
+            ? c.refusedRunning
+            : c.disconnectFailed,
+          { name: entry.name },
+        ),
       });
       return;
     }

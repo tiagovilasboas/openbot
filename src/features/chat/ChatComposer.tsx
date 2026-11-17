@@ -7,6 +7,7 @@ import { AttachmentChips } from "@/features/attachments/AttachmentChips.tsx";
 import { useFileDrop } from "@/features/attachments/use-file-drop.ts";
 import type { ComposerAttachments } from "@/features/attachments/use-composer-attachments.ts";
 import type { SkillDefinition } from "@/features/skills/skill-types.ts";
+import { COMPOSER_ATTRIBUTE } from "./agent-shortcut.ts";
 import { BotMentionPalette } from "./BotMentionPalette.tsx";
 import { chatCopy } from "./chat-copy.ts";
 import { CommandPalette } from "./CommandPalette.tsx";
@@ -131,6 +132,7 @@ export function ChatComposer({
           ref={textareaRef}
           rows={1}
           value={draft}
+          {...{ [COMPOSER_ATTRIBUTE]: "" }}
           aria-label={content.composerLabel}
           aria-autocomplete="list"
           aria-controls={palette.kind ? paletteId : undefined}

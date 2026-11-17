@@ -172,6 +172,7 @@ export function ChatExperience() {
     });
 
   const newChatUndo = useNewChatUndo({
+    language,
     botId: activeBot.id,
     messages,
     persistMessages,

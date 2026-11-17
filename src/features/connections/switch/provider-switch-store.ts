@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import type { ConnectionId } from "../core/index.ts";
-import { parseOffProviders } from "./provider-switch.ts";
+import { parseOffProviders, withProviderOff } from "./provider-switch.ts";
 
 const STORAGE_KEY = "openbot_providers_off";
 
@@ -59,4 +59,10 @@ export function readRunningTurn(): ConnectionId | null {
 
 export function useRunningTurn(): ConnectionId | null {
   return useSyncExternalStore(subscribe, readRunningTurn, () => null);
+}
+
+/** A provider that connected is in use again: drops it from the off list. */
+export function clearProviderOff(id: ConnectionId): void {
+  const off = readOffProviders();
+  if (off.includes(id)) writeOffProviders(withProviderOff(off, id, false));
 }

@@ -4,7 +4,10 @@ import {
 } from "../api-key/manage-connection.ts";
 import { readSavedKeysState } from "../../key-vault/saved-keys-store.ts";
 import type { ConnectionId } from "../core/index.ts";
-import { disconnectService } from "../panel/disconnect-connection.ts";
+import {
+  disconnectService,
+  type DisconnectResult,
+} from "../panel/disconnect-connection.ts";
 import { refuseWhileRunning, withProviderOff } from "./provider-switch.ts";
 import {
   readOffProviders,
@@ -13,7 +16,7 @@ import {
 } from "./provider-switch-store.ts";
 
 export type ProviderChange =
-  { ok: true } | { ok: false; reason: "turnRunning" };
+  { ok: true } | { ok: false; reason: "turnRunning" | "disconnectFailed" };
 
 /**
  * Turns a provider off or on. Off keeps the key but drops the chat model that
@@ -35,13 +38,20 @@ export function setProviderEnabled(
   return { ok: true };
 }
 
-/** Disconnects unless a running turn uses the provider; clears its off flag. */
+/**
+ * Disconnects unless a running turn uses the provider. The off flag is
+ * cleared only once the server confirmed; a failed delete changes nothing.
+ */
 export async function disconnectProvider(
   id: ConnectionId,
+  disconnect: (
+    id: ConnectionId,
+  ) => Promise<DisconnectResult> = disconnectService,
 ): Promise<ProviderChange> {
   const reason = refuseWhileRunning(id, readRunningTurn());
   if (reason) return { ok: false, reason };
+  const result = await disconnect(id);
+  if (!result.ok) return { ok: false, reason: result.reason };
   writeOffProviders(withProviderOff(readOffProviders(), id, false));
-  await disconnectService(id);
   return { ok: true };
 }

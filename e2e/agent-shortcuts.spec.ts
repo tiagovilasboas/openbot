@@ -20,14 +20,58 @@ test("Alt plus a digit switches to the Nth agent and focuses the composer", asyn
   );
   await expect(app.composer).toBeFocused();
 
-  // Typing in the composer is never hijacked.
+  // The caret is in the composer now, and the shortcut still works.
   await app.composer.press("Alt+Digit1");
-  await expect(app.botRows().nth(2)).toHaveAttribute("aria-current", "page");
-
-  // Out of the field, the shortcut works again, back to the first agent.
-  await page.locator("body").click({ position: { x: 1, y: 1 } });
-  await page.keyboard.press("Alt+Digit1");
   await expect(app.botRows().nth(0)).toHaveAttribute("aria-current", "page");
+});
+
+test("the shortcut works again and again without clicking anywhere", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const app = appPage(page);
+  await expect(app.botRows()).toHaveCount(9);
+
+  await page.keyboard.press("Alt+Digit2");
+  await expect(app.botRows().nth(1)).toHaveAttribute("aria-current", "page");
+  await expect(app.composer).toBeFocused();
+
+  await page.keyboard.press("Alt+Digit3");
+  await expect(app.botRows().nth(2)).toHaveAttribute("aria-current", "page");
+  await expect(app.composer).toBeFocused();
+  // The key switched the agent; it typed nothing.
+  await expect(app.composer).toHaveValue("");
+});
+
+test("Alt plus a digit does nothing in any other text field", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const app = appPage(page);
+  await expect(app.botRows()).toHaveCount(9);
+  await page.evaluate(() => {
+    for (const tag of ["input", "textarea", "select"]) {
+      const field = document.createElement(tag);
+      field.setAttribute("aria-label", `outside ${tag}`);
+      document.body.append(field);
+    }
+    const editable = document.createElement("div");
+    editable.setAttribute("contenteditable", "true");
+    editable.setAttribute("aria-label", "outside editable");
+    document.body.append(editable);
+  });
+
+  for (const name of [
+    "outside input",
+    "outside textarea",
+    "outside select",
+    "outside editable",
+  ]) {
+    await page.locator(`[aria-label="${name}"]`).focus();
+    await page.keyboard.press("Alt+Digit3");
+    await page.waitForTimeout(200);
+    await expect(app.botRows().nth(0)).toHaveAttribute("aria-current", "page");
+  }
 });
 
 test.describe("without a connected model", () => {

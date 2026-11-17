@@ -4,6 +4,7 @@ import {
   NEW_CHAT_UNDO_WINDOW_MS,
   holdClearedThread,
   restorableMessages,
+  stillHeld,
 } from "./new-chat-undo.ts";
 import { getNewChatUndoCopy } from "./new-chat-undo-copy.ts";
 import type { MessageData } from "./ChatMessageItem.tsx";
@@ -38,6 +39,26 @@ test("a new message closes the window so restoring never drops it", () => {
 
 test("nothing held restores nothing", () => {
   assert.equal(restorableMessages(null, "bot", []), null);
+});
+
+test("a held thread is dropped for good once the thread gets a message", () => {
+  const held = holdClearedThread("bot", thread);
+  const afterSend = stillHeld(held, "bot", [thread[0]]);
+  assert.equal(afterSend, null);
+  // Rolling that message back empties the thread; nothing is held any more.
+  assert.equal(stillHeld(afterSend, "bot", []), null);
+});
+
+test("a held thread is dropped for good once the bot changes", () => {
+  const held = holdClearedThread("bot", thread);
+  const afterSwitch = stillHeld(held, "other", []);
+  assert.equal(afterSwitch, null);
+  assert.equal(stillHeld(afterSwitch, "bot", []), null);
+});
+
+test("a held thread stays while the same bot has an empty thread", () => {
+  const held = holdClearedThread("bot", thread);
+  assert.equal(stillHeld(held, "bot", []), held);
 });
 
 test("every language has the notice copy", () => {
