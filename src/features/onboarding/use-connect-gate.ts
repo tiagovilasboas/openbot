@@ -8,10 +8,12 @@ export function useConnectGate(
   isConfigured: boolean,
   serverChecked: boolean,
 ) {
-  const locked = connectGate({ isConfigured, serverChecked }) === "locked";
+  const state = connectGate({ isConfigured, serverChecked });
+  const locked = state === "locked";
   const copy = firstRunCopy[language];
   return {
     locked,
+    checking: state === "checking",
     agentsReason: locked ? copy.agentsLocked : undefined,
     composerReason: locked ? copy.composerLocked : undefined,
   };

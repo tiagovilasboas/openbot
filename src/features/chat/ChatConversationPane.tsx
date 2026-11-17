@@ -34,6 +34,8 @@ interface ChatConversationPaneProps {
   /** True while the connect gate keeps the empty state in place. */
   locked: boolean;
   composerLockedReason: string | undefined;
+  /** The server has not said yet whether it has a model. */
+  connectChecking: boolean;
   rollbackBlocked: RollbackBlock | null;
   toolTurn: ToolTurnView;
   onDraftChange: (value: string) => void;
@@ -62,6 +64,7 @@ export function ChatConversationPane({
   composerModel,
   locked,
   composerLockedReason,
+  connectChecking,
   rollbackBlocked,
   toolTurn,
   onDraftChange,
@@ -95,6 +98,7 @@ export function ChatConversationPane({
           mainBotId={mainBotId}
           isConfigured={isConfigured}
           composerLockedReason={composerLockedReason}
+          connectChecking={connectChecking}
           attachments={attachments}
           onOpenSettings={onOpenSettings}
           onDraftChange={onDraftChange}

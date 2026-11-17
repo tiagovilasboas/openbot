@@ -2,8 +2,11 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  cameBackToFirstRun,
+  clearFirstRunReturn,
   consumeFirstRunConnect,
   markFirstRunConnect,
+  settleFirstRunConnect,
 } from "./first-run-return.ts";
 
 function memoryStorage() {
@@ -40,4 +43,22 @@ test("a throwing storage never breaks the return", () => {
   };
   markFirstRunConnect(broken);
   assert.equal(consumeFirstRunConnect(broken), false);
+});
+
+test("the return is forgotten once the first-run connect succeeded", () => {
+  const storage = memoryStorage();
+  markFirstRunConnect(storage);
+  consumeFirstRunConnect(storage);
+  settleFirstRunConnect(false, storage);
+  assert.equal(cameBackToFirstRun(storage), true);
+  settleFirstRunConnect(true, storage);
+  assert.equal(cameBackToFirstRun(storage), false);
+});
+
+test("a connect abandoned on the card does not make a later Settings connect a first-run return", () => {
+  const storage = memoryStorage();
+  markFirstRunConnect(storage);
+  clearFirstRunReturn(storage);
+  assert.equal(consumeFirstRunConnect(storage), false);
+  assert.equal(cameBackToFirstRun(storage), false);
 });

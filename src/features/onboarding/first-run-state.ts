@@ -16,6 +16,8 @@ export type FirstRunStep =
   | "choose"
   /** Started free, still waiting for the server to say if a key is saved. */
   | "checking"
+  /** Started free, but the server could not list the saved keys: offer a retry. */
+  | "load-failed"
   /** Started free, but OpenRouter has no key saved: say so, offer to connect. */
   | "needs-key";
 
@@ -25,6 +27,8 @@ export interface FirstRunInput {
   startedFree: boolean;
   savedKeys: SavedKeys;
   savedKeysLoaded: boolean;
+  /** The last attempt to list them failed. */
+  savedKeysFailed: boolean;
 }
 
 /**
@@ -34,7 +38,8 @@ export interface FirstRunInput {
 export function firstRunStep(input: FirstRunInput): FirstRunStep {
   if (!input.isConfigured) return "choose";
   if (!input.startedFree) return "hidden";
-  if (!input.savedKeysLoaded) return "checking";
+  if (!input.savedKeysLoaded)
+    return input.savedKeysFailed ? "load-failed" : "checking";
   return input.savedKeys.router?.origin === OPENROUTER_ORIGIN
     ? "hidden"
     : "needs-key";

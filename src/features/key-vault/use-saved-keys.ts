@@ -8,7 +8,11 @@ import {
   type SavedKeysState,
 } from "./saved-keys-store.ts";
 
-const notLoaded: SavedKeysState = { keys: {}, loaded: false };
+const notLoaded: SavedKeysState = {
+  keys: {},
+  loaded: false,
+  failed: false,
+};
 
 /** Which providers have a key saved on the server. Never the key itself. */
 export function useSavedKeys(): SavedKeysState {

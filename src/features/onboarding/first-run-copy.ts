@@ -8,6 +8,7 @@ const pt = {
   connect: "Conectar um provedor",
   connectHint: "Use sua conta ou uma chave de API.",
   checking: "Verificando se há uma chave do OpenRouter salva…",
+  checkFailed: "Não foi possível verificar as chaves salvas.",
   needsKeyTitle: "Falta uma chave gratuita do OpenRouter",
   needsKeyBody:
     "Os modelos gratuitos do OpenRouter também pedem uma chave. Crie uma em openrouter.ai/keys (é grátis) e conecte aqui.",
@@ -32,6 +33,7 @@ const en: FirstRunCopy = {
   connect: "Connect a provider",
   connectHint: "Use your account or an API key.",
   checking: "Checking for a saved OpenRouter key…",
+  checkFailed: "Could not check the saved keys.",
   needsKeyTitle: "A free OpenRouter key is missing",
   needsKeyBody:
     "OpenRouter's free models also need a key. Create one at openrouter.ai/keys (it is free) and connect it here.",
@@ -54,6 +56,7 @@ const es: FirstRunCopy = {
   connect: "Conectar un proveedor",
   connectHint: "Usa tu cuenta o una clave de API.",
   checking: "Comprobando si hay una clave de OpenRouter guardada…",
+  checkFailed: "No se pudieron comprobar las claves guardadas.",
   needsKeyTitle: "Falta una clave gratuita de OpenRouter",
   needsKeyBody:
     "Los modelos gratuitos de OpenRouter también piden una clave. Crea una en openrouter.ai/keys (es gratis) y conéctala aquí.",

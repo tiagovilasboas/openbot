@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ConnectProvider,
   useConnectFlow,
 } from "@/features/connections/index.ts";
+import { refreshSavedKeys } from "@/features/key-vault/saved-keys-store.ts";
 import { useSavedKeys } from "@/features/key-vault/use-saved-keys.ts";
 import { saveStoredModelConfig } from "@/features/model/model-config.ts";
 import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
@@ -12,6 +13,7 @@ import {
   cameBackToFirstRun,
   clearFirstRunReturn,
   markFirstRunConnect,
+  settleFirstRunConnect,
 } from "./first-run-return.ts";
 import { showFirstRunFailure } from "./first-run-failure.ts";
 import { firstRunCopy } from "./first-run-copy.ts";
@@ -21,6 +23,8 @@ interface FirstRunCardProps {
   language: ChatLanguage;
   /** A model (the user's or the server's) is ready to answer. */
   isConfigured: boolean;
+  /** The server has not said yet whether it has a model: show nothing. */
+  isChecking: boolean;
   /** Opens Settings, for providers other than OpenRouter. */
   onOpenSettings: () => void;
   /** Puts the starter task in the composer. */
@@ -41,6 +45,7 @@ const secondaryButton =
 export function FirstRunCard({
   language,
   isConfigured,
+  isChecking,
   onOpenSettings,
   onStarter,
 }: FirstRunCardProps) {
@@ -48,15 +53,20 @@ export function FirstRunCard({
   const [startedFree, setStartedFree] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const flow = useConnectFlow();
-  const { keys, loaded } = useSavedKeys();
+  const { keys, loaded, failed } = useSavedKeys();
   const step = firstRunStep({
     isConfigured,
     startedFree,
     savedKeys: keys,
     savedKeysLoaded: loaded,
+    savedKeysFailed: failed,
   });
 
-  if (step === "hidden") return null;
+  // A model is ready: a first-run Connect that came back is over, failed or not.
+  useEffect(() => settleFirstRunConnect(isConfigured), [isConfigured]);
+
+  // While the server still says nothing about a model, show no choice yet.
+  if (isChecking || step === "hidden") return null;
 
   if (isConnecting) {
     return (
@@ -68,7 +78,10 @@ export function FirstRunCard({
           id="router"
           language={language}
           backLabel={copy.back}
-          onBack={() => setIsConnecting(false)}
+          onBack={() => {
+            clearFirstRunReturn();
+            setIsConnecting(false);
+          }}
           onBegin={markFirstRunConnect}
         />
         <button
@@ -155,6 +168,23 @@ export function FirstRunCard({
         >
           {copy.checking}
         </p>
+      )}
+
+      {step === "load-failed" && (
+        <div
+          id="first-run-title"
+          role="alert"
+          className="flex flex-wrap items-center gap-x-3 text-[13px] text-danger"
+        >
+          <span>{copy.checkFailed}</span>
+          <button
+            type="button"
+            onClick={() => void refreshSavedKeys()}
+            className="min-h-11 font-medium underline underline-offset-2"
+          >
+            {copy.retry}
+          </button>
+        </div>
       )}
 
       {step === "needs-key" && (
