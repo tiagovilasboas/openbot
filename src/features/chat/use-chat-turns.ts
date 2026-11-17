@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import type { AttachmentPayload } from "@/features/attachments/parse-attachments.ts";
 import type { Attachment } from "@/features/attachments/read-attachment.ts";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
@@ -23,6 +23,7 @@ import { storeTurnReply } from "./store-turn-reply.ts";
 import { threadUpTo } from "./thread-sequencing.ts";
 import { loadBotMessages } from "./use-bot-messages.ts";
 import type { ToolTurnView } from "./tool-turn-view.ts";
+import { useLatestBot } from "./use-latest-bot.ts";
 import { useToolApproval } from "./use-tool-approval.ts";
 import type { ChatTurnsInput } from "./chat-turns-input.ts";
 import { workingBotIds } from "./working-bots.ts";
@@ -61,11 +62,7 @@ export function useChatTurns(input: ChatTurnsInput) {
   const [unavailableBotId, setUnavailableBotId] = useState<string | null>(null);
   const conversationIdRef = useRef(0);
   const turnAbortRef = useRef<AbortController | null>(null);
-  // A queued turn starts from an older render; it reads the bot as saved now.
-  const latestBotRef = useRef(activeBot);
-  useEffect(() => {
-    latestBotRef.current = activeBot;
-  }, [activeBot]);
+  const latestBotRef = useLatestBot(activeBot);
   const compactThread = useTurnCompaction({
     language,
     activeBot,
@@ -125,10 +122,9 @@ export function useChatTurns(input: ChatTurnsInput) {
     const turnBot = latest.id === activeBot.id ? latest : activeBot;
     setTurnModel({ botId: turnBot.id, modelId: turnBot.modelId });
     const turn = beginTurn(turnBot.id);
-    const { controller } = turn;
     // A thread filling the window is folded into a summary first; on any
     // failure the turn goes out as it is.
-    await compactThread(userMessageId, controller.signal);
+    await compactThread(userMessageId, turn.signal);
     // Read the stored thread, not a render closure, so queued messages stay.
     const history = historyFromThread(
       threadUpTo(loadBotMessages(activeBot.id), userMessageId),
