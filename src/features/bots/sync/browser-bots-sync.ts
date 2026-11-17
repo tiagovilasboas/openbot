@@ -1,5 +1,6 @@
 import {
   DEFAULT_BOTS_LIST,
+  loadActiveBotId,
   saveActiveBotId,
   saveBotsToStorage,
 } from "../bot-storage.ts";
@@ -57,6 +58,7 @@ export function loadBotsFromServer(): Promise<LoadOutcome> {
   loading ??= syncBotsOnLoad({
     api,
     readLocal: () => readLocalSnapshot(storage()),
+    readActiveBotId: () => loadActiveBotId(storage()),
     isUnsynced: () => isUnsynced(storage()),
     setUnsynced: (value) => setUnsynced(storage(), value),
     mirror: (state) => {
@@ -68,6 +70,8 @@ export function loadBotsFromServer(): Promise<LoadOutcome> {
     reportFailure: report,
   }).then((outcome) => {
     queue.noteServerMain(outcome.serverMainBotId);
+    // The server answered with the agent it knew; tell it the newer pick.
+    if (outcome.pickedDuringLoad) pushBots();
     return outcome;
   });
   return loading;
