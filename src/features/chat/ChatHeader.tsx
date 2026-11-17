@@ -11,7 +11,7 @@ import { chatCopy } from "./chat-copy.ts";
 import { LanguageToggle } from "./LanguageToggle.tsx";
 import type { ChatLanguage } from "./respond-to-message.ts";
 import { BrandMark } from "@/shared/brand/BrandMark.tsx";
-import { MenuIcon, ModelChipIcon, NewChatIcon } from "./ShellIcons.tsx";
+import { MenuIcon, NewChatIcon } from "./ShellIcons.tsx";
 
 interface ChatHeaderProps {
   language: ChatLanguage;
@@ -36,11 +36,6 @@ interface ChatHeaderProps {
 
 const ICON_BUTTON =
   "flex size-11 shrink-0 items-center justify-center rounded-full text-muted transition-[background-color,color,transform] duration-150 ease-out-expo hover:bg-surface hover:text-foreground active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40";
-
-/** The phone status line only has room for the model id's last segment. */
-function compactModelLabel(label: string): string {
-  return label.split("/").pop()?.trim() || label;
-}
 
 export function ChatHeader({
   language,
@@ -76,16 +71,6 @@ export function ChatHeader({
       <span className="flex min-w-0 flex-col">
         <span className="truncate text-[15px] leading-5 font-medium text-foreground">
           {activeBot ? activeBot.name : content.brandName}
-        </span>
-        <span className="flex min-w-0 items-center gap-1.5 text-xs leading-4 text-subtle md:hidden">
-          <span
-            aria-hidden="true"
-            className={`size-1.5 shrink-0 rounded-full ${MODEL_STATUS_DOT[modelStatus]}`}
-          />
-          <span className="truncate">
-            {compactModelLabel(activeModelLabel)}
-          </span>
-          {statusNote && <span className="sr-only">, {statusNote}</span>}
         </span>
       </span>
     </>
@@ -144,11 +129,18 @@ export function ChatHeader({
           <button
             type="button"
             aria-label={modelPickerLabel}
+            aria-haspopup="dialog"
             title={activeModelLabel}
             onClick={onOpenModelPicker}
             className={`${ICON_BUTTON} md:hidden`}
           >
-            <ModelChipIcon />
+            <span className="flex size-7 items-center justify-center rounded-full border border-border bg-surface">
+              <span
+                aria-hidden="true"
+                className={`size-2 rounded-full ${MODEL_STATUS_DOT[modelStatus]}`}
+              />
+            </span>
+            {statusNote && <span className="sr-only">, {statusNote}</span>}
           </button>
         )}
 
