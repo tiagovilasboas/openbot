@@ -27,6 +27,8 @@ interface ConnectionDetailProps {
   showSecretLabel: string;
   hideSecretLabel: string;
   onBack: () => void;
+  /** Overrides the Back label where it leads somewhere other than the list. */
+  backLabel?: string;
   /** Runs just before the browser leaves for the provider's page. */
   onBegin?: () => void;
 }
@@ -40,6 +42,7 @@ export function ConnectionDetail({
   showSecretLabel,
   hideSecretLabel,
   onBack,
+  backLabel,
   onBegin,
 }: ConnectionDetailProps) {
   const c = getConnectionsCopy(language);
@@ -96,7 +99,7 @@ export function ConnectionDetail({
         className="-ml-2 flex min-h-11 w-fit items-center gap-1 rounded-full px-2 text-sm font-medium text-muted transition-colors hover:text-foreground"
       >
         <ChevronLeftIcon className="size-4" />
-        {c.back}
+        {backLabel ?? c.back}
       </button>
 
       <header className="flex flex-col gap-1">

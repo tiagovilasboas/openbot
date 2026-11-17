@@ -12,6 +12,8 @@ interface ConnectProviderProps {
   language: ChatLanguage;
   /** Leaves the connect form without connecting. */
   onBack: () => void;
+  /** Overrides the Back label where it leads somewhere other than the list. */
+  backLabel?: string;
   /** Runs just before the browser leaves for the provider's page. */
   onBegin?: () => void;
 }
@@ -21,6 +23,7 @@ export function ConnectProvider({
   id,
   language,
   onBack,
+  backLabel,
   onBegin,
 }: ConnectProviderProps) {
   const s = getSettingsCopy(language);
@@ -34,6 +37,7 @@ export function ConnectProvider({
       showSecretLabel={s.showSecret}
       hideSecretLabel={s.hideSecret}
       onBack={onBack}
+      backLabel={backLabel}
       onBegin={onBegin}
     />
   );
