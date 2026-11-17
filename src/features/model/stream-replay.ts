@@ -217,6 +217,10 @@ export function createStreamReplay(options: StreamReplayOptions = {}) {
     if (!response.ok || !response.body) {
       return { kind: "response", response, replayed: false };
     }
+    // Running streams count too; a full table serves the stream uncached.
+    if (entries.size >= maxEntries) {
+      return { kind: "response", response, replayed: false };
+    }
     const entry: Entry = {
       fingerprint,
       // A stream nobody finishes reading is dropped after the same TTL.
