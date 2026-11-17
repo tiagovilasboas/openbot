@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  OffProviderNotice,
+  useOffProviders,
+} from "@/features/connections/index.ts";
+import { modelUsability } from "@/features/connections/copy.ts";
 import type { Language } from "../language/language.ts";
 import { FormField, FIELD_CLASS } from "@/shared/ui/FormField.tsx";
 import {
@@ -25,26 +30,36 @@ export function BotModelField({
 }) {
   const copy = getBotsCopy(language);
   const invalid = !isBotModelIdValid(value);
+  const usability = modelUsability(value, useOffProviders());
 
   return (
-    <FormField
-      label={copy.modelLabel}
-      helper={copy.modelHelper}
-      error={invalid ? copy.modelInvalid : null}
-    >
-      {(control) => (
-        <input
-          {...control}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={copy.modelPlaceholder}
-          autoComplete="off"
-          autoCapitalize="none"
-          spellCheck={false}
-          maxLength={MODEL_ID_MAX_LENGTH}
-          className={FIELD_CLASS}
+    <div className="flex flex-col gap-2">
+      <FormField
+        label={copy.modelLabel}
+        helper={copy.modelHelper}
+        error={invalid ? copy.modelInvalid : null}
+      >
+        {(control) => (
+          <input
+            {...control}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder={copy.modelPlaceholder}
+            autoComplete="off"
+            autoCapitalize="none"
+            spellCheck={false}
+            maxLength={MODEL_ID_MAX_LENGTH}
+            className={FIELD_CLASS}
+          />
+        )}
+      </FormField>
+      {!usability.usable && (
+        <OffProviderNotice
+          language={language}
+          provider={usability.provider}
+          kind="modelWarning"
         />
       )}
-    </FormField>
+    </div>
   );
 }

@@ -1,6 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import {
+  OffProviderNotice,
+  useOffProviders,
+} from "@/features/connections/index.ts";
+import {
+  modelUsability,
+  offProviderCopy,
+  providerName,
+} from "@/features/connections/copy.ts";
 import type { Language } from "../language/language.ts";
 import { PresetRow } from "../model/PresetRow.tsx";
 import { useFreeModels } from "../model/use-free-models.ts";
@@ -27,15 +36,33 @@ function PickerBody({
   onChoose,
 }: Pick<BotModelPickerProps, "language" | "modelId" | "onChoose">) {
   const copy = getBotModelPickerCopy(language);
+  const off = useOffProviders();
   const { liveFreeModels, hasLoadedLive } = useFreeModels(true);
+  // Models of a switched-off provider are not offered; the saved one still
+  // shows (with a warning) so the current choice is never invisible.
+  const offered = liveFreeModels.filter(
+    (m) => modelUsability(m.id, off).usable,
+  );
+  const routerOff = off.includes("router");
+  const currentUsability = modelUsability(modelId, off);
   const [custom, setCustom] = useState("");
-  const [showError, setShowError] = useState(false);
-  const choices = buildModelChoices(liveFreeModels, modelId, copy.defaultName);
+  const [customError, setCustomError] = useState<string | null>(null);
+  const choices = buildModelChoices(offered, modelId, copy.defaultName);
 
   function applyCustom() {
     const result = readCustomModelId(custom);
     if (!result.ok) {
-      setShowError(true);
+      setCustomError(copy.customInvalid);
+      return;
+    }
+    const usability = modelUsability(result.modelId, off);
+    if (!usability.usable) {
+      setCustomError(
+        offProviderCopy[language].modelWarning.replace(
+          "{provider}",
+          providerName(usability.provider),
+        ),
+      );
       return;
     }
     onChoose(result.modelId);
@@ -43,7 +70,21 @@ function PickerBody({
 
   return (
     <div className="flex flex-col gap-4">
-      {!hasLoadedLive && (
+      {routerOff && (
+        <OffProviderNotice
+          language={language}
+          provider="router"
+          kind="pickerNotice"
+        />
+      )}
+      {!currentUsability.usable && (
+        <OffProviderNotice
+          language={language}
+          provider={currentUsability.provider}
+          kind="modelWarning"
+        />
+      )}
+      {!hasLoadedLive && !routerOff && (
         <p role="status" className="text-[13px] text-subtle">
           {copy.loading}
         </p>
@@ -75,17 +116,14 @@ function PickerBody({
           applyCustom();
         }}
       >
-        <FormField
-          label={copy.customLabel}
-          error={showError ? copy.customInvalid : null}
-        >
+        <FormField label={copy.customLabel} error={customError}>
           {(control) => (
             <input
               {...control}
               value={custom}
               onChange={(e) => {
                 setCustom(e.target.value);
-                setShowError(false);
+                setCustomError(null);
               }}
               placeholder={copy.customPlaceholder}
               autoComplete="off"

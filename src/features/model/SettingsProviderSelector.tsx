@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  offProviderCopy,
+  providerTypeUsability,
+} from "@/features/connections/copy.ts";
 import type { Language } from "../language/language.ts";
 import type { chatCopy } from "@/features/chat/chat-copy.ts";
 import { CheckIcon } from "@/shared/ui/FieldIcons.tsx";
@@ -8,6 +12,9 @@ import type { ModelProviderType } from "./model-config.ts";
 interface SettingsProviderSelectorProps {
   provider: ModelProviderType;
   content: (typeof chatCopy)[Language];
+  language: Language;
+  /** Providers switched off in Connections: shown, but not selectable. */
+  offProviders: readonly ("router" | "anthropic" | "github")[];
   onSelectProvider: (provider: ModelProviderType) => void;
 }
 
@@ -15,6 +22,8 @@ interface SettingsProviderSelectorProps {
 export function SettingsProviderSelector({
   provider,
   content,
+  language,
+  offProviders,
   onSelectProvider,
 }: SettingsProviderSelectorProps) {
   const options: { id: ModelProviderType; name: string; hint: string }[] = [
@@ -35,6 +44,8 @@ export function SettingsProviderSelector({
     },
   ];
 
+  // A selected row that is off cannot hold the tab stop: let usable rows have it.
+  const selectedIsOff = !providerTypeUsability(provider, offProviders).usable;
   return (
     <div
       role="radiogroup"
@@ -43,18 +54,22 @@ export function SettingsProviderSelector({
     >
       {options.map((option) => {
         const selected = option.id === provider;
+        const isOff = !providerTypeUsability(option.id, offProviders).usable;
         return (
           <button
             key={option.id}
             type="button"
             role="radio"
             aria-checked={selected}
-            tabIndex={selected ? 0 : -1}
+            tabIndex={selected || selectedIsOff ? 0 : -1}
+            disabled={isOff}
             onClick={() => onSelectProvider(option.id)}
             className={`flex min-h-12 items-center gap-3 rounded-xl px-3 py-1.5 text-start transition-colors active:scale-[0.99] ${
-              selected
-                ? "bg-surface-tertiary"
-                : "bg-surface hover:bg-surface-secondary"
+              isOff
+                ? "bg-surface opacity-60"
+                : selected
+                  ? "bg-surface-tertiary"
+                  : "bg-surface hover:bg-surface-secondary"
             }`}
           >
             <span className="min-w-0 flex-1">
@@ -62,7 +77,7 @@ export function SettingsProviderSelector({
                 {option.name}
               </span>
               <span className="block truncate text-xs text-muted">
-                {option.hint}
+                {isOff ? offProviderCopy[language].offReason : option.hint}
               </span>
             </span>
             <span

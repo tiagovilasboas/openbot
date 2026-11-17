@@ -1,6 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import {
+  OffProviderNotice,
+  useOffProviders,
+} from "@/features/connections/index.ts";
+import { providerTypeUsability } from "@/features/connections/copy.ts";
 import { chatCopy } from "@/features/chat/chat-copy.ts";
 import { describeModelFailurePlain } from "@/features/chat/describe-model-failure.ts";
 import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
@@ -57,6 +62,7 @@ export function SettingsForm({
   const content = chatCopy[language];
   const s = getSettingsCopy(language);
   const saved = useSavedKeys();
+  const offProviders = useOffProviders();
   const [isConfirmingReset, setIsConfirmingReset] = useState(false);
   const [provider, setProvider] = useState<ModelProviderType>(
     currentConfig?.provider ?? "router",
@@ -136,8 +142,12 @@ export function SettingsForm({
         ? "Anthropic"
         : null;
 
+  // A provider switched off in Connections cannot be tested or saved.
+  const usability = providerTypeUsability(provider, offProviders);
+  const offProvider = usability.usable ? null : usability.provider;
+
   async function handleTest() {
-    if (missingKeyProvider) return;
+    if (missingKeyProvider || offProvider) return;
     const candidate = getCandidateConfig();
     if (!candidate) {
       setTestResult({ ok: false, error: "invalid_fields" });
@@ -155,7 +165,7 @@ export function SettingsForm({
   }
 
   function handleSave() {
-    if (missingKeyProvider) return;
+    if (missingKeyProvider || offProvider) return;
     const candidate = getCandidateConfig();
     if (!candidate) {
       setTestResult({ ok: false, error: "invalid_fields" });
@@ -199,11 +209,24 @@ export function SettingsForm({
           <SettingsProviderSelector
             provider={provider}
             content={content}
+            language={language}
+            offProviders={offProviders}
             onSelectProvider={(next) => {
               setProvider(next);
               setTestResult(null);
             }}
           />
+          {offProviders
+            .filter((id) => id === "router" || id === "anthropic")
+            .map((id) => (
+              <OffProviderNotice
+                key={id}
+                language={language}
+                provider={id}
+                kind="offFormNotice"
+                onOpenConnections={onOpenConnections}
+              />
+            ))}
         </section>
 
         <SettingsProviderFields
@@ -227,7 +250,7 @@ export function SettingsForm({
           }}
         />
 
-        {missingKeyProvider && (
+        {missingKeyProvider && !offProvider && (
           <MissingKeyNotice
             provider={missingKeyProvider}
             language={language}
@@ -289,7 +312,8 @@ export function SettingsForm({
               <button
                 type="button"
                 onClick={handleSave}
-                className="min-h-11 rounded-full bg-foreground px-6 text-sm font-semibold text-background transition-opacity hover:opacity-90 active:scale-[0.97]"
+                disabled={Boolean(offProvider)}
+                className="min-h-11 rounded-full bg-foreground px-6 text-sm font-semibold text-background transition-opacity hover:opacity-90 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40"
               >
                 {content.saveSettings}
               </button>
