@@ -89,6 +89,7 @@ export async function handleAutomationRun(
       schedule: { kind: "interval", everyMinutes: 60 },
       enabled: false,
       silentWhenNothingNew: false,
+      runInThread: false,
       runningSince: null,
       nextRunAt: null,
       lastRunAt: null,
