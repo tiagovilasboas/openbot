@@ -240,9 +240,9 @@ export default defineConfig([
   },
   {
     // The routines domain is pure: schedules, next run and run states only.
-    // The scheduler, storage and screens live outside it and import it.
+    // Its server/ folder (storage, scheduler, runner) is the adapter side.
     // Last on purpose: it must override the src-wide import rule above.
-    files: ["src/features/routines/**/*.{ts,tsx}"],
+    files: ["src/features/routines/*.{ts,tsx}"],
     ignores: ["**/*.test.ts"],
     rules: {
       "no-restricted-imports": [

@@ -2,6 +2,7 @@ import {
   handleGetBots,
   handlePutBots,
 } from "../../../features/bots/server/bots-handler.ts";
+import { forgetBotRoutines } from "../../../features/routines/server/routines-repository.ts";
 import { forgetBotTools } from "../../../features/tools/server/forget-bot-tools.ts";
 import { getLocalStore } from "../../../shared/local-store/local-store.ts";
 
@@ -13,5 +14,8 @@ export function GET() {
 
 export function PUT(request: Request) {
   const db = getLocalStore();
-  return handlePutBots(request, db, (removed) => forgetBotTools(db, removed));
+  return handlePutBots(request, db, (removed) => {
+    forgetBotTools(db, removed);
+    forgetBotRoutines(db, removed);
+  });
 }
