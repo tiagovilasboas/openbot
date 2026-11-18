@@ -1,5 +1,6 @@
 import { lookup as dnsLookup } from "node:dns/promises";
 import { isIP } from "node:net";
+import { createPinnedFetch } from "./pinned-fetch.ts";
 import { isPublicAddress } from "./public-address.ts";
 
 export type HostLookup = (hostname: string) => Promise<string[]>;
@@ -86,14 +87,17 @@ export async function checkPublicUrl(
  * every Location) goes through checkPublicUrl first, up to maxRedirects hops.
  * The caller owns the response body and must read or cancel it.
  *
- * Limit: the address is checked by name resolution and fetch resolves the
- * name again, so a DNS answer that changes between the two is not covered.
+ * By default the request goes through a pinned transport that connects only
+ * to addresses validated at connect time, so DNS rebinding between the check
+ * and the connection cannot reach a private address.
  */
 export async function guardedFetch(
   raw: string,
   options: GuardedFetchOptions = {},
 ): Promise<GuardedFetchResult> {
-  const fetchImpl = options.fetchImpl ?? fetch;
+  const fetchImpl =
+    options.fetchImpl ??
+    createPinnedFetch({ resolve: options.lookup ?? resolveAll });
   const maxRedirects = options.maxRedirects ?? DEFAULT_MAX_REDIRECTS;
   let current = raw;
 
