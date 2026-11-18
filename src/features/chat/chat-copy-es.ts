@@ -31,6 +31,10 @@ export const chatCopyEs = {
     "El proveedor alcanzó su límite de solicitudes (por minuto o la cuota diaria gratuita). Espera un momento o elige otro modelo en **Configuración**.",
   modelErrorModel:
     "Este modelo ya no está disponible en el proveedor. Elige otro en **Configuración**.",
+  modelErrorProviderOff:
+    "{provider} está desactivado en **Configuración** > Conexiones. Actívalo o elige otro modelo.",
+  modelErrorProviderOffUnnamed:
+    "El proveedor de este modelo está desactivado en **Configuración** > Conexiones. Actívalo o elige otro modelo.",
   modelErrorBlockedUrl:
     "Esa dirección de modelo no está permitida (red privada, enlace local o metadatos de la nube). Usa una dirección pública o localhost en **Configuración**.",
   modelErrorOffline:

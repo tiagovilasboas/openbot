@@ -1,3 +1,7 @@
+import {
+  validateOffProviders,
+  type ConnectionId,
+} from "../connections/copy.ts";
 import { resetSecondsOfDetail } from "./usage-limit-reset.ts";
 
 /**
@@ -17,6 +21,7 @@ export type ModelFailureKind =
   | "cancelled"
   | "server"
   | "response_too_long"
+  | "provider_off"
   | "unknown";
 
 export interface ModelFailure {
@@ -25,6 +30,8 @@ export interface ModelFailure {
   status?: number;
   /** For a usage limit: seconds until it resets, when the provider said. */
   resetSeconds?: number;
+  /** For a switched-off provider: which one, when the server said. */
+  provider?: ConnectionId;
 }
 
 function statusOf(detail: string | undefined): number | undefined {
@@ -47,7 +54,13 @@ export function classifyModelFailure(
   code: unknown,
   detail: unknown,
   httpStatus?: number,
+  provider?: unknown,
 ): ModelFailure {
+  // The server refused a provider the user switched off.
+  if (code === "provider_off") {
+    const [id] = validateOffProviders([provider]) ?? [];
+    return { kind: "provider_off", ...(id ? { provider: id } : {}) };
+  }
   // The server guard refused a non-local caller because no access token is set.
   if (code === "access_token_required") {
     return { kind: "access_required", status: 403 };

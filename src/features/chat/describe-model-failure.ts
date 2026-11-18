@@ -1,3 +1,4 @@
+import { providerName } from "../connections/copy.ts";
 import type { ModelFailure } from "../model/classify-model-failure.ts";
 import { describeResetWait } from "./reset-wait.ts";
 import { chatCopy } from "./chat-copy.ts";
@@ -30,6 +31,13 @@ export function describeModelFailure(
       return content.modelErrorModel;
     case "blocked_url":
       return content.modelErrorBlockedUrl;
+    case "provider_off":
+      return failure.provider
+        ? content.modelErrorProviderOff.replace(
+            "{provider}",
+            providerName(failure.provider),
+          )
+        : content.modelErrorProviderOffUnnamed;
     case "offline":
       return content.modelErrorOffline;
     case "timeout":

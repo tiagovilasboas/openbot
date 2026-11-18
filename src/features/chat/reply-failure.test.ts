@@ -56,3 +56,12 @@ test("a stored thread keeps the failure and still loads without it", () => {
     undefined,
   );
 });
+
+test("a switched-off provider is stored, read back and fixed in Settings", () => {
+  assert.equal(
+    replyFailureOf({ kind: "provider_off", provider: "router" }),
+    "provider_off",
+  );
+  assert.equal(readReplyFailure("provider_off"), "provider_off");
+  assert.equal(replyFailureAction("provider_off"), "settings");
+});

@@ -1,3 +1,4 @@
+import type { Route } from "@playwright/test";
 import { appPage, expect, test } from "./app-fixture.ts";
 
 test("a 502 from the model shows a readable error and the composer stays usable", async ({
@@ -64,4 +65,27 @@ test("a server failure offers Try again, which sends the message again", async (
   ).toHaveCount(0);
   await expect(thread.getByText("Are you there?")).toHaveCount(1);
   expect(model.chatRequests()).toHaveLength(2);
+});
+
+test("a switched-off provider is named, with Open settings", async ({
+  page,
+}) => {
+  // Both chat routes refuse it, as the server does for an off provider.
+  const refuse = (route: Route) =>
+    route.fulfill({
+      status: 409,
+      json: { error: "provider_off", provider: "router" },
+    });
+  await page.route("**/api/chat/stream", refuse);
+  await page.route("**/api/chat", refuse);
+  await page.goto("/");
+  const app = appPage(page);
+
+  await app.send("Hello");
+  const thread = page.getByRole("region", { name: "Conversa" });
+  await expect(thread.getByText(/OpenRouter está desativado/)).toBeVisible();
+  await expect(
+    thread.getByRole("button", { name: "Abrir configurações" }),
+  ).toBeVisible();
+  await expect(thread.getByText("provider_off")).toHaveCount(0);
 });

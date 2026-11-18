@@ -93,3 +93,18 @@ test("a reply cut for length has its own sentence with an action, in both langua
     assert.ok(text.length > 20);
   }
 });
+
+test("a switched-off provider is named in every language, with a fallback", () => {
+  for (const language of LANGUAGES) {
+    const named = describeModelFailure(
+      { kind: "provider_off", provider: "anthropic" },
+      language,
+    );
+    assert.ok(named.startsWith("Anthropic "), named);
+    assert.ok(!named.includes("{provider}"), named);
+    assert.equal(
+      describeModelFailure({ kind: "provider_off" }, language),
+      chatCopy[language].modelErrorProviderOffUnnamed,
+    );
+  }
+});

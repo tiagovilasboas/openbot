@@ -89,3 +89,22 @@ test("network and unknown failures keep the status when there is one", () => {
     kind: "unknown",
   });
 });
+
+test("a switched-off provider keeps its known id and drops an unknown one", () => {
+  assert.deepEqual(
+    classifyModelFailure("provider_off", undefined, 409, "router"),
+    {
+      kind: "provider_off",
+      provider: "router",
+    },
+  );
+  assert.deepEqual(
+    classifyModelFailure("provider_off", undefined, 409, "openai"),
+    {
+      kind: "provider_off",
+    },
+  );
+  assert.deepEqual(classifyModelFailure("provider_off", undefined, 409), {
+    kind: "provider_off",
+  });
+});

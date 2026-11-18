@@ -190,3 +190,14 @@ test("each call gets its own time limit", async () => {
     "a timeout does not cancel the turn",
   );
 });
+
+test("a 409 for a switched-off provider names that provider", async () => {
+  assert.deepEqual(
+    await requestModelReply(
+      "pt",
+      history,
+      respond({ error: "provider_off", provider: "router" }, 409),
+    ),
+    { kind: "error", failure: { kind: "provider_off", provider: "router" } },
+  );
+});
