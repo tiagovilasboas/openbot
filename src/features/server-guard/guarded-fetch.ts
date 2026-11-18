@@ -113,8 +113,10 @@ export async function guardedFetch(
         headers: options.headers,
         signal: options.signal,
       });
-    } catch {
-      return { ok: false, code: "fetch_failed" };
+    } catch (error) {
+      const blocked =
+        error instanceof Error && error.message === "blocked_address";
+      return { ok: false, code: blocked ? "blocked_address" : "fetch_failed" };
     }
 
     if (!REDIRECT_STATUSES.has(response.status)) {

@@ -86,6 +86,9 @@ export function createPinnedFetch(
           headers: init.headers as Record<string, string> | undefined,
           signal: init.signal ?? undefined,
           lookup,
+          // A pooled keep-alive socket is keyed by host and port, not by the
+          // validated lookup: every request opens its own pinned socket.
+          agent: false,
         },
         (res) => {
           const headers = new Headers();

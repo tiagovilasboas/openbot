@@ -81,3 +81,20 @@ test("TLS uses the original hostname as SNI on the validated address", async () 
     server.close();
   }
 });
+
+test("sockets are never pooled across requests", async () => {
+  const { server, port } = await stubServer();
+  const sockets: number[] = [];
+  server.on("connection", (socket) => sockets.push(socket.remotePort ?? 0));
+  try {
+    const fetchImpl = createPinnedFetch({
+      resolve: async () => ["127.0.0.1"],
+      isAllowed: () => true, // test only
+    });
+    await (await fetchImpl(`http://pool.test:${port}/`)).text();
+    await (await fetchImpl(`http://pool.test:${port}/`)).text();
+    assert.equal(new Set(sockets).size, 2);
+  } finally {
+    server.close();
+  }
+});
