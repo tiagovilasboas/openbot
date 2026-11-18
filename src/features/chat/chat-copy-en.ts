@@ -119,6 +119,8 @@ export const chatCopyEn = {
   rollbackDiscardNone: "No messages after this one will be removed.",
   rollbackDiscardOne: "message after this one will be removed.",
   rollbackDiscardMany: "messages after this one will be removed.",
+  branchAction: "Branch from here",
+  branchRunning: "Wait for the reply to finish to branch.",
   viaBot: "via",
   failoverNotice: "Automatic failover",
   failoverReasonLabel: "Reason",

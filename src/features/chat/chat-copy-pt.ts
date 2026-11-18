@@ -122,6 +122,8 @@ export const chatCopyPt = {
   rollbackDiscardNone: "Nenhuma mensagem depois desta será removida.",
   rollbackDiscardOne: "mensagem depois desta será removida.",
   rollbackDiscardMany: "mensagens depois desta serão removidas.",
+  branchAction: "Ramificar daqui",
+  branchRunning: "Aguarde a resposta terminar para ramificar.",
   viaBot: "via",
   failoverNotice: "Failover automático",
   failoverReasonLabel: "Motivo",

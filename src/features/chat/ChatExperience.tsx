@@ -38,6 +38,8 @@ import { useLanguage } from "./use-language.ts";
 import { useMessageQueue } from "./use-message-queue.ts";
 import { useAgentShortcuts } from "./use-agent-shortcuts.ts";
 import { useNewChatUndo } from "./use-new-chat-undo.ts";
+import { ThreadBar } from "../threads/ThreadBar.tsx";
+import { useBotThreads } from "../threads/use-bot-threads.ts";
 
 export function ChatExperience() {
   const [language, setLanguage] = useLanguage();
@@ -171,6 +173,9 @@ export function ChatExperience() {
       resetConversation,
     });
 
+  const threadList = useBotThreads(activeBot.id, language);
+  const threadsLocked = blockedRollback !== null;
+
   const newChatUndo = useNewChatUndo({
     language,
     botId: activeBot.id,
@@ -233,6 +238,18 @@ export function ChatExperience() {
           isMobileSidebarOpen={isMobileSidebarOpen}
           onOpenBotEdit={() => botEditor.openFor(activeBot)}
         />
+        <ThreadBar
+          language={language}
+          threads={threadList.threads}
+          activeId={threadList.activeId}
+          locked={threadsLocked}
+          removed={threadList.removed}
+          onSelect={threadList.select}
+          onCreate={threadList.create}
+          onRename={threadList.rename}
+          onRemove={threadList.remove}
+          onUndoRemove={threadList.undoRemove}
+        />
         <BotModelNotice message={modelPicker.notice} />
         <BotModelPicker
           isOpen={modelPicker.isOpen}
@@ -276,6 +293,10 @@ export function ChatExperience() {
           onCancel={cancelTurn}
           onRetry={retryMessage}
           onRollBack={rollBack}
+          branch={{
+            running: threadsLocked,
+            onBranch: (id) => threadList.branchFrom(id, threadsLocked),
+          }}
         />
       </main>
 
