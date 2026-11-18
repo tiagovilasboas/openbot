@@ -10,7 +10,6 @@ import { chatCopy } from "@/features/chat/chat-copy.ts";
 import { describeModelFailurePlain } from "@/features/chat/describe-model-failure.ts";
 import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
 import { clearStoredGitHubToken } from "@/features/github/github-config.ts";
-import { SheetFooter } from "@/shared/ui/ResponsiveSheet.tsx";
 import {
   clearStoredModelConfig,
   saveStoredModelConfig,
@@ -34,6 +33,7 @@ import {
 import { MissingKeyNotice } from "./MissingKeyNotice.tsx";
 import { getSettingsCopy } from "./settings-copy.ts";
 import { SettingsProviderFields } from "./SettingsProviderFields.tsx";
+import { SettingsFormFooter } from "./SettingsFormFooter.tsx";
 import { SettingsProviderSelector } from "./SettingsProviderSelector.tsx";
 import { testModelConnection } from "./test-model-connection.ts";
 import { SETTINGS_FORM_DEFAULTS } from "./settings-form-defaults.ts";
@@ -274,52 +274,15 @@ export function SettingsForm({
       </div>
 
       {isActive && (
-        <SheetFooter>
-          {isConfirmingReset ? (
-            <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="text-sm font-medium text-foreground">
-                  {s.resetConfirm}
-                </p>
-                <p className="text-[13px] text-subtle">{s.resetConfirmHint}</p>
-              </div>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsConfirmingReset(false)}
-                  className="min-h-11 flex-1 rounded-full border border-border bg-surface px-5 text-sm font-medium text-foreground active:scale-[0.97] md:flex-none"
-                >
-                  {s.cancel}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleReset}
-                  className="min-h-11 flex-1 rounded-full bg-danger px-5 text-sm font-medium text-background active:scale-[0.97] md:flex-none"
-                >
-                  {s.resetConfirmAction}
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center justify-between gap-3">
-              <button
-                type="button"
-                onClick={() => setIsConfirmingReset(true)}
-                className="min-h-11 rounded-full px-4 text-sm font-medium text-muted transition-colors hover:bg-surface hover:text-foreground active:scale-[0.97]"
-              >
-                {content.resetDefaults}
-              </button>
-              <button
-                type="button"
-                onClick={handleSave}
-                disabled={Boolean(offProvider)}
-                className="min-h-11 rounded-full bg-foreground px-6 text-sm font-semibold text-background transition-opacity hover:opacity-90 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40"
-              >
-                {content.saveSettings}
-              </button>
-            </div>
-          )}
-        </SheetFooter>
+        <SettingsFormFooter
+          s={s}
+          content={content}
+          isConfirming={isConfirmingReset}
+          onConfirmingChange={setIsConfirmingReset}
+          onReset={handleReset}
+          onSave={handleSave}
+          saveDisabled={Boolean(offProvider)}
+        />
       )}
     </>
   );
