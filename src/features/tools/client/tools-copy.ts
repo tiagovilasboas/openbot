@@ -16,6 +16,7 @@ interface ToolsCopy {
     memory_add_note: string;
     github_list_open_items: string;
     ask_user: string;
+    read_page: string;
   };
   unknownTool: string;
   previewLabel: string;
@@ -41,6 +42,7 @@ export const toolsCopy: Record<Language, ToolsCopy> = {
       memory_add_note: "Salvar uma nota na memória",
       github_list_open_items: "Ler issues e PRs abertos no GitHub",
       ask_user: "Pergunta para você",
+      read_page: "Ler uma página da web",
     },
     unknownTool: "Usar uma ferramenta",
     previewLabel: "O que será usado",
@@ -72,6 +74,7 @@ export const toolsCopy: Record<Language, ToolsCopy> = {
       memory_add_note: "Save a note to memory",
       github_list_open_items: "Read open GitHub issues and PRs",
       ask_user: "Question for you",
+      read_page: "Read a web page",
     },
     unknownTool: "Use a tool",
     previewLabel: "What it will use",
@@ -103,6 +106,7 @@ export const toolsCopy: Record<Language, ToolsCopy> = {
       memory_add_note: "Guardar una nota en la memoria",
       github_list_open_items: "Leer issues y PR abiertos en GitHub",
       ask_user: "Pregunta para ti",
+      read_page: "Leer una página web",
     },
     unknownTool: "Usar una herramienta",
     previewLabel: "Lo que usará",
