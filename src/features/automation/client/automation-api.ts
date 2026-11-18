@@ -32,7 +32,7 @@ export async function revokeToken(): Promise<boolean> {
 /** A curl line for the local route; the token is passed as given. */
 export function curlExample(origin: string, token: string): string {
   return `curl -X POST ${origin}/api/automation/run \\
-  -H "Authorization: Bearer ${token}" \\
+  -H "X-Openbot-Automation-Token: ${token}" \\
   -H "X-Openbot-Client: 1" \\
   -H "Content-Type: application/json" \\
   -d '{"botId":"BOT_ID","prompt":"Hello"}'`;

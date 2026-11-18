@@ -10,7 +10,8 @@ import {
   bodyLimitFor,
   readBodyWithCap,
 } from "../../server-guard/body-limits.ts";
-import { isLoopbackAddress } from "../../server-guard/loopback-address.ts";
+import type { ClientKeyEnv } from "../../server-guard/client-key.ts";
+import { isDirectLocalRequest } from "../../server-guard/local-only-request.ts";
 import { checkAutomationRequest } from "./automation-auth.ts";
 import {
   automationTokenStatus,
@@ -48,8 +49,9 @@ export async function handleAutomationRun(
   address: string | undefined,
   runner: RoutineRunner,
   clock: () => number = Date.now,
+  env: ClientKeyEnv = {},
 ): Promise<Response> {
-  const auth = checkAutomationRequest(db, request.headers, address);
+  const auth = checkAutomationRequest(db, request.headers, address, env);
   if (!auth.ok) return json({ error: auth.error }, auth.status);
   const body = await readJson(request);
   if (body === undefined) return json({ error: "payload_too_large" }, 413);
@@ -101,8 +103,15 @@ export async function handleAutomationRun(
   );
 }
 
-function appOnly(address: string | undefined): Response | null {
-  return isLoopbackAddress(address)
+/** Who is calling the token routes: the request's headers and peer address. */
+export type LocalCaller = {
+  headers: Headers;
+  address: string | undefined;
+  env?: ClientKeyEnv;
+};
+
+function appOnly(caller: LocalCaller): Response | null {
+  return isDirectLocalRequest(caller.headers, caller.address, caller.env ?? {})
     ? null
     : json({ error: "loopback_only" }, 403);
 }
@@ -110,18 +119,18 @@ function appOnly(address: string | undefined): Response | null {
 /** GET /api/automation/token: whether a token exists (never the token). */
 export function handleTokenStatus(
   db: DatabaseSync,
-  address: string | undefined,
+  caller: LocalCaller,
 ): Response {
-  return appOnly(address) ?? json(automationTokenStatus(db));
+  return appOnly(caller) ?? json(automationTokenStatus(db));
 }
 
 /** POST /api/automation/token: creates or rotates; plaintext shown once. */
 export function handleTokenCreate(
   db: DatabaseSync,
-  address: string | undefined,
+  caller: LocalCaller,
   now: () => number = Date.now,
 ): Response {
-  const refused = appOnly(address);
+  const refused = appOnly(caller);
   if (refused) return refused;
   const token = createAutomationToken(db, now());
   return json({ token, ...automationTokenStatus(db) });
@@ -130,7 +139,7 @@ export function handleTokenCreate(
 /** DELETE /api/automation/token: revokes, which switches the route off. */
 export function handleTokenRevoke(
   db: DatabaseSync,
-  address: string | undefined,
+  caller: LocalCaller,
 ): Response {
-  return appOnly(address) ?? json({ revoked: revokeAutomationToken(db) });
+  return appOnly(caller) ?? json({ revoked: revokeAutomationToken(db) });
 }

@@ -1,5 +1,6 @@
 import type { DatabaseSync } from "node:sqlite";
-import { isLoopbackAddress } from "../../server-guard/loopback-address.ts";
+import type { ClientKeyEnv } from "../../server-guard/client-key.ts";
+import { isDirectLocalRequest } from "../../server-guard/local-only-request.ts";
 import { verifyAutomationToken } from "./automation-token-repository.ts";
 
 /** Header for the token when Authorization already carries OPENBOT_ACCESS_TOKEN. */
@@ -30,8 +31,9 @@ export function checkAutomationRequest(
   db: DatabaseSync,
   headers: Headers,
   address: string | undefined,
+  env: ClientKeyEnv = {},
 ): AutomationAuth {
-  if (!isLoopbackAddress(address)) {
+  if (!isDirectLocalRequest(headers, address, env)) {
     return { ok: false, status: 403, error: "loopback_only" };
   }
   const presented = presentedToken(headers);

@@ -19,7 +19,7 @@ export const automationCopy = {
     copied: "Copiado",
     exampleTitle: "Exemplo",
     exampleNote:
-      "Troque BOT_ID pelo id do bot. Com senha de acesso do servidor ativa, envie o token no cabeçalho X-Openbot-Automation-Token.",
+      "Troque BOT_ID pelo id do bot. Quem tem o token pode acionar qualquer bot ou rotina; guarde-o como uma senha.",
     revoked: "Token revogado. A rota de automação está desligada.",
     failed: "Não foi possível concluir. Tente novamente.",
   },
@@ -40,7 +40,7 @@ export const automationCopy = {
     copied: "Copied",
     exampleTitle: "Example",
     exampleNote:
-      "Replace BOT_ID with the bot's id. If the server access token is on, send this token in the X-Openbot-Automation-Token header.",
+      "Replace BOT_ID with the bot's id. Anyone with the token can run any bot or routine; keep it like a password.",
     revoked: "Token revoked. The automation route is off.",
     failed: "Could not finish. Try again.",
   },
@@ -61,7 +61,7 @@ export const automationCopy = {
     copied: "Copiado",
     exampleTitle: "Ejemplo",
     exampleNote:
-      "Cambia BOT_ID por el id del bot. Si el token de acceso del servidor está activo, envía este token en el encabezado X-Openbot-Automation-Token.",
+      "Cambia BOT_ID por el id del bot. Quien tenga el token puede ejecutar cualquier bot o rutina; guárdalo como una contraseña.",
     revoked: "Token revocado. La ruta de automatización está apagada.",
     failed: "No se pudo completar. Inténtalo de nuevo.",
   },

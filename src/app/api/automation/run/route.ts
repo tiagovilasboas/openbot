@@ -12,5 +12,7 @@ export function POST(request: Request) {
     db,
     clientAddress(request.headers, process.env),
     createModelRoutineRunner(db),
+    Date.now,
+    process.env,
   );
 }

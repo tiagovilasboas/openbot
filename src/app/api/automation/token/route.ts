@@ -8,11 +8,15 @@ import { getLocalStore } from "../../../../shared/local-store/local-store.ts";
 
 export const dynamic = "force-dynamic";
 
-const where = (request: Request) => clientAddress(request.headers, process.env);
+const caller = (request: Request) => ({
+  headers: request.headers,
+  address: clientAddress(request.headers, process.env),
+  env: process.env,
+});
 
 export const GET = (request: Request) =>
-  handleTokenStatus(getLocalStore(), where(request));
+  handleTokenStatus(getLocalStore(), caller(request));
 export const POST = (request: Request) =>
-  handleTokenCreate(getLocalStore(), where(request));
+  handleTokenCreate(getLocalStore(), caller(request));
 export const DELETE = (request: Request) =>
-  handleTokenRevoke(getLocalStore(), where(request));
+  handleTokenRevoke(getLocalStore(), caller(request));

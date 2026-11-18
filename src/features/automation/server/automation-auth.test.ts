@@ -8,7 +8,7 @@ import {
 import { createAutomationToken } from "./automation-token-repository.ts";
 
 const bearer = (token: string) =>
-  new Headers({ authorization: `Bearer ${token}` });
+  new Headers({ host: "localhost:3000", authorization: `Bearer ${token}` });
 
 test("refuses non-loopback and unknown addresses before anything else", () =>
   withDb((db) => {
@@ -34,7 +34,11 @@ test("is off when no token is configured", () =>
 test("rejects a missing or wrong token and accepts the right one", () =>
   withDb((db) => {
     const token = createAutomationToken(db, 1);
-    const missing = checkAutomationRequest(db, new Headers(), "::1");
+    const missing = checkAutomationRequest(
+      db,
+      new Headers({ host: "localhost" }),
+      "::1",
+    );
     assert.deepEqual(missing, {
       ok: false,
       status: 401,
@@ -46,6 +50,7 @@ test("rejects a missing or wrong token and accepts the right one", () =>
       ok: true,
     });
     const viaHeader = new Headers({
+      host: "127.0.0.1:3000",
       authorization: "Bearer access-token",
       [AUTOMATION_TOKEN_HEADER]: token,
     });
