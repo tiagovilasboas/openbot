@@ -123,6 +123,8 @@ export const chatCopyEs = {
   rollbackDiscardNone: "No se eliminará ningún mensaje posterior a este.",
   rollbackDiscardOne: "mensaje posterior a este se eliminará.",
   rollbackDiscardMany: "mensajes posteriores a este se eliminarán.",
+  branchAction: "Ramificar desde aquí",
+  branchRunning: "Espera a que termine la respuesta para ramificar.",
   viaBot: "vía",
   failoverNotice: "Failover automático",
   failoverReasonLabel: "Motivo",

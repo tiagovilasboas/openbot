@@ -40,26 +40,26 @@ Paralelo: CON-2 e CON-3; CON-5 e CON-6 depois de CON-3.
 
 ## 2. Provedores e modelos (`model/`, `usage/`)
 
-| Task  | Entrega                                                               | Casos        | Pts | Depende de |
-| ----- | --------------------------------------------------------------------- | ------------ | --: | ---------- |
-| PRV-1 | Varredura local de Ollama e LM Studio, erro só com host, corpo ≤ 1 MB | PR-05        |   3 | —          |
-| PRV-2 | Endpoint OpenAI-compatível próprio com nome, guardado como conexão    | PR-04        |   3 | CON-2      |
-| PRV-3 | Liga/desliga de provedor na tela, sem apagar a chave                  | PR-07        |   2 | CON-4      |
-| PRV-4 | Lista de modelos de backup por bot, usada pelo failover               | PR-08, AG-24 |   3 | —          |
-| PRV-5 | Espera do reset de limite com aviso, antes do backup                  | PR-09, AG-24 |   3 | PRV-4      |
+| Task                      | Entrega                                                               | Casos        | Pts | Depende de |
+| ------------------------- | --------------------------------------------------------------------- | ------------ | --: | ---------- |
+| PRV-1 **(entregue #186)** | Varredura local de Ollama e LM Studio, erro só com host, corpo ≤ 1 MB | PR-05        |   3 | —          |
+| PRV-2                     | Endpoint OpenAI-compatível próprio com nome, guardado como conexão    | PR-04        |   3 | CON-2      |
+| PRV-3                     | Liga/desliga de provedor na tela, sem apagar a chave                  | PR-07        |   2 | CON-4      |
+| PRV-4                     | Lista de modelos de backup por bot, usada pelo failover               | PR-08, AG-24 |   3 | —          |
+| PRV-5                     | Espera do reset de limite com aviso, antes do backup                  | PR-09, AG-24 |   3 | PRV-4      |
 
 Paralelo: PRV-1 e PRV-4 desde já, sem tocar em `connections/`.
 
 ## 3. Conversa (`chat/`, `conversations/`)
 
-| Task  | Entrega                                                          | Casos | Pts | Depende de |
-| ----- | ---------------------------------------------------------------- | ----- | --: | ---------- |
-| CHT-1 | `clientMessageId` no envio: reenvio não duplica                  | AG-06 |   3 | —          |
-| CHT-2 | Modo "corrigir o rumo": mensagem entra no próximo passo do turno | AG-07 |   5 | CHT-1      |
-| CHT-3 | Ramificar: copia até um turno concluído para conversa nova       | AG-09 |   3 | —          |
-| CHT-4 | Pergunta lateral: contexto recente, nada gravado no histórico    | AG-13 |   3 | —          |
-| CHT-5 | Thread filha de uma conversa (modelo de dados e lista)           | AG-08 |   5 | —          |
-| CHT-6 | Painel de tarefas com as threads de todos os bots                | AG-10 |   3 | CHT-5      |
+| Task                      | Entrega                                                          | Casos | Pts | Depende de |
+| ------------------------- | ---------------------------------------------------------------- | ----- | --: | ---------- |
+| CHT-1                     | `clientMessageId` no envio: reenvio não duplica                  | AG-06 |   3 | —          |
+| CHT-2                     | Modo "corrigir o rumo": mensagem entra no próximo passo do turno | AG-07 |   5 | CHT-1      |
+| CHT-3 **(entregue #187)** | Ramificar: copia até um turno concluído para conversa nova       | AG-09 |   3 | —          |
+| CHT-4                     | Pergunta lateral: contexto recente, nada gravado no histórico    | AG-13 |   3 | —          |
+| CHT-5 **(entregue #187)** | Thread filha de uma conversa (modelo de dados e lista)           | AG-08 |   5 | —          |
+| CHT-6                     | Painel de tarefas com as threads de todos os bots                | AG-10 |   3 | CHT-5      |
 
 Paralelo: CHT-1, CHT-3, CHT-4 e CHT-5 não compartilham arquivos de domínio;
 coordenar só `ChatExperience.tsx`.
@@ -79,31 +79,31 @@ coordenar só `ChatExperience.tsx`.
 | Task                      | Entrega                                                          | Casos        | Pts | Depende de |
 | ------------------------- | ---------------------------------------------------------------- | ------------ | --: | ---------- |
 | TOL-1 **(entregue #176)** | Nível por ferramenta: perguntar, permitir, bloquear              | TL-10        |   3 | —          |
-| TOL-2                     | Ferramenta `ask_user` com cartão de opções                       | AG-11        |   3 | —          |
-| TOL-3                     | `read_page`: leitura de página pelo servidor, com `server-guard` | TL-01        |   5 | TOL-1      |
+| TOL-2 **(entregue #186)** | Ferramenta `ask_user` com cartão de opções                       | AG-11        |   3 | —          |
+| TOL-3 **(entregue #187)** | `read_page`: leitura de página pelo servidor, com `server-guard` | TL-01        |   5 | TOL-1      |
 | TOL-4                     | Pasta de trabalho por bot, só leitura no início                  | TL-08        |   5 | TOL-1      |
 | TOL-5                     | Spike de MCP como ferramenta (transporte, OAuth, permissão)      | PR-18, TL-11 |   3 | TOL-1      |
 | TOL-6                     | Biblioteca de arquivos gerados                                   | TL-09        |   2 | TOL-4      |
 
 ## 6. Rotinas e automação (novo domínio `routines/`)
 
-| Task  | Entrega                                                       | Casos        | Pts | Depende de   |
-| ----- | ------------------------------------------------------------- | ------------ | --: | ------------ |
-| ROT-1 | Domínio puro: agenda, próxima execução, estados, regra ESLint | AU-03        |   3 | —            |
-| ROT-2 | Agendador no servidor local, persistido no SQLite             | AU-03        |   5 | ROT-1        |
-| ROT-3 | Tela de rotinas e execução silenciosa ("sem novidade")        | AU-03, AG-15 |   5 | ROT-2        |
-| ROT-4 | Rotina com thread própria                                     | AG-16        |   2 | ROT-3, CHT-5 |
-| ROT-5 | Rota local de automação com token, só loopback                | AU-05, AG-21 |   5 | ROT-2        |
-| ROT-6 | Esperas: bot pausa até rotina ou evento acordar               | AG-17        |   3 | ROT-5        |
-| ROT-7 | Rotinas encadeadas                                            | AU-04        |   3 | ROT-3        |
-| ROT-8 | Spike de Telegram sobre a rota de automação                   | AU-10        |   3 | ROT-5        |
+| Task                      | Entrega                                                       | Casos        | Pts | Depende de   |
+| ------------------------- | ------------------------------------------------------------- | ------------ | --: | ------------ |
+| ROT-1 **(entregue #186)** | Domínio puro: agenda, próxima execução, estados, regra ESLint | AU-03        |   3 | —            |
+| ROT-2 **(entregue #186)** | Agendador no servidor local, persistido no SQLite             | AU-03        |   5 | ROT-1        |
+| ROT-3 **(entregue #187)** | Tela de rotinas e execução silenciosa ("sem novidade")        | AU-03, AG-15 |   5 | ROT-2        |
+| ROT-4                     | Rotina com thread própria                                     | AG-16        |   2 | ROT-3, CHT-5 |
+| ROT-5                     | Rota local de automação com token, só loopback                | AU-05, AG-21 |   5 | ROT-2        |
+| ROT-6                     | Esperas: bot pausa até rotina ou evento acordar               | AG-17        |   3 | ROT-5        |
+| ROT-7                     | Rotinas encadeadas                                            | AU-04        |   3 | ROT-3        |
+| ROT-8                     | Spike de Telegram sobre a rota de automação                   | AU-10        |   3 | ROT-5        |
 
 ## 7. Equipe (`crew/`)
 
-| Task  | Entrega                                                         | Casos | Pts | Depende de |
-| ----- | --------------------------------------------------------------- | ----- | --: | ---------- |
-| CRW-1 | Guarda de loop: teto de rodadas e detector de eco               | AU-02 |   3 | —          |
-| CRW-2 | Sala do crew como canal com vários bots e roteamento pelo chefe | AU-01 |   5 | CRW-1      |
+| Task                      | Entrega                                                         | Casos | Pts | Depende de |
+| ------------------------- | --------------------------------------------------------------- | ----- | --: | ---------- |
+| CRW-1 **(entregue #187)** | Guarda de loop: teto de rodadas e detector de eco               | AU-02 |   3 | —          |
+| CRW-2                     | Sala do crew como canal com vários bots e roteamento pelo chefe | AU-01 |   5 | CRW-1      |
 
 ## 8. App e plataforma (`pwa/`, `settings/`, shell)
 

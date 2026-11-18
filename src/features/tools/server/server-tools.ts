@@ -3,6 +3,7 @@ import { createToolRegistry, type ToolRegistry } from "../tool-registry.ts";
 import { createAskUserTool } from "./ask-user-tool.ts";
 import { createGithubListOpenItemsTool } from "./github-list-open-items.ts";
 import { createMemoryAddNoteTool } from "./memory-add-note.ts";
+import { createReadPageTool } from "./read-page.ts";
 
 export type ServerToolDeps = {
   db: DatabaseSync;
@@ -18,6 +19,7 @@ export function serverToolRegistry(deps: ServerToolDeps): ToolRegistry {
       token: deps.githubToken,
     }),
     createMemoryAddNoteTool(deps.db),
+    createReadPageTool({ fetchImpl: deps.fetchImpl }),
     createAskUserTool(),
   ]);
 }

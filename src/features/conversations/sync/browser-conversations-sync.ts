@@ -1,3 +1,4 @@
+import { DEFAULT_THREAD_ID } from "../../threads/thread-model.ts";
 import { loadBotsFromStorage } from "../../bots/bot-storage.ts";
 import type { MessagesSyncPort } from "../../chat/messages-sync-port.ts";
 import {
@@ -67,11 +68,14 @@ export function loadConversationsFromServer(): Promise<void> {
   loading ??= syncConversationsOnLoad({
     api,
     botIds: () => loadBotsFromStorage().map((bot) => bot.id),
-    readLocal: loadBotMessages,
+    readLocal: (botId) => loadBotMessages(botId, DEFAULT_THREAD_ID),
     isUnsynced: (botId) => isMessagesUnsynced(storage(), botId),
     setUnsynced: (botId, value) => setMessagesUnsynced(storage(), botId, value),
     mirror: (botId, messages) =>
-      saveBotMessages(botId, messages, { sync: false }),
+      saveBotMessages(botId, messages, {
+        sync: false,
+        threadId: DEFAULT_THREAD_ID,
+      }),
     reportFailure: report,
   }).catch(() => {
     // Loading never throws: the cache is used as it is.
