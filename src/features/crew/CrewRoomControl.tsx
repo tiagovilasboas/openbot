@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
 import { ResponsiveSheet } from "@/shared/ui/ResponsiveSheet.tsx";
+import { crewCopy } from "./crew-copy.ts";
 import { crewRoomCopy } from "./crew-room-copy.ts";
 import type { CrewRoomView } from "./crew-room-view.ts";
 import { CrewRoomStep } from "./CrewRoomStep.tsx";
@@ -66,6 +67,14 @@ export function CrewRoomControl({ room, language }: CrewRoomControlProps) {
                   language={language}
                 />
               ))}
+              {room.stop ? (
+                <li
+                  role="note"
+                  className="mt-1 rounded-lg border border-border bg-surface-secondary px-3 py-2 text-[13px] leading-[1.5] text-foreground"
+                >
+                  {crewCopy[language].loopStopped(room.stop)}
+                </li>
+              ) : null}
             </ol>
           </section>
 

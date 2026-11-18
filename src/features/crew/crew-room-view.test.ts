@@ -175,3 +175,25 @@ test("a step that was cut off reads as incomplete, not failed", () => {
   ]);
   assert.equal(room?.steps[0]?.status, "incomplete");
 });
+
+test("the stop reason on the final reply shows in the room", () => {
+  const bot = CREW_PRESETS[1] as BotProfile;
+  const room = buildCrewRoomView([
+    { id: 1, role: "user", text: "go" },
+    { id: 2, role: "assistant", text: "kickoff", delegatedBot: bot },
+    {
+      id: 3,
+      role: "assistant",
+      text: "step",
+      delegatedBot: bot,
+      crewStep: { task: "t", ok: true },
+    },
+    {
+      id: 4,
+      role: "assistant",
+      text: "final",
+      crewStop: { reason: "echo" },
+    },
+  ]);
+  assert.deepEqual(room?.stop, { reason: "echo" });
+});

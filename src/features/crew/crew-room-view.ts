@@ -1,4 +1,5 @@
 import type { BotProfile } from "../bots/bot-types.ts";
+import type { CrewStopRecord } from "./crew-stop-record.ts";
 import type { CrewStepRecord } from "./crew-step-record.ts";
 import { MAX_DELEGATIONS_PER_TURN } from "./run-crew-turn.ts";
 
@@ -9,6 +10,7 @@ export interface CrewRoomMessage {
   text: string;
   delegatedBot?: BotProfile;
   crewStep?: CrewStepRecord;
+  crewStop?: CrewStopRecord;
 }
 
 export interface CrewRoomStep {
@@ -28,6 +30,8 @@ export interface CrewRoomView {
   steps: CrewRoomStep[];
   /** The Chief's final reply, the turn's last stored message. */
   synthesis: { id: number; text: string };
+  /** Why the loop guard ended the exchange early; absent when it did not. */
+  stop?: CrewStopRecord;
 }
 
 /**
@@ -66,6 +70,7 @@ export function buildCrewRoomView(
     kickoff: kickoff.text,
     steps: steps.slice(0, MAX_DELEGATIONS_PER_TURN),
     synthesis: { id: synthesis.id, text: synthesis.text },
+    ...(synthesis.crewStop ? { stop: synthesis.crewStop } : {}),
   };
 }
 

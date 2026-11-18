@@ -11,6 +11,7 @@ import { readCompacted } from "../compaction/read-compacted.ts";
 import { readIncompleteKind } from "../chat/incomplete-reply.ts";
 import { readReplyFailure } from "../chat/reply-failure.ts";
 import { sanitizeCrewStep } from "../crew/crew-step-record.ts";
+import { sanitizeCrewStop } from "../crew/crew-stop-record.ts";
 import { sanitizeToolSteps } from "../tools/client/tool-steps.ts";
 import {
   sanitizeMemoryEntries,
@@ -104,6 +105,8 @@ function sanitizeMessage(raw: unknown, nested = false): MessageData | null {
   }
   const crewStep = sanitizeCrewStep(raw.crewStep);
   if (crewStep && message.delegatedBot) message.crewStep = crewStep;
+  const crewStop = sanitizeCrewStop(raw.crewStop);
+  if (crewStop && message.role === "assistant") message.crewStop = crewStop;
   const incomplete = readIncompleteKind(raw.incomplete);
   if (incomplete) message.incomplete = incomplete;
   const failure = readReplyFailure(raw.failure);
