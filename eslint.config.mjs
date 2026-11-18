@@ -269,6 +269,37 @@ export default defineConfig([
       ],
     },
   },
+  {
+    // The crew loop guard is pure domain: turns in, verdict out. The rest of
+    // crew/ holds UI and server glue, so only this folder is locked down.
+    // Last on purpose: it must override the src-wide import rule above.
+    files: ["src/features/crew/loop-guard/*.{ts,tsx}"],
+    ignores: ["**/*.test.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: [
+                "../**",
+                "@/**",
+                "react",
+                "react-dom",
+                "react/**",
+                "next",
+                "next/**",
+                "node:*",
+                "@heroui/**",
+              ],
+              message:
+                "crew/loop-guard is pure domain: import only sibling files.",
+            },
+          ],
+        },
+      ],
+    },
+  },
   globalIgnores([
     ".next/**",
     "out/**",
