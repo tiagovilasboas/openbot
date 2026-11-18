@@ -21,6 +21,7 @@ import type { ChatReplyOutcome } from "./chat-reply-outcome.ts";
 import { findMentionedBot } from "./find-mentioned-bot.ts";
 import { failedReply as modelFailureReply } from "./model-failure-reply.ts";
 import { githubRequestReply } from "./github-request-reply.ts";
+import { mentionDelegationReply } from "@/features/crew/mention-routing.ts";
 import { crewTurnReply } from "./crew-turn-reply.ts";
 import { createLiveBoard, type LiveEntry } from "./live-board.ts";
 import { fitHistoryToBytes, limitHistory } from "./request-history.ts";
@@ -199,6 +200,27 @@ export async function executeChatMessage({
   const failedReply = (failure: ModelFailure) =>
     modelFailureReply(failure, language, delegatedBot);
 
+  // Named specialists skip the Chief's model call; no mention keeps it.
+  const routed = isChief
+    ? mentionDelegationReply(text, bots, executingBot.id)
+    : null;
+  if (routed) {
+    return crewTurnReply({
+      reply: { text: routed },
+      executingBot,
+      delegatedBot,
+      isChief,
+      botPrompt,
+      bots,
+      history,
+      text,
+      language,
+      board,
+      onBotWorking,
+      memoryFor,
+      askAndCount,
+    });
+  }
   const outcome = await askAndCount(
     fullSystemPrompt,
     history,

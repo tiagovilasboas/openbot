@@ -21,7 +21,10 @@ function normalizeName(value: string): string {
   return value.toLowerCase().replace(/[\s\-_*`@]+/g, "");
 }
 
-function findBot(target: string, bots: BotProfile[]): BotProfile | undefined {
+export function findBot(
+  target: string,
+  bots: BotProfile[],
+): BotProfile | undefined {
   const wanted = normalizeName(target);
   return visibleBots(bots).find(
     (bot) =>
