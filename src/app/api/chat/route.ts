@@ -46,6 +46,10 @@ export async function POST(request: Request) {
   if (replay.kind === "conflict") {
     return Response.json({ error: "idempotency_conflict" }, { status: 409 });
   }
+  if (replay.kind === "failed") {
+    // Same contract as a model failure; no upstream detail to share.
+    return Response.json({ error: "unknown", provider: null }, { status: 502 });
+  }
   return toResponse(replay.outcome);
 }
 

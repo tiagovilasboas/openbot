@@ -127,3 +127,35 @@ test("a thrown compute leaves nothing behind", async () => {
   );
   assert.equal(s.replay.size(), 0);
 });
+
+test("a waiter on a throwing compute gets a failed result, not a throw", async () => {
+  const s = setup();
+  let fail: (e: Error) => void = () => {};
+  const slow = () =>
+    new Promise<SendOutcome>((_, reject) => {
+      fail = reject;
+    });
+  const first = s.replay.run("key-00001", "f1", slow);
+  const second = s.replay.run("key-00001", "f1", slow);
+  fail(new Error("boom"));
+  assert.deepEqual(await second, { kind: "failed" });
+  await assert.rejects(first, /boom/);
+  assert.equal(s.replay.size(), 0);
+});
+
+test("pending entries count toward maxEntries; a full cache still serves", async () => {
+  const s = setup({ maxEntries: 2 });
+  const releases: Array<(o: SendOutcome) => void> = [];
+  const slow = () =>
+    new Promise<SendOutcome>((resolve) => {
+      releases.push(resolve);
+    });
+  const a = s.replay.run("key-00001", "f1", slow);
+  const b = s.replay.run("key-00002", "f1", slow);
+  const c = await s.replay.run("key-00003", "f1", s.compute(ok("c")));
+  assert.deepEqual(c, { kind: "outcome", outcome: ok("c"), replayed: false });
+  assert.equal(s.replay.size(), 2);
+  releases.forEach((r) => r(ok("x")));
+  await Promise.all([a, b]);
+  assert.equal(s.replay.size(), 2);
+});

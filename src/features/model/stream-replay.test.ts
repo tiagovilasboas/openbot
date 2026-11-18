@@ -182,3 +182,21 @@ test("the oldest stored streams go first when the table is full", async () => {
   await (await s.send("send-0001", "send-0001")).text();
   assert.equal(s.calls(), 4, "the oldest was evicted");
 });
+
+test("running streams count toward maxEntries; a full table still serves", () => {
+  const replay = createStreamReplay({ maxEntries: 2, now: () => 1_000 });
+  const hanging = () =>
+    new Response(
+      new ReadableStream<Uint8Array>({ pull: () => new Promise(() => {}) }),
+      { headers: { "content-type": "application/x-ndjson" } },
+    );
+  replay.run("key-00001", "f1", hanging);
+  replay.run("key-00002", "f1", hanging);
+  const third = replay.run("key-00003", "f1", hanging);
+  assert.equal(third.kind, "response");
+  if (third.kind === "response") {
+    assert.equal(third.replayed, false);
+    assert.equal(third.response.ok, true);
+  }
+  assert.equal(replay.size(), 2);
+});

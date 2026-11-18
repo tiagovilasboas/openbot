@@ -5,7 +5,9 @@ export type SendOutcome = { status: number; body: unknown };
 
 export type SendReplayResult =
   | { kind: "outcome"; outcome: SendOutcome; replayed: boolean }
-  | { kind: "conflict" };
+  | { kind: "conflict" }
+  /** The first request with this id threw; the waiter has no reply to share. */
+  | { kind: "failed" };
 
 type Entry = {
   fingerprint: string;
@@ -61,15 +63,24 @@ export function createSendReplay(options: SendReplayOptions = {}) {
     if (existing) {
       if (existing.fingerprint !== fingerprint) return { kind: "conflict" };
       if (existing.pending) {
-        return {
-          kind: "outcome",
-          outcome: await existing.pending,
-          replayed: true,
-        };
+        try {
+          return {
+            kind: "outcome",
+            outcome: await existing.pending,
+            replayed: true,
+          };
+        } catch {
+          return { kind: "failed" };
+        }
       }
       if (existing.outcome) {
         return { kind: "outcome", outcome: existing.outcome, replayed: true };
       }
+    }
+
+    // Running entries count too; a full table serves the request uncached.
+    if (entries.size >= maxEntries) {
+      return { kind: "outcome", outcome: await compute(), replayed: false };
     }
 
     const entry: Entry = { fingerprint, expiresAt: 0 };
