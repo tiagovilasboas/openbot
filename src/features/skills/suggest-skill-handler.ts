@@ -6,6 +6,11 @@ import {
 import { isModelAllowed } from "../model/allowed-models.ts";
 import { executeWithFailover } from "../model/failover-runner.ts";
 import type { FetchLike } from "../model/model-adapter.ts";
+import {
+  noOffProviders,
+  providerOffResponse,
+  type OffProvidersLookup,
+} from "../model/provider-off-guard.ts";
 import { selectAdapter } from "../model/select-adapter.ts";
 import { parseSuggestionReply } from "./parse-suggestion-reply.ts";
 import { parseSuggestionRequest } from "./parse-suggestion-request.ts";
@@ -18,6 +23,8 @@ export interface SuggestSkillOptions {
   fetchImpl?: FetchLike;
   /** Where a config with no key finds its saved one; none by default. */
   keyLookup?: KeyLookup;
+  /** The providers the user switched off; none by default. */
+  offProviders?: OffProvidersLookup;
 }
 
 /**
@@ -29,7 +36,12 @@ export interface SuggestSkillOptions {
  */
 export async function handleSuggestSkill(
   request: Request,
-  { env, fetchImpl, keyLookup = noKeyLookup }: SuggestSkillOptions,
+  {
+    env,
+    fetchImpl,
+    keyLookup = noKeyLookup,
+    offProviders = noOffProviders,
+  }: SuggestSkillOptions,
 ): Promise<Response> {
   const payload: unknown = await request.json().catch(() => null);
   const parsed = parseSuggestionRequest(payload);
@@ -38,6 +50,8 @@ export async function handleSuggestSkill(
     return Response.json({ error: parsed.error }, { status });
   }
   const { language, messages, modelId } = parsed.request;
+  const off = providerOffResponse(parsed.request, offProviders);
+  if (off) return off;
   const config = parsed.request.config
     ? withVaultKey(parsed.request.config, keyLookup)
     : parsed.request.config;
