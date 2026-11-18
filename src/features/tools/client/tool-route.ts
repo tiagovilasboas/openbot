@@ -1,10 +1,17 @@
+import type { UserAnswer } from "../ask-user.ts";
 import type { ApprovalDecision } from "../tool-definition.ts";
 
 export const STREAM_ROUTE = "/api/chat/stream";
 export const TOOLS_ROUTE = "/api/chat/tools";
 
-/** A user's decision, bound to the digest the server sent with the call. */
-export type ClientDecision = ApprovalDecision & { argsDigest: string };
+/**
+ * A user's decision, bound to the digest the server sent with the call; an
+ * ask_user call carries the answer.
+ */
+export type ClientDecision = ApprovalDecision & {
+  argsDigest: string;
+  answer?: UserAnswer;
+};
 
 export type ResumeBody = { turnId: string; decisions: ClientDecision[] };
 

@@ -87,7 +87,9 @@ export function ToolLevelsSection({ language }: { language: ChatLanguage }) {
                 </div>
                 <div className="flex gap-1 md:w-72">
                   {TOOL_LEVELS.filter(
-                    (level) => level !== "allow" || tool.canAllow,
+                    (level) =>
+                      (level !== "allow" || tool.canAllow) &&
+                      (level !== "ask" || tool.canAsk),
                   ).map((level) => (
                     <label key={level} className={OPTION}>
                       <input

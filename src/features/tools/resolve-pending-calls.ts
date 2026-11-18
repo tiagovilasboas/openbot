@@ -1,5 +1,6 @@
 import { decideTool } from "./tool-policy.ts";
 import {
+  recordAnswer,
   recordRefusal,
   runAndRecord,
   type LoopState,
@@ -10,6 +11,7 @@ import type {
   ToolLoopEvent,
   ToolLoopInput,
 } from "./tool-loop-types.ts";
+import type { ToolRunResult } from "./tool-definition.ts";
 import { validateCall } from "./validate-args.ts";
 
 /**
@@ -36,7 +38,7 @@ export async function* resolvePendingCalls(
     const gate = tool
       ? decideTool(tool, input.botId, input.grants, input.levels)
       : "ask";
-    const policy = gate === "block" ? "ask" : gate;
+    const policy = gate === "block" || tool?.answer ? "ask" : gate;
     // A tool blocked after the pause is refused even if the user approved it.
     if (gate === "block") {
       yield* recordRefusal(state, input, call, "tool_blocked", {
@@ -71,9 +73,25 @@ export async function* resolvePendingCalls(
       });
       continue;
     }
-    yield* runAndRecord(state, input, call, validated.tool, validated.args, {
-      policy,
-      decision: decision.decision,
-    });
+    const audit = { policy, decision: decision.decision };
+    if (validated.tool.answer) {
+      // The answer is checked against the stored arguments, never trusted.
+      let result: ToolRunResult;
+      try {
+        result = validated.tool.answer(validated.args, decision.answer);
+      } catch {
+        result = { ok: false, code: "bad_answer" };
+      }
+      yield* recordAnswer(state, input, call, validated.tool, result, audit);
+      continue;
+    }
+    yield* runAndRecord(
+      state,
+      input,
+      call,
+      validated.tool,
+      validated.args,
+      audit,
+    );
   }
 }

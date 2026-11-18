@@ -60,7 +60,7 @@ export function* recordResult(
     const spent = spend(state.budget, { type: "result", chars: fitted.chars });
     if (spent.ok) state.budget = spent.budget;
     text = fitted.text;
-    preview = previewOf(outcome.text);
+    preview = previewOf(outcome.preview ?? outcome.text);
   } else {
     text = errorText(outcome.code);
     preview = safeCode(outcome.code);
@@ -83,6 +83,26 @@ export function* recordRefusal(
   audit: Pick<LoopAuditEntry, "policy" | "decision">,
 ): Generator<ToolLoopEvent> {
   const outcome = yield* recordResult(state, call, { ok: false, code }, 0);
+  input.audit({
+    ...audit,
+    callId: call.id,
+    toolName: call.name,
+    outcome,
+    durationMs: 0,
+    argsJson: call.argsJson,
+  });
+}
+
+/** Records the user's answer to a call the user answers (ask_user). */
+export function* recordAnswer(
+  state: LoopState,
+  input: ToolLoopInput,
+  call: Call,
+  tool: ToolDefinition<unknown>,
+  result: ToolRunResult,
+  audit: { policy: ToolPolicy; decision: LoopAuditEntry["decision"] },
+): Generator<ToolLoopEvent> {
+  const outcome = yield* recordResult(state, call, result, tool.maxResultChars);
   input.audit({
     ...audit,
     callId: call.id,

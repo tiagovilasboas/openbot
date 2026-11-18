@@ -6,6 +6,8 @@ export interface ToolLevelEntry {
   level: ToolLevel;
   /** False when the tool does not opt in to running without asking. */
   canAllow: boolean;
+  /** False for a tool the user answers (ask_user): it asks every time. */
+  canAsk: boolean;
 }
 
 const URL_BASE = "/api/tools/levels";
@@ -14,12 +16,19 @@ const URL_BASE = "/api/tools/levels";
 export function parseLevels(data: unknown): ToolLevelEntry[] | null {
   const list = (data as { tools?: unknown } | null)?.tools;
   if (!Array.isArray(list)) return null;
-  return list.filter(
-    (item): item is ToolLevelEntry =>
-      typeof item?.name === "string" &&
-      isToolLevel(item?.level) &&
-      typeof item?.canAllow === "boolean",
-  );
+  return list
+    .filter(
+      (item) =>
+        typeof item?.name === "string" &&
+        isToolLevel(item?.level) &&
+        typeof item?.canAllow === "boolean",
+    )
+    .map((item) => ({
+      name: item.name,
+      level: item.level,
+      canAllow: item.canAllow,
+      canAsk: item.canAsk !== false,
+    }));
 }
 
 async function call(init: RequestInit): Promise<ToolLevelEntry[] | null> {

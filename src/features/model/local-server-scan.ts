@@ -8,7 +8,7 @@ export const LOCAL_SERVER_CANDIDATES = [
     id: "ollama",
     name: "Ollama",
     baseUrl: "http://127.0.0.1:11434",
-    modelsPath: "/v1/models",
+    modelsPath: "/api/tags",
   },
   {
     id: "lmstudio",
@@ -20,21 +20,21 @@ export const LOCAL_SERVER_CANDIDATES = [
 
 export type LocalServerId = (typeof LOCAL_SERVER_CANDIDATES)[number]["id"];
 
-/** A server that answered, with the model ids it lists. */
-export type FoundLocalServer = {
-  id: LocalServerId;
-  name: string;
-  baseUrl: string;
-  models: string[];
-};
+/** Outcome per server. `error` carries only host:port, never body or URL. */
+export type LocalServerResult =
+  | {
+      status: "found";
+      id: LocalServerId;
+      name: string;
+      baseUrl: string;
+      models: string[];
+    }
+  | { status: "not_running"; id: LocalServerId; name: string }
+  | { status: "error"; id: LocalServerId; name: string; host: string };
 
-/** A server that did not answer; only its host, never a path or a reason. */
-export type MissingLocalServer = { id: LocalServerId; host: string };
+export type FoundLocalServer = Extract<LocalServerResult, { status: "found" }>;
 
-export type LocalServerScan = {
-  servers: FoundLocalServer[];
-  unreachable: MissingLocalServer[];
-};
+export type LocalServerScan = { results: LocalServerResult[] };
 
 /** Longest answer read from a server: a model list is never this big. */
 export const SCAN_BODY_MAX_BYTES = 1_000_000;
@@ -61,13 +61,17 @@ async function readCapped(response: Response): Promise<string | null> {
   }
 }
 
-/** Plain model ids from an OpenAI-style `{ data: [{ id }] }` list. */
+/** Plain model ids from Ollama `{ models: [{ name }] }` or OpenAI `{ data: [{ id }] }`. */
 function modelIdsOf(payload: unknown): string[] | null {
-  const data = (payload as { data?: unknown } | null)?.data;
-  if (!Array.isArray(data)) return null;
+  if (typeof payload !== "object" || payload === null) return null;
+  const record = payload as { models?: unknown; data?: unknown };
+  const list = Array.isArray(record.models) ? record.models : record.data;
+  if (!Array.isArray(list)) return null;
   const ids: string[] = [];
-  for (const entry of data) {
-    const id = sanitizeModelId((entry as { id?: unknown } | null)?.id);
+  for (const entry of list) {
+    if (typeof entry !== "object" || entry === null) continue;
+    const item = entry as { id?: unknown; name?: unknown };
+    const id = sanitizeModelId(item.id ?? item.name);
     if (id && !ids.includes(id)) ids.push(id);
     if (ids.length === SCAN_MODELS_MAX) break;
   }
@@ -77,29 +81,35 @@ function modelIdsOf(payload: unknown): string[] | null {
 async function probe(
   candidate: (typeof LOCAL_SERVER_CANDIDATES)[number],
   fetchImpl: FetchLike,
-): Promise<FoundLocalServer | null> {
+): Promise<LocalServerResult> {
+  const { id, name, baseUrl } = candidate;
+  const failed: LocalServerResult = {
+    status: "error",
+    id,
+    name,
+    host: new URL(baseUrl).host,
+  };
+  let response: Response;
   try {
     // guardUrl runs the same loopback/address rules as every model call.
-    const response = await modelFetch(
+    response = await modelFetch(
       fetchImpl,
-      `${candidate.baseUrl}${candidate.modelsPath}`,
+      `${baseUrl}${candidate.modelsPath}`,
       { method: "GET", headers: { accept: "application/json" } },
       { guardUrl: true, timeoutMs: SCAN_TIMEOUT_MS },
     );
-    if (!response.ok) return null;
-    const text = await readCapped(response);
-    if (text === null) return null;
-    const models = modelIdsOf(JSON.parse(text));
-    return models
-      ? {
-          id: candidate.id,
-          name: candidate.name,
-          baseUrl: candidate.baseUrl,
-          models,
-        }
-      : null;
   } catch {
-    return null;
+    // Refused, timed out or blocked: nothing is listening there.
+    return { status: "not_running", id, name };
+  }
+  try {
+    if (!response.ok) return failed;
+    const text = await readCapped(response);
+    if (text === null) return failed;
+    const models = modelIdsOf(JSON.parse(text));
+    return models ? { status: "found", id, name, baseUrl, models } : failed;
+  } catch {
+    return failed;
   }
 }
 
@@ -114,17 +124,5 @@ export async function scanLocalServers(
   const results = await Promise.all(
     LOCAL_SERVER_CANDIDATES.map((c) => probe(c, fetchImpl)),
   );
-  const servers: FoundLocalServer[] = [];
-  const unreachable: MissingLocalServer[] = [];
-  results.forEach((found, index) => {
-    const candidate = LOCAL_SERVER_CANDIDATES[index];
-    if (found) servers.push(found);
-    else {
-      unreachable.push({
-        id: candidate.id,
-        host: new URL(candidate.baseUrl).host,
-      });
-    }
-  });
-  return { servers, unreachable };
+  return { results };
 }

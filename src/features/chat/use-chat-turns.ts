@@ -258,7 +258,7 @@ export function useChatTurns(input: ChatTurnsInput) {
       resumingId: approval.resumingId,
       steps: toolSteps,
       unavailableBotId,
-      onDecide: (choice) => void approval.decide(choice),
+      onDecide: (reply) => void approval.decide(reply),
     } satisfies ToolTurnView,
   };
 }

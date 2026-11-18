@@ -144,6 +144,7 @@ async function fetchReply(
   const body = (payload ?? {}) as {
     error?: unknown;
     detail?: unknown;
+    provider?: unknown;
     text?: unknown;
     failover?: FailoverDetail;
     usage?: unknown;
@@ -163,6 +164,11 @@ async function fetchReply(
   }
   return {
     kind: "error",
-    failure: classifyModelFailure(body.error, body.detail, response.status),
+    failure: classifyModelFailure(
+      body.error,
+      body.detail,
+      response.status,
+      body.provider,
+    ),
   };
 }

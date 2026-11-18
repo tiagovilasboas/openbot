@@ -23,8 +23,8 @@ test("GET lists every tool as ask with whether allow is permitted", async () => 
     assert.equal(response.headers.get("cache-control"), "no-store");
     assert.deepEqual(await response.json(), {
       tools: [
-        { name: "lookup", level: "ask", canAllow: false },
-        { name: "note", level: "ask", canAllow: true },
+        { name: "lookup", level: "ask", canAllow: false, canAsk: true },
+        { name: "note", level: "ask", canAllow: true, canAsk: true },
       ],
     });
   });

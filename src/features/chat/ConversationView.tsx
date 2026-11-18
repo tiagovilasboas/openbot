@@ -5,7 +5,7 @@ import type { BotProfile } from "@/features/bots/bot-types.ts";
 import type { ComposerAttachments } from "@/features/attachments/use-composer-attachments.ts";
 import { crewRoomsBySynthesisId } from "@/features/crew/crew-room-view.ts";
 import type { SkillDefinition } from "@/features/skills/skill-types.ts";
-import { ApprovalCard } from "@/features/tools/client/ApprovalCard.tsx";
+import { PauseCard } from "@/features/tools/client/PauseCard.tsx";
 import { toolRunning } from "@/features/tools/client/live-tool-steps.ts";
 import { toolsCopy } from "@/features/tools/client/tools-copy.ts";
 import { chatCopy } from "./chat-copy.ts";
@@ -117,11 +117,11 @@ export function ConversationView({
                   }}
                 />
                 {pausedHere && toolTurn && (
-                  <ApprovalCard
+                  <PauseCard
                     pause={paused.pause}
                     language={language}
-                    onDecide={(choice) => {
-                      toolTurn.onDecide(choice);
+                    onReply={(reply) => {
+                      toolTurn.onDecide(reply);
                       footerRef.current?.querySelector("textarea")?.focus();
                     }}
                   />

@@ -24,6 +24,7 @@ const KINDS: ReadonlySet<string> = new Set<ReplyFailure>([
   "timeout",
   "server",
   "response_too_long",
+  "provider_off",
   "unknown",
   "unconfigured",
 ]);
@@ -53,6 +54,7 @@ export function replyFailureAction(failure: ReplyFailure): ReplyFailureAction {
     case "access_required":
     case "model_unavailable":
     case "blocked_url":
+    case "provider_off":
     case "unconfigured":
       return "settings";
     case "response_too_long":
