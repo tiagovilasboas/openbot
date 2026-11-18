@@ -10,6 +10,7 @@ const routine = {
   schedule: { kind: "interval", everyMinutes: 60 },
   enabled: true,
   silentWhenNothingNew: false,
+  runInThread: false,
   runningSince: null,
   nextRunAt: 1_700_000_000_000,
   lastRunAt: "not a number",

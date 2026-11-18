@@ -27,6 +27,8 @@ export interface RoutinesCopy {
   enabledLabel: string;
   silentLabel: string;
   silentHint: string;
+  threadLabel: string;
+  threadHint: string;
   every: (minutes: number) => string;
   dailyAt: (time: string) => string;
   weeklyAt: (days: string, time: string) => string;
@@ -66,6 +68,8 @@ const PT: RoutinesCopy = {
   enabledLabel: "Ativa",
   silentLabel: "Ficar quieto sem novidade",
   silentHint: "Se não houver nada novo, a execução não guarda resposta.",
+  threadLabel: "Rodar em thread própria",
+  threadHint: "Cada execução vira uma mensagem numa thread só dela no chat.",
   every: (m) => (m % 60 === 0 ? `A cada ${m / 60} h` : `A cada ${m} min`),
   dailyAt: (time) => `Todo dia às ${time}`,
   weeklyAt: (days, time) => `${days} às ${time}`,
@@ -117,6 +121,9 @@ const EN: RoutinesCopy = {
   enabledLabel: "Active",
   silentLabel: "Stay quiet when nothing is new",
   silentHint: "When there is nothing new, the run keeps no reply.",
+  threadLabel: "Run in its own thread",
+  threadHint:
+    "Each run is added as a message to a thread of its own in the chat.",
   every: (m) => (m % 60 === 0 ? `Every ${m / 60} h` : `Every ${m} min`),
   dailyAt: (time) => `Every day at ${time}`,
   weeklyAt: (days, time) => `${days} at ${time}`,
@@ -173,6 +180,9 @@ const ES: RoutinesCopy = {
   enabledLabel: "Activa",
   silentLabel: "Callar si no hay novedades",
   silentHint: "Si no hay nada nuevo, la ejecución no guarda respuesta.",
+  threadLabel: "Ejecutar en su propio hilo",
+  threadHint:
+    "Cada ejecución se añade como mensaje a un hilo propio en el chat.",
   every: (m) => (m % 60 === 0 ? `Cada ${m / 60} h` : `Cada ${m} min`),
   dailyAt: (time) => `Todos los días a las ${time}`,
   weeklyAt: (days, time) => `${days} a las ${time}`,

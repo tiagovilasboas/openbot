@@ -26,6 +26,7 @@ export function routine(overrides: Partial<RoutineInput> = {}): RoutineInput {
     schedule: { kind: "interval", everyMinutes: 10 },
     enabled: true,
     silentWhenNothingNew: false,
+    runInThread: false,
     ...overrides,
   };
 }

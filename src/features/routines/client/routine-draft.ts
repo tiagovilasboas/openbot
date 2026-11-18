@@ -20,6 +20,7 @@ export type RoutineDraft = {
   timeZone: string;
   enabled: boolean;
   silentWhenNothingNew: boolean;
+  runInThread: boolean;
 };
 
 export type DraftProblem =
@@ -64,6 +65,7 @@ export function emptyDraft(
     timeZone,
     enabled: true,
     silentWhenNothingNew: true,
+    runInThread: false,
   };
 }
 
@@ -80,6 +82,7 @@ export function draftFromRoutine(
     prompt: routine.prompt,
     enabled: routine.enabled,
     silentWhenNothingNew: routine.silentWhenNothingNew,
+    runInThread: routine.runInThread,
     kind: schedule.kind,
     ...(schedule.kind === "interval"
       ? { everyMinutes: String(schedule.everyMinutes) }
@@ -121,6 +124,7 @@ export function checkDraft(draft: RoutineDraft, botId: string): DraftCheck {
       schedule: schedule.schedule,
       enabled: draft.enabled,
       silentWhenNothingNew: draft.silentWhenNothingNew,
+      runInThread: draft.runInThread,
     },
   };
 }

@@ -175,6 +175,21 @@ export function RoutineForm(props: RoutineFormProps) {
         </span>
       </label>
 
+      <label className="flex items-start gap-2.5 text-sm text-foreground">
+        <input
+          type="checkbox"
+          checked={draft.runInThread}
+          onChange={(e) => set({ runInThread: e.target.checked })}
+          className="mt-0.5 size-4"
+        />
+        <span>
+          <span className="block font-medium">{copy.threadLabel}</span>
+          <span className="block text-[13px] text-muted">
+            {copy.threadHint}
+          </span>
+        </span>
+      </label>
+
       {error && (
         <p role="alert" className="text-[13px] text-danger">
           {error}

@@ -15,6 +15,8 @@ export type RoutineInput = {
   schedule: RoutineSchedule;
   enabled: boolean;
   silentWhenNothingNew: boolean;
+  /** Each run lands in a thread of its own in the bot's chat. */
+  runInThread: boolean;
 };
 
 export type RoutineInputProblem =
@@ -66,6 +68,7 @@ export function checkRoutineInput(input: unknown): RoutineInputCheck {
       schedule: schedule.schedule,
       enabled: raw.enabled !== false,
       silentWhenNothingNew: raw.silentWhenNothingNew === true,
+      runInThread: raw.runInThread === true,
     },
   };
 }
