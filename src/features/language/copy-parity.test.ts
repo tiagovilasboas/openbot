@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { automationCopy } from "../automation/client/automation-copy.ts";
 import { attachmentCopy } from "../attachments/attachment-copy.ts";
 import { getLockCopy } from "../auth/auth-copy.ts";
 import { securityCopy } from "../auth/security-copy.ts";
@@ -49,6 +50,7 @@ const DICTIONARIES: Record<string, (language: Language) => unknown> = {
   usage: (l) => getUsageCopy(l),
   summary: (l) => getSummaryCopy(l),
   tools: (l) => toolsCopy[l],
+  automation: (l) => automationCopy[l],
 };
 
 for (const [name, read] of Object.entries(DICTIONARIES)) {
