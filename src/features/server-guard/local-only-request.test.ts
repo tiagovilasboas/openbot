@@ -33,20 +33,38 @@ test("only local host names pass, port and case ignored", () => {
 });
 
 test("each proxy marker is detected", () => {
-  for (const name of [
-    "Forwarded",
-    "X-Forwarded-Host",
-    "X-Forwarded-Proto",
-    "X-Real-IP",
-    "Via",
-    "CF-Connecting-IP",
-  ]) {
+  for (const name of ["Forwarded", "X-Real-IP", "Via", "CF-Connecting-IP"]) {
     assert.equal(hasProxyMarker(new Headers({ [name]: "x" })), true, name);
   }
   assert.equal(
     hasProxyMarker(new Headers({ "x-forwarded-for": "::1" })),
     false,
   );
+});
+
+// What Next's base-server.js adds to a direct request with `??=`.
+const nextFilled = (host: string) =>
+  new Headers({
+    host,
+    "x-forwarded-host": host,
+    "x-forwarded-port": "3102",
+    "x-forwarded-proto": "http",
+    "x-forwarded-for": "127.0.0.1",
+  });
+
+test("the x-forwarded-* headers Next fills itself are not a proxy", () => {
+  assert.equal(hasProxyMarker(nextFilled("127.0.0.1:3102")), false);
+  assert.equal(
+    isDirectLocalRequest(nextFilled("localhost:3102"), "127.0.0.1", {}),
+    true,
+  );
+});
+
+test("a forwarded host other than Host means a proxy", () => {
+  const headers = nextFilled("localhost:3102");
+  headers.set("x-forwarded-host", "bot.example.com");
+  assert.equal(hasProxyMarker(headers), true);
+  assert.equal(isDirectLocalRequest(headers, "127.0.0.1", {}), false);
 });
 
 test("a direct request needs loopback, local host, no proxy, no trust flag", () => {

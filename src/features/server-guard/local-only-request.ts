@@ -3,11 +3,16 @@ import { isLoopbackAddress } from "./loopback-address.ts";
 
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
 
-/** Headers a reverse proxy or tunnel adds; any of them means "not direct". */
+/**
+ * Headers a reverse proxy or tunnel adds; any of them means "not direct".
+ *
+ * `X-Forwarded-Host`, `-Proto` and `-Port` are not on the list: Next's own
+ * server fills them on every request (`??=` in base-server.js), so their mere
+ * presence proves nothing. A forwarded host that differs from Host is still
+ * refused, below.
+ */
 const PROXY_MARKERS = [
   "forwarded",
-  "x-forwarded-host",
-  "x-forwarded-proto",
   "x-real-ip",
   "via",
   "cf-connecting-ip",
@@ -27,8 +32,17 @@ export function isLocalHostHeader(host: string | null): boolean {
   return LOCAL_HOSTS.has(name.replace(/\.$/, ""));
 }
 
+/**
+ * True when a proxy left its mark: one of the markers above, or an
+ * `X-Forwarded-Host` that is not the Host this server received (Next copies
+ * Host into it when it is missing, so only a proxy makes them differ).
+ */
 export function hasProxyMarker(headers: Headers): boolean {
-  return PROXY_MARKERS.some((name) => headers.has(name));
+  if (PROXY_MARKERS.some((name) => headers.has(name))) return true;
+  const forwardedHost = headers.get("x-forwarded-host");
+  if (forwardedHost === null) return false;
+  const host = headers.get("host") ?? "";
+  return forwardedHost.trim().toLowerCase() !== host.trim().toLowerCase();
 }
 
 export type LocalOnlyRefusal = "loopback_only";
