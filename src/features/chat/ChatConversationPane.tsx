@@ -9,7 +9,7 @@ import {
 } from "@/features/bots/composer-model-context.ts";
 import type { SkillDefinition } from "@/features/skills/skill-types.ts";
 import { ChatEmptyState } from "./ChatEmptyState.tsx";
-import type { MessageData } from "./ChatMessageItem.tsx";
+import type { MessageBranch, MessageData } from "./ChatMessageItem.tsx";
 import { ConversationView } from "./ConversationView.tsx";
 import type { ChatLanguage } from "./respond-to-message.ts";
 import type { RollbackBlock } from "./roll-back-thread.ts";
@@ -44,6 +44,7 @@ interface ChatConversationPaneProps {
   onCancel: () => void;
   onRetry: (userMessageId: number) => void;
   onRollBack: (userMessageId: number) => void;
+  branch: MessageBranch;
 }
 
 /** The chat body: the empty state or the conversation, with the model chip. */
@@ -73,6 +74,7 @@ export function ChatConversationPane({
   onCancel,
   onRetry,
   onRollBack,
+  branch,
 }: ChatConversationPaneProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -127,6 +129,7 @@ export function ChatConversationPane({
           onRetry={onRetry}
           rollbackBlocked={rollbackBlocked}
           onRollBack={onRollBack}
+          branch={branch}
           toolTurn={toolTurn}
         />
       )}

@@ -18,6 +18,8 @@ import type { LiveToolStep } from "@/features/tools/client/live-tool-steps.ts";
 import type { ToolStep } from "@/features/tools/client/tool-steps.ts";
 import { ToolStepChips } from "@/features/tools/client/ToolStepChips.tsx";
 import { chatCopy } from "./chat-copy.ts";
+import { branchBlock } from "./branch-thread.ts";
+import { BranchButton } from "./BranchButton.tsx";
 import { CopyButton } from "./CopyButton.tsx";
 import {
   canRetryIncomplete,
@@ -75,6 +77,13 @@ export interface MessageRollback {
   onRollBack: (messageId: number) => void;
 }
 
+/** What an assistant reply needs to offer "branch from here". */
+export interface MessageBranch {
+  /** A turn is running: branching waits until it is done. */
+  running: boolean;
+  onBranch: (messageId: number) => void;
+}
+
 interface ChatMessageItemProps {
   message: MessageData;
   activeBot?: BotProfile;
@@ -84,6 +93,7 @@ interface ChatMessageItemProps {
   /** Offer the failure's action; only the newest reply gets it. */
   offerFailureAction?: boolean;
   rollback?: MessageRollback;
+  branch?: MessageBranch;
   /** On a delegated turn's final reply: the room that shows how it went. */
   crewRoom?: CrewRoomView;
   /** A paused tool turn's steps as they stand now, over the stored ones. */
@@ -97,6 +107,7 @@ export function ChatMessageItem({
   onRetry,
   offerFailureAction,
   rollback,
+  branch,
   crewRoom,
   liveSteps,
 }: ChatMessageItemProps) {
@@ -218,6 +229,14 @@ export function ChatMessageItem({
           language={message.language}
           kind="message"
         />
+        {branch && branchBlock(message, false) === null && (
+          <BranchButton
+            label={content.branchAction}
+            hint={branch.running ? content.branchRunning : undefined}
+            disabled={branch.running}
+            onClick={() => branch.onBranch(message.id)}
+          />
+        )}
       </div>
     </article>
   );

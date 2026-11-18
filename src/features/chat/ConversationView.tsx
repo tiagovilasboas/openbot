@@ -10,7 +10,11 @@ import { toolRunning } from "@/features/tools/client/live-tool-steps.ts";
 import { toolsCopy } from "@/features/tools/client/tools-copy.ts";
 import { chatCopy } from "./chat-copy.ts";
 import { ChatComposer } from "./ChatComposer.tsx";
-import { ChatMessageItem, type MessageData } from "./ChatMessageItem.tsx";
+import {
+  ChatMessageItem,
+  type MessageBranch,
+  type MessageData,
+} from "./ChatMessageItem.tsx";
 import { userMessageBefore } from "./retry-partial-reply.ts";
 import type { ChatLanguage } from "./respond-to-message.ts";
 import type { RollbackBlock } from "./roll-back-thread.ts";
@@ -43,6 +47,8 @@ export interface ConversationViewProps {
   rollbackBlocked: RollbackBlock | null;
   /** Cuts the thread before a user message and restores its text. */
   onRollBack: (userMessageId: number) => void;
+  /** Copies the thread up to a finished reply into a new thread. */
+  branch: MessageBranch;
   /** The tool turn: a pause to approve, its steps and notice. */
   toolTurn?: ToolTurnView;
 }
@@ -68,6 +74,7 @@ export function ConversationView({
   onRetry,
   rollbackBlocked,
   onRollBack,
+  branch,
   toolTurn,
 }: ConversationViewProps) {
   const content = chatCopy[language];
@@ -110,6 +117,7 @@ export function ConversationView({
                   onRetry={
                     busy || !answered ? undefined : () => onRetry(answered.id)
                   }
+                  branch={branch}
                   rollback={{
                     messagesAfter: messages.length - index - 1,
                     blocked: rollbackBlocked,
