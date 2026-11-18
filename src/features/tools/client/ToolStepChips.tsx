@@ -2,9 +2,20 @@
 
 import type { Language } from "@/features/language/language.ts";
 import type { LiveToolStep } from "./live-tool-steps.ts";
+import { ASK_USER } from "../ask-user.ts";
+import { askUserCopy } from "./ask-user-copy.ts";
 import { toolLabel, toolsCopy } from "./tools-copy.ts";
 
-type ChipStep = Pick<LiveToolStep, "name" | "status">;
+/** An answered question keeps the answer on its chip; others keep the status. */
+function stepText(step: ChipStep, language: Language): string {
+  const status = toolsCopy[language].stepStatus[step.status];
+  if (step.name !== ASK_USER || step.status !== "ok" || !step.summary) {
+    return status;
+  }
+  return askUserCopy[language].answered.replace("{answer}", step.summary);
+}
+
+type ChipStep = Pick<LiveToolStep, "name" | "status"> & { summary?: string };
 
 const DOT: Record<LiveToolStep["status"], string> = {
   ok: "bg-success",
@@ -39,7 +50,9 @@ export function ToolStepChips({
           <span className="font-medium text-foreground">
             {toolLabel(step.name, language)}
           </span>
-          <span>· {copy.stepStatus[step.status]}</span>
+          <span className="min-w-0 break-words">
+            · {stepText(step, language)}
+          </span>
         </li>
       ))}
     </ul>

@@ -4,7 +4,7 @@ import {
   readBodyWithCap,
 } from "../../server-guard/body-limits.ts";
 import type { ToolRegistry } from "../tool-registry.ts";
-import { canAllow, isToolLevel } from "../tool-policy.ts";
+import { canAllow, isToolLevel, levelOf } from "../tool-policy.ts";
 import { listToolLevels, setToolLevel } from "./levels-repository.ts";
 
 const NO_STORE = { "Cache-Control": "no-store" } as const;
@@ -19,8 +19,10 @@ function listLevels(db: DatabaseSync, tools: ToolRegistry) {
   return {
     tools: [...tools.values()].map((tool) => ({
       name: tool.name,
-      level: Object.hasOwn(levels, tool.name) ? levels[tool.name] : "ask",
+      level: levelOf(tool, levels),
       canAllow: canAllow(tool),
+      // A tool the user answers always asks; "ask" would mean nothing more.
+      canAsk: !tool.answer,
     })),
   };
 }
@@ -61,6 +63,9 @@ export async function handlePutLevel(
   if (!tool) return json({ error: "unknown_tool" }, 404);
   if (body.level === "allow" && !canAllow(tool)) {
     return json({ error: "allow_not_permitted" }, 400);
+  }
+  if (body.level === "ask" && tool.answer) {
+    return json({ error: "ask_not_permitted" }, 400);
   }
   setToolLevel(db, tool.name, body.level);
   return json(listLevels(db, tools));

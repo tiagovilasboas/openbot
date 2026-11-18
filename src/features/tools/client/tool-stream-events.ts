@@ -1,3 +1,4 @@
+import { ASK_USER, parseAskUserPrompt } from "../ask-user.ts";
 import type { ToolPolicy } from "../tool-definition.ts";
 import type { ApprovalCall } from "../tool-turn-events.ts";
 
@@ -50,12 +51,17 @@ function approvalCall(raw: unknown): ApprovalCall | null {
   if (typeof call.argsDigest !== "string" || !DIGEST.test(call.argsDigest)) {
     return null;
   }
+  // An ask_user call is only usable with a question that passes the same
+  // checks the server ran; anything else drops the whole pause.
+  const ask = name === ASK_USER ? parseAskUserPrompt(call.ask) : null;
+  if (name === ASK_USER && !ask) return null;
   return {
     callId,
     name,
     preview: preview(call.preview),
     argsDigest: call.argsDigest,
     allowAlways: call.allowAlways === true,
+    ...(ask ? { ask } : {}),
   };
 }
 

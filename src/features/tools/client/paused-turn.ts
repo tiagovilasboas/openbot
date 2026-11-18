@@ -1,3 +1,4 @@
+import type { UserAnswer } from "../ask-user.ts";
 import type { ApprovalDecision } from "../tool-definition.ts";
 import {
   expirePending,
@@ -8,6 +9,12 @@ import type { ClientDecision, ToolTurnRequest } from "./tool-route.ts";
 import type { ApprovalPause } from "./tool-stream-events.ts";
 
 export type DecisionChoice = ApprovalDecision["decision"];
+
+/** The user's answer to one ask_user call of the pause. */
+export type AskUserReply = { callId: string; answer: UserAnswer };
+
+/** What the user did with a pause: a choice for all calls, or an answer. */
+export type PauseReply = DecisionChoice | AskUserReply;
 
 /**
  * A tool turn waiting for the user. `request` is exactly what was sent: a
@@ -48,6 +55,33 @@ export function decisionsFor(
     decision: choice === "always" && !call.allowAlways ? "once" : choice,
     argsDigest: call.argsDigest,
   }));
+}
+
+/**
+ * The decisions for a pause the user answered: the answered call goes back
+ * with its answer, and every other call of the pause is denied, so nothing
+ * runs that the user did not see. A skip ("deny") denies them all.
+ */
+export function replyDecisions(
+  pause: ApprovalPause,
+  reply: PauseReply,
+): ClientDecision[] {
+  if (typeof reply === "string") return decisionsFor(pause, reply);
+  return pause.calls.map((call) =>
+    call.callId === reply.callId
+      ? {
+          callId: call.callId,
+          decision: "once",
+          argsDigest: call.argsDigest,
+          answer: reply.answer,
+        }
+      : { callId: call.callId, decision: "deny", argsDigest: call.argsDigest },
+  );
+}
+
+/** The ask_user call the pause waits on, if any: the card answers it. */
+export function askCallOf(pause: ApprovalPause) {
+  return pause.calls.find((call) => call.ask) ?? null;
 }
 
 /** The tool fields of the resume request for these decisions. */

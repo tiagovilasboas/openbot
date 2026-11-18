@@ -2,6 +2,7 @@
 // The tools domain may use the model domain's neutral wire types; the model
 // domain never imports this one.
 import type { JsonSchemaLite } from "../model/tool-wire.ts";
+import type { ToolLevel } from "./tool-policy.ts";
 
 export type ToolPolicy = "auto" | "ask";
 
@@ -16,7 +17,14 @@ export type ToolEffect = { kind: "memory_changed" };
 export type ToolRunContext = { botId: string; signal: AbortSignal };
 
 export type ToolRunResult =
-  { ok: true; text: string; effect?: ToolEffect } | { ok: false; code: string };
+  | {
+      ok: true;
+      text: string;
+      effect?: ToolEffect;
+      /** What the thread shows, when the model's text is not meant for it. */
+      preview?: string;
+    }
+  | { ok: false; code: string };
 
 export type ParsedArgs<A> = { ok: true; args: A } | { ok: false };
 
@@ -30,6 +38,14 @@ export type ToolDefinition<A> = {
   maxResultChars: number;
   parseArgs(raw: unknown): ParsedArgs<A>;
   run(args: A, ctx: ToolRunContext): Promise<ToolRunResult>;
+  /** The level when the user set none; "ask" when left out. */
+  defaultLevel?: ToolLevel;
+  /**
+   * Set on a tool the user answers instead of the server (ask_user): every
+   * call pauses the turn, and the user's answer becomes its result. `run`
+   * is then never called by the loop.
+   */
+  answer?(args: A, answer: unknown): ToolRunResult;
 };
 
 // A model-issued call, exactly as the provider streamed it.

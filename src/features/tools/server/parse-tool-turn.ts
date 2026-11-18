@@ -1,4 +1,5 @@
 import { isValidBotId } from "../../bots/bot-id.ts";
+import { parseUserAnswer } from "../ask-user.ts";
 import { TOOL_BUDGET } from "../tool-budget.ts";
 import type { ResumeDecision } from "../tool-loop-types.ts";
 
@@ -19,7 +20,10 @@ const MAX_CALL_ID_CHARS = 64;
 
 function parseDecision(raw: unknown): ResumeDecision | null {
   if (typeof raw !== "object" || raw === null) return null;
-  const { callId, decision, argsDigest } = raw as Record<string, unknown>;
+  const { callId, decision, argsDigest, answer } = raw as Record<
+    string,
+    unknown
+  >;
   if (
     typeof callId !== "string" ||
     !callId ||
@@ -31,10 +35,13 @@ function parseDecision(raw: unknown): ResumeDecision | null {
   ) {
     return null;
   }
+  const parsedAnswer = answer === undefined ? null : parseUserAnswer(answer);
+  if (answer !== undefined && !parsedAnswer) return null;
   return {
     callId,
     decision: decision as ResumeDecision["decision"],
     argsDigest,
+    ...(parsedAnswer ? { answer: parsedAnswer } : {}),
   };
 }
 

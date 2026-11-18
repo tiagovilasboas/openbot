@@ -1,8 +1,14 @@
 import { randomUUID } from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
 import { runToolLoop } from "../run-tool-loop.ts";
+import {
+  ASK_USER,
+  parseAskUserPrompt,
+  type AskUserPrompt,
+} from "../ask-user.ts";
 import type {
   LoopAuditEntry,
+  PendingCall,
   StepFn,
   ToolLoopOutcome,
 } from "../tool-loop-types.ts";
@@ -15,6 +21,17 @@ import type { DecodedTurn } from "./pending-turn-codec.ts";
 import { createPendingTurn } from "./pending-turns-repository.ts";
 import type { ResumeRequest } from "./resume-turn.ts";
 import { emptyBudget } from "../tool-budget.ts";
+
+/** The question of a stored ask_user call, read back from its own args. */
+function askField(call: PendingCall): { ask?: AskUserPrompt } {
+  if (call.name !== ASK_USER) return {};
+  try {
+    const ask = parseAskUserPrompt(JSON.parse(call.argsJson));
+    return ask ? { ask } : {};
+  } catch {
+    return {};
+  }
+}
 
 export type ToolTurnRun = {
   db: DatabaseSync;
@@ -99,6 +116,7 @@ export async function* runToolTurn(
         preview: call.preview,
         argsDigest: call.argsDigest,
         allowAlways: run.tools.get(call.name)?.allowAlways === true,
+        ...askField(call),
       })),
       expiresAt: created.turn.expiresAt,
     };

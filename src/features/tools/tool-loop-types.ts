@@ -1,6 +1,7 @@
 // Ports and events of the tool loop. Pure types: no I/O here.
 import type { ChatStreamEvent } from "../model/stream-events.ts";
 import type { ToolExchange, ToolSpec } from "../model/tool-wire.ts";
+import type { UserAnswer } from "./ask-user.ts";
 import type { ToolBudget } from "./tool-budget.ts";
 import type { ApprovalDecision, ToolPolicy } from "./tool-definition.ts";
 import type { ToolGrant, ToolLevels } from "./tool-policy.ts";
@@ -39,8 +40,14 @@ export type PendingCall = {
   preview: string;
 };
 
-/** A decision binds to a stored call id and the digest of its stored args. */
-export type ResumeDecision = ApprovalDecision & { argsDigest: string };
+/**
+ * A decision binds to a stored call id and the digest of its stored args.
+ * A call the user answers (ask_user) carries the answer, checked later.
+ */
+export type ResumeDecision = ApprovalDecision & {
+  argsDigest: string;
+  answer?: UserAnswer;
+};
 
 export type LoopAuditEntry = {
   callId: string;

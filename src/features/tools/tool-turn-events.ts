@@ -1,3 +1,4 @@
+import type { AskUserPrompt } from "./ask-user.ts";
 import type { ToolLoopEvent } from "./tool-loop-types.ts";
 
 /** A call shown on the approval card; argsDigest comes back with the decision. */
@@ -7,6 +8,8 @@ export type ApprovalCall = {
   preview: string;
   argsDigest: string;
   allowAlways: boolean;
+  /** Set on an ask_user call: the question the card shows. */
+  ask?: AskUserPrompt;
 };
 
 /**

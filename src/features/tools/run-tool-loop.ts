@@ -15,7 +15,7 @@ import type {
   ToolLoopInput,
   ToolLoopOutcome,
 } from "./tool-loop-types.ts";
-import { decideTool } from "./tool-policy.ts";
+import { decideTool, levelOf } from "./tool-policy.ts";
 import { toolSpecs } from "./tool-registry.ts";
 import { validateCall } from "./validate-args.ts";
 
@@ -67,9 +67,10 @@ export async function* runToolLoop(
   const state = createLoopState(input);
   // A blocked tool is not offered; handleCalls still refuses it if the model
   // asks for it anyway.
-  const specs = toolSpecs(input.tools).filter(
-    (spec) => input.levels[spec.name] !== "block",
-  );
+  const specs = toolSpecs(input.tools).filter((spec) => {
+    const tool = input.tools.get(spec.name);
+    return !tool || levelOf(tool, input.levels) !== "block";
+  });
   let started = false;
   let usage: Done["usage"];
 
@@ -162,7 +163,8 @@ async function* handleCalls(
     const decision = tool
       ? decideTool(tool, input.botId, input.grants, input.levels)
       : "auto";
-    const policy = decision === "block" ? "ask" : decision;
+    // A tool the user answers always counts as asking.
+    const policy = decision === "block" || tool?.answer ? "ask" : decision;
     const preview = previewOf(`${call.name} ${call.argsJson}`);
     yield {
       type: "tool_call",
@@ -202,7 +204,8 @@ async function* handleCalls(
       });
       continue;
     }
-    if (policy === "ask") {
+    // A tool the user answers always waits for them, whatever its level.
+    if (policy === "ask" || validated.tool.answer) {
       pending.push({
         callId: call.id,
         name: call.name,

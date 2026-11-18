@@ -5,10 +5,10 @@ import { refreshMemoryFromServer } from "@/features/memory/sync/browser-memory-s
 import type { ModelCallResult } from "@/features/model/model-status.ts";
 import type { LiveToolStep } from "@/features/tools/client/live-tool-steps.ts";
 import {
-  decisionsFor,
   pauseExpired,
+  replyDecisions,
   resumeRequestFor,
-  type DecisionChoice,
+  type PauseReply,
   type PausedTurn,
 } from "@/features/tools/client/paused-turn.ts";
 import { createLiveBoard, type LiveEntry } from "./live-board.ts";
@@ -78,7 +78,7 @@ export function useToolApproval(input: ToolApprovalInput) {
     store(current, expiredToolReply(current, language));
   }
 
-  async function decide(choice: DecisionChoice): Promise<void> {
+  async function decide(reply: PauseReply): Promise<void> {
     const current = pausedRef.current;
     if (!current) return;
     setPause(null);
@@ -92,7 +92,7 @@ export function useToolApproval(input: ToolApprovalInput) {
     const board = createLiveBoard(turn.live);
     const result = await streamToolTurn({
       request: current.request,
-      tools: resumeRequestFor(current, decisionsFor(current.pause, choice)),
+      tools: resumeRequestFor(current, replyDecisions(current.pause, reply)),
       prior: { text: current.text, steps: current.steps },
       signal: turn.signal,
       show: board.stream(),
