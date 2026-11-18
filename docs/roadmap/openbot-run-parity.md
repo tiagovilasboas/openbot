@@ -85,6 +85,8 @@ coordenar só `ChatExperience.tsx`.
 | TOL-5                     | Spike de MCP como ferramenta (transporte, OAuth, permissão)      | PR-18, TL-11 |   3 | TOL-1      |
 | TOL-6                     | Biblioteca de arquivos gerados                                   | TL-09        |   2 | TOL-4      |
 
+O #188 fechou a janela de DNS rebinding do `read_page`: a conexão vai só ao endereço já validado (`server-guard/pinned-fetch.ts`), sem reaproveitar sockets.
+
 ## 6. Rotinas e automação (novo domínio `routines/`)
 
 | Task                      | Entrega                                                       | Casos        | Pts | Depende de   |
@@ -92,8 +94,8 @@ coordenar só `ChatExperience.tsx`.
 | ROT-1 **(entregue #186)** | Domínio puro: agenda, próxima execução, estados, regra ESLint | AU-03        |   3 | —            |
 | ROT-2 **(entregue #186)** | Agendador no servidor local, persistido no SQLite             | AU-03        |   5 | ROT-1        |
 | ROT-3 **(entregue #187)** | Tela de rotinas e execução silenciosa ("sem novidade")        | AU-03, AG-15 |   5 | ROT-2        |
-| ROT-4                     | Rotina com thread própria                                     | AG-16        |   2 | ROT-3, CHT-5 |
-| ROT-5                     | Rota local de automação com token, só loopback                | AU-05, AG-21 |   5 | ROT-2        |
+| ROT-4 **(entregue #188)** | Rotina com thread própria                                     | AG-16        |   2 | ROT-3, CHT-5 |
+| ROT-5 **(entregue #188)** | Rota local de automação com token, só loopback                | AU-05, AG-21 |   5 | ROT-2        |
 | ROT-6                     | Esperas: bot pausa até rotina ou evento acordar               | AG-17        |   3 | ROT-5        |
 | ROT-7                     | Rotinas encadeadas                                            | AU-04        |   3 | ROT-3        |
 | ROT-8                     | Spike de Telegram sobre a rota de automação                   | AU-10        |   3 | ROT-5        |
@@ -103,7 +105,9 @@ coordenar só `ChatExperience.tsx`.
 | Task                      | Entrega                                                         | Casos | Pts | Depende de |
 | ------------------------- | --------------------------------------------------------------- | ----- | --: | ---------- |
 | CRW-1 **(entregue #187)** | Guarda de loop: teto de rodadas e detector de eco               | AU-02 |   3 | —          |
-| CRW-2                     | Sala do crew como canal com vários bots e roteamento pelo chefe | AU-01 |   5 | CRW-1      |
+| CRW-2 **(parcial #188)**  | Sala do crew como canal com vários bots e roteamento pelo chefe | AU-01 |   5 | CRW-1      |
+
+CRW-2 no #188 entregou a guarda de loop dentro do turno do crew, a nota de parada na sala e o roteamento por `@menção` sem chamada ao chefe. Falta o canal guardado do AU-01: membros, líder, instruções, ordem estável e os tetos de tarefas.
 
 ## 8. App e plataforma (`pwa/`, `settings/`, shell)
 
