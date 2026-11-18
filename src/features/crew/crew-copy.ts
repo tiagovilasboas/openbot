@@ -1,4 +1,5 @@
 import type { ChatLanguage } from "../chat/respond-to-message.ts";
+import type { LoopStopReason } from "./loop-guard/index.ts";
 
 /** The literal keyword the Chief writes to hand a task to a crew member. */
 export const DELEGATE_KEYWORD = "@delegate";
@@ -33,6 +34,8 @@ interface CrewCopy {
    * was cut off and may be missing its end.
    */
   specialistCut: string;
+  /** The visible note when the loop guard stopped the exchange. */
+  loopStopped: (reason: LoopStopReason) => string;
 }
 
 /** Prompt and UI text for the Chief's crew, in every supported language. */
@@ -70,6 +73,13 @@ export const crewCopy: Record<ChatLanguage, CrewCopy> = {
       "Não encontrei esse bot na equipe, então não consegui passar a tarefa adiante.",
     specialistCut:
       "[Aviso do sistema: esta resposta foi cortada no meio e pode estar incompleta. Use só o que chegou e diga ao usuário que esta parte ficou incompleta.]",
+    loopStopped: (reason) => {
+      if (reason.reason === "max_rounds")
+        return `Troca entre bots interrompida: atingiu o limite de ${reason.limit} rodadas sem uma mensagem sua.`;
+      return reason.reason === "echo"
+        ? "Troca entre bots interrompida: um bot repetiu quase o mesmo texto de outro."
+        : "Troca entre bots interrompida: dois bots estavam repetindo as mesmas respostas.";
+    },
   },
   en: {
     rosterHeader: "Your crew (other bots you know and can call by name):",
@@ -103,6 +113,13 @@ export const crewCopy: Record<ChatLanguage, CrewCopy> = {
       "I could not find that bot on the crew, so I could not hand the task over.",
     specialistCut:
       "[System notice: this answer was cut off midway and may be incomplete. Use only what arrived and tell the user this part is incomplete.]",
+    loopStopped: (reason) => {
+      if (reason.reason === "max_rounds")
+        return `Bot exchange stopped: it reached the limit of ${reason.limit} rounds without a message from you.`;
+      return reason.reason === "echo"
+        ? "Bot exchange stopped: one bot repeated almost the same text as another."
+        : "Bot exchange stopped: two bots were repeating the same replies.";
+    },
   },
   es: {
     rosterHeader:
@@ -137,5 +154,12 @@ export const crewCopy: Record<ChatLanguage, CrewCopy> = {
       "No encontré ese bot en el equipo, así que no pude pasarle la tarea.",
     specialistCut:
       "[Aviso del sistema: esta respuesta se cortó a la mitad y puede estar incompleta. Usa solo lo que llegó y dile al usuario que esta parte quedó incompleta.]",
+    loopStopped: (reason) => {
+      if (reason.reason === "max_rounds")
+        return `Intercambio entre bots detenido: llegó al límite de ${reason.limit} rondas sin un mensaje tuyo.`;
+      return reason.reason === "echo"
+        ? "Intercambio entre bots detenido: un bot repitió casi el mismo texto de otro."
+        : "Intercambio entre bots detenido: dos bots repetían las mismas respuestas.";
+    },
   },
 };

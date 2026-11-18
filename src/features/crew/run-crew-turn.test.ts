@@ -37,6 +37,11 @@ function run(chiefReply: string, askModel: AskCrewModel) {
   });
 }
 
+/** A different answer on every call, so the loop guard sees no echo. */
+let answerCount = 0;
+const distinct = () =>
+  `answer ${answerCount} about topic${answerCount++}x${"abcdefgh"[answerCount % 8]}`;
+
 const isSynthesis = (call: Call) => call.systemPrompt.startsWith("CHIEF");
 
 test("no delegation line means no crew turn and no model call", async () => {
@@ -47,7 +52,7 @@ test("no delegation line means no crew turn and no model call", async () => {
 
 test("runs at most three specialists and synthesizes once", async () => {
   const model = fakeModel((call) =>
-    isSynthesis(call) ? "final answer" : "specialist answer",
+    isSynthesis(call) ? "final answer" : distinct(),
   );
   const reply = [
     "@delegate Engineering: a",
@@ -143,4 +148,44 @@ test("the kickoff keeps the Chief's own words before the delegation note", async
   const model = fakeModel(() => "x");
   const turn = await run("On it.\n@delegate Engineering: a", model.askModel);
   assert.equal(turn?.kickoff, "On it.\n\nDelegating to Engineering.");
+});
+
+test("loop guard stops remaining specialists after an echo", async () => {
+  const model = fakeModel((call) =>
+    isSynthesis(call)
+      ? "final"
+      : "the launch plan needs three steps: scope, build and ship it",
+  );
+  const turn = await run(
+    [
+      "@delegate Engineering: a",
+      "@delegate Security: b",
+      "@delegate Product: c",
+    ].join("\n"),
+    model.askModel,
+  );
+  assert.ok(turn);
+  assert.equal(turn.specialists.length, 2);
+  assert.equal(turn.stopped?.reason, "echo");
+  assert.equal(turn.synthesis, "final");
+});
+
+test("distinct answers are not stopped by the guard", async () => {
+  let n = 0;
+  const words = [
+    "alpha beta gamma delta",
+    "ocean river mountain forest",
+    "red green blue yellow",
+  ];
+  const model = fakeModel((call) => (isSynthesis(call) ? "final" : words[n++]));
+  const turn = await run(
+    [
+      "@delegate Engineering: a",
+      "@delegate Security: b",
+      "@delegate Product: c",
+    ].join("\n"),
+    model.askModel,
+  );
+  assert.equal(turn?.specialists.length, 3);
+  assert.equal(turn?.stopped, undefined);
 });
