@@ -162,12 +162,25 @@ export function SettingsModelPresets({
           );
         })}
         <p role="status" className="text-[13px] text-subtle">
-          {!localScan.scanned
+          {localScan.scanning
             ? s.localScanning
-            : localScan.servers.length === 0
+            : localScan.scanned && localScan.servers.length === 0
               ? s.localNoneFound
               : ""}
         </p>
+        {localScan.errors.map((r) => (
+          <p key={r.id} role="status" className="text-[13px] text-subtle">
+            {fillCopy(s.localScanError, { host: r.host })}
+          </p>
+        ))}
+        <button
+          type="button"
+          onClick={localScan.rescan}
+          disabled={localScan.scanning}
+          className="min-h-11 self-start rounded-xl px-3 text-sm font-medium text-foreground bg-surface hover:bg-surface-secondary disabled:opacity-50"
+        >
+          {s.localScanAction}
+        </button>
       </div>
     );
   }
