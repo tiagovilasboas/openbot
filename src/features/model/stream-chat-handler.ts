@@ -16,6 +16,11 @@ import { readIdempotencyKey } from "./idempotency-key.ts";
 import { fingerprintBody } from "./send-replay.ts";
 import { chatStreamReplay, type createStreamReplay } from "./stream-replay.ts";
 import { parseChatRequest } from "./parse-chat-request.ts";
+import {
+  noOffProviders,
+  providerOffResponse,
+  type OffProvidersLookup,
+} from "./provider-off-guard.ts";
 import { selectAdapter } from "./select-adapter.ts";
 import { createStreamSignal, STREAM_TIMEOUT_MS } from "./stream-signal.ts";
 import type { ChatStreamEvent } from "./stream-events.ts";
@@ -31,6 +36,8 @@ export type StreamChatOptions = {
   slots?: StreamSlots;
   /** Where a config with no key finds its saved one; none by default. */
   keyLookup?: KeyLookup;
+  /** The providers the user switched off; none by default. */
+  offProviders?: OffProvidersLookup;
   /** Remembers finished streams per send id; defaults to the shared one. */
   replay?: ReturnType<typeof createStreamReplay>;
 };
@@ -61,6 +68,7 @@ export async function handleChatStream(
     slots = sharedStreamSlots(env),
     keyLookup = noKeyLookup,
     replay = chatStreamReplay,
+    offProviders = noOffProviders,
   }: StreamChatOptions,
 ): Promise<Response> {
   const idempotency = readIdempotencyKey(request.headers);
@@ -75,6 +83,8 @@ export async function handleChatStream(
 
   const notAllowed = modelNotAllowedResponse(env, parsed.request.modelId);
   if (notAllowed) return notAllowed;
+  const off = providerOffResponse(parsed.request, offProviders);
+  if (off) return off;
 
   const start = () =>
     startStream(request, parsed.request, {

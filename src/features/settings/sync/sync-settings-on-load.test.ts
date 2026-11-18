@@ -114,3 +114,24 @@ test("a value saved while the request was out is not overwritten", async () => {
   assert.deepEqual(s.mirrored, []);
   assert.equal(s.local.language, "es");
 });
+
+test("a cleared browser takes the server's off providers back", async () => {
+  const s = setup({
+    server: { ok: true, settings: { providersOff: ["router"] } },
+  });
+  await syncSettingsOnLoad(s.deps);
+  assert.deepEqual(s.mirrored, [["providersOff", ["router"]]]);
+  assert.deepEqual(s.puts, []);
+});
+
+test("a switch-off made offline is pushed on the next load", async () => {
+  const s = setup({
+    server: { ok: true, settings: { providersOff: [] } },
+    local: { providersOff: ["anthropic"] },
+    unsynced: ["providersOff"],
+  });
+  await syncSettingsOnLoad(s.deps);
+  assert.deepEqual(s.puts, [{ providersOff: ["anthropic"] }]);
+  assert.deepEqual(s.mirrored, []);
+  assert.equal(s.unsynced.size, 0);
+});

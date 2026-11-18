@@ -7,6 +7,10 @@ import { modelNotAllowedResponse } from "../../model/allowed-models.ts";
 import type { ModelRequest } from "../../model/model-adapter.ts";
 import { eventsToNdjson } from "../../model/ndjson-stream.ts";
 import { parseChatRequest } from "../../model/parse-chat-request.ts";
+import {
+  noOffProviders,
+  providerOffResponse,
+} from "../../model/provider-off-guard.ts";
 import { selectAdapter } from "../../model/select-adapter.ts";
 import {
   handleChatStream,
@@ -111,6 +115,11 @@ async function startToolTurn(
   if (!parsed.ok) return fail("invalid_request", 400);
   const notAllowed = modelNotAllowedResponse(env, parsed.request.modelId);
   if (notAllowed) return notAllowed;
+  const off = providerOffResponse(
+    parsed.request,
+    options.offProviders ?? noOffProviders,
+  );
+  if (off) return off;
   const modelRequest = withVaultKeys(parsed.request, keyLookup);
   if (!selectAdapter(env, modelRequest.config, fetchImpl)) {
     return fail("no_provider_configured", 503);

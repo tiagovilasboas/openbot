@@ -1,3 +1,4 @@
+import { validateOffProviders } from "../connections/copy.ts";
 import { isLanguage } from "../language/language.ts";
 import {
   validateClientModelConfig,
@@ -20,6 +21,7 @@ const VALIDATORS: {
     const config = validateClientModelConfig(value);
     return config ? withoutApiKey(config) : undefined;
   },
+  providersOff: validateOffProviders,
 };
 
 export function validateSetting(

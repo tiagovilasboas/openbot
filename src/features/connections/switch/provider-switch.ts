@@ -31,6 +31,20 @@ export function parseOffProviders(raw: string | null): ConnectionId[] {
   }
 }
 
+/**
+ * A saved off list, checked strictly: known providers, each once, in the
+ * order given. Anything else is undefined, so the settings store refuses it.
+ */
+export function validateOffProviders(
+  value: unknown,
+): ConnectionId[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const ids = value.filter((id): id is ConnectionId => KNOWN.includes(id));
+  return ids.length === value.length && new Set(ids).size === ids.length
+    ? ids
+    : undefined;
+}
+
 /** The off list after turning one provider off or on again. */
 export function withProviderOff(
   off: readonly ConnectionId[],

@@ -11,6 +11,11 @@ import {
   saveStoredModelConfig,
   type ClientModelConfig,
 } from "../../model/model-config.ts";
+import {
+  loadStoredOffProviders,
+  writeOffProviders,
+} from "../../connections/index.ts";
+import type { ConnectionId } from "../../connections/copy.ts";
 import type { Language } from "../../language/language.ts";
 import type { SettingsSyncPort } from "../settings-sync-port.ts";
 import type { AppSettings, SettingKey } from "../settings-types.ts";
@@ -71,6 +76,7 @@ const READ_LOCAL: { [K in SettingKey]: () => AppSettings[K] | undefined } = {
   language: () => loadStoredLanguage(),
   memoryEnabled: () => loadStoredMemoryEnabled(),
   modelConfig: () => loadStoredModelConfig() ?? undefined,
+  providersOff: () => loadStoredOffProviders(),
 };
 
 // Each write is a mirror: the cache changes, nothing goes back to the server.
@@ -79,6 +85,8 @@ function mirrorLocal(key: SettingKey, value: AppSettings[SettingKey]): void {
   if (key === "language") saveLanguage(value as Language, undefined, noSend);
   else if (key === "memoryEnabled") {
     saveMemoryEnabled(value as boolean, undefined, noSend);
+  } else if (key === "providersOff") {
+    writeOffProviders(value as ConnectionId[], noSend);
   } else saveStoredModelConfig(value as ClientModelConfig, noSend);
 }
 

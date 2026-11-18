@@ -1,3 +1,4 @@
+import type { ConnectionId } from "../connections/copy.ts";
 import type { Language } from "../language/language.ts";
 import type { ClientModelConfig } from "../model/model-config.ts";
 
@@ -6,6 +7,7 @@ export const SETTING_KEYS = [
   "language",
   "memoryEnabled",
   "modelConfig",
+  "providersOff",
 ] as const;
 
 export type SettingKey = (typeof SETTING_KEYS)[number];
@@ -15,6 +17,8 @@ export interface AppSettings {
   language?: Language;
   memoryEnabled?: boolean;
   modelConfig?: ClientModelConfig;
+  /** The providers switched off; the model routes refuse them. */
+  providersOff?: ConnectionId[];
 }
 
 /** A change to the settings: `null` clears that key, an absent key is kept. */

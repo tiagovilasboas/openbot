@@ -10,6 +10,8 @@ import {
 import { withVaultKeys } from "../../../features/key-vault/apply-vault-keys.ts";
 import { vaultKeyLookup } from "../../../features/key-vault/vault-key-lookup.ts";
 import { selectAdapter } from "../../../features/model/select-adapter.ts";
+import { providerOffResponse } from "../../../features/model/provider-off-guard.ts";
+import { savedOffProviders } from "../../../features/settings/server/saved-off-providers.ts";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +36,8 @@ export async function POST(request: Request) {
     parsed.request.modelId,
   );
   if (notAllowed) return notAllowed;
+  const off = providerOffResponse(parsed.request, savedOffProviders);
+  if (off) return off;
 
   if (!idempotency.key) return toResponse(await answer(parsed.request));
 
