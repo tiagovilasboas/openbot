@@ -6,6 +6,7 @@ import {
   useConnectFlow,
 } from "@/features/connections/index.ts";
 import { SettingsSecuritySection } from "@/features/auth/SettingsSecuritySection.tsx";
+import { AutomationTokenSection } from "@/features/automation/client/AutomationTokenSection.tsx";
 import { BackupSection } from "@/features/backup/BackupSection.tsx";
 import { chatCopy } from "@/features/chat/chat-copy.ts";
 import { LanguageToggle } from "@/features/chat/LanguageToggle.tsx";
@@ -143,6 +144,7 @@ export function SettingsModal({
           <div className="mt-6">
             <BackupSection language={language} />
           </div>
+          <AutomationTokenSection language={language} />
         </div>
 
         <div hidden={activeTab !== "usage"}>

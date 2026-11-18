@@ -10,6 +10,7 @@ const ROUTE_BODY_LIMITS: Readonly<Record<string, number>> = {
   "PUT /api/conversations": 8 * 1024 * 1024,
   "PUT /api/settings": 16 * 1024,
   "PUT /api/routines": 16 * 1024,
+  "POST /api/automation/run": 16 * 1024,
   "PUT /api/memory": 512 * 1024,
   "PUT /api/usage": 2 * 1024 * 1024 + 64 * 1024,
 };
