@@ -7,6 +7,7 @@ import {
 } from "@/features/bot-sharing/BotTemplateFileControls.tsx";
 import { parseBackupModelsText } from "@/features/model/backup-models.ts";
 import { MemorySection } from "@/features/memory/MemorySection.tsx";
+import { RoutinesSection } from "@/features/routines/client/RoutinesSection.tsx";
 import { BotSkillsEditor } from "@/features/skills/BotSkillsEditor.tsx";
 import { BotToolsToggle } from "@/features/tools/client/BotToolsToggle.tsx";
 import { FormField, FIELD_CLASS } from "@/shared/ui/FormField.tsx";
@@ -243,6 +244,9 @@ function BotEditForm({
       <PromptBudgetNotice report={budgetReport} language={language} />
 
       {isEditing && bot && <MemorySection botId={bot.id} language={language} />}
+      {isEditing && bot && (
+        <RoutinesSection botId={bot.id} language={language} />
+      )}
 
       {isEditing && bot && onMakeMain && (
         <BotMainControl
