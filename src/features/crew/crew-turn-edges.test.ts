@@ -278,8 +278,12 @@ test("failed specialists are left out of the report but stay in the turn", async
   assert.equal(turn?.specialists[1]?.ok, false);
 });
 
+let n = 0; // distinct answers keep the loop guard quiet
+
 test("specialists are asked strictly one at a time, in order", async () => {
-  const model = fakeModel((call) => (isSynthesis(call) ? "final" : "ok"));
+  const model = fakeModel((call) =>
+    isSynthesis(call) ? "final" : `ok ${n++} w${n}x`,
+  );
   await run(
     "@delegate Engineering: a\n@delegate Security: b\n@delegate Product: c",
     model.askModel,
@@ -293,7 +297,9 @@ test("specialists are asked strictly one at a time, in order", async () => {
 
 test("onBotWorking follows each specialist and then the Chief, and stays silent without delegation", async () => {
   const seen: string[] = [];
-  const model = fakeModel((call) => (isSynthesis(call) ? "final" : "ok"));
+  const model = fakeModel((call) =>
+    isSynthesis(call) ? "final" : `ok ${n++} w${n}x`,
+  );
   await run("@delegate Engineering: a\n@delegate Security: b", model.askModel, {
     onBotWorking: (bot) => seen.push(bot.id),
   });
@@ -326,7 +332,9 @@ test("a synthesis that fails or throws gives a null synthesis, not a throw", asy
 });
 
 test("repeated and unknown delegations do not use up the three slots", async () => {
-  const model = fakeModel((call) => (isSynthesis(call) ? "final" : "ok"));
+  const model = fakeModel((call) =>
+    isSynthesis(call) ? "final" : `ok ${n++} w${n}x`,
+  );
   const turn = await run(
     [
       "@delegate Engineering: a",
@@ -345,7 +353,9 @@ test("repeated and unknown delegations do not use up the three slots", async () 
 });
 
 test("a reply that only delegates has a kickoff with just the delegation note", async () => {
-  const model = fakeModel((call) => (isSynthesis(call) ? "final" : "ok"));
+  const model = fakeModel((call) =>
+    isSynthesis(call) ? "final" : `ok ${n++} w${n}x`,
+  );
   const turn = await run("@delegate Engineering: a", model.askModel);
   assert.equal(turn?.kickoff, "Delegating to Engineering.");
 });

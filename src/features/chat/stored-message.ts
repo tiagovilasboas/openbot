@@ -3,6 +3,7 @@ import { isLanguage } from "../language/language.ts";
 import type { AttachmentSummary } from "@/features/attachments/attachment-summary.ts";
 import { sanitizeBotProfile } from "../bots/bot-storage.ts";
 import { sanitizeCrewStep } from "../crew/crew-step-record.ts";
+import { sanitizeCrewStop } from "../crew/crew-stop-record.ts";
 import type {
   GitHubItem,
   GitHubRepoRef,
@@ -162,6 +163,8 @@ export function sanitizeStoredMessage(
   if (delegatedBot) message.delegatedBot = delegatedBot;
   const crewStep = sanitizeCrewStep(raw.crewStep);
   if (crewStep) message.crewStep = crewStep;
+  const crewStop = sanitizeCrewStop(raw.crewStop);
+  if (crewStop && raw.role === "assistant") message.crewStop = crewStop;
   const github = readGithub(raw.github);
   if (github) message.github = github;
   const modelBadge = short(raw.modelBadge);

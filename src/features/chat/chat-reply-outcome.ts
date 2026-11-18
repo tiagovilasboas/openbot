@@ -1,4 +1,5 @@
 import type { BotProfile } from "@/features/bots/bot-types.ts";
+import type { CrewStopRecord } from "@/features/crew/crew-stop-record.ts";
 import type { CrewStepRecord } from "@/features/crew/crew-step-record.ts";
 import type {
   GitHubItem,
@@ -28,6 +29,8 @@ export interface ChatReplyOutcome {
   /** Set when the Chief delegated: its kickoff and each specialist's reply. */
   crew?: {
     kickoff: string;
+    /** Why the loop guard cut the turn short, when it did. */
+    stop?: CrewStopRecord;
     specialists: Array<{
       bot: BotProfile;
       text: string;

@@ -7,6 +7,11 @@ import {
   wrapExternalText,
 } from "../untrusted-text/wrap-external-text.ts";
 import { crewCopy } from "./crew-copy.ts";
+import {
+  checkLoopGuard,
+  type LoopStopReason,
+  type LoopTurn,
+} from "./loop-guard/index.ts";
 import { parseDelegations, type Delegation } from "./parse-delegations.ts";
 
 /** Most specialists the Chief may call in one user turn. */
@@ -54,6 +59,8 @@ export interface CrewTurn {
   synthesis: string | null;
   /** Set when the synthesis is only what arrived before its stream broke. */
   synthesisIncomplete?: IncompleteKind;
+  /** Set when the loop guard cut the exchange short; specialists were skipped. */
+  stopped?: LoopStopReason;
 }
 
 interface CrewTurnInput {
@@ -171,20 +178,48 @@ export async function runCrewTurn(
   input.onKickoff?.(kickoff);
 
   // One at a time: free model tiers rate-limit parallel bursts.
+  // The user's message resets the guard; every answer after it is a bot turn.
+  const turns: LoopTurn[] = [
+    { kind: "human", text: input.userText },
+    { kind: "bot", botId: input.chief.id, text: kickoff },
+  ];
   const specialists: SpecialistAnswer[] = [];
+  let stopped: LoopStopReason | undefined;
   for (const delegation of delegations) {
+    const verdict = checkLoopGuard(turns);
+    if (!verdict.allowed) {
+      const { allowed: _allowed, ...reason } = verdict;
+      stopped = reason;
+      break;
+    }
     input.onBotWorking?.(delegation.bot);
-    specialists.push(await askSpecialist(delegation, input));
+    const answer = await askSpecialist(delegation, input);
+    specialists.push(answer);
+    if (answer.ok) {
+      turns.push({ kind: "bot", botId: delegation.bot.id, text: answer.text });
+    }
+  }
+  // The last answer may itself be the echo that ends the exchange.
+  if (!stopped) {
+    const verdict = checkLoopGuard(turns);
+    if (!verdict.allowed) {
+      const { allowed: _allowed, ...reason } = verdict;
+      stopped = reason;
+    }
   }
 
   const answered = specialists.filter((s) => s.ok);
-  if (answered.length === 0) return { kickoff, specialists, synthesis: null };
+  const stoppedField = stopped ? { stopped } : {};
+  if (answered.length === 0) {
+    return { kickoff, specialists, synthesis: null, ...stoppedField };
+  }
   input.onBotWorking?.(input.chief);
   const synthesis = await synthesize(input, kickoff, answered);
   return {
     kickoff,
     specialists,
     synthesis: synthesis?.text ?? null,
+    ...stoppedField,
     ...(synthesis?.incomplete
       ? { synthesisIncomplete: synthesis.incomplete }
       : {}),

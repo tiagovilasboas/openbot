@@ -6,6 +6,7 @@ import { BotAvatar } from "@/features/bots/BotAvatar.tsx";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
 import type { CrewRoomView } from "@/features/crew/crew-room-view.ts";
 import { CrewRoomControl } from "@/features/crew/CrewRoomControl.tsx";
+import type { CrewStopRecord } from "../crew/crew-stop-record.ts";
 import type { CrewStepRecord } from "@/features/crew/crew-step-record.ts";
 import { GitHubItemsCard } from "@/features/github/GitHubItemsCard.tsx";
 import type {
@@ -44,6 +45,8 @@ export interface MessageData {
   delegatedBot?: BotProfile;
   /** On a specialist's reply: the task it was given and how it went. */
   crewStep?: CrewStepRecord;
+  /** On a delegated turn's final reply: why the loop guard stopped it. */
+  crewStop?: CrewStopRecord;
   github?: {
     repo: GitHubRepoRef;
     items: GitHubItem[];
