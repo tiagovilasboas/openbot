@@ -238,6 +238,37 @@ export default defineConfig([
       ],
     },
   },
+  {
+    // The routines domain is pure: schedules, next run and run states only.
+    // The scheduler, storage and screens live outside it and import it.
+    // Last on purpose: it must override the src-wide import rule above.
+    files: ["src/features/routines/**/*.{ts,tsx}"],
+    ignores: ["**/*.test.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: [
+                "../**",
+                "@/**",
+                "react",
+                "react-dom",
+                "react/**",
+                "next",
+                "next/**",
+                "node:*",
+                "@heroui/**",
+              ],
+              message:
+                "routines is pure domain: import only sibling routines files.",
+            },
+          ],
+        },
+      ],
+    },
+  },
   globalIgnores([
     ".next/**",
     "out/**",
