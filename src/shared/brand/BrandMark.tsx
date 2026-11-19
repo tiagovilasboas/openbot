@@ -10,7 +10,7 @@ export function BrandMark({ className = "size-7" }: { className?: string }) {
   return (
     <svg
       aria-hidden="true"
-      viewBox="5 4 54 56"
+      viewBox="4 4 56 56"
       className={`shrink-0 text-foreground ${className}`}
     >
       {LAYERS.map((node, index) =>

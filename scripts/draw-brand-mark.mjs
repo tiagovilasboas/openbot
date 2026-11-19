@@ -21,15 +21,18 @@ import {
 } from "./brand-mark-geometry.mjs";
 
 const BODY =
-  "M30 96C28 80 27 64 30 52C33 32 46 20 61 20C77 20 90 33 91 52C93 66 92 82 91 96Q81 108 70.7 94Q60.5 108 50.3 94Q40 108 30 96Z";
+  "M22 96C20 82 20 66 23 54C27 34 42 22 60 22C78 22 93 34 97 54C100 66 100 82 98 96Q85.3 110 72.7 94Q60 110 47.3 94Q34.7 110 22 96Z";
 const EYES = [
-  { c: [50, 55], rx: 5, ry: 8.5 },
-  { c: [71, 55], rx: 5, ry: 8.5 },
+  { c: [48, 57], rx: 5.6, ry: 8.5 },
+  { c: [72, 57], rx: 5.6, ry: 8.5 },
 ];
 const DOT_R = 1.8;
 const HATCH_ANGLE = -38;
-const SCALE = 0.6;
-const tx = ([x, y]) => [(x - 60) * SCALE + 32, (y - 64) * SCALE + 32];
+// The drawing maps a little smaller than the pencil weight, so the ghost
+// keeps a margin inside the app tile while its lines stay as firm.
+const SCALE = 0.58;
+const LINE_SCALE = 0.6;
+const tx = ([x, y]) => [(x - 60) * SCALE + 32, (y - 67) * SCALE + 32];
 
 const rand = seeded(20261119);
 const between = (min, max) => min + (max - min) * rand();
@@ -46,7 +49,7 @@ const body = parsePath(BODY);
 const poly = sample(body);
 const stroke = (d, width, opacity) => ({
   d,
-  width: Math.round(width * SCALE * 100) / 100,
+  width: Math.round(width * LINE_SCALE * 100) / 100,
   opacity,
 });
 
@@ -66,8 +69,8 @@ function outline() {
   const first = jitter(body, 0.35);
   const left = body.slice(0, 5);
   const second = jitter(left, 0.5, [-1.5, 1]);
-  const startTick = line([32.5, 93.5], [27, 100.5], 0.2);
-  const endTick = line([88.5, 93.5], [94, 99.5], 0.2);
+  const startTick = line([24.5, 93.5], [19, 100.5], 0.2);
+  const endTick = line([95.5, 93.5], [101, 99.5], 0.2);
   return [
     stroke(strokes(first), 3.2, 0.92),
     stroke(strokes(second), 1.3, 0.45),
@@ -89,8 +92,8 @@ function bodyHatch() {
     for (let i = 0; i + 1 < hits.length; i += 2) {
       const [t0, t1] = [hits[i] + pad, hits[i + 1] - pad];
       if (t1 - t0 < 3) continue;
-      // Keep the part of the chord right of x = 69.
-      const tx0 = (69 - origin[0]) / dir[0];
+      // Keep the part of the chord right of x = 74.
+      const tx0 = (74 - origin[0]) / dir[0];
       const lo = Math.max(t0, tx0);
       const cuts = EYES.map((e) =>
         ellipseSpan(origin, dir, e.c, e.rx + 2.2, e.ry + 2.2),
@@ -109,8 +112,8 @@ function bodyHatch() {
 /** Two loose scribbles of cast shadow under the hem. */
 function castShadow() {
   const d =
-    strokes(parsePath(line([38, 108.5], [84, 108], 0.8))) +
-    strokes(parsePath(line([47, 113.5], [76, 113.2], 0.8)));
+    strokes(parsePath(line([32, 108.5], [88, 108], 0.8))) +
+    strokes(parsePath(line([42, 113.5], [78, 113.2], 0.8)));
   return stroke(d, 1.4, 0.28);
 }
 
