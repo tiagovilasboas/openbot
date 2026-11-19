@@ -11,7 +11,7 @@ import {
 import { getAutomationCopy } from "./automation-copy.ts";
 
 const BUTTON =
-  "min-h-11 rounded-full px-5 text-[15px] font-semibold transition-opacity hover:opacity-90 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40 md:text-sm";
+  "min-h-10 rounded-full px-5 text-sm font-semibold transition-opacity hover:opacity-90 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40";
 const PRIMARY = `${BUTTON} bg-foreground text-background`;
 const SECONDARY = `${BUTTON} border border-border text-foreground`;
 
@@ -71,11 +71,17 @@ export function AutomationTokenSection({
   }
 
   return (
-    <section className="mt-6 grid gap-3" aria-labelledby="automation-title">
-      <h3 id="automation-title" className="text-base font-semibold">
+    <section
+      className="mt-2 grid gap-2 border-t border-separator pt-4 md:gap-3"
+      aria-labelledby="automation-title"
+    >
+      <h3
+        id="automation-title"
+        className="text-sm font-semibold md:text-[15px]"
+      >
         {c.title}
       </h3>
-      <p className="text-sm text-muted">{c.description}</p>
+      <p className="text-xs text-muted md:text-sm">{c.description}</p>
       <p className="text-sm font-medium">{exists ? c.statusOn : c.statusOff}</p>
       <div className="flex flex-wrap gap-2">
         <button

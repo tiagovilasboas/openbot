@@ -7,9 +7,9 @@ import { fetchLevels, saveLevel, type ToolLevelEntry } from "./levels-api.ts";
 import { levelsCopy } from "./levels-copy.ts";
 import { toolLabel } from "./tools-copy.ts";
 
-// Native radios give arrow-key navigation for free; the label is the 44px target.
+// Native radios give arrow-key navigation for free; the label is the 40px target.
 const OPTION =
-  "flex min-h-11 min-w-11 flex-1 cursor-pointer items-center justify-center rounded-full px-3 text-[15px] font-medium text-subtle transition-colors has-[:checked]:bg-surface-tertiary has-[:checked]:text-foreground has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-(--bot-accent) md:text-sm";
+  "flex min-h-10 min-w-10 flex-1 cursor-pointer items-center justify-center rounded-full px-3 text-sm font-medium text-subtle transition-colors has-[:checked]:bg-surface-tertiary has-[:checked]:text-foreground has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-(--bot-accent)";
 
 /**
  * One level per tool, for every bot: ask, allow or block. The levels live on
@@ -50,12 +50,15 @@ export function ToolLevelsSection({ language }: { language: ChatLanguage }) {
   }
 
   return (
-    <section aria-labelledby="levels-title" className="flex flex-col gap-3">
+    <section
+      aria-labelledby="levels-title"
+      className="flex flex-col gap-2 md:gap-3"
+    >
       <div>
-        <h3 id="levels-title" className="text-[15px] font-semibold">
+        <h3 id="levels-title" className="text-sm font-semibold md:text-[15px]">
           {copy.title}
         </h3>
-        <p className="text-[13px] text-subtle">{copy.description}</p>
+        <p className="text-xs text-subtle md:text-[13px]">{copy.description}</p>
       </div>
 
       {failure && (
@@ -65,27 +68,33 @@ export function ToolLevelsSection({ language }: { language: ChatLanguage }) {
       )}
 
       {tools && (
-        <ul className="flex flex-col gap-2">
+        <ul className="flex flex-col gap-1.5 md:gap-2">
           {tools.map((tool) => (
-            <li key={tool.name} className="rounded-2xl bg-surface px-4 py-2">
+            <li
+              key={tool.name}
+              className="rounded-2xl bg-surface px-3 py-2 md:px-4"
+            >
               <fieldset
                 aria-busy={busy}
-                className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between"
+                className="flex flex-col gap-1.5 md:flex-row md:items-center md:justify-between md:gap-2"
               >
                 <legend className="sr-only">
                   {toolLabel(tool.name, language)}
                 </legend>
                 <div className="min-w-0">
-                  <p aria-hidden="true" className="text-[15px] font-medium">
+                  <p
+                    aria-hidden="true"
+                    className="text-sm font-medium md:text-[15px]"
+                  >
                     {toolLabel(tool.name, language)}
                   </p>
                   {!tool.canAllow && (
-                    <p className="text-[13px] text-subtle">
+                    <p className="text-xs text-subtle md:text-[13px]">
                       {copy.noAllowHint}
                     </p>
                   )}
                 </div>
-                <div className="flex gap-1 md:w-72">
+                <div className="flex gap-1 rounded-full bg-background p-0.5 md:w-72">
                   {TOOL_LEVELS.filter(
                     (level) =>
                       (level !== "allow" || tool.canAllow) &&

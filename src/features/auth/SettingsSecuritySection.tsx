@@ -79,10 +79,12 @@ export function SettingsSecuritySection({
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4 md:gap-6">
       <div>
-        <h3 className="text-[15px] font-semibold text-foreground">{c.title}</h3>
-        <p className="text-[13px] text-subtle">{c.description}</p>
+        <h3 className="text-sm font-semibold text-foreground md:text-[15px]">
+          {c.title}
+        </h3>
+        <p className="text-xs text-subtle md:text-[13px]">{c.description}</p>
       </div>
 
       <div
@@ -109,8 +111,8 @@ export function SettingsSecuritySection({
       </div>
 
       {!hasPassword ? (
-        <form onSubmit={handleSetup} className="flex flex-col gap-4">
-          <h4 className="text-[15px] font-semibold text-foreground">
+        <form onSubmit={handleSetup} className="flex flex-col gap-3 md:gap-4">
+          <h4 className="sr-only text-[15px] font-semibold text-foreground md:not-sr-only">
             {c.setupTitle}
           </h4>
           <FormField label={c.passwordLabel} helper={c.passwordHelper}>
@@ -152,7 +154,7 @@ export function SettingsSecuritySection({
           <button
             type="submit"
             disabled={loading || !newPassword}
-            className="min-h-11 w-full rounded-full bg-foreground px-6 text-[15px] font-semibold text-background transition-opacity hover:opacity-90 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40 md:ms-auto md:w-fit md:text-sm"
+            className="min-h-10 w-full rounded-full bg-foreground px-6 text-sm font-semibold text-background transition-opacity hover:opacity-90 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40 md:ms-auto md:w-fit"
           >
             {loading ? c.enabling : c.enable}
           </button>
@@ -174,7 +176,7 @@ export function SettingsSecuritySection({
 
       <ToolGrantsSection language={language} />
 
-      <p className="flex items-start gap-2 text-[13px] text-subtle">
+      <p className="flex items-start gap-2 text-xs text-subtle md:text-[13px]">
         <LockIcon className="mt-0.5 size-4 shrink-0" />
         {c.offlineNote}
       </p>

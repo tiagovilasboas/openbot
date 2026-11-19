@@ -18,7 +18,7 @@ const NO_BOTS: BotProfile[] = [];
 const getServerBots = () => NO_BOTS;
 
 const BUTTON =
-  "min-h-11 rounded-full px-4 text-[15px] font-medium text-danger transition-colors hover:bg-danger-soft active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40 md:text-sm";
+  "min-h-10 shrink-0 rounded-full px-3 text-sm font-medium text-danger transition-colors hover:bg-danger-soft active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40";
 
 /**
  * The tools a bot may always use without asking. The grants live on the
@@ -67,12 +67,15 @@ export function ToolGrantsSection({ language }: { language: ChatLanguage }) {
     bots.find((bot) => bot.id === id)?.name ?? copy.unknownBot;
 
   return (
-    <section aria-labelledby="grants-title" className="flex flex-col gap-3">
+    <section
+      aria-labelledby="grants-title"
+      className="flex flex-col gap-2 md:gap-3"
+    >
       <div>
-        <h3 id="grants-title" className="text-[15px] font-semibold">
+        <h3 id="grants-title" className="text-sm font-semibold md:text-[15px]">
           {copy.title}
         </h3>
-        <p className="text-[13px] text-subtle">{copy.description}</p>
+        <p className="text-xs text-subtle md:text-[13px]">{copy.description}</p>
       </div>
 
       {failure && (
@@ -82,23 +85,25 @@ export function ToolGrantsSection({ language }: { language: ChatLanguage }) {
       )}
 
       {grants && grants.length === 0 && (
-        <p className="text-[13px] text-subtle">{copy.empty}</p>
+        <p className="text-xs text-subtle md:text-[13px]">{copy.empty}</p>
       )}
 
       {grants && grants.length > 0 && (
         <>
-          <ul className="flex flex-col gap-2">
+          <ul className="flex flex-col gap-1.5 md:gap-2">
             {grants.map((grant) => {
               const tool = toolLabel(grant.toolName, language);
               const bot = botName(grant.botId);
               return (
                 <li
                   key={`${grant.botId}:${grant.toolName}`}
-                  className="flex items-center justify-between gap-3 rounded-2xl bg-surface px-4 py-2"
+                  className="flex items-center justify-between gap-3 rounded-2xl bg-surface px-3 py-1.5 md:px-4 md:py-2"
                 >
                   <div className="min-w-0">
-                    <p className="truncate text-[15px] font-medium">{tool}</p>
-                    <p className="truncate text-[13px] text-subtle">
+                    <p className="truncate text-sm font-medium md:text-[15px]">
+                      {tool}
+                    </p>
+                    <p className="truncate text-xs text-subtle md:text-[13px]">
                       {bot} ·{" "}
                       {copy.grantedOn.replace(
                         "{date}",
