@@ -77,6 +77,22 @@ function isNonPublicIpv6(bytes: number[]): boolean {
   ) {
     return isNonPublicIpv4(embedded(12));
   }
+  // NAT64 local use 64:ff9b:1::/48 (RFC 8215): the embedded IPv4 position
+  // depends on the prefix length, so the whole range is refused
+  if (
+    bytes[0] === 0x00 &&
+    bytes[1] === 0x64 &&
+    bytes[2] === 0xff &&
+    bytes[3] === 0x9b &&
+    bytes[4] === 0x00 &&
+    bytes[5] === 0x01
+  ) {
+    return true;
+  }
+  // SIIT IPv4-translated ::ffff:0:a.b.c.d judged as the IPv4 it carries
+  if (zeros(0, 8) && bytes[8] === 0xff && bytes[9] === 0xff && zeros(10, 12)) {
+    return isNonPublicIpv4(embedded(12));
+  }
   // 6to4 2002::/16 judged as the embedded IPv4
   if (bytes[0] === 0x20 && bytes[1] === 0x02) {
     return isNonPublicIpv4(embedded(2));

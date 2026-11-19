@@ -34,6 +34,7 @@ export function buildReplyMessages(
   // Called last so the synthesis id sorts after the specialists.
   const finalMessage = (): MessageData => ({
     ...message(reply.text),
+    ...(reply.crew?.stop ? { crewStop: reply.crew.stop } : {}),
     ...(reply.github ? { github: reply.github } : {}),
     ...(reply.failover ? { failover: reply.failover } : {}),
     ...(reply.incomplete ? { incomplete: reply.incomplete } : {}),

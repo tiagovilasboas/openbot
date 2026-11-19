@@ -41,6 +41,7 @@ test("a daily draft becomes trimmed server input", () => {
       schedule: { kind: "daily", time: "08:00", timeZone: "America/Sao_Paulo" },
       enabled: true,
       silentWhenNothingNew: true,
+      runInThread: false,
     },
   });
 });

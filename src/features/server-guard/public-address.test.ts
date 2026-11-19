@@ -66,6 +66,10 @@ test("IPv6 equivalents are refused, including embedded IPv4 forms", () => {
     "::10.0.0.1",
     "64:ff9b::7f00:1",
     "64:ff9b::a9fe:a9fe",
+    "64:ff9b:1::a00:1",
+    "64:ff9b:1:0:0:0:808:808",
+    "::ffff:0:10.0.0.1",
+    "::ffff:0:a9fe:a9fe",
     "2002:7f00:1::1",
     "2002:a9fe:a9fe::1",
   ]) {

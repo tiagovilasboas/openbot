@@ -40,6 +40,7 @@ import { useAgentShortcuts } from "./use-agent-shortcuts.ts";
 import { useNewChatUndo } from "./use-new-chat-undo.ts";
 import { ThreadBar } from "../threads/ThreadBar.tsx";
 import { useBotThreads } from "../threads/use-bot-threads.ts";
+import { useRoutineThreads } from "../routines/client/use-routine-threads.ts";
 
 export function ChatExperience() {
   const [language, setLanguage] = useLanguage();
@@ -174,6 +175,7 @@ export function ChatExperience() {
     });
 
   const threadList = useBotThreads(activeBot.id, language);
+  useRoutineThreads(activeBot.id, language);
   const threadsLocked = blockedRollback !== null;
 
   const newChatUndo = useNewChatUndo({

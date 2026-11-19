@@ -106,7 +106,14 @@ export async function crewTurnReply({
     : null;
   return {
     text: crewTurn
-      ? (crewTurn.synthesis ?? crewCopy[language].synthesisFailed)
+      ? [
+          crewTurn.synthesis ?? crewCopy[language].synthesisFailed,
+          crewTurn.stopped
+            ? crewCopy[language].loopStopped(crewTurn.stopped)
+            : "",
+        ]
+          .filter(Boolean)
+          .join("\n\n")
       : isChief
         ? chiefPlainReply(outcome.text, bots, executingBot.id, language)
         : outcome.text,

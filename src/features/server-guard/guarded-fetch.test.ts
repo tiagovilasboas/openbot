@@ -219,3 +219,16 @@ test("a redirect without Location and a thrown fetch are fetch_failed", async ()
     { ok: false, code: "fetch_failed" },
   );
 });
+
+test("a connect-time block is reported as blocked_address", async () => {
+  const blocking = (async () => {
+    throw new Error("blocked_address");
+  }) as unknown as typeof fetch;
+  assert.deepEqual(
+    await guardedFetch("https://example.com/", {
+      fetchImpl: blocking,
+      lookup: publicLookup,
+    }),
+    { ok: false, code: "blocked_address" },
+  );
+});

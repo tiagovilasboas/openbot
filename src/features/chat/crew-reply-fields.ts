@@ -1,3 +1,4 @@
+import { toCrewStopRecord } from "@/features/crew/crew-stop-record.ts";
 import type { CrewTurn } from "@/features/crew/run-crew-turn.ts";
 import type { ChatReplyOutcome } from "./chat-reply-outcome.ts";
 
@@ -9,6 +10,9 @@ export function crewReplyFields(
     ? {
         crew: {
           kickoff: crewTurn.kickoff,
+          ...(crewTurn.stopped
+            ? { stop: toCrewStopRecord(crewTurn.stopped) }
+            : {}),
           specialists: crewTurn.specialists.map(
             ({ bot, text, task, ok, durationMs, incomplete }) => ({
               bot,
