@@ -300,6 +300,37 @@ export default defineConfig([
       ],
     },
   },
+  {
+    // The crew channel is pure domain: channel shape, message order and the
+    // AU-01 caps. Its server/ folder (storage, turn runner) is the adapter.
+    // Last on purpose: it must override the src-wide import rule above.
+    files: ["src/features/crew/channel/*.{ts,tsx}"],
+    ignores: ["**/*.test.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: [
+                "../**",
+                "@/**",
+                "react",
+                "react-dom",
+                "react/**",
+                "next",
+                "next/**",
+                "node:*",
+                "@heroui/**",
+              ],
+              message:
+                "crew/channel is pure domain: import only sibling files.",
+            },
+          ],
+        },
+      ],
+    },
+  },
   globalIgnores([
     ".next/**",
     "out/**",
