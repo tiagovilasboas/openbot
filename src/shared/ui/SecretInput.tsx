@@ -39,14 +39,14 @@ export function SecretInput({
         autoComplete={autoComplete}
         autoCapitalize="none"
         spellCheck={false}
-        className={`${FIELD_CLASS} pe-11`}
+        className={`${FIELD_CLASS} pe-10`}
       />
       <button
         type="button"
         onClick={() => setVisible((v) => !v)}
         aria-label={visible ? hideLabel : showLabel}
         aria-pressed={visible}
-        className="absolute inset-y-0 end-0 flex w-11 items-center justify-center rounded-xl text-muted transition-colors hover:text-foreground active:scale-[0.97]"
+        className="absolute inset-y-0 end-0 flex w-10 items-center justify-center rounded-xl text-muted transition-colors hover:text-foreground active:scale-[0.97]"
       >
         {visible ? (
           <EyeOffIcon className="size-5" />
