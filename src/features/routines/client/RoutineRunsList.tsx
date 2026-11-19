@@ -37,7 +37,9 @@ export function RoutineRunsList(props: RoutineRunsListProps) {
 
   if (runs === null) return null;
   if (runs.length === 0) {
-    return <p className="text-[13px] text-subtle">{copy.historyEmpty}</p>;
+    return (
+      <p className="text-xs md:text-[13px] text-subtle">{copy.historyEmpty}</p>
+    );
   }
   return (
     <ol className="flex flex-col gap-2" aria-label={copy.history}>
@@ -51,7 +53,7 @@ export function RoutineRunsList(props: RoutineRunsListProps) {
               {label && ` · ${label}`}
             </p>
             {run.output && (
-              <p className="mt-1 text-[13px] whitespace-pre-wrap text-foreground">
+              <p className="mt-1 text-xs md:text-[13px] whitespace-pre-wrap text-foreground">
                 {run.output}
               </p>
             )}
