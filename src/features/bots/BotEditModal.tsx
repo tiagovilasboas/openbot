@@ -1,14 +1,8 @@
 "use client";
 
 import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
-import {
-  BotTemplateExport,
-  BotTemplateImport,
-} from "@/features/bot-sharing/BotTemplateFileControls.tsx";
+import { BotTemplateImport } from "@/features/bot-sharing/BotTemplateFileControls.tsx";
 import { parseBackupModelsText } from "@/features/model/backup-models.ts";
-import { ChannelsSection } from "@/features/crew/channel/client/ChannelsSection.tsx";
-import { MemorySection } from "@/features/memory/MemorySection.tsx";
-import { RoutinesSection } from "@/features/routines/client/RoutinesSection.tsx";
 import { BotSkillsEditor } from "@/features/skills/BotSkillsEditor.tsx";
 import { BotToolsToggle } from "@/features/tools/client/BotToolsToggle.tsx";
 import { FormField, FIELD_CLASS } from "@/shared/ui/FormField.tsx";
@@ -17,13 +11,14 @@ import { AutoTextarea } from "./AutoTextarea.tsx";
 import { BotEditPreview } from "./BotEditPreview.tsx";
 import { BotAvatarPickers } from "./BotAvatarPickers.tsx";
 import { BotBackupModelsField } from "./BotBackupModelsField.tsx";
+import { BotEditDisclosure } from "./BotEditDisclosure.tsx";
 import { BotEditFooter } from "./BotEditFooter.tsx";
-import { BotHideControl } from "./BotHideControl.tsx";
+import { BotEditSavedSections } from "./BotEditSavedSections.tsx";
 import { BotModelField, isBotModelIdValid } from "./BotModelField.tsx";
-import { BotMainControl } from "./BotMainControl.tsx";
 import { BotTemplatePicker } from "./BotTemplatePicker.tsx";
 import { BOT_NAME_MAX_LENGTH, type BotProfile } from "./bot-types.ts";
 import { buildEditedBot } from "./build-edited-bot.ts";
+import { getBotEditSectionsCopy } from "./bot-edit-sections-copy.ts";
 import { getBotsCopy } from "./bots-copy.ts";
 import { useBotEditFields } from "./use-bot-edit-fields.ts";
 import { PromptBudgetNotice } from "./PromptBudgetNotice.tsx";
@@ -66,6 +61,7 @@ function BotEditForm({
 }: BotEditFormProps) {
   const isEditing = Boolean(bot?.id && bot.id !== "new");
   const copy = getBotsCopy(language);
+  const sections = getBotEditSectionsCopy(language);
 
   const {
     name,
@@ -130,7 +126,7 @@ function BotEditForm({
 
   return (
     <form
-      className="flex flex-col gap-6"
+      className="flex flex-col gap-3 md:gap-5"
       onSubmit={(e) => {
         e.preventDefault();
         handleSave();
@@ -156,7 +152,7 @@ function BotEditForm({
         <BotTemplateImport language={language} onImport={handleImportFile} />
       )}
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 md:gap-4">
         <FormField label={copy.nameLabel}>
           {(control) => (
             <input
@@ -196,7 +192,7 @@ function BotEditForm({
         {(control) => (
           <AutoTextarea
             {...control}
-            minRows={5}
+            minRows={4}
             value={description}
             onChange={setDescription}
             placeholder={copy.instructionsPlaceholder}
@@ -208,7 +204,7 @@ function BotEditForm({
         {(control) => (
           <AutoTextarea
             {...control}
-            minRows={3}
+            minRows={2}
             value={workspaceContext}
             onChange={setWorkspaceContext}
             placeholder={copy.workspacePlaceholder}
@@ -222,11 +218,16 @@ function BotEditForm({
         onChange={setModelId}
       />
 
-      <BotBackupModelsField
-        value={backupModelsText}
-        language={language}
-        onChange={setBackupModelsText}
-      />
+      <BotEditDisclosure
+        title={sections.advancedModel}
+        defaultOpen={!backups.ok}
+      >
+        <BotBackupModelsField
+          value={backupModelsText}
+          language={language}
+          onChange={setBackupModelsText}
+        />
+      </BotEditDisclosure>
 
       <BotSkillsEditor
         language={language}
@@ -247,36 +248,18 @@ function BotEditForm({
 
       <PromptBudgetNotice report={budgetReport} language={language} />
 
-      {isEditing && bot && <MemorySection botId={bot.id} language={language} />}
       {isEditing && bot && (
-        <RoutinesSection botId={bot.id} language={language} />
-      )}
-      {isEditing && bot && isMain && crewBots && (
-        <ChannelsSection
-          leaderBotId={bot.id}
-          bots={crewBots}
-          language={language}
-        />
-      )}
-
-      {isEditing && bot && onMakeMain && (
-        <BotMainControl
+        <BotEditSavedSections
+          bot={bot}
           language={language}
           isMain={isMain}
-          onMakeMain={() => onMakeMain(bot.id)}
+          canHide={canHide}
+          crewBots={crewBots}
+          onMakeMain={onMakeMain}
+          onHide={onHide && ((id) => closeAfter(onHide, id))}
+          onRestore={onRestore && ((id) => closeAfter(onRestore, id))}
         />
       )}
-
-      {isEditing && bot && onHide && onRestore && (bot.hidden || canHide) && (
-        <BotHideControl
-          language={language}
-          isHidden={bot.hidden === true}
-          onHide={() => closeAfter(onHide, bot.id)}
-          onRestore={() => closeAfter(onRestore, bot.id)}
-        />
-      )}
-
-      {isEditing && bot && <BotTemplateExport bot={bot} language={language} />}
 
       <BotEditFooter
         language={language}

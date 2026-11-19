@@ -11,7 +11,7 @@ interface BotEditPreviewProps {
   language: ChatLanguage;
 }
 
-/** The live avatar, name and role of the bot being edited. */
+/** The live avatar, name and role of the bot being edited: a compact row on phones. */
 export function BotEditPreview({
   name,
   title,
@@ -21,20 +21,17 @@ export function BotEditPreview({
 }: BotEditPreviewProps) {
   const copy = getBotsCopy(language);
   return (
-    <div className="flex items-center gap-4">
-      <BotAvatar
-        shape={avatarShape}
-        color={avatarColor}
-        size={64}
-        className="shrink-0"
-      />
+    <div className="flex items-center gap-3 md:gap-4">
+      <span className="size-10 shrink-0 md:size-16">
+        <BotAvatar shape={avatarShape} color={avatarColor} size="100%" />
+      </span>
       <div className="min-w-0">
         <p
-          className={`truncate text-lg font-semibold ${name.trim() ? "text-foreground" : "text-subtle"}`}
+          className={`truncate text-base font-semibold md:text-lg ${name.trim() ? "text-foreground" : "text-subtle"}`}
         >
           {name.trim() || copy.previewNamePlaceholder}
         </p>
-        <p className="truncate text-[13px] text-muted">
+        <p className="truncate text-xs text-muted md:text-[13px]">
           {title.trim() || copy.previewRolePlaceholder}
         </p>
       </div>

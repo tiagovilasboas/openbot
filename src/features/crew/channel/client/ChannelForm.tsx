@@ -32,7 +32,7 @@ interface ChannelFormProps {
 }
 
 const BUTTON =
-  "min-h-11 rounded-full px-4 text-[15px] font-medium transition-colors active:scale-[0.97] md:text-sm";
+  "min-h-10 whitespace-nowrap rounded-full px-4 text-sm font-medium transition-colors active:scale-[0.97]";
 
 /** Name, members, leader and instructions of one channel. */
 export function ChannelForm({
@@ -62,7 +62,7 @@ export function ChannelForm({
     <div
       role="group"
       aria-label={copy.title}
-      className="flex flex-col gap-3 rounded-xl border border-border p-3"
+      className="flex flex-col gap-3 rounded-xl border border-border bg-overlay p-3"
     >
       <FormField label={copy.nameLabel}>
         {(control) => (
@@ -77,20 +77,20 @@ export function ChannelForm({
         )}
       </FormField>
 
-      <fieldset className="flex flex-col gap-1">
+      <fieldset className="flex flex-col gap-1.5">
         <legend className="text-sm font-medium text-foreground">
           {copy.membersLabel}
+          <span className="ms-1.5 text-xs font-normal text-muted md:text-[13px]">
+            {copy.membersHelper(MAX_CHANNEL_MEMBERS)}
+          </span>
         </legend>
-        <p className="text-[13px] text-muted">
-          {copy.membersHelper(MAX_CHANNEL_MEMBERS)}
-        </p>
-        <div className="flex flex-wrap gap-2 pt-1">
+        <div className="flex flex-wrap gap-1.5">
           {bots.map((bot) => {
             const checked = draft.memberBotIds.includes(bot.id);
             return (
               <label
                 key={bot.id}
-                className="flex min-h-11 items-center gap-2 rounded-full border border-border px-3 text-sm"
+                className="flex min-h-10 items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-sm"
               >
                 <input
                   type="checkbox"
@@ -138,7 +138,7 @@ export function ChannelForm({
       </FormField>
 
       {error && (
-        <p role="alert" className="text-[13px] text-danger">
+        <p role="alert" className="text-xs md:text-[13px] text-danger">
           {channelErrorText(copy, error)}
         </p>
       )}

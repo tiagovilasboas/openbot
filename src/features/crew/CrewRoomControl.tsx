@@ -25,7 +25,7 @@ export function CrewRoomControl({ room, language }: CrewRoomControlProps) {
         type="button"
         aria-haspopup="dialog"
         onClick={() => setOpen(true)}
-        className="min-h-11 self-start rounded-full border border-border bg-surface px-4 text-[13px] font-medium text-foreground transition-colors duration-(--duration-micro) ease-out-expo hover:bg-surface-secondary active:scale-[0.97]"
+        className="min-h-11 self-start rounded-full border border-border bg-surface px-4 text-xs md:text-[13px] font-medium text-foreground transition-colors duration-(--duration-micro) ease-out-expo hover:bg-surface-secondary active:scale-[0.97]"
       >
         {copy.open}
       </button>
@@ -70,7 +70,7 @@ export function CrewRoomControl({ room, language }: CrewRoomControlProps) {
               {room.stop ? (
                 <li
                   role="note"
-                  className="mt-1 rounded-lg border border-border bg-surface-secondary px-3 py-2 text-[13px] leading-[1.5] text-foreground"
+                  className="mt-1 rounded-lg border border-border bg-surface-secondary px-3 py-2 text-xs md:text-[13px] leading-[1.5] text-foreground"
                 >
                   {crewCopy[language].loopStopped(room.stop)}
                 </li>

@@ -1,7 +1,7 @@
 "use client";
 
 import type { Language } from "../language/language.ts";
-import { useId, useRef, type KeyboardEvent } from "react";
+import { useEffect, useId, useRef, type KeyboardEvent } from "react";
 import { BotAvatar } from "./BotAvatar.tsx";
 import { getBotsCopy } from "./bots-copy.ts";
 import {
@@ -37,6 +37,7 @@ function SwatchGroup<T extends string>({
   renderSwatch,
 }: SwatchGroupProps<T>) {
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
+  const rowRef = useRef<HTMLDivElement>(null);
   const labelId = useId();
 
   function handleKeyDown(e: KeyboardEvent, index: number) {
@@ -49,18 +50,27 @@ function SwatchGroup<T extends string>({
     refs.current[next]?.focus();
   }
 
+  // On phones the swatches are one swipeable row: start it at the chosen one.
+  useEffect(() => {
+    const row = rowRef.current;
+    const chosen = refs.current[options.indexOf(value)];
+    if (!row || !chosen || row.scrollWidth <= row.clientWidth) return;
+    row.scrollLeft =
+      chosen.offsetLeft - row.clientWidth / 2 + chosen.offsetWidth / 2;
+    // Only on mount: later picks are already in view.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
-    <div className="flex flex-col gap-2">
-      <span
-        id={labelId}
-        className="text-[15px] font-medium text-foreground md:text-sm"
-      >
+    <div className="flex min-w-0 flex-col gap-1">
+      <span id={labelId} className="text-sm font-semibold text-foreground">
         {label}
       </span>
       <div
+        ref={rowRef}
         role="radiogroup"
         aria-labelledby={labelId}
-        className="grid grid-cols-[repeat(auto-fill,minmax(2.75rem,1fr))] gap-2 p-1"
+        className="-mx-4 flex gap-1.5 overflow-x-auto px-4 py-1.5 [scrollbar-width:none] md:mx-0 md:flex-wrap md:overflow-visible md:px-1 [&::-webkit-scrollbar]:hidden"
       >
         {options.map((option, index) => {
           const selected = option === value;
@@ -77,7 +87,7 @@ function SwatchGroup<T extends string>({
               tabIndex={selected ? 0 : -1}
               onClick={() => onSelect(option)}
               onKeyDown={(e) => handleKeyDown(e, index)}
-              className={`flex size-11 items-center justify-center justify-self-center rounded-xl transition-[background-color,transform] duration-[140ms] active:scale-[0.97] ${
+              className={`flex size-10 shrink-0 items-center justify-center rounded-xl md:size-11 transition-[background-color,transform] duration-[140ms] active:scale-[0.97] ${
                 selected
                   ? "bg-surface-tertiary ring-2 ring-foreground ring-offset-2 ring-offset-overlay"
                   : "bg-surface hover:bg-surface-secondary"
@@ -102,7 +112,7 @@ export function BotAvatarPickers({
   const copy = getBotsCopy(language);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="grid gap-3 md:grid-cols-2 md:gap-4">
       <SwatchGroup
         label={copy.shapeLabel}
         options={AVATAR_SHAPES}
@@ -110,7 +120,7 @@ export function BotAvatarPickers({
         names={copy.shapes}
         onSelect={onSelectShape}
         renderSwatch={(shape) => (
-          <BotAvatar shape={shape} color={avatarColor} size={28} />
+          <BotAvatar shape={shape} color={avatarColor} size={24} />
         )}
       />
       <SwatchGroup
@@ -120,7 +130,7 @@ export function BotAvatarPickers({
         names={copy.colors}
         onSelect={onSelectColor}
         renderSwatch={(color) => (
-          <BotAvatar shape={avatarShape} color={color} size={28} />
+          <BotAvatar shape={avatarShape} color={color} size={24} />
         )}
       />
     </div>

@@ -30,7 +30,11 @@ interface RoutineFormProps {
 const KINDS: readonly ScheduleKind[] = ["daily", "weekly", "interval"];
 
 const CHIP =
-  "min-h-9 rounded-full border px-3 text-[13px] font-medium transition-colors";
+  "min-h-9 shrink-0 whitespace-nowrap rounded-full border px-3 text-xs font-medium transition-colors md:text-[13px]";
+const SEGMENT =
+  "min-h-9 flex-auto whitespace-nowrap rounded-full px-2.5 text-xs font-medium transition-colors md:text-sm";
+const segmentClass = (on: boolean) =>
+  `${SEGMENT} ${on ? "bg-foreground text-background" : "text-muted hover:text-foreground"}`;
 const chipClass = (on: boolean) =>
   `${CHIP} ${on ? "border-foreground bg-foreground text-background" : "border-border bg-surface text-foreground hover:bg-surface-secondary"}`;
 
@@ -59,7 +63,7 @@ export function RoutineForm(props: RoutineFormProps) {
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-border p-3">
+    <div className="flex flex-col gap-3 rounded-xl border border-border bg-overlay p-3">
       <FormField label={copy.titleLabel}>
         {(control) => (
           <input
@@ -88,17 +92,17 @@ export function RoutineForm(props: RoutineFormProps) {
       </FormField>
 
       <fieldset className="flex flex-col gap-2">
-        <legend className="mb-1 text-sm font-medium text-foreground">
+        <legend className="mb-1.5 text-sm font-medium text-foreground">
           {copy.scheduleLabel}
         </legend>
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-1 rounded-[1.25rem] border border-border p-0.5">
           {KINDS.map((kind) => (
             <button
               key={kind}
               type="button"
               aria-pressed={draft.kind === kind}
               onClick={() => set({ kind })}
-              className={chipClass(draft.kind === kind)}
+              className={segmentClass(draft.kind === kind)}
             >
               {copy.kinds[kind]}
             </button>
@@ -126,7 +130,7 @@ export function RoutineForm(props: RoutineFormProps) {
               <div
                 role="group"
                 aria-label={copy.daysLabel}
-                className="flex flex-wrap gap-1.5"
+                className="-mx-3 flex gap-1.5 overflow-x-auto px-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
               >
                 {FORM_WEEKDAYS.map((day) => (
                   <button
@@ -169,7 +173,7 @@ export function RoutineForm(props: RoutineFormProps) {
         />
         <span>
           <span className="block font-medium">{copy.silentLabel}</span>
-          <span className="block text-[13px] text-muted">
+          <span className="block text-xs md:text-[13px] text-muted">
             {copy.silentHint}
           </span>
         </span>
@@ -184,14 +188,14 @@ export function RoutineForm(props: RoutineFormProps) {
         />
         <span>
           <span className="block font-medium">{copy.threadLabel}</span>
-          <span className="block text-[13px] text-muted">
+          <span className="block text-xs md:text-[13px] text-muted">
             {copy.threadHint}
           </span>
         </span>
       </label>
 
       {error && (
-        <p role="alert" className="text-[13px] text-danger">
+        <p role="alert" className="text-xs md:text-[13px] text-danger">
           {error}
         </p>
       )}
@@ -199,7 +203,7 @@ export function RoutineForm(props: RoutineFormProps) {
         <button
           type="button"
           onClick={onCancel}
-          className="min-h-10 rounded-full px-4 text-sm font-medium text-muted hover:text-foreground"
+          className="min-h-10 whitespace-nowrap rounded-full px-4 text-sm font-medium text-muted hover:text-foreground"
         >
           {copy.cancel}
         </button>
@@ -207,7 +211,7 @@ export function RoutineForm(props: RoutineFormProps) {
           type="button"
           onClick={handleSave}
           disabled={saving}
-          className="min-h-10 rounded-full bg-foreground px-4 text-sm font-medium text-background disabled:opacity-50"
+          className="min-h-10 whitespace-nowrap rounded-full bg-foreground px-4 text-sm font-medium text-background disabled:opacity-50"
         >
           {copy.save}
         </button>

@@ -15,8 +15,11 @@ import {
 } from "./build-bot-template-file.ts";
 import { parseBotTemplateFile } from "./parse-bot-template-file.ts";
 
+/** Button and its hint side by side, so the pair costs one row. */
+const ROW = "flex items-center gap-3";
+const HINT = "min-w-0 flex-1 text-xs md:text-[13px]";
 const BUTTON =
-  "min-h-11 self-start rounded-full border border-border bg-surface px-5 text-[15px] font-medium text-foreground transition-colors hover:bg-surface-secondary active:scale-[0.97] md:text-sm";
+  "min-h-9 shrink-0 self-start whitespace-nowrap rounded-full border border-border bg-overlay px-3.5 text-sm font-medium text-foreground transition-colors hover:bg-surface-secondary active:scale-[0.97]";
 
 function downloadJson(fileName: string, value: unknown): void {
   const blob = new Blob([JSON.stringify(value, null, 2)], {
@@ -48,11 +51,11 @@ export function BotTemplateExport({
   }
 
   return (
-    <section className="flex flex-col gap-1.5">
+    <section className={ROW}>
       <button type="button" onClick={handleExport} className={BUTTON}>
         {c.exportAction}
       </button>
-      <p className="text-[13px] text-subtle" role="status">
+      <p className={`${HINT} text-subtle`} role="status">
         {done ? c.exported : c.exportHint}
       </p>
     </section>
@@ -104,7 +107,7 @@ export function BotTemplateImport({
   }
 
   return (
-    <section className="flex flex-col gap-1.5">
+    <section className="flex flex-col gap-2">
       <input
         ref={fileInput}
         type="file"
@@ -117,24 +120,26 @@ export function BotTemplateImport({
           event.target.value = "";
         }}
       />
-      <button
-        type="button"
-        onClick={() => fileInput.current?.click()}
-        className={BUTTON}
-      >
-        {c.importAction}
-      </button>
-      <p
-        role={notice?.kind === "error" ? "alert" : "status"}
-        className={`text-[13px] ${notice?.kind === "error" ? "text-danger" : "text-subtle"}`}
-      >
-        {notice?.text ?? c.importHint}
-      </p>
+      <div className={ROW}>
+        <button
+          type="button"
+          onClick={() => fileInput.current?.click()}
+          className={BUTTON}
+        >
+          {c.importAction}
+        </button>
+        <p
+          role={notice?.kind === "error" ? "alert" : "status"}
+          className={`${HINT} ${notice?.kind === "error" ? "text-danger" : "text-subtle"}`}
+        >
+          {notice?.text ?? c.importHint}
+        </p>
+      </div>
       {reviewNotice && (
         <p
           role="status"
           data-testid="file-text-notice"
-          className="rounded-xl bg-warning-soft px-3.5 py-2.5 text-[13px] font-medium text-foreground"
+          className="rounded-xl bg-warning-soft px-3.5 py-2.5 text-xs md:text-[13px] font-medium text-foreground"
         >
           {reviewNotice}
         </p>
