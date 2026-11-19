@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import type { ChatLanguage } from "../chat/respond-to-message.ts";
 import { isDefaultThread, type Thread } from "./thread-model.ts";
 import { displayTitle, getThreadCopy } from "./thread-copy.ts";
@@ -17,6 +17,8 @@ interface ThreadBarProps {
   onRename: (id: string, title: string) => void;
   onRemove: (id: string) => void;
   onUndoRemove: () => void;
+  /** Pinned to the end of the bar, for example the all-bots task list. */
+  trailing?: ReactNode;
 }
 
 const chip =
@@ -34,6 +36,7 @@ export function ThreadBar({
   onRename,
   onRemove,
   onUndoRemove,
+  trailing,
 }: ThreadBarProps) {
   const copy = getThreadCopy(language);
   const [editing, setEditing] = useState<string | null>(null);
@@ -123,6 +126,7 @@ export function ThreadBar({
           </button>
         </span>
       )}
+      {trailing}
     </nav>
   );
 }

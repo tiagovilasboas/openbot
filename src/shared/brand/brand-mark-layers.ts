@@ -11,8 +11,8 @@ export const TILE_COLOR = "#191a1f";
 export interface BrandMarkOptions {
   /** "rounded" draws the app tile behind the sketch; "none" keeps it clear. */
   tile: "rounded" | "none";
-  /** Construction lines: worth it at icon sizes, noise at 28 px. */
-  guides: boolean;
+  /** "solid" is the favicon cut: a filled silhouette with the eyes punched out. */
+  cut?: "line" | "solid";
   /** Outline multiplier, so the head keeps a ~1 px outline when small. */
   weight?: number;
   /** Pencil colour; without it the sketch draws in currentColor. */
@@ -25,8 +25,6 @@ export interface BrandMarkOptions {
  */
 export const STATIC_ICON: BrandMarkOptions = {
   tile: "none",
-  guides: true,
-  weight: 1.4,
 };
 
 export interface SvgNode {
@@ -66,10 +64,15 @@ export function brandMarkLayers(options: BrandMarkOptions): SvgNode[] {
       attrs: { width: 64, height: 64, rx: 19, fill: TILE_COLOR },
     });
   }
-  if (options.guides) {
-    for (const g of art.guides) {
-      nodes.push(pencil(g.d, ink, g.width, g.opacity));
-    }
+  if (options.cut === "solid") {
+    nodes.push({
+      tag: "path",
+      attrs: { d: art.solid, fill: ink, fillRule: "evenodd" },
+    });
+    return nodes;
+  }
+  for (const s of art.shadow) {
+    nodes.push(pencil(s.d, ink, s.width * shading, s.opacity));
   }
   for (const h of art.hatch) {
     nodes.push(pencil(h.d, ink, h.width * shading, h.opacity));

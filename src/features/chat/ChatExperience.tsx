@@ -38,6 +38,8 @@ import { useLanguage } from "./use-language.ts";
 import { useMessageQueue } from "./use-message-queue.ts";
 import { useAgentShortcuts } from "./use-agent-shortcuts.ts";
 import { useNewChatUndo } from "./use-new-chat-undo.ts";
+import { TasksPanel } from "../tasks/TasksPanel.tsx";
+import { selectThread } from "../threads/thread-selection.ts";
 import { ThreadBar } from "../threads/ThreadBar.tsx";
 import { useBotThreads } from "../threads/use-bot-threads.ts";
 import { useRoutineThreads } from "../routines/client/use-routine-threads.ts";
@@ -251,6 +253,19 @@ export function ChatExperience() {
           onRename={threadList.rename}
           onRemove={threadList.remove}
           onUndoRemove={threadList.undoRemove}
+          trailing={
+            <TasksPanel
+              language={language}
+              bots={bots}
+              workingBotIds={workingBotIds}
+              onOpenThread={(botId, threadId) => {
+                if (gate.locked || threadsLocked) return;
+                clearQueue();
+                setActiveBotId(botId);
+                selectThread(botId, threadId);
+              }}
+            />
+          }
         />
         <BotModelNotice message={modelPicker.notice} />
         <BotModelPicker

@@ -9,6 +9,14 @@
 #   bash scripts/run-real-model.sh --tools [model]    the approval-gated tool
 #                                                     loop (OPENBOT_TOOLS=1):
 #                                                     lookup, approve, deny
+#   bash scripts/run-real-model.sh --wave3 [model]    wave 3 paths: a routine's
+#                                                     Run now (own thread), the
+#                                                     automation route with its
+#                                                     token, and a crew turn
+#                                                     with two @mentions. Uses
+#                                                     a throwaway data dir too;
+#                                                     OPENBOT_WAVE3_REPORT=<path>
+#                                                     also writes the report.
 #   bash scripts/run-real-model.sh --tools --dry-run  the same scenario against
 #                                                     a scripted provider; no
 #                                                     server, no key, no network
@@ -27,11 +35,13 @@ NODE24="$(ls -d "$HOME"/.nvm/versions/node/v24.* 2>/dev/null | sort -V | tail -1
 NODE_RUN=(node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON)
 
 TOOLS=0
+WAVE3=0
 DRY=0
 ARGS=()
 for arg in "$@"; do
   case "$arg" in
     --tools) TOOLS=1 ;;
+    --wave3) WAVE3=1 ;;
     --dry-run) DRY=1 ;;
     *) ARGS+=("$arg") ;;
   esac
@@ -45,6 +55,14 @@ MODEL="${ARGS[0]:-google/gemma-4-31b-it:free}"
 PORT=3801
 LOG=/tmp/oc-run-$PORT.log
 DATA_DIR=""
+if [ "$TOOLS" = 1 ] && [ "$WAVE3" = 1 ]; then
+  echo "Pick one of --tools and --wave3." >&2; exit 2
+fi
+if [ "$WAVE3" = 1 ]; then
+  DATA_DIR="$(mktemp -d "${TMPDIR:-/tmp}/openbot-wave3-run.XXXXXX")"
+  export OPENBOT_DATA_DIR="$DATA_DIR"
+  trap 'rm -rf "$DATA_DIR"' EXIT
+fi
 if [ "$TOOLS" = 1 ]; then
   # Not secret, so plain exports; the key itself never goes through argv.
   DATA_DIR="$(mktemp -d "${TMPDIR:-/tmp}/openbot-tools-run.XXXXXX")"
@@ -78,6 +96,9 @@ if [ "$TOOLS" = 1 ]; then
   # No `exec`: the EXIT trap must still stop the server and remove the data dir.
   OPENBOT_RUN_URL="http://127.0.0.1:$PORT" "${NODE_RUN[@]}" \
     scripts/real-model-tools-run.mjs ${OPENBOT_TOOLS_REPORT:+"$OPENBOT_TOOLS_REPORT"}
+elif [ "$WAVE3" = 1 ]; then
+  OPENBOT_RUN_URL="http://127.0.0.1:$PORT" "${NODE_RUN[@]}" \
+    scripts/real-model-wave3-run.mjs ${OPENBOT_WAVE3_REPORT:+"$OPENBOT_WAVE3_REPORT"}
 else
   OPENBOT_RUN_URL="http://127.0.0.1:$PORT" "${NODE_RUN[@]}" \
     scripts/real-model-run.mjs docs/spikes/real-model-run.md

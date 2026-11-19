@@ -12,10 +12,13 @@ import {
 // Android and iOS apply their own mask.
 export type AppIconVariant = "tile" | "bleed";
 
-function markDataUri(variant: AppIconVariant): string {
+// Below this size the hatching is mush, so the mark switches to its solid cut.
+const SOLID_BELOW = 64;
+
+function markDataUri(variant: AppIconVariant, size: number): string {
   const svg = brandMarkSvg({
     tile: variant === "bleed" ? "none" : "rounded",
-    guides: true,
+    cut: size < SOLID_BELOW ? "solid" : "line",
     ink: GRAPHITE.onDark,
   });
   return `data:image/svg+xml;base64,${btoa(svg)}`;
@@ -39,7 +42,7 @@ export function renderAppIcon(
       }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={markDataUri(variant)} width={mark} height={mark} alt="" />
+      <img src={markDataUri(variant, size)} width={mark} height={mark} alt="" />
     </div>
   );
 }

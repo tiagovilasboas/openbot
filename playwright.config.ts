@@ -6,6 +6,7 @@ import { defineConfig, devices } from "@playwright/test";
 // Parallel checkouts each need their own port: with a shared one, a run
 // reuses whatever server is already there and tests another checkout's code.
 const PORT = Number(process.env.OPENBOT_E2E_PORT) || 3800;
+const STUB_PORT = Number(process.env.OPENBOT_E2E_STUB_PORT) || 3900;
 const isCI = Boolean(process.env.CI);
 // The server keeps bots in a data dir: every run gets a fresh one, so the
 // specs never touch ~/.openbot. A reused server keeps the dir it started with.
@@ -26,25 +27,49 @@ export default defineConfig({
     acceptDownloads: true,
     viewport: { width: 1280, height: 800 },
   },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
-  webServer: {
-    command: `npm run build && npm start -- -p ${PORT}`,
-    url: `http://127.0.0.1:${PORT}`,
-    reuseExistingServer: !isCI,
-    timeout: 240_000,
-    env: {
-      OPENBOT_DATA_DIR: DATA_DIR,
-      // Every parallel spec calls from 127.0.0.1, so they share one rate
-      // bucket; the default 60 a minute would refuse some of them.
-      OPENBOT_RATE_LIMIT: "100000",
-      // No provider on the server: the model is always the stub.
-      ROUTER_URL: "",
-      ROUTER_MODEL: "",
-      ROUTER_API_KEY: "",
-      LOCAL_MODEL_URL: "",
-      LOCAL_MODEL_NAME: "",
-      ANTHROPIC_API_KEY: "",
-      ANTHROPIC_MODEL: "",
+  projects: [
+    {
+      name: "chromium",
+      testIgnore: "stub-model.spec.ts",
+      use: { ...devices["Desktop Chrome"] },
     },
-  },
+    {
+      // These specs rewrite the server's saved model settings, which the
+      // other real-store specs read and write too, so they run after them.
+      name: "stub-model",
+      testMatch: "stub-model.spec.ts",
+      dependencies: ["chromium"],
+      use: { ...devices["Desktop Chrome"] },
+    },
+  ],
+  webServer: [
+    {
+      // A local OpenAI-compatible model: specs that need the server to call
+      // one point the app at it, so nothing reaches a real provider.
+      command: "node e2e/openai-stub-server.ts",
+      url: `http://127.0.0.1:${STUB_PORT}/__stub/calls`,
+      reuseExistingServer: !isCI,
+      env: { OPENBOT_E2E_STUB_PORT: String(STUB_PORT) },
+    },
+    {
+      command: `npm run build && npm start -- -p ${PORT}`,
+      url: `http://127.0.0.1:${PORT}`,
+      reuseExistingServer: !isCI,
+      timeout: 240_000,
+      env: {
+        OPENBOT_DATA_DIR: DATA_DIR,
+        // Every parallel spec calls from 127.0.0.1, so they share one rate
+        // bucket; the default 60 a minute would refuse some of them.
+        OPENBOT_RATE_LIMIT: "100000",
+        // No provider on the server: the model is always the stub.
+        ROUTER_URL: "",
+        ROUTER_MODEL: "",
+        ROUTER_API_KEY: "",
+        LOCAL_MODEL_URL: "",
+        LOCAL_MODEL_NAME: "",
+        ANTHROPIC_API_KEY: "",
+        ANTHROPIC_MODEL: "",
+      },
+    },
+  ],
 });

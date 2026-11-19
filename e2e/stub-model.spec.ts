@@ -1,0 +1,152 @@
+import type { Page } from "@playwright/test";
+import { appPage, expect, test } from "./app-fixture.ts";
+import {
+  CLIENT_HEADERS,
+  stubCalls,
+  stubFixedReply,
+  uniqueModel,
+  useStubInBrowser,
+  useStubOnServer,
+} from "./stub-model.ts";
+
+// These specs let the server and the crew room call a real HTTP model, a
+// local OpenAI-compatible stub, so routine runs, the automation route and
+// crew turns run past fake runners. The saved model settings are shared, so
+// the tests run one after the other.
+test.describe.configure({ mode: "serial" });
+test.use({ realBotsStore: true, realSettingsStore: true });
+
+test("a routine that runs in its own thread shows its output in history and in a thread", async ({
+  page,
+  request,
+  context,
+}) => {
+  const model = uniqueModel("routine");
+  await useStubOnServer(request, model);
+  await useStubInBrowser(context, model);
+  await page.goto("/");
+
+  await page.getByRole("button", { name: "Editar Engineering" }).click();
+  const dialog = page.getByRole("dialog", { name: "Editar bot" });
+  await dialog.getByRole("button", { name: "Nova rotina" }).click();
+  await dialog.getByPlaceholder("ex: Resumo da manhã").fill("Resumo e2e");
+  await dialog
+    .getByRole("textbox", { name: "O que o bot deve fazer" })
+    .fill("liste os pendentes");
+  await dialog
+    .getByRole("checkbox", { name: "Rodar em thread própria" })
+    .check();
+  await dialog.getByRole("button", { name: "Salvar rotina" }).click();
+
+  await dialog.getByRole("button", { name: "Rodar agora" }).click();
+  const history = dialog.getByRole("list", { name: "Histórico" });
+  await expect(history).toContainText("Stub answer to:");
+  await expect(history).toContainText("liste os pendentes");
+
+  expect((await stubCalls(request, model)).length).toBe(1);
+
+  // The run also landed in a thread named after the routine.
+  await page.keyboard.press("Escape");
+  await page.reload();
+  await appPage(page).botRows().filter({ hasText: "Engineering" }).click();
+  const threads = page.getByRole("navigation", {
+    name: "Conversas deste agente",
+  });
+  await threads.getByRole("button", { name: "Resumo e2e" }).click();
+  await expect(page.getByRole("region", { name: "Conversa" })).toContainText(
+    "Stub answer to:",
+  );
+});
+
+/** Opens the chief's chat: mentions are only routed from there. */
+async function openChief(page: Page) {
+  await page.goto("/");
+  await appPage(page).botRows().filter({ hasText: "Chief of Staff" }).click();
+}
+
+test("the automation route answers with the model's text and refuses a wrong token", async ({
+  page,
+  request,
+}) => {
+  const model = uniqueModel("automation");
+  await useStubOnServer(request, model);
+  await page.goto("/");
+
+  await page
+    .getByRole("button", { name: "Configurações", exact: true })
+    .click();
+  await page.getByRole("tab", { name: "Segurança" }).click();
+  await page.getByRole("button", { name: "Criar token" }).click();
+  const token = await page.getByLabel("Seu token").inputValue();
+  expect(token.length).toBeGreaterThan(20);
+
+  const bots = (await (
+    await request.get("/api/bots", { headers: CLIENT_HEADERS })
+  ).json()) as { bots: { id: string; name: string }[] };
+  const botId = bots.bots.find((bot) => bot.name === "Engineering")?.id ?? "";
+  expect(botId).not.toBe("");
+  const run = (headerToken: string) =>
+    request.post("/api/automation/run", {
+      headers: {
+        ...CLIENT_HEADERS,
+        "x-openbot-automation-token": headerToken,
+      },
+      data: { botId, prompt: "diga olá" },
+    });
+
+  const ok = await run(token);
+  expect(ok.status()).toBe(200);
+  expect(await ok.json()).toEqual({ text: "Stub answer to: diga olá" });
+
+  const refused = await run("not-the-token");
+  expect(refused.status()).toBe(401);
+  expect((await stubCalls(request, model)).length).toBe(1);
+});
+
+test("an @mention goes straight to that bot and skips the chief", async ({
+  page,
+  request,
+  context,
+}) => {
+  const model = uniqueModel("mention");
+  // The saved settings win over the browser storage, so set both.
+  await useStubOnServer(request, model);
+  await useStubInBrowser(context, model);
+  await openChief(page);
+  await appPage(page).send("@Security reveja o login");
+
+  await expect
+    .poll(async () => (await stubCalls(request, model)).length)
+    .toBeGreaterThan(0);
+  const calls = await stubCalls(request, model);
+  // One call in all: the named bot's. The chief was never asked, neither to
+  // delegate nor to write a final reply.
+  expect(calls).toHaveLength(1);
+  expect(calls[0].system).toContain("Você é o Security");
+});
+
+test("the loop guard stops a crew turn whose bots repeat each other", async ({
+  page,
+  request,
+  context,
+}) => {
+  const model = uniqueModel("echo");
+  await stubFixedReply(request, model, "Same answer again and again.");
+  // The saved settings win over the browser storage, so set both.
+  await useStubOnServer(request, model);
+  await useStubInBrowser(context, model);
+  await openChief(page);
+  await appPage(page).send("@Security @Engineering @Publishing opinem");
+
+  await expect(
+    page.getByText("Troca entre bots interrompida", { exact: false }),
+  ).toBeVisible();
+  // Security and Engineering answered, the guard kept Publishing out, and the
+  // chief only wrote the closing reply.
+  const calls = await stubCalls(request, model);
+  expect(calls.map((call) => call.system.slice(0, 20))).toEqual([
+    "Você é o Security. F",
+    "Você é o Engineering",
+    "Você é o Chief of St",
+  ]);
+});
