@@ -21,7 +21,10 @@ import type { ChatReplyOutcome } from "./chat-reply-outcome.ts";
 import { findMentionedBot } from "./find-mentioned-bot.ts";
 import { failedReply as modelFailureReply } from "./model-failure-reply.ts";
 import { githubRequestReply } from "./github-request-reply.ts";
-import { mentionDelegationReply } from "@/features/crew/mention-routing.ts";
+import {
+  mentionDelegationReply,
+  routeByMentions,
+} from "@/features/crew/mention-routing.ts";
 import { crewTurnReply } from "./crew-turn-reply.ts";
 import { createLiveBoard, type LiveEntry } from "./live-board.ts";
 import { fitHistoryToBytes, limitHistory } from "./request-history.ts";
@@ -69,7 +72,12 @@ export async function executeChatMessage({
   };
 
   // Check if user delegated to a specific bot via @mention
-  const mentionedBot = findMentionedBot(text, bots);
+  // Two or more named specialists are a crew turn from the Chief, not a
+  // hand-off to the first name (which would silently drop the others).
+  const namesSeveral =
+    activeBot.id === mainBotId &&
+    routeByMentions(text, bots, activeBot.id).length > 1;
+  const mentionedBot = namesSeveral ? null : findMentionedBot(text, bots);
   const executingBot =
     mentionedBot && mentionedBot.id !== activeBot.id ? mentionedBot : activeBot;
   const delegatedBot =

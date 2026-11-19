@@ -213,6 +213,18 @@ test("an @mention hands the turn to that bot's own prompt", async () => {
   assert.doesNotMatch(calls.chatCalls[0]?.systemPrompt ?? "", /Sua equipe/);
 });
 
+test("two @mentions from the Chief ask both bots, not just the first", async () => {
+  const calls = stub({ chat: ["from engineering", "from security", "wrap"] });
+  const out = await run("@Engineering @Security opinem", {
+    activeBot: chief,
+    mainBotId: "chief-of-staff",
+  });
+  assert.equal(out.delegatedBot, undefined);
+  assert.equal(out.crew?.specialists.length, 2);
+  assert.match(calls.chatCalls[0]?.systemPrompt ?? "", /^Você é o Engineering/);
+  assert.match(calls.chatCalls[1]?.systemPrompt ?? "", /^Você é o Security/);
+});
+
 test("mentioning the active bot or an unknown name does not hand off", async () => {
   stub({ chat: ["a", "b"] });
   const self = await run("@Chief-of-Staff hi");
