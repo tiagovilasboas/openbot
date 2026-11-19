@@ -20,22 +20,25 @@ export function OpenRouterAccess({ language, content }: OpenRouterAccessProps) {
 
   if (describeOpenRouterAccess(Boolean(keys.router)) === "connected") {
     return (
-      <p role="status" className="text-[13px] font-medium text-success">
+      <p
+        role="status"
+        className="text-xs font-medium text-success md:text-[13px]"
+      >
         {s.openRouterConnected}
       </p>
     );
   }
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-1.5">
       <ConnectWithProvider id="router" name="OpenRouter" language={language} />
-      <p className="text-[13px] text-subtle">
+      <p className="text-xs text-subtle md:text-[13px]">
         {content.presetOpenRouterHint}{" "}
         <a
           href="https://openrouter.ai/keys"
           target="_blank"
           rel="noreferrer"
-          className="inline-flex min-h-11 items-center text-bot-accent underline underline-offset-2 md:min-h-0"
+          className="text-bot-accent underline underline-offset-2"
         >
           {s.getKey}
         </a>

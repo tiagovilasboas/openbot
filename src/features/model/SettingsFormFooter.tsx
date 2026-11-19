@@ -27,25 +27,27 @@ export function SettingsFormFooter({
   return (
     <SheetFooter>
       {isConfirming ? (
-        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-1.5 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-sm font-medium text-foreground">
               {s.resetConfirm}
             </p>
-            <p className="text-[13px] text-subtle">{s.resetConfirmHint}</p>
+            <p className="text-xs text-subtle md:text-[13px]">
+              {s.resetConfirmHint}
+            </p>
           </div>
           <div className="flex gap-2">
             <button
               type="button"
               onClick={() => onConfirmingChange(false)}
-              className="min-h-11 flex-1 rounded-full border border-border bg-surface px-5 text-sm font-medium text-foreground active:scale-[0.97] md:flex-none"
+              className="min-h-10 flex-1 rounded-full border border-border bg-surface px-5 text-sm font-medium text-foreground active:scale-[0.97] md:flex-none"
             >
               {s.cancel}
             </button>
             <button
               type="button"
               onClick={onReset}
-              className="min-h-11 flex-1 rounded-full bg-danger px-5 text-sm font-medium text-background active:scale-[0.97] md:flex-none"
+              className="min-h-10 flex-1 rounded-full bg-danger px-5 text-sm font-medium text-background active:scale-[0.97] md:flex-none"
             >
               {s.resetConfirmAction}
             </button>
@@ -56,7 +58,7 @@ export function SettingsFormFooter({
           <button
             type="button"
             onClick={() => onConfirmingChange(true)}
-            className="min-h-11 rounded-full px-4 text-sm font-medium text-muted transition-colors hover:bg-surface hover:text-foreground active:scale-[0.97]"
+            className="min-h-10 rounded-full px-4 text-sm font-medium text-muted transition-colors hover:bg-surface hover:text-foreground active:scale-[0.97]"
           >
             {content.resetDefaults}
           </button>
@@ -64,7 +66,7 @@ export function SettingsFormFooter({
             type="button"
             onClick={onSave}
             disabled={saveDisabled}
-            className="min-h-11 rounded-full bg-foreground px-6 text-sm font-semibold text-background transition-opacity hover:opacity-90 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40"
+            className="min-h-10 rounded-full bg-foreground px-6 text-sm font-semibold text-background transition-opacity hover:opacity-90 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40"
           >
             {content.saveSettings}
           </button>

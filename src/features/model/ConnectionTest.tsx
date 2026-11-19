@@ -26,13 +26,13 @@ export function ConnectionTest({
   onTest,
 }: ConnectionTestProps) {
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-1.5">
       <button
         type="button"
         onClick={onTest}
         disabled={isTesting}
         aria-busy={isTesting}
-        className="flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-border bg-surface px-5 text-sm font-medium text-foreground transition-colors hover:bg-surface-secondary active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40"
+        className="flex min-h-10 w-full items-center justify-center gap-2 rounded-full border border-border bg-surface px-5 text-sm font-medium text-foreground transition-colors hover:bg-surface-secondary active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40"
       >
         {isTesting && <SpinnerIcon className="size-4" />}
         {isTesting ? loadingLabel : label}
@@ -54,7 +54,7 @@ export function ConnectionTest({
             <span className="min-w-0 break-words">{result.message}</span>
           </p>
         ) : idleHint ? (
-          <p className="text-[13px] text-subtle">{idleHint}</p>
+          <p className="text-xs text-subtle md:text-[13px]">{idleHint}</p>
         ) : null}
       </div>
     </div>

@@ -69,7 +69,7 @@ export function FreeModelList({
           type="button"
           aria-expanded={isExpanded}
           onClick={() => setIsExpanded((value) => !value)}
-          className="min-h-11 w-full rounded-xl text-[13px] font-medium text-bot-accent transition-colors hover:bg-surface active:scale-[0.99]"
+          className="min-h-10 w-full rounded-xl text-[13px] font-medium text-bot-accent transition-colors hover:bg-surface active:scale-[0.99]"
         >
           {isExpanded
             ? s.showFewer

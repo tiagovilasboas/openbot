@@ -201,8 +201,8 @@ export function SettingsForm({
 
   return (
     <>
-      <div className="flex flex-col gap-5 md:gap-8">
-        <section className="flex flex-col gap-2">
+      <div className="flex flex-col gap-4 md:gap-7">
+        <section className="flex flex-col gap-1.5 md:gap-2">
           <h3 className="text-sm font-semibold text-foreground">
             {s.sectionProvider}
           </h3>
@@ -258,10 +258,7 @@ export function SettingsForm({
           />
         )}
 
-        <section className="flex flex-col gap-2">
-          <h3 className="text-sm font-semibold text-foreground">
-            {s.sectionConnection}
-          </h3>
+        <section aria-label={s.sectionConnection}>
           <ConnectionTest
             label={content.testConnection}
             loadingLabel={content.testingConnection}
