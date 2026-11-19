@@ -26,16 +26,18 @@ export function WelcomeStarters({
     <div
       role="group"
       aria-label={getStartersCopy(language).groupLabel}
-      className={`flex flex-col gap-2 px-4 md:flex-row md:flex-wrap md:justify-center md:px-0 ${className}`}
+      className={`flex snap-x scroll-px-3 gap-2 overflow-x-auto px-3 [scrollbar-width:none] md:flex-wrap md:justify-center md:overflow-visible md:px-0 [&::-webkit-scrollbar]:hidden ${className}`}
     >
       {tasks.map((task) => (
         <button
           key={task}
           type="button"
           onClick={() => onPick(task)}
-          className="min-h-11 rounded-2xl border border-border bg-surface px-4 py-2 text-left text-[15px] font-medium text-foreground transition-[background-color,transform] duration-(--duration-micro) ease-out-expo hover:bg-surface-secondary active:scale-[0.97] md:max-w-60 md:text-sm"
+          title={task}
+          className="min-h-10 w-max max-w-[70vw] shrink-0 snap-start rounded-2xl border border-border bg-surface px-3.5 py-2 text-left text-sm leading-5 font-medium text-foreground transition-[background-color,transform] duration-(--duration-micro) ease-out-expo hover:bg-surface-secondary active:scale-[0.97] md:min-h-11 md:w-auto md:max-w-60 md:shrink md:px-4"
         >
-          {task}
+          {/* Phone: two lines at most, so the row stays one chip tall. */}
+          <span className="line-clamp-2 md:line-clamp-none">{task}</span>
         </button>
       ))}
     </div>
