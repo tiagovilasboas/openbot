@@ -28,6 +28,8 @@ test("a routine that runs in its own thread shows its output in history and in a
 
   await page.getByRole("button", { name: "Editar Engineering" }).click();
   const dialog = page.getByRole("dialog", { name: "Editar bot" });
+  // Routines live in a collapsed group of the bot editor.
+  await dialog.getByText("Rotinas", { exact: true }).click();
   await dialog.getByRole("button", { name: "Nova rotina" }).click();
   await dialog.getByPlaceholder("ex: Resumo da manhã").fill("Resumo e2e");
   await dialog
@@ -76,6 +78,12 @@ test("the automation route answers with the model's text and refuses a wrong tok
     .getByRole("button", { name: "Configurações", exact: true })
     .click();
   await page.getByRole("tab", { name: "Segurança" }).click();
+  // The automation token lives in the collapsed Advanced group.
+  await page
+    .getByRole("group")
+    .filter({ hasText: "Backup" })
+    .getByText("Avançado", { exact: true })
+    .click();
   await page.getByRole("button", { name: "Criar token" }).click();
   const token = await page.getByLabel("Seu token").inputValue();
   expect(token.length).toBeGreaterThan(20);

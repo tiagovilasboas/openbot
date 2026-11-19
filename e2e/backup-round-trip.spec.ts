@@ -32,6 +32,12 @@ test("an exported backup imports into a fresh browser profile", async ({
   await expect(page.getByText("Reply worth keeping")).toBeVisible();
 
   await app.openSettingsTab("Segurança");
+  // Backup lives in the collapsed Advanced group of the Security tab.
+  await page
+    .getByRole("group")
+    .filter({ hasText: "Backup" })
+    .getByText("Avançado", { exact: true })
+    .click();
   const [download] = await Promise.all([
     page.waitForEvent("download"),
     page.getByRole("button", { name: "Exportar backup" }).click(),
@@ -56,6 +62,11 @@ test("an exported backup imports into a fresh browser profile", async ({
   await expect(freshApp.botRows()).toHaveCount(9);
 
   await freshApp.openSettingsTab("Segurança");
+  await freshPage
+    .getByRole("group")
+    .filter({ hasText: "Backup" })
+    .getByText("Avançado", { exact: true })
+    .click();
   await freshPage
     .getByLabel("Arquivo de backup do OpenBot")
     .setInputFiles(file);
