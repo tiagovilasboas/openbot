@@ -18,7 +18,7 @@ interface RoutineRowProps {
 }
 
 const ACTION =
-  "min-h-9 rounded-full px-3 text-[13px] font-medium text-muted transition-colors hover:bg-surface-secondary hover:text-foreground disabled:opacity-50";
+  "min-h-9 rounded-full px-3 text-xs md:text-[13px] font-medium text-muted transition-colors hover:bg-surface-secondary hover:text-foreground disabled:opacity-50";
 
 /** One routine: when it runs, its switch, actions and run history. */
 export function RoutineRow(props: RoutineRowProps) {
@@ -43,13 +43,13 @@ export function RoutineRow(props: RoutineRowProps) {
     : copy.paused;
 
   return (
-    <li className="flex flex-col gap-2 rounded-xl bg-surface px-3.5 py-3">
+    <li className="flex flex-col gap-1 rounded-xl border border-border px-3 py-2">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="truncate text-[15px] font-medium text-foreground md:text-sm">
+          <p className="truncate text-sm font-medium text-foreground">
             {routine.title}
           </p>
-          <p className="text-[13px] text-muted">
+          <p className="text-xs md:text-[13px] text-muted">
             {scheduleSummary(routine.schedule, copy, language)}
             {when && ` · ${when}`}
           </p>
@@ -99,7 +99,7 @@ export function RoutineRow(props: RoutineRowProps) {
       </div>
 
       {runError && (
-        <p role="alert" className="text-[13px] text-danger">
+        <p role="alert" className="text-xs md:text-[13px] text-danger">
           {copy.errors.run}
         </p>
       )}

@@ -14,6 +14,8 @@ export interface UsageCopy {
   replies: (count: number) => string;
   withoutData: (count: number) => string;
   reset: (botName: string) => string;
+  /** Visible label of the per-bot reset; `reset` stays its accessible name. */
+  resetShort: string;
   resetAll: string;
   confirmBot: string;
   confirmAll: string;
@@ -38,6 +40,7 @@ const PT: UsageCopy = {
       ? "1 resposta sem dados de uso"
       : `${count} respostas sem dados de uso`,
   reset: (botName) => `Zerar uso de ${botName}`,
+  resetShort: "Zerar",
   resetAll: "Zerar tudo",
   confirmBot: "Zerar o uso deste bot?",
   confirmAll: "Zerar o uso de todos os bots?",
@@ -62,6 +65,7 @@ const EN: UsageCopy = {
       ? "1 reply without usage data"
       : `${count} replies without usage data`,
   reset: (botName) => `Reset usage of ${botName}`,
+  resetShort: "Reset",
   resetAll: "Reset all",
   confirmBot: "Reset this bot's usage?",
   confirmAll: "Reset the usage of all bots?",
@@ -87,6 +91,7 @@ const ES: UsageCopy = {
       ? "1 respuesta sin datos de uso"
       : `${count} respuestas sin datos de uso`,
   reset: (botName) => `Reiniciar el uso de ${botName}`,
+  resetShort: "Reiniciar",
   resetAll: "Reiniciar todo",
   confirmBot: "¿Reiniciar el uso de este bot?",
   confirmAll: "¿Reiniciar el uso de todos los bots?",

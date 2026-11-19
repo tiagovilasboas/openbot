@@ -111,23 +111,25 @@ export function ConnectionDetail({
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3 md:gap-4">
       <button
         type="button"
         onClick={onBack}
-        className="-ml-2 flex min-h-11 w-fit items-center gap-1 rounded-full px-2 text-sm font-medium text-muted transition-colors hover:text-foreground"
+        className="-ml-2 -mt-1 flex min-h-10 w-fit items-center gap-1 rounded-full px-2 text-sm font-medium text-muted transition-colors hover:text-foreground"
       >
         <ChevronLeftIcon className="size-4" />
         {backLabel ?? c.back}
       </button>
 
-      <header className="flex flex-col gap-1">
-        <h3 className="text-lg font-semibold text-foreground">
+      <header className="flex flex-col gap-0.5 md:gap-1">
+        <h3 className="text-base font-semibold text-foreground md:text-lg">
           {fillCopy(isSaved ? c.manageTitle : c.connectTitle, {
             name: entry.name,
           })}
         </h3>
-        <p className="text-[13px] text-subtle">{c.descriptions[entry.id]}</p>
+        <p className="text-xs text-subtle md:text-[13px]">
+          {c.descriptions[entry.id]}
+        </p>
       </header>
 
       {providerPage && (
@@ -169,7 +171,7 @@ export function ConnectionDetail({
           href={entry.keyUrl}
           target="_blank"
           rel="noreferrer"
-          className="inline-flex min-h-11 w-fit items-center text-[13px] font-medium text-bot-accent underline-offset-2 hover:underline"
+          className="inline-flex min-h-10 w-fit items-center text-[13px] font-medium text-bot-accent underline-offset-2 hover:underline"
         >
           {fillCopy(c.getKey, { url: entry.keyUrlLabel })}
         </a>
@@ -187,7 +189,7 @@ export function ConnectionDetail({
         <button
           type="button"
           onClick={() => void handleDisconnect()}
-          className="min-h-11 w-full rounded-full px-5 text-sm font-medium text-danger transition-colors hover:bg-danger-soft active:scale-[0.97]"
+          className="min-h-10 w-full rounded-full px-5 text-sm font-medium text-danger transition-colors hover:bg-danger-soft active:scale-[0.97]"
         >
           {c.disconnect}
         </button>

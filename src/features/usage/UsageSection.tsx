@@ -36,19 +36,23 @@ export function UsageSection({ language }: { language: ChatLanguage }) {
   const today = localDay(new Date());
 
   return (
-    <section aria-labelledby="usage-title" className="flex flex-col gap-4">
+    <section
+      aria-labelledby="usage-title"
+      className="flex flex-col gap-3 md:gap-4"
+    >
       <div>
-        <h3 id="usage-title" className="text-[15px] font-semibold">
+        <h3 id="usage-title" className="text-sm font-semibold md:text-[15px]">
           {copy.title}
         </h3>
-        <p className="text-[13px] text-subtle">{copy.description}</p>
-        <p className="mt-1 text-[13px] text-subtle">{copy.deviceNote}</p>
+        <p className="text-xs text-subtle md:text-[13px]">
+          {copy.description} {copy.deviceNote}
+        </p>
       </div>
 
       {bots.length === 0 ? (
-        <p className="text-[13px] text-subtle">{copy.noBots}</p>
+        <p className="text-xs text-subtle md:text-[13px]">{copy.noBots}</p>
       ) : (
-        <ul className="flex flex-col gap-2">
+        <ul className="flex flex-col gap-1.5 md:gap-2">
           {bots.map((bot) => (
             <UsageBotRow
               key={bot.id}

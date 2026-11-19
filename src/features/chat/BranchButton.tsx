@@ -20,7 +20,7 @@ export function BranchButton({
       onClick={onClick}
       disabled={disabled}
       title={hint ?? label}
-      className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full px-3 text-xs font-medium text-subtle transition-[color,background-color,transform] duration-140 ease-out-expo hover:bg-surface hover:text-foreground active:scale-[0.97] disabled:opacity-50"
+      className="inline-flex min-h-8 items-center md:min-h-11 justify-center gap-1.5 rounded-full px-3 text-xs font-medium text-subtle transition-[color,background-color,transform] duration-140 ease-out-expo hover:bg-surface hover:text-foreground active:scale-[0.97] disabled:opacity-50"
     >
       <svg
         aria-hidden="true"

@@ -15,7 +15,7 @@ import { pushRestoredLanguage } from "../settings/sync/browser-settings-sync.ts"
 import { restoreBackup } from "./restore-backup.ts";
 
 const BUTTON =
-  "min-h-11 rounded-full px-5 text-[15px] font-semibold transition-opacity hover:opacity-90 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40 md:text-sm";
+  "min-h-10 rounded-full px-5 text-sm font-semibold transition-opacity hover:opacity-90 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40";
 const PRIMARY = `${BUTTON} bg-foreground text-background`;
 const SECONDARY = `${BUTTON} border border-border text-foreground`;
 
@@ -88,16 +88,14 @@ export function BackupSection({ language }: { language: ChatLanguage }) {
   const summary = pending ? summarizeBackup(pending) : null;
 
   return (
-    <section
-      aria-labelledby="backup-title"
-      className="flex flex-col gap-4 border-t border-border pt-6"
-    >
+    <section aria-labelledby="backup-title" className="flex flex-col gap-3">
       <div>
-        <h3 id="backup-title" className="text-[15px] font-semibold">
+        <h3 id="backup-title" className="text-sm font-semibold md:text-[15px]">
           {c.title}
         </h3>
-        <p className="text-[13px] text-subtle">{c.description}</p>
-        <p className="mt-1 text-[13px] text-subtle">{c.secretsNote}</p>
+        <p className="text-xs text-subtle md:text-[13px]">
+          {c.description} {c.secretsNote}
+        </p>
       </div>
 
       <div role="status" aria-live="polite" className="empty:hidden">
@@ -120,7 +118,7 @@ export function BackupSection({ language }: { language: ChatLanguage }) {
         )}
       </div>
 
-      <div className="flex flex-col gap-2 md:flex-row">
+      <div className="flex flex-col gap-2 min-[360px]:flex-row">
         <button type="button" onClick={handleExport} className={PRIMARY}>
           {c.exportAction}
         </button>

@@ -20,6 +20,8 @@ test("a bot exported as a file fills a new bot's form, without chats or ids", as
   await expect(page.getByText("A private answer")).toBeVisible();
 
   await page.getByRole("button", { name: "Editar Ops Bot" }).click();
+  // Export lives in the collapsed "Mais opções" group.
+  await page.getByText("Mais opções", { exact: true }).click();
   const [download] = await Promise.all([
     page.waitForEvent("download"),
     page.getByRole("button", { name: "Exportar este bot" }).click(),

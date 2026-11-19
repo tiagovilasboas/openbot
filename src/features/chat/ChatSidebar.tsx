@@ -138,7 +138,7 @@ export function ChatSidebar(props: ChatSidebarProps) {
             aria-label={content.mainNavLabel}
             className="w-[min(86vw,320px)] max-w-none border-r border-separator bg-sidebar p-0 pt-safe pb-safe pl-safe"
           >
-            <div className="flex h-14 shrink-0 items-center justify-between gap-2 pr-2 pl-3">
+            <div className="flex h-12 shrink-0 items-center justify-between gap-2 pr-1 pl-3">
               <SidebarBrand name={content.brandName} />
               <button
                 type="button"

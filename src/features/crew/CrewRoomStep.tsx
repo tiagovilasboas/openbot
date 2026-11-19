@@ -42,7 +42,7 @@ export function CrewRoomStep({
         <span className="mt-1 w-px flex-1 bg-separator" />
       </div>
       <div className="min-w-0 flex-1 pb-5">
-        <h4 className="text-[15px] font-semibold text-foreground">
+        <h4 className="text-sm font-semibold text-foreground">
           {step.bot.name}
           <span className="sr-only"> ({copy.stepOf(position, total)})</span>
         </h4>
@@ -63,7 +63,7 @@ export function CrewRoomStep({
             </span>
           )}
         </p>
-        <p className="mt-2 text-[13px] leading-snug text-muted">
+        <p className="mt-2 text-xs md:text-[13px] leading-snug text-muted">
           <span className="font-medium text-foreground">{copy.taskLabel}:</span>{" "}
           <span className="break-words">{step.task ?? copy.noTask}</span>
         </p>
@@ -72,7 +72,7 @@ export function CrewRoomStep({
           aria-expanded={open}
           aria-controls={replyId}
           onClick={() => setOpen((value) => !value)}
-          className="mt-2 min-h-11 rounded-full border border-border bg-surface px-4 text-[13px] font-medium text-foreground transition-colors duration-(--duration-micro) ease-out-expo hover:bg-surface-secondary"
+          className="mt-2 min-h-11 rounded-full border border-border bg-surface px-4 text-xs md:text-[13px] font-medium text-foreground transition-colors duration-(--duration-micro) ease-out-expo hover:bg-surface-secondary"
         >
           {open ? copy.hideReply : copy.showReply}
         </button>

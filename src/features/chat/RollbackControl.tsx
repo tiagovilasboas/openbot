@@ -15,7 +15,7 @@ interface RollbackControlProps {
 }
 
 const ghostButton =
-  "min-h-11 rounded-full px-3 text-xs font-medium transition-colors duration-140 ease-out-expo active:scale-[0.97]";
+  "min-h-8 rounded-full px-3 text-xs font-medium md:min-h-11 transition-colors duration-140 ease-out-expo active:scale-[0.97]";
 
 /** Two-step "go back here", the same pattern as deleting a bot. */
 export function RollbackControl({

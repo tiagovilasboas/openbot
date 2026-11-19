@@ -121,8 +121,8 @@ export function ChatMessageItem({
 
   if (message.role === "user") {
     return (
-      <article className="group flex w-full flex-col items-end gap-1 animate-enter">
-        <div className="max-w-[85%] rounded-2xl rounded-br-md bg-surface px-4 py-2.5 text-base leading-[1.55] text-foreground md:text-[15px]">
+      <article className="group flex w-full flex-col items-end gap-0.5 animate-enter md:gap-1">
+        <div className="max-w-[85%] rounded-2xl rounded-br-md bg-surface px-3 py-2 text-sm leading-[1.5] text-foreground md:px-4 md:py-2.5 md:text-[15px] md:leading-[1.55]">
           <p className="whitespace-pre-wrap break-words">{message.text}</p>
           {message.attachments && message.attachments.length > 0 && (
             <SentAttachments
@@ -132,7 +132,7 @@ export function ChatMessageItem({
           )}
         </div>
         {rollback && (
-          <div className="-mt-1 pointer-fine:opacity-0 pointer-fine:transition-opacity pointer-fine:group-hover:opacity-100 pointer-fine:focus-within:opacity-100">
+          <div className="pointer-fine:opacity-0 md:-mt-1 pointer-fine:transition-opacity pointer-fine:group-hover:opacity-100 pointer-fine:focus-within:opacity-100">
             <RollbackControl
               language={message.language}
               messagesAfter={rollback.messagesAfter}
@@ -148,16 +148,16 @@ export function ChatMessageItem({
   const displayingBot = message.delegatedBot || activeBot;
 
   return (
-    <article className="group flex w-full flex-col gap-2 animate-enter">
+    <article className="group flex w-full flex-col gap-1.5 animate-enter md:gap-2">
       <header className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
         {displayingBot && (
           <BotAvatar
             shape={displayingBot.avatarShape}
             color={displayingBot.avatarColor}
-            size={26}
+            size={22}
           />
         )}
-        <span className="text-[13px] font-medium text-foreground">
+        <span className="text-xs font-medium text-foreground md:text-[13px]">
           {displayingBot?.name || content.title}
         </span>
         {message.delegatedBot && (
@@ -166,7 +166,7 @@ export function ChatMessageItem({
           </span>
         )}
         {message.modelBadge && (
-          <span className="truncate font-mono text-xs font-medium text-subtle">
+          <span className="truncate font-mono text-[11px] font-medium text-subtle md:text-xs">
             {message.modelBadge}
           </span>
         )}

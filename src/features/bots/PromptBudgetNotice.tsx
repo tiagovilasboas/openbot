@@ -18,7 +18,7 @@ export function PromptBudgetNotice({
   return (
     <div role="status" aria-live="polite">
       {message && (
-        <div className="rounded-xl border border-warning bg-warning-soft px-3.5 py-2.5 text-[13px] text-foreground">
+        <div className="rounded-xl border border-warning bg-warning-soft px-3.5 py-2.5 text-xs md:text-[13px] text-foreground">
           <p className="font-medium">
             <span aria-hidden="true">⚠ </span>
             {message.title}

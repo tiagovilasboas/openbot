@@ -24,7 +24,7 @@ export function PresetRow({
       role="radio"
       aria-checked={selected}
       onClick={onSelect}
-      className={`flex min-h-12 w-full items-center gap-3 rounded-xl px-3 py-1.5 text-start transition-colors active:scale-[0.99] ${
+      className={`flex min-h-10 w-full items-center gap-3 rounded-xl px-3 py-1.5 text-start transition-colors active:scale-[0.99] ${
         selected
           ? "bg-surface-tertiary"
           : "bg-surface hover:bg-surface-secondary"

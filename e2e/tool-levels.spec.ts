@@ -43,7 +43,7 @@ test("settings set a level per tool; allow is only offered to tools that opt in"
   ]);
 });
 
-test("level choices are 44px touch targets on a phone", async ({
+test("level choices are 40px touch targets on a phone", async ({
   page,
   context,
 }) => {
@@ -59,7 +59,7 @@ test("level choices are 44px touch targets on a phone", async ({
   });
   for (const name of ["Perguntar", "Permitir", "Bloquear"]) {
     const box = await section.getByText(name, { exact: true }).boundingBox();
-    expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
-    expect(box?.width ?? 0).toBeGreaterThanOrEqual(44);
+    expect(box?.height ?? 0).toBeGreaterThanOrEqual(40);
+    expect(box?.width ?? 0).toBeGreaterThanOrEqual(40);
   }
 });

@@ -19,12 +19,14 @@ export function BotHideControl({
 }: BotHideControlProps) {
   const copy = getBotsCopy(language);
   return (
-    <div className="flex min-h-14 items-center justify-between gap-3 rounded-xl bg-surface px-3.5 py-2">
-      <span className="min-w-0 text-[13px] text-muted">{copy.hideBotHint}</span>
+    <div className="flex min-h-10 items-center justify-between gap-3 py-1.5">
+      <span className="min-w-0 text-xs md:text-[13px] text-muted">
+        {copy.hideBotHint}
+      </span>
       <button
         type="button"
         onClick={isHidden ? onRestore : onHide}
-        className="min-h-11 shrink-0 rounded-full border border-border px-4 text-[15px] font-medium text-foreground transition-colors hover:bg-surface-secondary active:scale-[0.97] md:text-sm"
+        className="min-h-9 shrink-0 whitespace-nowrap rounded-full border border-border px-3.5 text-sm font-medium text-foreground transition-colors hover:bg-surface-secondary active:scale-[0.97]"
       >
         {isHidden ? copy.restoreBot : copy.hideBot}
       </button>

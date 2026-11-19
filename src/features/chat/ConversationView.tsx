@@ -96,7 +96,7 @@ export function ConversationView({
           aria-label={content.conversationLabel}
           aria-live="polite"
           aria-busy={busy}
-          className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 pb-6 pt-4 md:px-6"
+          className="mx-auto flex w-full max-w-3xl flex-col gap-3 px-3 pb-4 pt-3 md:gap-4 md:px-6 lg:gap-6 md:pb-6 md:pt-4"
         >
           {messages.map((message, index) => {
             // A resume streams the whole reply live; the stored copy waits.
@@ -139,7 +139,10 @@ export function ConversationView({
           })}
           {liveMessages.length > 0 && (
             // Growing text is not announced; the finished reply is, once.
-            <div aria-live="off" className="flex flex-col gap-6">
+            <div
+              aria-live="off"
+              className="flex flex-col gap-3 md:gap-4 lg:gap-6"
+            >
               {liveMessages.map((message) => (
                 <ChatMessageItem
                   key={message.id}
@@ -182,7 +185,7 @@ export function ConversationView({
 
       <footer
         ref={footerRef}
-        className="relative shrink-0 bg-background px-4 pb-[max(var(--safe-bottom),0.75rem)] md:px-6"
+        className="relative shrink-0 bg-background px-2 pb-[max(var(--safe-bottom),0.5rem)] md:px-6 md:pb-[max(var(--safe-bottom),0.75rem)]"
       >
         <div
           aria-hidden="true"

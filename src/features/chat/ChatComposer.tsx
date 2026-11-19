@@ -111,7 +111,7 @@ export function ChatComposer({
       <fieldset
         disabled={Boolean(disabledReason)}
         aria-describedby={disabledReason ? reasonId : undefined}
-        className={`m-0 flex w-full min-w-0 cursor-text flex-col disabled:opacity-60 rounded-3xl border bg-surface transition-colors duration-(--duration-ui) ease-out-expo focus-within:border-[color:color-mix(in_oklab,var(--bot-accent)_45%,var(--border))] ${
+        className={`m-0 flex w-full min-w-0 cursor-text flex-col disabled:opacity-60 rounded-[1.375rem] border md:rounded-3xl bg-surface transition-colors duration-(--duration-ui) ease-out-expo focus-within:border-[color:color-mix(in_oklab,var(--bot-accent)_45%,var(--border))] ${
           drop.dragging ? "border-dashed border-bot-accent" : "border-border"
         }`}
         {...(attachments ? drop.handlers : {})}
@@ -145,7 +145,7 @@ export function ChatComposer({
           }
           enterKeyHint={isCoarsePointer ? "enter" : "send"}
           autoComplete="off"
-          className={`block max-h-[40dvh] w-full resize-none overflow-y-auto bg-transparent px-4 pb-1 pt-3.5 text-base leading-6 text-foreground outline-hidden placeholder:text-subtle md:max-h-[18rem] md:text-[15px] md:leading-[22px] ${
+          className={`block max-h-[40dvh] w-full resize-none overflow-y-auto bg-transparent px-3.5 pb-0.5 pt-2.5 text-base leading-6 md:px-4 md:pb-1 md:pt-3.5 text-foreground outline-hidden placeholder:text-subtle md:max-h-[18rem] md:text-[15px] md:leading-[22px] ${
             mode === "hero" ? "md:min-h-16" : ""
           }`}
           onChange={(event) => onDraftChange(event.target.value)}
@@ -181,7 +181,7 @@ export function ChatComposer({
       {disabledReason && (
         <p
           id={reasonId}
-          className="mt-2 px-4 text-center text-[13px] text-muted"
+          className="mt-1.5 px-4 text-center text-xs text-muted md:mt-2 md:text-[13px]"
         >
           {disabledReason}
         </p>

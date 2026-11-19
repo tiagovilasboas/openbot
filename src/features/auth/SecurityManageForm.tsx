@@ -98,8 +98,8 @@ export function SecurityManageForm({
   const secretProps = { showLabel: c.showSecret, hideLabel: c.hideSecret };
 
   return (
-    <div className="flex flex-col gap-8">
-      <div className="flex min-h-14 items-center justify-between gap-3 rounded-xl bg-surface px-3.5 py-2">
+    <div className="flex flex-col gap-4 md:gap-8">
+      <div className="flex min-h-10 items-center justify-between gap-3 rounded-xl bg-surface px-3 py-1.5 md:min-h-14 md:px-3.5 md:py-2">
         <span className="rounded-full bg-success-soft px-2.5 py-0.5 text-xs font-medium text-success">
           {c.statusActive}
         </span>
@@ -110,8 +110,8 @@ export function SecurityManageForm({
         )}
       </div>
 
-      <form onSubmit={handleChange} className="flex flex-col gap-4">
-        <h4 className="text-[15px] font-semibold text-foreground">
+      <form onSubmit={handleChange} className="flex flex-col gap-3 md:gap-4">
+        <h4 className="text-sm font-semibold text-foreground md:text-[15px]">
           {c.changeTitle}
         </h4>
         <FormField label={c.currentLabel}>
@@ -162,19 +162,22 @@ export function SecurityManageForm({
         <button
           type="submit"
           disabled={loading || !currentPassword || !updatedPassword}
-          className="min-h-11 w-full rounded-full bg-foreground px-6 text-[15px] font-semibold text-background transition-opacity hover:opacity-90 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40 md:ms-auto md:w-fit md:text-sm"
+          className="min-h-10 w-full rounded-full bg-foreground px-6 text-sm font-semibold text-background transition-opacity hover:opacity-90 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40 md:ms-auto md:w-fit"
         >
           {loading && !isRemoving ? c.updating : c.update}
         </button>
       </form>
 
-      <section className="flex flex-col gap-3 border-t border-separator pt-6">
-        <h4 className="text-[15px] font-semibold text-foreground">
+      <section className="flex flex-col gap-2 border-t border-separator pt-4 md:gap-3 md:pt-6">
+        <h4 className="text-sm font-semibold text-foreground md:text-[15px]">
           {c.removeTitle}
         </h4>
-        <p className="text-[13px] text-subtle">{c.removeHelper}</p>
+        <p className="text-xs text-subtle md:text-[13px]">{c.removeHelper}</p>
         {isRemoving ? (
-          <form onSubmit={handleRemove} className="flex flex-col gap-4">
+          <form
+            onSubmit={handleRemove}
+            className="flex flex-col gap-3 md:gap-4"
+          >
             <FormField label={c.removeCurrentLabel}>
               {(control) => (
                 <SecretInput
@@ -193,14 +196,14 @@ export function SecurityManageForm({
                   setIsRemoving(false);
                   setRemovePassword("");
                 }}
-                className="min-h-11 flex-1 rounded-full border border-border bg-surface px-5 text-[15px] font-medium text-foreground active:scale-[0.97] md:flex-none md:text-sm"
+                className="min-h-10 flex-1 rounded-full border border-border bg-surface px-5 text-sm font-medium text-foreground active:scale-[0.97] md:flex-none"
               >
                 {c.cancel}
               </button>
               <button
                 type="submit"
                 disabled={loading || !removePassword}
-                className="min-h-11 flex-1 rounded-full bg-danger px-5 text-[15px] font-semibold text-background active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40 md:flex-none md:text-sm"
+                className="min-h-10 flex-1 rounded-full bg-danger px-5 text-sm font-semibold text-background active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40 md:flex-none"
               >
                 {loading ? c.removing : c.removeConfirm}
               </button>
@@ -213,7 +216,7 @@ export function SecurityManageForm({
               onFeedback(null, null);
               setIsRemoving(true);
             }}
-            className="min-h-11 w-fit rounded-full px-4 text-[15px] font-medium text-danger transition-colors hover:bg-danger-soft active:scale-[0.97] md:text-sm"
+            className="min-h-10 w-fit rounded-full px-4 text-sm font-medium text-danger transition-colors hover:bg-danger-soft active:scale-[0.97]"
           >
             {c.removeStart}
           </button>

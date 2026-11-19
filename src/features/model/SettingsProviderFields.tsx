@@ -3,9 +3,12 @@
 import type { Language } from "../language/language.ts";
 import type { chatCopy } from "@/features/chat/chat-copy.ts";
 import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
+import { isOpenRouterUrl } from "@/features/connections/copy.ts";
+import { Disclosure } from "@/shared/ui/Disclosure.tsx";
 import { FIELD_CLASS, FormField } from "@/shared/ui/FormField.tsx";
 import type { ModelProviderType } from "./model-config.ts";
 import { SettingsModelPresets } from "./SettingsModelPresets.tsx";
+import { getSettingsCopy } from "./settings-copy.ts";
 import { SETTINGS_FORM_DEFAULTS } from "./settings-form-defaults.ts";
 
 interface SettingsProviderFieldsProps {
@@ -78,9 +81,15 @@ export function SettingsProviderFields({
   setAnthropicModel,
   onUseLocalRouter,
 }: SettingsProviderFieldsProps) {
+  const s = getSettingsCopy(language);
   if (provider === "router") {
+    // A preset fills URL and model: they only need to be seen when custom.
+    const isPreset =
+      isOpenRouterUrl(routerUrl) ||
+      routerUrl.includes(":3000") ||
+      routerUrl.includes(":20128");
     return (
-      <div className="flex flex-col gap-4 md:gap-6">
+      <div className="flex flex-col gap-3 md:gap-5">
         <SettingsModelPresets
           provider="router"
           language={language}
@@ -97,7 +106,7 @@ export function SettingsProviderFields({
           onSelectLocalPreset={() => {}}
           onSelectLocalRouter={() => {}}
         />
-        <div className="flex flex-col gap-3 md:gap-4">
+        <Disclosure summary={s.sectionAdvanced} defaultOpen={!isPreset}>
           <TextRow
             label={content.routerUrlLabel}
             value={routerUrl}
@@ -113,14 +122,14 @@ export function SettingsProviderFields({
             placeholder={SETTINGS_FORM_DEFAULTS.routerModel}
             mono
           />
-        </div>
+        </Disclosure>
       </div>
     );
   }
 
   if (provider === "local") {
     return (
-      <div className="flex flex-col gap-4 md:gap-6">
+      <div className="flex flex-col gap-3 md:gap-5">
         <SettingsModelPresets
           provider="local"
           language={language}
@@ -137,7 +146,7 @@ export function SettingsProviderFields({
           }}
           onSelectLocalRouter={onUseLocalRouter}
         />
-        <div className="flex flex-col gap-3 md:gap-4">
+        <div className="grid gap-3 min-[360px]:grid-cols-2 md:gap-4">
           <TextRow
             label={content.localUrlLabel}
             value={localUrl}
@@ -160,7 +169,7 @@ export function SettingsProviderFields({
 
   if (provider === "anthropic") {
     return (
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-3">
         <TextRow
           label={content.anthropicModelLabel}
           value={anthropicModel}

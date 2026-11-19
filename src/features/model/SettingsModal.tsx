@@ -13,6 +13,7 @@ import { LanguageToggle } from "@/features/chat/LanguageToggle.tsx";
 import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
 import type { ClientModelConfig } from "./model-config.ts";
 import { UsageSection } from "@/features/usage/UsageSection.tsx";
+import { Disclosure } from "@/shared/ui/Disclosure.tsx";
 import { ResponsiveSheet } from "@/shared/ui/ResponsiveSheet.tsx";
 import { SettingsForm } from "./SettingsForm.tsx";
 import { getSettingsCopy } from "./settings-copy.ts";
@@ -97,15 +98,11 @@ export function SettingsModal({
       >
         <div hidden={activeTab !== "model"}>
           {onLanguageChange && (
-            <section className="mb-5 flex flex-col gap-2 md:mb-8">
+            <section className="mb-4 flex items-center justify-between gap-3 md:mb-7">
               <h3 className="text-sm font-semibold text-foreground">
                 {s.sectionLanguage}
               </h3>
-              <LanguageToggle
-                language={language}
-                onChange={onLanguageChange}
-                density="full"
-              />
+              <LanguageToggle language={language} onChange={onLanguageChange} />
             </section>
           )}
           <SettingsForm
@@ -141,10 +138,12 @@ export function SettingsModal({
             onRemovePassword={onRemovePassword || (async () => false)}
             onChangePassword={onChangePassword || (async () => false)}
           />
-          <div className="mt-6">
-            <BackupSection language={language} />
+          <div className="mt-4 md:mt-6">
+            <Disclosure summary={s.sectionAdvanced}>
+              <BackupSection language={language} />
+              <AutomationTokenSection language={language} />
+            </Disclosure>
           </div>
-          <AutomationTokenSection language={language} />
         </div>
 
         <div hidden={activeTab !== "usage"}>

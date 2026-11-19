@@ -7,7 +7,8 @@ import { createPortal } from "react-dom";
 /**
  * ResponsiveSheet: the app's one overlay primitive.
  * Phone: bottom sheet (grab handle, max-h-[92dvh], sticky header/footer).
- * Desktop (md:): centered dialog (max-w-2xl by default, max-h-[85dvh]).
+ * Tablet (md:): centered dialog, max-w-xl by default, max-h-[85dvh];
+ * desktop (lg:) max-w-2xl. Only the body scrolls.
  * Built on HeroUI Modal, so focus trap, Esc, scroll lock and aria come free.
  *
  * Slots: header (title + close, sticky), `subheader` (sticky, under header,
@@ -29,7 +30,7 @@ export interface ResponsiveSheetProps {
   children: ReactNode;
   footer?: ReactNode;
   subheader?: ReactNode;
-  /** Desktop width: md = max-w-lg, lg = max-w-2xl (default), xl = max-w-3xl. */
+  /** Dialog width: md = max-w-lg; lg = max-w-xl, max-w-2xl from lg: (default); xl = max-w-3xl. */
   size?: "md" | "lg" | "xl";
   /** Accessible name for the close button. */
   closeLabel?: string;
@@ -37,7 +38,7 @@ export interface ResponsiveSheetProps {
 
 const DESKTOP_WIDTH = {
   md: "md:max-w-lg",
-  lg: "md:max-w-2xl",
+  lg: "md:max-w-xl lg:max-w-2xl",
   xl: "md:max-w-3xl",
 } as const;
 
@@ -90,37 +91,39 @@ export function ResponsiveSheet({
             className={`mt-auto flex max-w-none ${DESKTOP_WIDTH[size]} max-h-[92dvh] w-full animate-sheet-up flex-col overflow-hidden rounded-b-none rounded-t-3xl bg-overlay p-0 text-foreground shadow-overlay md:my-auto md:max-h-[85dvh] md:rounded-3xl`}
           >
             <div
-              className="mx-auto mt-2 h-1 w-9 shrink-0 rounded-full bg-border md:hidden"
+              className="mx-auto mt-1.5 h-1 w-8 shrink-0 rounded-full bg-border md:hidden"
               aria-hidden="true"
             />
-            <header className="flex shrink-0 items-start justify-between gap-3 px-4 pb-2 pt-3 md:px-6 md:pb-3 md:pt-5">
+            <header className="flex shrink-0 items-center justify-between gap-3 px-4 pb-2 pt-2 md:items-start md:px-6 md:pb-3 md:pt-5">
               <div className="min-w-0">
-                <Modal.Heading className="text-balance text-lg font-semibold">
+                <Modal.Heading className="truncate text-base font-semibold md:text-balance md:text-lg">
                   {title}
                 </Modal.Heading>
                 {description && (
-                  <p className="mt-0.5 text-[13px] text-muted">{description}</p>
+                  <p className="line-clamp-1 text-[13px] text-muted md:mt-0.5 md:line-clamp-none">
+                    {description}
+                  </p>
                 )}
               </div>
               <Modal.CloseTrigger
                 aria-label={closeLabel}
-                className="relative end-auto top-auto -me-2 -mt-1 flex size-11 shrink-0 items-center justify-center rounded-full bg-transparent text-muted transition-colors hover:bg-surface hover:text-foreground active:scale-[0.97]"
+                className="relative end-auto top-auto -me-2 flex size-10 shrink-0 md:-mt-1 md:size-11 items-center justify-center rounded-full bg-transparent text-muted transition-colors hover:bg-surface hover:text-foreground active:scale-[0.97]"
               >
                 <CloseIcon />
               </Modal.CloseTrigger>
             </header>
             {subheader && (
-              <div className="shrink-0 border-b border-separator px-4 pb-3 md:px-6">
+              <div className="shrink-0 border-b border-separator px-4 pb-2 md:px-6 md:pb-3">
                 {subheader}
               </div>
             )}
             <FooterTargetContext.Provider value={footerEl}>
-              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 md:px-6 md:py-5">
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-3 md:px-6 md:py-5">
                 {children}
               </div>
               <footer
                 ref={setFooterEl}
-                className="shrink-0 border-t border-separator bg-overlay px-4 pb-[max(var(--safe-bottom),0.75rem)] pt-2.5 empty:hidden md:px-6 md:pb-4"
+                className="shrink-0 border-t border-separator bg-overlay px-4 pb-[max(var(--safe-bottom),0.5rem)] pt-2 empty:hidden md:px-6 md:pb-4"
               >
                 {footer}
               </footer>

@@ -56,17 +56,19 @@ export function ConnectWithProvider({
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-1.5">
       <button
         type="button"
         disabled={isBusy}
         aria-busy={isBusy}
         onClick={() => void begin()}
-        className="min-h-11 w-full rounded-full bg-bot-accent px-5 text-sm font-medium text-white transition-opacity active:scale-[0.97] disabled:opacity-60"
+        className="min-h-10 w-full rounded-full bg-bot-accent px-5 text-sm font-medium text-white transition-opacity active:scale-[0.97] disabled:opacity-60"
       >
         {fillCopy(c.connectWith, { name })}
       </button>
-      <p className="text-center text-[13px] text-subtle">{c.orPasteKey}</p>
+      <p className="text-center text-xs text-subtle md:text-[13px]">
+        {c.orPasteKey}
+      </p>
     </div>
   );
 }

@@ -20,7 +20,7 @@ interface ChannelsSectionProps {
 }
 
 const ROW_BUTTON =
-  "min-h-11 rounded-full px-3 text-[13px] font-medium text-foreground hover:bg-surface-secondary";
+  "min-h-9 shrink-0 whitespace-nowrap rounded-full px-2.5 text-xs font-medium text-foreground hover:bg-surface-secondary md:text-[13px]";
 
 /** The crew's stored channels: list, create, edit, delete and open. */
 export function ChannelsSection({
@@ -41,27 +41,24 @@ export function ChannelsSection({
   }
 
   return (
-    <section aria-label={copy.title} className="flex flex-col gap-3">
-      <div>
-        <h3 className="text-sm font-medium text-foreground">{copy.title}</h3>
-        <p className="text-[13px] text-muted">{copy.note}</p>
-      </div>
+    <section aria-label={copy.title} className="flex flex-col gap-2">
+      <p className="text-xs text-muted md:text-[13px]">{copy.note}</p>
       {state.status === "failed" && (
-        <p role="alert" className="text-[13px] text-danger">
+        <p role="alert" className="text-xs md:text-[13px] text-danger">
           {copy.errors.load}
         </p>
       )}
       {state.status === "ready" && state.channels.length === 0 && !editing && (
-        <p className="text-[13px] text-subtle">{copy.empty}</p>
+        <p className="text-xs md:text-[13px] text-subtle">{copy.empty}</p>
       )}
       {state.status === "ready" && state.channels.length > 0 && (
         <ul className="flex flex-col gap-1.5">
           {state.channels.map((channel) => (
             <li
               key={channel.id}
-              className="flex flex-wrap items-center gap-1 rounded-xl border border-border px-3 py-1"
+              className="flex min-h-10 items-center gap-0.5 rounded-xl border border-border py-0.5 ps-3 pe-1"
             >
-              <span className="min-w-0 flex-1 truncate text-sm text-foreground">
+              <span className="min-w-0 flex-1 py-1.5 text-sm break-words text-foreground">
                 {channel.name}
               </span>
               <button
@@ -107,7 +104,7 @@ export function ChannelsSection({
           <button
             type="button"
             onClick={() => setEditing(emptyChannelDraft(leaderBotId))}
-            className="min-h-11 self-start rounded-full border border-border bg-surface px-4 text-[15px] font-medium text-foreground transition-colors hover:bg-surface-secondary active:scale-[0.97] md:text-sm"
+            className="min-h-10 self-start rounded-full border border-border bg-overlay px-4 text-sm font-medium text-foreground transition-colors hover:bg-surface-secondary active:scale-[0.97]"
           >
             {copy.add}
           </button>

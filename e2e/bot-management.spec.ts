@@ -54,6 +54,8 @@ test("the main bot cannot be deleted; making another bot main moves it to the to
 
   await page.getByRole("button", { name: "Editar Chief of Staff" }).click();
   const dialog = page.getByRole("dialog", { name: "Editar bot" });
+  // The main bot control lives in the collapsed "Mais opções" group.
+  await dialog.getByText("Mais opções", { exact: true }).click();
   await expect(dialog.getByText("Bot principal").first()).toBeVisible();
   await expect(dialog.getByRole("button", { name: "Excluir bot" })).toHaveCount(
     0,
@@ -61,6 +63,7 @@ test("the main bot cannot be deleted; making another bot main moves it to the to
   await dialog.getByRole("button", { name: "Cancelar" }).click();
 
   await page.getByRole("button", { name: "Editar Security" }).click();
+  await dialog.getByText("Mais opções", { exact: true }).click();
   await dialog.getByRole("button", { name: "Tornar principal" }).click();
   await dialog.getByRole("button", { name: "Salvar bot" }).click();
 

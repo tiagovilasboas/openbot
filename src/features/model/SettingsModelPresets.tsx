@@ -53,7 +53,7 @@ export function SettingsModelPresets({
       routerUrl.includes(":3000") || routerUrl.includes(":20128");
 
     return (
-      <div className="flex flex-col gap-2.5">
+      <div className="flex flex-col gap-2">
         <div
           role="radiogroup"
           aria-label={content.presetsLabel}
@@ -89,7 +89,7 @@ export function SettingsModelPresets({
             <div className="flex items-center justify-between gap-3">
               <span
                 role="status"
-                className="text-[13px] font-medium tabular-nums text-muted"
+                className="text-xs font-medium tabular-nums text-muted md:text-[13px]"
               >
                 {hasLoadedLive
                   ? fillCopy(
@@ -104,7 +104,7 @@ export function SettingsModelPresets({
                 href="https://openrouter.ai/models?variant=free"
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex min-h-11 shrink-0 items-center text-[13px] text-bot-accent underline underline-offset-2 md:min-h-0"
+                className="inline-flex min-h-10 shrink-0 items-center text-xs text-bot-accent md:text-[13px] underline underline-offset-2 md:min-h-0"
               >
                 {s.allModels}
               </a>
@@ -161,7 +161,7 @@ export function SettingsModelPresets({
             />
           );
         })}
-        <p role="status" className="text-[13px] text-subtle">
+        <p role="status" className="text-xs text-subtle md:text-[13px]">
           {localScan.scanning
             ? s.localScanning
             : localScan.scanned && localScan.servers.length === 0
@@ -177,7 +177,7 @@ export function SettingsModelPresets({
           type="button"
           onClick={localScan.rescan}
           disabled={localScan.scanning}
-          className="min-h-11 self-start rounded-xl px-3 text-sm font-medium text-foreground bg-surface hover:bg-surface-secondary disabled:opacity-50"
+          className="min-h-10 self-start rounded-xl px-3 text-sm font-medium text-foreground bg-surface hover:bg-surface-secondary disabled:opacity-50"
         >
           {s.localScanAction}
         </button>

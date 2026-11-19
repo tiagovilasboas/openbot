@@ -18,7 +18,11 @@ interface SettingsTabsProps {
   onChange: (id: SettingsTabId) => void;
 }
 
-/** Full-width segmented control with tablist semantics and arrow-key roving. */
+/**
+ * Full-width segmented control with tablist semantics and arrow-key roving.
+ * Labels never clip: on a narrow phone the row scrolls sideways instead, and a
+ * badge shrinks to a dot there (its words stay for screen readers).
+ */
 export function SettingsTabs({
   label,
   tabs,
@@ -46,8 +50,7 @@ export function SettingsTabs({
     <div
       role="tablist"
       aria-label={label}
-      className="grid gap-1 rounded-2xl bg-surface p-1"
-      style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}
+      className="flex gap-1 overflow-x-auto rounded-2xl bg-surface p-1 [scrollbar-width:none]"
     >
       {tabs.map((tab, index) => {
         const selected = tab.id === active;
@@ -65,17 +68,23 @@ export function SettingsTabs({
             tabIndex={selected ? 0 : -1}
             onClick={() => onChange(tab.id)}
             onKeyDown={(e) => handleKeyDown(e, index)}
-            className={`flex min-h-11 items-center justify-center gap-1.5 rounded-xl px-2 text-sm font-medium transition-colors active:scale-[0.97] ${
+            className={`flex min-h-10 flex-1 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl px-3 text-[13px] font-medium md:min-h-11 md:text-sm transition-colors active:scale-[0.97] ${
               selected
                 ? "bg-surface-tertiary text-foreground"
                 : "text-muted hover:text-foreground"
             }`}
           >
-            <span className="truncate">{tab.label}</span>
+            <span>{tab.label}</span>
             {tab.badge && (
-              <span className="rounded-full bg-bot-accent-soft px-1.5 text-xs font-medium tabular-nums text-bot-accent">
-                {tab.badge}
-              </span>
+              <>
+                <span
+                  aria-hidden="true"
+                  className="size-1.5 shrink-0 rounded-full bg-bot-accent md:hidden"
+                />
+                <span className="sr-only rounded-full bg-bot-accent-soft px-1.5 text-xs font-medium tabular-nums text-bot-accent md:not-sr-only">
+                  {tab.badge}
+                </span>
+              </>
             )}
           </button>
         );

@@ -59,10 +59,10 @@ export function ConnectionsPanel({
       onBack={() => setOpenId(null)}
     />
   ) : (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3 md:gap-4">
       {GROUPS.map((group) => (
         <section key={group} className="flex flex-col gap-1.5">
-          <h3 className="text-[13px] font-medium text-subtle">
+          <h3 className="text-xs font-medium text-subtle md:text-[13px]">
             {group === "models" ? c.groupModels : c.groupTools}
           </h3>
           <ul className="divide-y divide-border overflow-hidden rounded-2xl border border-border">
@@ -94,7 +94,7 @@ export function ConnectionsPanel({
   );
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3 md:gap-4">
       <ConnectNotice language={language} />
       {body}
     </div>

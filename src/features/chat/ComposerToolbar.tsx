@@ -45,7 +45,7 @@ function PaletteToggle({
       aria-controls={isOpen ? paletteId : undefined}
       onMouseDown={(event) => event.preventDefault()}
       onClick={onClick}
-      className={`flex size-11 shrink-0 items-center justify-center rounded-full transition-[background-color,color,transform] duration-(--duration-micro) ease-out-expo hover:bg-surface-secondary hover:text-foreground active:scale-[0.97] ${
+      className={`flex size-9 shrink-0 items-center justify-center rounded-full md:size-11 transition-[background-color,color,transform] duration-(--duration-micro) ease-out-expo hover:bg-surface-secondary hover:text-foreground active:scale-[0.97] ${
         isOpen ? "bg-surface-secondary text-foreground" : "text-muted"
       }`}
     >
@@ -67,7 +67,7 @@ export function ComposerToolbar({
   const sendLabel = busy ? content.queueMessageLabel : content.sendMessageLabel;
 
   return (
-    <div className="flex items-center gap-0.5 px-1.5 pb-1.5">
+    <div className="flex items-center gap-0.5 px-1 pb-1 md:px-1.5 md:pb-1.5">
       <PaletteToggle
         label={content.skillPaletteButtonAria}
         isOpen={openPalette === "skills"}
@@ -84,7 +84,12 @@ export function ComposerToolbar({
       >
         <MentionIcon />
       </PaletteToggle>
-      {actions}
+      {/* Phone: the attach button matches the 36px toolbar buttons. */}
+      {actions && (
+        <span className="flex [&_button]:size-9 md:[&_button]:size-11">
+          {actions}
+        </span>
+      )}
 
       <p className="ml-1.5 hidden select-none text-xs text-subtle md:pointer-fine:block">
         {content.composerHint}
@@ -97,7 +102,7 @@ export function ComposerToolbar({
           disabled={!canSend}
           aria-label={sendLabel}
           title={sendLabel}
-          className="flex size-11 shrink-0 items-center justify-center rounded-full bg-foreground text-background transition-[opacity,transform] duration-(--duration-micro) ease-out-expo hover:opacity-90 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40"
+          className="flex size-9 shrink-0 items-center justify-center rounded-full md:size-11 bg-foreground text-background transition-[opacity,transform] duration-(--duration-micro) ease-out-expo hover:opacity-90 active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40"
         >
           {busy ? <QueueIcon /> : <ArrowUpIcon />}
         </button>
