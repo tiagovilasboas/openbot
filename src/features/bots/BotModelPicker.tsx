@@ -85,7 +85,7 @@ function PickerBody({
         />
       )}
       {!hasLoadedLive && !routerOff && (
-        <p role="status" className="text-[13px] text-subtle">
+        <p role="status" className="text-xs md:text-[13px] text-subtle">
           {copy.loading}
         </p>
       )}

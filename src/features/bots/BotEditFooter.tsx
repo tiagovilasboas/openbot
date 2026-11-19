@@ -35,7 +35,7 @@ export function BotEditFooter({
           <button
             type="button"
             onClick={onClose}
-            className="min-h-11 rounded-full border border-border bg-surface px-5 text-[15px] font-medium text-foreground transition-colors hover:bg-surface-secondary active:scale-[0.97] md:text-sm"
+            className="min-h-11 rounded-full border border-border bg-surface px-5 text-sm font-medium text-foreground transition-colors hover:bg-surface-secondary active:scale-[0.97]"
           >
             {copy.cancel}
           </button>
@@ -43,7 +43,7 @@ export function BotEditFooter({
             type="button"
             disabled={!isValid}
             onClick={onSave}
-            className="min-h-11 rounded-full bg-foreground px-5 text-[15px] font-semibold text-background transition-transform active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40 md:text-sm"
+            className="min-h-11 rounded-full bg-foreground px-5 text-sm font-semibold text-background transition-transform active:scale-[0.97] disabled:pointer-events-none disabled:opacity-40"
           >
             {copy.save}
           </button>
