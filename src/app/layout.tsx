@@ -11,7 +11,14 @@ export const metadata: Metadata = {
   title: "Open Bot",
   description: "A personal assistant you can run your way.",
   applicationName: "Open Bot",
-  icons: { icon: "/openbot-icon.svg", apple: "/apple-icon" },
+  icons: {
+    icon: [
+      { url: "/openbot-icon.svg", type: "image/svg+xml", sizes: "any" },
+      { url: "/icon/32", type: "image/png", sizes: "32x32" },
+      { url: "/icon/16", type: "image/png", sizes: "16x16" },
+    ],
+    apple: "/apple-icon",
+  },
   appleWebApp: {
     capable: true,
     title: "Open Bot",

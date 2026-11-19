@@ -21,8 +21,8 @@ test("public/openbot-icon.svg matches the drawn mark", () => {
   );
 });
 
-test("the sketch is lines only: nothing is filled", () => {
-  const layers = brandMarkLayers({ tile: "none", guides: true });
+test("the line sketch is pencil only: nothing is filled", () => {
+  const layers = brandMarkLayers({ tile: "none" });
   assert.ok(layers.length > 0);
   for (const node of layers) {
     assert.equal(node.tag, "path");
@@ -30,11 +30,19 @@ test("the sketch is lines only: nothing is filled", () => {
   }
 });
 
-test("the in-app sketch draws in the text colour without guides", () => {
-  const withGuides = brandMarkLayers({ tile: "none", guides: true });
-  const layers = brandMarkLayers({ tile: "none", guides: false });
-  assert.ok(layers.length < withGuides.length);
+test("the in-app sketch draws in the text colour", () => {
+  const layers = brandMarkLayers({ tile: "none" });
   assert.ok(layers.every((node) => node.attrs.stroke === "currentColor"));
+});
+
+test("the small cut is one solid silhouette with the eyes punched out", () => {
+  const layers = brandMarkLayers({ tile: "none", cut: "solid" });
+  assert.equal(layers.length, 1);
+  assert.equal(layers[0].attrs.fill, "currentColor");
+  assert.equal(layers[0].attrs.fillRule, "evenodd");
+  // Body plus two eye holes: three closed subpaths.
+  assert.equal(String(layers[0].attrs.d).match(/Z/g)?.length, 3);
+  assert.ok(layers.length < brandMarkLayers({ tile: "none" }).length);
 });
 
 test("the static icon picks a graphite for the viewer's scheme", () => {
@@ -60,7 +68,7 @@ test("every pencil tone is a grey", () => {
 test("a heavier weight presses the outline harder", () => {
   const widest = (weight: number) =>
     Math.max(
-      ...brandMarkLayers({ tile: "none", guides: false, weight }).map((node) =>
+      ...brandMarkLayers({ tile: "none", weight }).map((node) =>
         Number(node.attrs.strokeWidth),
       ),
     );
@@ -70,7 +78,6 @@ test("a heavier weight presses the outline harder", () => {
 test("an install icon has an explicit ink and no clip paths or filters", () => {
   const svg = brandMarkSvg({
     tile: "none",
-    guides: true,
     ink: GRAPHITE.onDark,
   });
   assert.doesNotMatch(svg, /<style|currentColor|clip-path|filter/);

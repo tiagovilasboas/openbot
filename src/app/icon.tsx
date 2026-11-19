@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 import { renderAppIcon } from "@/features/pwa/app-icon-art.tsx";
 
-const SIZES = [192, 512] as const;
+const SIZES = [16, 32, 192, 512] as const;
 
 export function generateImageMetadata() {
   return SIZES.map((px) => ({

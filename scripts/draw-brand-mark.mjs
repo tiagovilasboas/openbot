@@ -1,288 +1,169 @@
-// Draws the Open Bot mark as the Chief of Staff's ghost head, the way a
-// graphite pencil sketch would: no fill and no colour, only pencil lines. Outline passes,
-// hatching on the shadow side, pill eyes filled in with a scribble, and faint
-// construction lines. The random generator is seeded, so the drawing is the
-// same on every run. It writes the art data and the static icon:
+// Draws the Open Bot mark: the ghost head as a calm graphite pencil sketch.
+// A firm outline with a lighter second pass slightly off register, diagonal
+// hatching on the right side, tall hatched eyes with a highlight, a scribbled
+// cast shadow, and a solid cut for favicon sizes. The drawing is authored on
+// a 120 box and mapped to the 64 viewBox. Jitter is seeded, so the output is
+// the same on every run. It writes the art data and the static icon:
 //   npm run brand:draw
 import { writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import * as prettier from "prettier";
+import {
+  crossings,
+  ellipseSpan,
+  emit,
+  num,
+  parsePath,
+  radians,
+  sample,
+  seeded,
+  subtract,
+} from "./brand-mark-geometry.mjs";
 
-const SEED = 20261109;
-// The crew heads sit on a 100 box with a radius of 32; this one sits on a
-// 64 box, so every crew measure is scaled by HEAD.r / 32.
-const HEAD = { cx: 32, cy: 32, r: 19 };
-const SCALE = HEAD.r / 32;
+const BODY =
+  "M30 96C28 80 27 64 30 52C33 32 46 20 61 20C77 20 90 33 91 52C93 66 92 82 91 96Q81 108 70.7 94Q60.5 108 50.3 94Q40 108 30 96Z";
+const EYES = [
+  { c: [50, 55], rx: 5, ry: 8.5 },
+  { c: [71, 55], rx: 5, ry: 8.5 },
+];
+const DOT_R = 1.8;
+const HATCH_ANGLE = -38;
+const SCALE = 0.6;
+const tx = ([x, y]) => [(x - 60) * SCALE + 32, (y - 64) * SCALE + 32];
 
-function seeded(seed) {
-  let a = seed;
-  return () => {
-    a = (a + 0x6d2b79f5) | 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-const rand = seeded(SEED);
+const rand = seeded(20261119);
 const between = (min, max) => min + (max - min) * rand();
-const num = (v) => {
-  const s = String(Math.round(v * 100) / 100);
-  return s === "-0" ? "0" : s;
-};
-const point = ([x, y]) => `${num(x)} ${num(y)}`;
-const radians = (deg) => (deg * Math.PI) / 180;
+const jitter = (cmds, amp, [ox, oy] = [0, 0]) =>
+  cmds.map(({ c, pts }) => ({
+    c,
+    pts: pts.map(([x, y]) => [
+      x + ox + between(-amp, amp),
+      y + oy + between(-amp, amp),
+    ]),
+  }));
 
-/**
- * The ghost as a dense polygon: a round dome, straight sides and three soft
- * scallops along the hem.
- */
-function ghostOutline() {
-  const dome = { cx: 32, cy: 30, r: 18 };
-  const [left, right, hem, sag] = [14, 50, 46.5, 5];
-  const points = [];
-  for (let a = 180; a < 360; a += 3) {
-    points.push([
-      dome.cx + dome.r * Math.cos(radians(a)),
-      dome.cy + dome.r * Math.sin(radians(a)),
-    ]);
-  }
-  for (let y = dome.cy; y < hem; y += 1) points.push([right, y]);
-  for (let x = right; x > left; x -= 0.5) {
-    const s = (right - x) / ((right - left) / 3);
-    points.push([x, hem + sag * Math.sin(Math.PI * (s % 1))]);
-  }
-  for (let y = hem; y > dome.cy; y -= 1) points.push([left, y]);
-  return points;
+const body = parsePath(BODY);
+const poly = sample(body);
+const stroke = (d, width, opacity) => ({
+  d,
+  width: Math.round(width * SCALE * 100) / 100,
+  opacity,
+});
+
+function strokes(cmds) {
+  return emit(cmds, tx);
 }
-const OUTLINE = ghostOutline();
-
-/** Where a ray from the centre at `theta` leaves the ghost. */
-function ghostRadius(theta) {
-  const [dx, dy] = [Math.cos(theta), Math.sin(theta)];
-  let far = 0;
-  for (let i = 0; i < OUTLINE.length; i++) {
-    const [ax, ay] = OUTLINE[i];
-    const [bx, by] = OUTLINE[(i + 1) % OUTLINE.length];
-    const [ex, ey] = [bx - ax, by - ay];
-    const den = dx * ey - dy * ex;
-    if (Math.abs(den) < 1e-9) continue;
-    const [px, py] = [ax - HEAD.cx, ay - HEAD.cy];
-    const t = (px * ey - py * ex) / den;
-    const u = (px * dy - py * dx) / den;
-    if (t > 0 && u >= 0 && u <= 1) far = Math.max(far, t);
-  }
-  return far;
+function line(a, b, bow = 0.6) {
+  const mid = [
+    (a[0] + b[0]) / 2 + between(-bow, bow),
+    (a[1] + b[1]) / 2 + between(-bow, bow),
+  ];
+  return `M${a.map(num)}Q${mid.map(num)} ${b.map(num)}`;
 }
 
-/** Where a line crosses the ghost shrunk by `inset`, sorted along it. */
-function crossings(origin, [dx, dy], inset) {
-  const hits = [];
-  const shrink = ([x, y]) => {
-    const k = 1 - inset / Math.hypot(x - HEAD.cx, y - HEAD.cy);
-    return [HEAD.cx + (x - HEAD.cx) * k, HEAD.cy + (y - HEAD.cy) * k];
-  };
-  for (let i = 0; i < OUTLINE.length; i++) {
-    const [ax, ay] = shrink(OUTLINE[i]);
-    const [bx, by] = shrink(OUTLINE[(i + 1) % OUTLINE.length]);
-    const [ex, ey] = [bx - ax, by - ay];
-    const den = dx * ey - dy * ex;
-    if (Math.abs(den) < 1e-9) continue;
-    const [px, py] = [ax - origin[0], ay - origin[1]];
-    const t = (px * ey - py * ex) / den;
-    const u = (px * dy - py * dx) / den;
-    if (u >= 0 && u < 1) hits.push(t);
-  }
-  return hits.sort((a, b) => a - b);
+/** Firm outline, then a lighter second pass over the left side and dome. */
+function outline() {
+  const first = jitter(body, 0.35);
+  const left = body.slice(0, 5);
+  const second = jitter(left, 0.5, [-1.5, 1]);
+  const startTick = line([32.5, 93.5], [27, 100.5], 0.2);
+  const endTick = line([88.5, 93.5], [94, 99.5], 0.2);
+  return [
+    stroke(strokes(first), 3.2, 0.92),
+    stroke(strokes(second), 1.3, 0.45),
+    stroke(strokes(parsePath(startTick)), 2.6, 0.8),
+    stroke(strokes(parsePath(endTick)), 2.6, 0.8),
+  ];
 }
 
-/** Catmull-Rom through the points, written as cubic Bézier segments. */
-function smooth(points) {
-  let d = `M${point(points[0])}`;
-  for (let i = 0; i < points.length - 1; i++) {
-    const [p0, p1, p2, p3] = [
-      points[i - 1] ?? points[i],
-      points[i],
-      points[i + 1],
-      points[i + 2] ?? points[i + 1],
-    ];
-    const c1 = [p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6];
-    const c2 = [p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6];
-    d += `C${point(c1)} ${point(c2)} ${point(p2)}`;
-  }
-  return d;
-}
-
-/** One hand-drawn pass around the ghost: a slow wobble and a loose overshoot. */
-function pencilPass({ r, amp, start, sweep = 372, drift = 0.4, step = 8 }) {
-  const from = start ?? between(0, 360);
-  const [k1, k2] = [2 + Math.floor(rand() * 2), 3 + Math.floor(rand() * 3)];
-  const [p1, p2] = [between(0, 2 * Math.PI), between(0, 2 * Math.PI)];
-  const [ox, oy] = [between(-0.15, 0.15), between(-0.15, 0.15)];
-  const points = [];
-  for (let a = 0; a <= sweep; a += step) {
-    const theta = radians(from + a);
-    const wobble =
-      amp * (0.6 * Math.sin(k1 * theta + p1) + 0.4 * Math.sin(k2 * theta + p2));
-    const progress = a / sweep;
-    const tail = progress > 0.9 ? drift * ((progress - 0.9) / 0.1) : 0;
-    const radius = ghostRadius(theta) + (r - HEAD.r) + wobble + tail;
-    points.push([
-      HEAD.cx + ox + radius * Math.cos(theta),
-      HEAD.cy + oy + radius * Math.sin(theta),
-    ]);
-  }
-  return smooth(points);
-}
-
-/**
- * Parallel pencil strokes across the ghost, one per chord, kept to the band
- * of offsets [from, to] measured along the strokes' normal.
- */
-function hatch({ angle, spacing, from, to, inset = 0.8 }) {
-  const { cx, cy, r } = HEAD;
-  const a = radians(angle);
-  const [dx, dy] = [Math.cos(a), Math.sin(a)];
-  const [nx, ny] = [-dy, dx];
-  const at = (o, s) => [cx + nx * o + dx * s, cy + ny * o + dy * s];
+/** Hatching at -38 degrees on the right of the body, kept off the eyes. */
+function bodyHatch() {
+  const a = radians(HATCH_ANGLE);
+  const dir = [Math.cos(a), Math.sin(a)];
+  const normal = [-dir[1], dir[0]];
+  const pad = 2.8;
   let d = "";
-  for (let t = from ?? -r; t <= (to ?? r); t += spacing) {
-    const o = t + between(-0.15, 0.15);
-    const hits = crossings(at(o, 0), [dx, dy], inset);
+  for (let o = -60; o <= 70; o += 3.1) {
+    const origin = [60 + normal[0] * o, 64 + normal[1] * o];
+    const hits = crossings(poly, origin, dir);
     for (let i = 0; i + 1 < hits.length; i += 2) {
-      if (hits[i + 1] - hits[i] < 1.5) continue;
-      const s = hits[i] + between(0.1, 0.9);
-      const e = hits[i + 1] - between(0.1, 0.9);
-      const mid = at(o + between(-0.3, 0.3), (s + e) / 2);
-      d += `M${point(at(o, s))}Q${point(mid)} ${point(at(o, e))}`;
+      const [t0, t1] = [hits[i] + pad, hits[i + 1] - pad];
+      if (t1 - t0 < 3) continue;
+      // Keep the part of the chord right of x = 69.
+      const tx0 = (69 - origin[0]) / dir[0];
+      const lo = Math.max(t0, tx0);
+      const cuts = EYES.map((e) =>
+        ellipseSpan(origin, dir, e.c, e.rx + 2.2, e.ry + 2.2),
+      );
+      for (const [s, e] of subtract([lo, t1], cuts)) {
+        if (e - s < 2.5) continue;
+        const [s2, e2] = [s + between(0, 1.2), e - between(0, 1.2)];
+        const at = (t) => [origin[0] + dir[0] * t, origin[1] + dir[1] * t];
+        d += strokes(parsePath(line(at(s2), at(e2), 0.35)));
+      }
     }
   }
-  return d;
+  return stroke(d, 1.1, 0.4);
 }
 
-function line(x1, y1, x2, y2) {
-  const mid = [
-    (x1 + x2) / 2 + between(-0.4, 0.4),
-    (y1 + y2) / 2 + between(-0.4, 0.4),
-  ];
-  return `M${num(x1)} ${num(y1)}Q${point(mid)} ${num(x2)} ${num(y2)}`;
+/** Two loose scribbles of cast shadow under the hem. */
+function castShadow() {
+  const d =
+    strokes(parsePath(line([38, 108.5], [84, 108], 0.8))) +
+    strokes(parsePath(line([47, 113.5], [76, 113.2], 0.8)));
+  return stroke(d, 1.4, 0.28);
 }
 
-function arc(r, fromDeg, toDeg) {
-  const at = (deg) => [
-    HEAD.cx + r * Math.cos(radians(deg)),
-    HEAD.cy + r * Math.sin(radians(deg)),
-  ];
-  const large = toDeg - fromDeg > 180 ? 1 : 0;
-  return `M${point(at(fromDeg))}A${num(r)} ${num(r)} 0 ${large} 1 ${point(at(toDeg))}`;
-}
-
-/** A pill eye leaning right like the crew's: its frame and axis. */
-function eyeFrame(x, y) {
-  const t = radians(7.5);
-  return {
-    c: [x, y],
-    u: [Math.sin(t), -Math.cos(t)],
-    p: [Math.cos(t), Math.sin(t)],
-    r: 4.1 * SCALE * 1.08,
-    half: 5.7 * SCALE,
-  };
-}
-
-const along = (f, s, w) => [
-  f.c[0] + f.u[0] * s + f.p[0] * w,
-  f.c[1] + f.u[1] * s + f.p[1] * w,
-];
-
-/** The pill's outline. */
-function eyeOutline(f) {
-  const R = num(f.r);
+function ellipsePath({ c, rx, ry }) {
+  const [x, y] = c;
   return (
-    `M${point(along(f, f.half, -f.r))}L${point(along(f, -f.half, -f.r))}` +
-    `A${R} ${R} 0 0 0 ${point(along(f, -f.half, f.r))}` +
-    `L${point(along(f, f.half, f.r))}A${R} ${R} 0 0 0 ${point(along(f, f.half, -f.r))}Z`
+    `M${[x - rx, y].map(num)}A${num(rx)} ${num(ry)} 0 1 1 ${[x + rx, y].map(num)}` +
+    `A${num(rx)} ${num(ry)} 0 1 1 ${[x - rx, y].map(num)}Z`
   );
 }
+const scaleEllipse = (e, grow = 0) => ({
+  c: tx(e.c),
+  rx: (e.rx + grow) * SCALE,
+  ry: (e.ry + grow) * SCALE,
+});
 
-/** The pill filled in the way a pencil does it: a tight back-and-forth. */
-function eyeScribble(f, step, phase) {
-  const end = f.half + f.r - 0.35;
-  const points = [];
-  let side = 1;
-  for (let s = -end + phase; s <= end; s += step) {
-    const cap = Math.max(0, Math.abs(s) - f.half);
-    const w = Math.sqrt(Math.max(0, f.r * f.r - cap * cap)) - 0.35;
-    points.push(along(f, s, side * w + between(-0.12, 0.12)));
-    side = -side;
+/** An eye: dense hatching around a paper highlight, plus its outline. */
+function eye(e) {
+  const a = radians(-62);
+  const dir = [Math.cos(a), Math.sin(a)];
+  const normal = [-dir[1], dir[0]];
+  const dot = [e.c[0] + 2.2, e.c[1] - 4.3];
+  let d = "";
+  for (let o = -10; o <= 10; o += 1.35) {
+    const origin = [e.c[0] + normal[0] * o, e.c[1] + normal[1] * o];
+    const span = ellipseSpan(origin, dir, e.c, e.rx - 0.7, e.ry - 0.7);
+    if (!span) continue;
+    const dotSpan = ellipseSpan(origin, dir, dot, DOT_R + 0.45, DOT_R + 0.45);
+    for (const [s, t] of subtract(span, [dotSpan])) {
+      if (t - s < 0.8) continue;
+      const at = (u) => [origin[0] + dir[0] * u, origin[1] + dir[1] * u];
+      d += strokes(parsePath(line(at(s), at(t), 0.15)));
+    }
   }
-  return `M${points.map(point).join("L")}`;
+  const wobbled = { ...e, c: [e.c[0] + between(-0.2, 0.2), e.c[1]] };
+  return [
+    stroke(d, 0.85, 0.9),
+    stroke(ellipsePath(scaleEllipse(wobbled)), 1.2, 0.88),
+  ];
 }
 
-const { cx, cy, r } = HEAD;
-const k = SCALE;
-const eyes = [
-  eyeFrame(cx - 0.3 * r, cy + 0.02 * r),
-  eyeFrame(cx + 0.31 * r, cy - 0.04 * r),
-];
+/** The solid cut: the silhouette with the eyes punched out (even-odd). */
+function solidCut() {
+  const holes = EYES.map((e) => ellipsePath(scaleEllipse(e, 0.8))).join("");
+  return emit(body, tx) + holes;
+}
+
 const art = {
-  guides: [
-    { d: line(5, cy + 2.4, 59, cy - 2.4), width: 0.35, opacity: 0.3 },
-    { d: line(cx - 2.6, 5, cx + 2.4, 59), width: 0.35, opacity: 0.26 },
-    {
-      d: line(cx - 16, cy + 20, cx + 17, cy - 20.5),
-      width: 0.35,
-      opacity: 0.3,
-    },
-    { d: arc(r * 1.2, 205, 375), width: 0.35, opacity: 0.2 },
-  ],
-  // Light from the upper left: the shadow side is drawn, the rest stays paper.
-  hatch: [
-    {
-      d: hatch({ angle: -45, spacing: 1.25, from: 8.5 }),
-      width: 0.42,
-      opacity: 0.5,
-    },
-    {
-      d: hatch({ angle: 80, spacing: 1.5, to: -11 }),
-      width: 0.36,
-      opacity: 0.32,
-    },
-    {
-      d: hatch({ angle: -45, spacing: 2.4, from: 2, to: 8 }),
-      width: 0.32,
-      opacity: 0.22,
-    },
-  ],
-  ink: [
-    { d: pencilPass({ r, amp: 0.22 }), width: 1.7 * k, opacity: 0.9 },
-    {
-      d: pencilPass({
-        r: r - 0.4,
-        amp: 0.25,
-        start: 300,
-        sweep: 220,
-        step: 10,
-      }),
-      width: 0.9 * k,
-      opacity: 0.45,
-    },
-    {
-      d: pencilPass({
-        r: r + 0.5,
-        amp: 0.25,
-        start: -15,
-        sweep: 140,
-        drift: 0.6,
-        step: 10,
-      }),
-      width: 1.1 * k,
-      opacity: 0.5,
-    },
-  ],
-  eyes: eyes.flatMap((f) => [
-    { d: eyeScribble(f, 0.42, 0), width: 0.8, opacity: 0.92 },
-    { d: eyeScribble(f, 0.6, 0.21), width: 0.6, opacity: 0.6 },
-    { d: eyeOutline(f), width: 0.6, opacity: 0.85 },
-  ]),
+  shadow: [castShadow()],
+  hatch: [bodyHatch()],
+  ink: outline(),
+  eyes: EYES.flatMap(eye),
+  solid: solidCut(),
 };
 
 const root = new URL("../", import.meta.url);
@@ -290,8 +171,8 @@ const artFile = fileURLToPath(
   new URL("src/shared/brand/brand-mark-art.ts", root),
 );
 const source = `// Generated by scripts/draw-brand-mark.mjs, not hand-edited. The Open Bot mark:
-// the ghost head sketched in graphite pencil on a 0 0 64 64 viewBox, lines only.
-// The pencil colour is applied by brand-mark-layers.ts.
+// the ghost head sketched in graphite pencil on a 0 0 64 64 viewBox, plus a
+// solid cut for 32 and 16 px. The pencil colour is applied by brand-mark-layers.ts.
 
 export const BRAND_MARK_ART = ${JSON.stringify(art)} as const;
 `;
