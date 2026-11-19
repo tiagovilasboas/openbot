@@ -6,6 +6,7 @@ import {
   BotTemplateImport,
 } from "@/features/bot-sharing/BotTemplateFileControls.tsx";
 import { parseBackupModelsText } from "@/features/model/backup-models.ts";
+import { ChannelsSection } from "@/features/crew/channel/client/ChannelsSection.tsx";
 import { MemorySection } from "@/features/memory/MemorySection.tsx";
 import { RoutinesSection } from "@/features/routines/client/RoutinesSection.tsx";
 import { BotSkillsEditor } from "@/features/skills/BotSkillsEditor.tsx";
@@ -43,6 +44,8 @@ interface BotEditModalProps {
   canHide?: boolean;
   onHide?: (id: string) => void;
   onRestore?: (id: string) => void;
+  /** Every bot, offered as channel members when this is the main bot. */
+  crewBots?: BotProfile[];
 }
 
 type BotEditFormProps = Omit<BotEditModalProps, "isOpen">;
@@ -59,6 +62,7 @@ function BotEditForm({
   canHide = false,
   onHide,
   onRestore,
+  crewBots,
 }: BotEditFormProps) {
   const isEditing = Boolean(bot?.id && bot.id !== "new");
   const copy = getBotsCopy(language);
@@ -246,6 +250,13 @@ function BotEditForm({
       {isEditing && bot && <MemorySection botId={bot.id} language={language} />}
       {isEditing && bot && (
         <RoutinesSection botId={bot.id} language={language} />
+      )}
+      {isEditing && bot && isMain && crewBots && (
+        <ChannelsSection
+          leaderBotId={bot.id}
+          bots={crewBots}
+          language={language}
+        />
       )}
 
       {isEditing && bot && onMakeMain && (

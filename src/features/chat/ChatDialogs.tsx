@@ -69,6 +69,7 @@ export function ChatDialogs({
         onRestore={bots.restoreBot}
         onDelete={bots.removeBot}
         onMakeMain={bots.makeMainBot}
+        crewBots={bots.bots}
       />
     </>
   );
