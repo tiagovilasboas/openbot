@@ -42,19 +42,19 @@ function TaskList({
     return <p className="text-[13px] text-subtle">{copy.empty}</p>;
   }
   return (
-    <ul className="flex flex-col gap-1">
+    <ul className="-mx-2 flex flex-col md:mx-0 md:gap-1">
       {rows.map((row) => (
         <li key={row.key}>
           <button
             type="button"
             onClick={() => onPick(row.botId, row.thread.id)}
-            className="flex min-h-11 w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-left transition-colors hover:bg-surface"
+            className="flex min-h-11 w-full items-center justify-between gap-3 rounded-xl px-2 py-1 text-left transition-colors hover:bg-surface md:px-3 md:py-2"
           >
             <span className="min-w-0">
-              <span className="block truncate text-sm font-medium text-foreground">
+              <span className="block truncate text-sm leading-5 font-medium text-foreground">
                 {displayTitle(row.thread, threadCopy)}
               </span>
-              <span className="block truncate text-[12px] text-muted">
+              <span className="block truncate text-xs leading-4 text-muted">
                 {row.botName}
               </span>
             </span>
@@ -85,7 +85,7 @@ export function TasksPanel({
         type="button"
         aria-haspopup="dialog"
         onClick={() => setIsOpen(true)}
-        className="ml-auto inline-flex min-h-11 shrink-0 items-center rounded-full px-3 text-[13px] font-medium text-muted transition-colors hover:bg-surface hover:text-foreground"
+        className="ml-auto inline-flex h-8 shrink-0 items-center whitespace-nowrap rounded-full px-3 text-[13px] md:h-auto md:min-h-11 font-medium text-muted transition-colors hover:bg-surface hover:text-foreground"
       >
         {copy.open}
       </button>

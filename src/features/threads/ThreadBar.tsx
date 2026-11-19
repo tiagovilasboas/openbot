@@ -22,7 +22,7 @@ interface ThreadBarProps {
 }
 
 const chip =
-  "inline-flex min-h-11 shrink-0 items-center rounded-full px-3 text-[13px] font-medium transition-colors duration-(--duration-micro) ease-out-expo disabled:opacity-50";
+  "inline-flex h-8 shrink-0 items-center whitespace-nowrap rounded-full px-3 text-[13px] font-medium md:h-auto md:min-h-11 transition-colors duration-(--duration-micro) ease-out-expo disabled:opacity-50";
 
 /** The selected bot's threads: switch, add, rename and delete (with undo). */
 export function ThreadBar({
@@ -45,7 +45,7 @@ export function ThreadBar({
   return (
     <nav
       aria-label={copy.listLabel}
-      className="flex items-center gap-1 overflow-x-auto border-b border-border px-3"
+      className="flex h-10 shrink-0 items-center gap-1 overflow-x-auto border-b border-border px-2 [scrollbar-width:none] md:h-auto md:px-3 [&::-webkit-scrollbar]:hidden"
     >
       {threads.length > 1 &&
         threads.map((thread) =>
@@ -63,7 +63,7 @@ export function ThreadBar({
                 if (e.key === "Enter") e.currentTarget.blur();
                 if (e.key === "Escape") setEditing(null);
               }}
-              className="min-h-11 w-40 shrink-0 rounded-full border border-border bg-surface px-3 text-[13px]"
+              className="h-8 w-40 shrink-0 rounded-full border border-border bg-surface px-3 text-[13px] md:h-auto md:min-h-11"
             />
           ) : (
             <button
@@ -114,7 +114,7 @@ export function ThreadBar({
       {removed && (
         <span
           role="status"
-          className="ml-2 flex items-center text-[13px] text-muted"
+          className="ml-2 flex shrink-0 items-center whitespace-nowrap text-[13px] text-muted"
         >
           {copy.removed}
           <button
