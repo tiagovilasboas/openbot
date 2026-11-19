@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   SKIP_WAITING_MESSAGE,
   createReloadGuard,
+  dropServiceWorkers,
   updateIsWaiting,
 } from "./sw-update.ts";
 
@@ -21,8 +22,14 @@ export function useServiceWorkerUpdate(): {
   const guard = useRef(createReloadGuard());
 
   useEffect(() => {
-    if (process.env.NODE_ENV !== "production") return;
     if (!("serviceWorker" in navigator)) return;
+    if (process.env.NODE_ENV !== "production") {
+      const storage = "caches" in window ? window.caches : undefined;
+      void dropServiceWorkers(navigator.serviceWorker, storage).catch(() => {
+        // Best effort: a failure only leaves the old worker in place.
+      });
+      return;
+    }
     const container = navigator.serviceWorker;
     const check = (reg: ServiceWorkerRegistration) =>
       setUpdateReady(updateIsWaiting(reg, Boolean(container.controller)));

@@ -33,3 +33,33 @@ export function createReloadGuard(): {
     },
   };
 }
+
+const SHELL_CACHE_PREFIX = "openbot-shell-";
+
+type Registrations = {
+  getRegistrations(): Promise<readonly { unregister(): Promise<boolean> }[]>;
+};
+type ShellCaches = {
+  keys(): Promise<string[]>;
+  delete(key: string): Promise<boolean>;
+};
+
+/**
+ * Dev never registers the worker, but one left by a production run on the
+ * same port keeps serving its cached /_next/static/ chunks, which sends the
+ * dev page into a reload loop. Removing it and its shell caches ends that.
+ */
+export async function dropServiceWorkers(
+  container: Registrations,
+  storage?: ShellCaches,
+): Promise<void> {
+  const registrations = await container.getRegistrations();
+  await Promise.all(registrations.map((r) => r.unregister()));
+  if (!storage) return;
+  const keys = await storage.keys();
+  await Promise.all(
+    keys
+      .filter((key) => key.startsWith(SHELL_CACHE_PREFIX))
+      .map((key) => storage.delete(key)),
+  );
+}
