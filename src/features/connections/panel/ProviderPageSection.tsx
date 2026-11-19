@@ -50,7 +50,7 @@ export function ProviderPageSection({
 
   return (
     <section className="flex flex-col gap-2">
-      <dl className="flex flex-col gap-1 rounded-xl bg-surface px-3.5 py-2.5 text-[13px]">
+      <dl className="flex flex-col gap-1 rounded-xl bg-surface px-3 py-2 text-xs md:px-3.5 md:py-2.5 md:text-[13px]">
         <div className="flex justify-between gap-3">
           <dt className="text-subtle">{c.modelsLabel}</dt>
           <dd className="min-w-0 truncate text-foreground">{model}</dd>
@@ -62,12 +62,12 @@ export function ProviderPageSection({
           </dd>
         </div>
       </dl>
-      <div className="flex min-h-14 items-center justify-between gap-3 rounded-xl bg-surface px-3.5 py-2">
+      <div className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-surface px-3 py-1.5 md:min-h-14 md:px-3.5 md:py-2">
         <span className="min-w-0">
-          <span className="block text-[15px] font-medium text-foreground md:text-sm">
+          <span className="block text-sm font-medium text-foreground">
             {fillCopy(c.switchLabel, { name: entry.name })}
           </span>
-          <span className="block text-[13px] text-muted">
+          <span className="block text-xs text-muted md:text-[13px]">
             {fillCopy(c.switchHint, { name: entry.name })}
           </span>
         </span>
