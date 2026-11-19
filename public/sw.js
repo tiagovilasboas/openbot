@@ -1,15 +1,17 @@
 // Minimal app-shell service worker. It never touches /api/* or non-GET
 // requests, so model replies and credentials are never cached.
-const CACHE = "openbot-shell-v3";
+const CACHE = "openbot-shell-v4";
 const SHELL = ["/", "/openbot-icon.svg"];
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches
-      .open(CACHE)
-      .then((cache) => cache.addAll(SHELL))
-      .then(() => self.skipWaiting()),
-  );
+  // No skipWaiting here: an updated worker waits until the page, after the
+  // user agrees (see the SKIP_WAITING message below), so a reload never swaps
+  // the build under an open chat.
+  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL)));
+});
+
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
