@@ -42,20 +42,21 @@ export function UsageBotRow({
   onReset,
 }: UsageBotRowProps) {
   return (
-    <li className="flex flex-col gap-2 rounded-2xl bg-surface p-3.5">
+    <li className="flex flex-col gap-1 rounded-2xl bg-surface px-3 py-2 md:gap-2 md:p-3.5">
       <div className="flex items-center justify-between gap-3">
         <span className="flex min-w-0 items-center gap-2.5">
           <BotAvatar
             shape={bot.avatarShape}
             color={bot.avatarColor}
-            size={32}
+            size={28}
           />
-          <span className="truncate text-[15px] font-medium text-foreground">
+          <span className="truncate text-sm font-medium text-foreground md:text-[15px]">
             {bot.name}
           </span>
         </span>
         <UsageResetControl
           label={copy.reset(bot.name)}
+          text={copy.resetShort}
           question={copy.confirmBot}
           confirmLabel={copy.confirmAction}
           cancelLabel={copy.cancel}
@@ -64,9 +65,9 @@ export function UsageBotRow({
         />
       </div>
       {total.calls === 0 ? (
-        <p className="text-[13px] text-subtle">{copy.noReplies}</p>
+        <p className="text-xs text-subtle md:text-[13px]">{copy.noReplies}</p>
       ) : (
-        <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-[13px]">
+        <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-xs md:gap-x-4 md:gap-y-1 md:text-[13px]">
           <dt className="text-muted">{copy.total}</dt>
           <dd className="text-foreground">
             <Tokens copy={copy} format={format} totals={total} />
@@ -79,7 +80,7 @@ export function UsageBotRow({
         </dl>
       )}
       {total.callsWithoutUsage > 0 && (
-        <p className="text-[13px] text-subtle">
+        <p className="text-xs text-subtle md:text-[13px]">
           {copy.withoutData(total.callsWithoutUsage)}
         </p>
       )}
