@@ -80,6 +80,11 @@ export function SettingsProviderSelector({
             >
               {selected && <CheckIcon className="size-4 text-bot-accent" />}
               {option.name}
+              {isOff && (
+                <span className="sr-only">
+                  {offProviderCopy[language].offReason}
+                </span>
+              )}
             </button>
           );
         })}
