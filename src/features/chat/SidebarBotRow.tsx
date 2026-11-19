@@ -42,7 +42,7 @@ interface SidebarBotRowProps {
 }
 
 const ROW_BUTTON =
-  "flex min-h-14 w-full items-center gap-3 rounded-xl py-2 pl-3 text-left transition-[background-color,transform] duration-150 ease-out-expo active:scale-[0.98]";
+  "flex min-h-13 w-full items-center gap-2.5 rounded-xl py-1.5 pl-2.5 text-left md:min-h-14 md:gap-3 md:py-2 md:pl-3 transition-[background-color,transform] duration-150 ease-out-expo active:scale-[0.98]";
 const SIDE_BUTTON =
   "absolute top-1/2 flex -translate-y-1/2 items-center justify-center rounded-full text-subtle transition-[opacity,background-color,color,scale] duration-150 ease-out-expo hover:bg-surface-secondary hover:text-foreground active:scale-[0.97] pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100";
 
@@ -74,7 +74,7 @@ export function SidebarBotRow({
   return (
     <li
       ref={rowRef}
-      className={`group relative rounded-xl ${
+      className={`group relative rounded-xl [--row-avatar:32px] md:[--row-avatar:38px] ${
         reorder?.isDragging
           ? "z-10 bg-surface shadow-lg ring-1 ring-border"
           : ""
@@ -93,18 +93,18 @@ export function SidebarBotRow({
           <BotAvatar
             shape={bot.avatarShape}
             color={bot.avatarColor}
-            size={38}
+            size="var(--row-avatar)"
             active={isActive}
           />
           {isWorking && <BotWorkingDot color={bot.avatarColor} />}
           {unseenReplies > 0 && <AttentionBadge count={unseenReplies} />}
         </span>
         <span className="flex min-w-0 flex-col">
-          <span className="truncate text-[15px] leading-5 font-medium text-foreground md:text-sm">
+          <span className="truncate text-sm leading-5 font-medium text-foreground">
             {bot.name}
           </span>
           {role && (
-            <span className="truncate text-[13px] leading-[18px] text-muted">
+            <span className="truncate text-xs leading-4 text-muted md:text-[13px] md:leading-[18px]">
               {role}
             </span>
           )}

@@ -38,6 +38,7 @@ import { useLanguage } from "./use-language.ts";
 import { useMessageQueue } from "./use-message-queue.ts";
 import { useAgentShortcuts } from "./use-agent-shortcuts.ts";
 import { useNewChatUndo } from "./use-new-chat-undo.ts";
+import { useSidebarCollapse } from "./use-sidebar-collapse.ts";
 import { TasksPanel } from "../tasks/TasksPanel.tsx";
 import { selectThread } from "../threads/thread-selection.ts";
 import { ThreadBar } from "../threads/ThreadBar.tsx";
@@ -71,7 +72,7 @@ export function ChatExperience() {
 
   // Sidebar & Modals state
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false);
+  const sidebarCollapse = useSidebarCollapse();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const openSettings = useCallback(() => setIsSettingsOpen(true), []);
   const botEditor = useBotEditor();
@@ -206,10 +207,10 @@ export function ChatExperience() {
         approvalBotId={toolTurn.paused?.botId}
         onReorderBot={reorderBot}
         isMobileOpen={isMobileSidebarOpen}
-        isDesktopCollapsed={isDesktopCollapsed}
+        isDesktopCollapsed={sidebarCollapse.isCollapsed}
         hasPassword={auth.hasPassword}
         onLock={auth.lock}
-        onToggleDesktopCollapse={() => setIsDesktopCollapsed((v) => !v)}
+        onToggleDesktopCollapse={sidebarCollapse.toggle}
         onCloseMobile={() => setIsMobileSidebarOpen(false)}
         agentsLockedReason={gate.agentsReason}
         onSelectBot={(id) => {
