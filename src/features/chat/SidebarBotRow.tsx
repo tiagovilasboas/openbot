@@ -46,6 +46,13 @@ const ROW_BUTTON =
 const SIDE_BUTTON =
   "absolute top-1/2 flex -translate-y-1/2 items-center justify-center rounded-full text-subtle transition-[opacity,background-color,color,scale] duration-150 ease-out-expo hover:bg-surface-secondary hover:text-foreground active:scale-[0.97] pointer-fine:opacity-0 pointer-fine:group-focus-within:opacity-100 pointer-fine:group-hover:opacity-100";
 
+// Room for the side buttons. With a mouse they show only on hover or focus,
+// so the name keeps the full width until then instead of being cut early.
+const SIDE_ROOM =
+  "pr-12 pointer-fine:pr-3 pointer-fine:group-focus-within:pr-12 pointer-fine:group-hover:pr-12";
+const SIDE_ROOM_WIDE =
+  "pr-[5.5rem] pointer-fine:pr-3 pointer-fine:group-focus-within:pr-[5.5rem] pointer-fine:group-hover:pr-[5.5rem]";
+
 /** One bot of the sidebar: select, working dot, move handle and edit. */
 export function SidebarBotRow({
   language,
@@ -78,7 +85,7 @@ export function SidebarBotRow({
         aria-current={isActive ? "page" : undefined}
         aria-keyshortcuts={shortcutHint ? `Alt+${shortcutHint}` : undefined}
         onClick={onSelect}
-        className={`${ROW_BUTTON} ${reorder || onRestore ? "pr-[5.5rem]" : "pr-12"} ${
+        className={`${ROW_BUTTON} ${reorder || onRestore ? SIDE_ROOM_WIDE : SIDE_ROOM} ${
           isActive ? "bg-surface-tertiary" : "hover:bg-surface"
         }`}
       >
