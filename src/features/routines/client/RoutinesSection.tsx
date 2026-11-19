@@ -30,19 +30,16 @@ export function RoutinesSection({ botId, language }: RoutinesSectionProps) {
   }
 
   return (
-    <section aria-label={copy.title} className="flex flex-col gap-3">
-      <div>
-        <h3 className="text-sm font-medium text-foreground">{copy.title}</h3>
-        <p className="text-[13px] text-muted">{copy.note}</p>
-      </div>
+    <section aria-label={copy.title} className="flex flex-col gap-2">
+      <p className="text-xs text-muted md:text-[13px]">{copy.note}</p>
 
       {state.status === "failed" && (
-        <p role="alert" className="text-[13px] text-danger">
+        <p role="alert" className="text-xs md:text-[13px] text-danger">
           {copy.errors.load}
         </p>
       )}
       {state.status === "ready" && state.routines.length === 0 && !editing && (
-        <p className="text-[13px] text-subtle">{copy.empty}</p>
+        <p className="text-xs md:text-[13px] text-subtle">{copy.empty}</p>
       )}
       {state.status === "ready" && state.routines.length > 0 && (
         <ul className="flex flex-col gap-1.5">
@@ -75,7 +72,7 @@ export function RoutinesSection({ botId, language }: RoutinesSectionProps) {
           <button
             type="button"
             onClick={() => setEditing(emptyDraft())}
-            className="min-h-11 self-start rounded-full border border-border bg-surface px-4 text-[15px] font-medium text-foreground transition-colors hover:bg-surface-secondary active:scale-[0.97] md:text-sm"
+            className="min-h-10 self-start rounded-full border border-border bg-overlay px-4 text-sm font-medium text-foreground transition-colors hover:bg-surface-secondary active:scale-[0.97]"
           >
             {copy.add}
           </button>
