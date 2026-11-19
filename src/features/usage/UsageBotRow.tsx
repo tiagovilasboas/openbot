@@ -50,8 +50,15 @@ export function UsageBotRow({
             color={bot.avatarColor}
             size={28}
           />
-          <span className="truncate text-sm font-medium text-foreground md:text-[15px]">
-            {bot.name}
+          <span className="min-w-0">
+            <span className="block truncate text-sm font-medium text-foreground md:text-[15px]">
+              {bot.name}
+            </span>
+            {total.calls === 0 && (
+              <span className="block truncate text-xs text-subtle md:text-[13px]">
+                {copy.noReplies}
+              </span>
+            )}
           </span>
         </span>
         <UsageResetControl
@@ -64,9 +71,7 @@ export function UsageBotRow({
           onConfirm={onReset}
         />
       </div>
-      {total.calls === 0 ? (
-        <p className="text-xs text-subtle md:text-[13px]">{copy.noReplies}</p>
-      ) : (
+      {total.calls > 0 && (
         <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-xs md:gap-x-4 md:gap-y-1 md:text-[13px]">
           <dt className="text-muted">{copy.total}</dt>
           <dd className="text-foreground">
@@ -79,6 +84,7 @@ export function UsageBotRow({
           </dd>
         </dl>
       )}
+
       {total.callsWithoutUsage > 0 && (
         <p className="text-xs text-subtle md:text-[13px]">
           {copy.withoutData(total.callsWithoutUsage)}
