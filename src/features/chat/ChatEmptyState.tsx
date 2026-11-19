@@ -76,26 +76,26 @@ export function ChatEmptyState({
   return (
     <section className="flex min-h-0 flex-1 flex-col md:overflow-y-auto md:px-6 md:py-10">
       <div className="flex min-h-0 flex-1 flex-col md:m-auto md:w-full md:max-w-2xl md:flex-none">
-        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-6 md:flex-none md:overflow-visible md:px-0">
-          <div className="my-auto flex animate-enter flex-col items-center py-8 text-center md:py-0 md:pb-8">
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-4 md:flex-none md:overflow-visible md:px-0">
+          <div className="my-auto flex animate-enter flex-col items-center py-4 text-center [--empty-avatar:48px] md:py-0 md:pb-8 md:[--empty-avatar:80px]">
             {activeBot ? (
               <BotAvatar
                 shape={activeBot.avatarShape}
                 color={activeBot.avatarColor}
-                size={80}
+                size="var(--empty-avatar)"
               />
             ) : (
               <span
                 aria-hidden="true"
-                className="flex size-14 items-center justify-center rounded-2xl border border-border bg-surface text-foreground"
+                className="flex size-12 items-center justify-center rounded-2xl border border-border bg-surface text-foreground md:size-14"
               >
                 <TerminalIcon className="size-6" />
               </span>
             )}
-            <h2 className="mt-4 max-w-md text-balance wrap-anywhere text-[26px] font-semibold leading-tight tracking-[-0.02em] text-foreground md:mt-5 md:max-w-xl md:text-[32px] md:tracking-[-0.025em]">
+            <h2 className="mt-3 line-clamp-2 max-w-md text-balance wrap-anywhere text-xl font-semibold leading-tight tracking-[-0.015em] text-foreground md:mt-5 md:line-clamp-none md:max-w-xl md:text-[32px] md:tracking-[-0.025em]">
               {title}
             </h2>
-            <p className="mt-2 max-w-md text-pretty text-[15px] text-muted">
+            <p className="mt-1 max-w-md text-pretty text-[13px] text-muted md:mt-2 md:text-[15px]">
               {subtitle}
             </p>
 
@@ -114,7 +114,7 @@ export function ChatEmptyState({
         </div>
 
         <div className="group/dock flex flex-col">
-          <div className="order-2 px-4 pb-[max(var(--safe-bottom),0.75rem)] md:order-1 md:px-0 md:pb-0">
+          <div className="order-2 px-2 pb-[max(var(--safe-bottom),0.5rem)] md:order-1 md:px-0 md:pb-0">
             <ChatComposer
               mode="hero"
               isConfigured={isConfigured}
@@ -134,14 +134,14 @@ export function ChatEmptyState({
             <WelcomeStarters
               language={language}
               bot={activeBot}
-              className="order-1 pb-3 group-has-[[data-composer-palette]]/dock:pointer-events-none group-has-[[data-composer-palette]]/dock:opacity-0 md:order-2 md:pb-0 md:pt-5"
+              className="order-1 pb-2 group-has-[[data-composer-palette]]/dock:pointer-events-none group-has-[[data-composer-palette]]/dock:opacity-0 md:order-2 md:pb-0 md:pt-5"
               onPick={onDraftChange}
             />
           ) : (
             <SuggestionChips
               language={language}
               isHidden={Boolean(draft)}
-              className="order-1 pb-3 group-has-[[data-composer-palette]]/dock:pointer-events-none group-has-[[data-composer-palette]]/dock:opacity-0 md:order-2 md:pb-0 md:pt-5"
+              className="order-1 pb-2 group-has-[[data-composer-palette]]/dock:pointer-events-none group-has-[[data-composer-palette]]/dock:opacity-0 md:order-2 md:pb-0 md:pt-5"
               onSelectPrompt={onSelectPrompt}
             />
           )}

@@ -33,7 +33,7 @@ export function SidebarHiddenBots({
   if (bots.length === 0) return null;
 
   return (
-    <div className="mt-4">
+    <div className="mt-2 md:mt-4">
       <button
         type="button"
         aria-expanded={expanded}

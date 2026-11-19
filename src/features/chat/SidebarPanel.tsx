@@ -81,7 +81,7 @@ export function SidebarPanel({
     <>
       <nav
         aria-label={content.mainNavLabel}
-        className="flex min-h-0 flex-1 touch-pan-y flex-col overflow-y-auto overscroll-contain px-2 pb-3"
+        className="flex min-h-0 flex-1 touch-pan-y flex-col overflow-y-auto overscroll-contain px-2 pb-2 md:pb-3"
       >
         {onNewChat && (
           <SidebarActionRow
@@ -102,10 +102,14 @@ export function SidebarPanel({
           onSelectBot={onSelectBot}
         />
 
-        <div role="group" aria-labelledby={botsLabelId} className="mt-5">
+        <div
+          role="group"
+          aria-labelledby={botsLabelId}
+          className="mt-3 md:mt-5"
+        >
           <p
             id={botsLabelId}
-            className="px-3 pb-1.5 text-xs font-medium text-subtle"
+            className="px-3 pb-1 text-xs font-medium text-subtle md:pb-1.5"
           >
             {content.sidebarBotsGroup}
           </p>
@@ -151,7 +155,7 @@ export function SidebarPanel({
         </div>
       </nav>
 
-      <div className="flex shrink-0 flex-col gap-1 border-t border-separator px-2 py-2">
+      <div className="flex shrink-0 flex-col gap-1 border-t border-separator px-2 py-1 md:py-2">
         {hasPassword && onLock && (
           <SidebarActionRow
             icon={<LockIcon />}

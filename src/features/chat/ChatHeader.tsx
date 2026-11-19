@@ -63,13 +63,13 @@ export function ChatHeader({
         <BotAvatar
           shape={activeBot.avatarShape}
           color={activeBot.avatarColor}
-          size={41}
+          size="var(--header-avatar)"
         />
       ) : (
         <BrandMark />
       )}
       <span className="flex min-w-0 flex-col">
-        <span className="truncate text-[15px] leading-5 font-medium text-foreground">
+        <span className="truncate text-[15px] leading-5 font-semibold text-foreground md:font-medium">
           {activeBot ? activeBot.name : content.brandName}
         </span>
       </span>
@@ -78,7 +78,7 @@ export function ChatHeader({
 
   return (
     <header className="sticky top-0 z-30 shrink-0 border-b border-separator bg-background pt-safe pr-safe pl-safe md:pl-0">
-      <div className="flex h-14 items-center gap-1 px-1.5 md:gap-3 md:px-4">
+      <div className="flex h-12 items-center gap-0.5 px-1 [--header-avatar:32px] md:h-14 md:gap-3 md:px-4 md:[--header-avatar:41px]">
         {onOpenMobileSidebar && (
           <button
             type="button"
@@ -96,13 +96,13 @@ export function ChatHeader({
             <button
               type="button"
               onClick={onOpenBotEdit}
-              className="flex min-h-11 max-w-full min-w-0 items-center gap-2.5 rounded-xl px-2 text-left transition-[background-color,transform] duration-150 ease-out-expo hover:bg-surface active:scale-[0.99]"
+              className="flex min-h-11 max-w-full min-w-0 items-center gap-2 rounded-xl px-1.5 text-left md:gap-2.5 md:px-2 transition-[background-color,transform] duration-150 ease-out-expo hover:bg-surface active:scale-[0.99]"
             >
               {identity}
               <span className="sr-only">, {content.headerEditBot}</span>
             </button>
           ) : (
-            <span className="flex min-h-11 min-w-0 items-center gap-2.5 px-2">
+            <span className="flex min-h-11 min-w-0 items-center gap-2 px-1.5 md:gap-2.5 md:px-2">
               {identity}
             </span>
           )}

@@ -72,7 +72,7 @@ export function FirstRunCard({
     return (
       <section
         aria-label={copy.connect}
-        className="mt-6 flex w-full max-w-sm animate-enter flex-col gap-3 rounded-2xl border border-border bg-surface p-4 text-left"
+        className="mt-4 flex w-full max-w-sm animate-enter flex-col gap-2.5 rounded-2xl border border-border bg-surface p-3.5 text-left md:mt-6 md:gap-3 md:p-4"
       >
         <ConnectProvider
           id="router"
@@ -110,7 +110,7 @@ export function FirstRunCard({
   return (
     <section
       aria-labelledby="first-run-title"
-      className="mt-6 flex w-full max-w-sm animate-enter flex-col gap-3 rounded-2xl border border-border bg-surface p-4 text-left"
+      className="mt-4 flex w-full max-w-sm animate-enter flex-col gap-2.5 rounded-2xl border border-border bg-surface p-3.5 text-left md:mt-6 md:gap-3 md:p-4"
     >
       {showFailure && (
         <div
@@ -144,7 +144,7 @@ export function FirstRunCard({
           <button type="button" onClick={startFree} className={primaryButton}>
             {copy.startFree}
           </button>
-          <p className="-mt-1.5 text-center text-[12px] text-subtle">
+          <p className="-mt-1 text-center text-xs text-subtle md:-mt-1.5">
             {copy.startFreeHint}
           </p>
           <button
@@ -154,7 +154,7 @@ export function FirstRunCard({
           >
             {copy.connect}
           </button>
-          <p className="-mt-1.5 text-center text-[12px] text-subtle">
+          <p className="-mt-1 text-center text-xs text-subtle md:-mt-1.5">
             {copy.connectHint}
           </p>
         </>

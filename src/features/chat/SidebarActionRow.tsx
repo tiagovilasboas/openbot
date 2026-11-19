@@ -22,7 +22,7 @@ export function SidebarActionRow({
       type="button"
       disabled={disabled}
       onClick={onPress}
-      className={`flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-[15px] font-medium transition-[background-color,color,transform] duration-150 ease-out-expo hover:bg-surface hover:text-foreground active:scale-[0.98] disabled:pointer-events-none disabled:opacity-40 md:text-sm ${
+      className={`flex min-h-11 w-full items-center gap-3 rounded-xl px-2.5 text-left text-sm font-medium md:px-3 transition-[background-color,color,transform] duration-150 ease-out-expo hover:bg-surface hover:text-foreground active:scale-[0.98] disabled:pointer-events-none disabled:opacity-40 md:text-sm ${
         emphasis ? "text-foreground" : "text-muted"
       }`}
     >

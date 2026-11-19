@@ -76,7 +76,7 @@ function MarkdownBlocks({ text }: { text: string }) {
         return (
           <h3
             key={i}
-            className="mt-5 text-balance text-base font-semibold text-foreground first:mt-0"
+            className="mt-4 text-balance text-[15px] font-semibold md:mt-5 md:text-base text-foreground first:mt-0"
           >
             {renderInline(block.text)}
           </h3>
@@ -85,7 +85,7 @@ function MarkdownBlocks({ text }: { text: string }) {
         return (
           <h4
             key={i}
-            className="mt-4 text-balance text-[15px] font-semibold text-foreground first:mt-0"
+            className="mt-3 text-balance text-sm font-semibold text-foreground first:mt-0 md:mt-4 md:text-[15px]"
           >
             {renderInline(block.text)}
           </h4>
@@ -101,8 +101,8 @@ function MarkdownBlocks({ text }: { text: string }) {
             key={i}
             className={
               isWarning
-                ? "my-3 rounded-xl bg-warning-soft px-3 py-2 text-[13px] text-foreground"
-                : "my-3 border-l border-border pl-4 text-muted"
+                ? "my-2 rounded-xl bg-warning-soft md:my-3 px-3 py-2 text-[13px] text-foreground"
+                : "my-2 border-l border-border pl-3 text-muted md:my-3 md:pl-4"
             }
           >
             {renderInline(block.text)}
@@ -113,7 +113,7 @@ function MarkdownBlocks({ text }: { text: string }) {
         return (
           <ul
             key={i}
-            className="my-3 list-disc space-y-1.5 pl-5 marker:text-subtle first:mt-0"
+            className="my-2 list-disc space-y-1 pl-5 md:my-3 md:space-y-1.5 marker:text-subtle first:mt-0"
           >
             {block.items.map((item, j) => (
               <li key={j} className="pl-1">
@@ -124,7 +124,7 @@ function MarkdownBlocks({ text }: { text: string }) {
         );
       case "paragraph":
         return (
-          <p key={i} className="my-3 first:mt-0 break-words">
+          <p key={i} className="my-2 first:mt-0 break-words md:my-3">
             {renderInline(block.text)}
           </p>
         );
@@ -139,7 +139,7 @@ export function FormattedMessage({
 }: FormattedMessageProps) {
   return (
     <div
-      className={`min-w-0 text-base leading-[1.65] text-foreground md:text-[15px] md:leading-[1.7] [&_a]:text-bot-accent [&_a]:underline [&_a]:underline-offset-3 [&_a]:decoration-1 ${className ?? ""}`}
+      className={`min-w-0 text-sm leading-[1.6] text-foreground md:text-[15px] md:leading-[1.7] [&_a]:text-bot-accent [&_a]:underline [&_a]:underline-offset-3 [&_a]:decoration-1 ${className ?? ""}`}
     >
       {splitFences(content).map((segment, i) =>
         segment.kind === "code" ? (

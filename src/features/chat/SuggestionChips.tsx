@@ -66,7 +66,7 @@ export function SuggestionChips({
       role="group"
       aria-label={content.suggestionsLabel}
       inert={isHidden}
-      className={`flex snap-x scroll-px-4 gap-2 overflow-x-auto px-4 transition-opacity duration-(--duration-ui) ease-out-expo [scrollbar-width:none] md:flex-wrap md:justify-center md:overflow-visible md:px-0 [&::-webkit-scrollbar]:hidden ${
+      className={`flex snap-x scroll-px-3 gap-2 overflow-x-auto px-3 transition-opacity duration-(--duration-ui) ease-out-expo [scrollbar-width:none] md:flex-wrap md:justify-center md:overflow-visible md:px-0 [&::-webkit-scrollbar]:hidden ${
         isHidden ? "opacity-0" : ""
       } ${className}`}
     >
@@ -75,7 +75,7 @@ export function SuggestionChips({
           key={key}
           type="button"
           onClick={() => onSelectPrompt(content[prompt])}
-          className="inline-flex min-h-11 shrink-0 snap-start items-center gap-2 whitespace-nowrap rounded-full border border-border bg-surface px-4 text-[15px] font-medium text-foreground transition-[background-color,transform] duration-(--duration-micro) ease-out-expo hover:bg-surface-secondary active:scale-[0.97] md:text-sm"
+          className="inline-flex min-h-10 shrink-0 snap-start items-center gap-1.5 whitespace-nowrap rounded-full border border-border bg-surface px-3.5 text-sm font-medium md:min-h-11 md:gap-2 md:px-4 md:text-[15px] text-foreground transition-[background-color,transform] duration-(--duration-micro) ease-out-expo hover:bg-surface-secondary active:scale-[0.97] md:text-sm"
         >
           <Icon className="size-4 shrink-0 text-muted" />
           {content[label]}
