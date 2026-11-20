@@ -1,6 +1,6 @@
 # Spike ROT-8: Telegram sobre a rota de automação
 
-Data: 2026-11-20. Status: **feito; desenho aprovado para fatias**. Pergunta:
+Data: 2026-11-20. Status: **feito; TG-1 a TG-3 entregues (configuração por ambiente), TG-4 aberta**. Pergunta:
 como falar com um bot do Open Bot pelo Telegram sem expor o servidor?
 
 ## O que já existe

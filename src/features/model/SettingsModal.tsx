@@ -6,6 +6,7 @@ import {
   useConnectFlow,
 } from "@/features/connections/index.ts";
 import { SettingsSecuritySection } from "@/features/auth/SettingsSecuritySection.tsx";
+import { IntegrationsSection } from "../integrations/client/IntegrationsSection.tsx";
 import { AutomationTokenSection } from "@/features/automation/client/AutomationTokenSection.tsx";
 import { BackupSection } from "@/features/backup/BackupSection.tsx";
 import { chatCopy } from "@/features/chat/chat-copy.ts";
@@ -127,6 +128,7 @@ export function SettingsModal({
             showSecretLabel={s.showSecret}
             hideSecretLabel={s.hideSecret}
           />
+          <IntegrationsSection language={language} />
         </div>
 
         <div hidden={activeTab !== "security"}>
