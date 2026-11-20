@@ -7,7 +7,6 @@ import {
 } from "./bot-types.ts";
 import { isValidBotId } from "./bot-id.ts";
 import type { SkillDefinition } from "../skills/skill-types.ts";
-import { CREW_PRESETS } from "./crew-presets.ts";
 import { sanitizeBotList } from "./bot-sanitize.ts";
 
 export { sanitizeBotList, sanitizeBotProfile } from "./bot-sanitize.ts";
@@ -15,7 +14,11 @@ export { sanitizeBotList, sanitizeBotProfile } from "./bot-sanitize.ts";
 export const BOTS_STORAGE_KEY = "openbot_bots";
 export const ACTIVE_BOT_STORAGE_KEY = "openbot_active_bot_id";
 
-export const DEFAULT_BOTS_LIST: BotProfile[] = [...CREW_PRESETS];
+/**
+ * What a browser with nothing stored holds: no agents. A fresh install has
+ * none until the person creates them in the agent setup.
+ */
+export const DEFAULT_BOTS_LIST: BotProfile[] = [];
 let cachedBotsRaw: string | null = null;
 let cachedBots: BotProfile[] = DEFAULT_BOTS_LIST;
 let botListeners: Array<() => void> = [];
@@ -38,7 +41,7 @@ export function subscribeActiveBotId(listener: () => void): () => void {
   };
 }
 
-/** The stored bot list, sanitized; the crew presets when nothing is stored. */
+/** The stored bot list, sanitized; empty when nothing is stored. */
 export function parseBots(
   raw: string | null,
   library: readonly SkillDefinition[] = [],

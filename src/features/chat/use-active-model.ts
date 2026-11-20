@@ -28,10 +28,10 @@ export function useActiveModel(
     isConfigured,
   );
   const activeModelLabel = modelConfig
-    ? formatModelBadge(modelConfig, false, language)
+    ? formatModelBadge(modelConfig, language)
     : serverModel?.configured
-      ? formatModelBadge(serverModel, false, language)
-      : formatModelBadge(null, false, language);
+      ? formatModelBadge(serverModel, language)
+      : formatModelBadge(null, language);
 
   return {
     serverModel,

@@ -1,7 +1,7 @@
 "use client";
 
-import { ChatExperience } from "@/features/chat/ChatExperience";
+import { AppEntry } from "@/features/bots/AppEntry";
 
 export default function HomePage() {
-  return <ChatExperience />;
+  return <AppEntry />;
 }

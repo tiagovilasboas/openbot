@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CREW_PRESETS } from "../bots/crew-presets.ts";
 import {
   buildBackup,
   backupFileName,
@@ -94,9 +93,9 @@ test("buildBackup collects bots, ids, messages and language", () => {
   );
 });
 
-test("an empty storage exports the crew presets", () => {
+test("an empty storage exports no agents", () => {
   const backup = buildBackup(new FakeStorage());
-  assert.equal(backup.data.bots.length, CREW_PRESETS.length);
+  assert.equal(backup.data.bots.length, 0);
 });
 
 test("round trip: build, parse and restore into a fresh storage", () => {

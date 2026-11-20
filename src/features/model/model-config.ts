@@ -235,10 +235,9 @@ const NO_MODEL_LABEL: Record<Language, string> = {
 
 export function formatModelBadge(
   config?: { provider?: string; model?: string } | null,
-  isDemo = false,
   language: Language = "pt",
 ): string {
-  if (isDemo || !config?.provider) {
+  if (!config?.provider) {
     return NO_MODEL_LABEL[language];
   }
 

@@ -15,7 +15,6 @@ import {
   updateBotInList,
 } from "./bot-storage.ts";
 import { DEFAULT_BOT, type BotProfile } from "./bot-types.ts";
-import { CREW_PRESETS } from "./crew-presets.ts";
 import {
   loadStoredMainBotId,
   mainBotFirst,
@@ -181,15 +180,10 @@ test("resolveMainBotId treats an empty stored id as no choice", () => {
 
 // --- parseBots / corrupted JSON -------------------------------------------
 
-test("parseBots falls back to the crew presets on empty, corrupt or wrong-shaped JSON", () => {
-  const presets = parseBots(null);
-  assert.equal(presets.length, CREW_PRESETS.length);
+test("parseBots gives no agents on empty, corrupt or wrong-shaped JSON", () => {
+  assert.deepEqual(parseBots(null), []);
   for (const raw of ["", "{not json", "null", "42", '"str"', '{"a":1}', "[]"]) {
-    assert.deepEqual(
-      parseBots(raw).map((b) => b.id),
-      presets.map((b) => b.id),
-      raw,
-    );
+    assert.deepEqual(parseBots(raw), [], raw);
   }
 });
 
@@ -207,9 +201,9 @@ test("parseBots drops invalid entries but keeps the valid ones", () => {
   );
 });
 
-test("parseBots with only invalid entries falls back to the presets", () => {
+test("parseBots with only invalid entries gives no agents", () => {
   const raw = JSON.stringify([null, { id: 1, name: 2 }]);
-  assert.equal(parseBots(raw).length, CREW_PRESETS.length);
+  assert.deepEqual(parseBots(raw), []);
 });
 
 test("legacy ids are upgraded on load: default and OpenBot become the Chief", () => {
@@ -257,7 +251,7 @@ test("load and save round-trip through an injected storage without touching list
 
 test("a blocked storage never throws and yields the defaults", () => {
   const blocked = brokenStorage();
-  assert.equal(loadBotsFromStorage(blocked).length, CREW_PRESETS.length);
+  assert.equal(loadBotsFromStorage(blocked).length, 0);
   assert.equal(loadActiveBotId(blocked), DEFAULT_BOT.id);
   assert.doesNotThrow(() => saveBotsToStorage([bot("a")], blocked));
   assert.doesNotThrow(() => saveActiveBotId("a", blocked));
@@ -266,7 +260,7 @@ test("a blocked storage never throws and yields the defaults", () => {
 });
 
 test("without a window or a storage the loaders return the defaults", () => {
-  assert.equal(loadBotsFromStorage().length, CREW_PRESETS.length);
+  assert.equal(loadBotsFromStorage().length, 0);
   assert.equal(loadActiveBotId(), DEFAULT_BOT.id);
   assert.equal(loadStoredMainBotId(), null);
   assert.doesNotThrow(() => saveBotsToStorage([bot("a")]));
@@ -304,10 +298,10 @@ test("the cache follows external changes to the stored JSON", () => {
   );
 
   storage.setItem(BOTS_STORAGE_KEY, "{corrupt");
-  assert.equal(loadBotsFromStorage().length, CREW_PRESETS.length);
+  assert.equal(loadBotsFromStorage().length, 0);
 
   storage.removeItem(BOTS_STORAGE_KEY);
-  assert.equal(loadBotsFromStorage().length, CREW_PRESETS.length);
+  assert.equal(loadBotsFromStorage().length, 0);
 });
 
 test("the active bot id is cached, notifies on save and survives removal as the default", () => {

@@ -9,7 +9,6 @@ import { chatCopy } from "./chat-copy.ts";
 import { ChatComposer } from "./ChatComposer.tsx";
 import { TerminalIcon } from "./ComposerIcons.tsx";
 import type { ChatLanguage } from "./respond-to-message.ts";
-import { SuggestionChips } from "./SuggestionChips.tsx";
 import { WelcomeStarters } from "./WelcomeStarters.tsx";
 
 export interface ChatEmptyStateProps {
@@ -29,7 +28,6 @@ export interface ChatEmptyStateProps {
   onOpenSettings?: () => void;
   onDraftChange: (value: string) => void;
   onSend: () => void;
-  onSelectPrompt: (prompt: string) => void;
 }
 
 function greetingFor(
@@ -69,7 +67,6 @@ export function ChatEmptyState({
   onOpenSettings,
   onDraftChange,
   onSend,
-  onSelectPrompt,
 }: ChatEmptyStateProps) {
   const { title, subtitle } = greetingFor(language, activeBot, mainBotId);
 
@@ -129,20 +126,12 @@ export function ChatEmptyState({
               onSend={onSend}
             />
           </div>
-          {composerLockedReason ? null : activeBot &&
-            activeBot.id !== mainBotId ? (
+          {composerLockedReason || !activeBot ? null : (
             <WelcomeStarters
               language={language}
               bot={activeBot}
-              className="order-1 pb-2 group-has-[[data-composer-palette]]/dock:pointer-events-none group-has-[[data-composer-palette]]/dock:opacity-0 md:order-2 md:pb-0 md:pt-5"
+              className={`order-1 pb-2 group-has-[[data-composer-palette]]/dock:pointer-events-none group-has-[[data-composer-palette]]/dock:opacity-0 md:order-2 md:pb-0 md:pt-4 ${draft ? "hidden" : ""}`}
               onPick={onDraftChange}
-            />
-          ) : (
-            <SuggestionChips
-              language={language}
-              isHidden={Boolean(draft)}
-              className="order-1 pb-2 group-has-[[data-composer-palette]]/dock:pointer-events-none group-has-[[data-composer-palette]]/dock:opacity-0 md:order-2 md:pb-0 md:pt-5"
-              onSelectPrompt={onSelectPrompt}
             />
           )}
         </div>

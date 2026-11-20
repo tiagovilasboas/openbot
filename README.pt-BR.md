@@ -35,19 +35,19 @@ No celular, a lista de bots é uma gaveta e o campo de mensagem fica ao alcance 
 
 Cada bot tem a própria conversa, prompt, avatar e skills. Trocar de bot troca a conversa, e cada histórico fica neste aparelho. Digite `@` para passar uma mensagem a outro bot e `/` para rodar uma das suas skills.
 
-O Open Bot começa com uma equipe de nove. O prompt de cada um pede sua aprovação explícita antes de qualquer alteração externa.
+Nenhum agente vem pronto. Na primeira vez, o Open Bot abre o setup: você cria o agente principal e, se quiser, marca papéis abaixo para criar junto. Nenhum vem marcado, e quem já usa pode restaurar um backup pela mesma tela. O prompt de cada papel pede sua aprovação explícita antes de qualquer alteração externa.
 
-| Bot            | Cuida de                                                          |
-| -------------- | ----------------------------------------------------------------- |
-| Chief of Staff | Planeja, resume e delega aos outros. É o bot principal no início. |
-| Engineering    | Código, pull requests e CI                                        |
-| Publishing     | Docs e conteúdo público                                           |
-| Security       | AppSec e privacidade                                              |
-| Inbox          | Triagem e rascunhos                                               |
-| Career         | Triagem de oportunidades                                          |
-| Finance        | Rascunhos de conciliação                                          |
-| Product        | Requisitos e previews                                             |
-| Hobby          | Pesquisa e shortlists                                             |
+| Bot            | Cuida de                             |
+| -------------- | ------------------------------------ |
+| Chief of Staff | Planeja, resume e delega aos outros. |
+| Engineering    | Código, pull requests e CI           |
+| Publishing     | Docs e conteúdo público              |
+| Security       | AppSec e privacidade                 |
+| Inbox          | Triagem e rascunhos                  |
+| Career         | Triagem de oportunidades             |
+| Finance        | Rascunhos de conciliação             |
+| Product        | Requisitos e previews                |
+| Hobby          | Pesquisa e shortlists                |
 
 Você pode editar qualquer um deles ou criar o seu, do zero ou a partir de um modelo: Architect, Code Reviewer, AppSec Lead, Platform Engineer, Technical Writer ou Bug Hunter.
 

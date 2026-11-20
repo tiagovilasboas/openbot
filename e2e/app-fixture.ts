@@ -9,6 +9,7 @@ import { stubSettingsStore } from "./settings-store-stub.ts";
 import { stubUsageStore } from "./usage-store-stub.ts";
 import { stubStream, type StreamStub } from "./stream-stub.ts";
 import { stubTools, type ToolsStub } from "./tools-stub.ts";
+import { CREW_PRESETS } from "../src/features/bots/crew-presets.ts";
 
 /** One scripted answer of the stubbed model, shaped like the real routes. */
 export interface StubbedReply {
@@ -103,6 +104,16 @@ export async function seedStoredModel(context: BrowserContext): Promise<void> {
       );
     }
   });
+}
+
+/** Stores the nine-role crew before the app loads, unless bots exist. */
+export async function seedCrew(context: BrowserContext): Promise<void> {
+  const crew = JSON.stringify(CREW_PRESETS);
+  await context.addInitScript((bots) => {
+    if (!localStorage.getItem("openbot_bots")) {
+      localStorage.setItem("openbot_bots", bots);
+    }
+  }, crew);
 }
 
 /** Writes and reads like a person: composer, sidebar, settings. */
@@ -243,6 +254,13 @@ export const test = base.extend<{
   /** False for the specs of the connect-first gate: no model is stored. */
   configuredModel: boolean;
   modelSeed: void;
+  /**
+   * A fresh install has no agents. Most specs exercise a crew, so the
+   * browser starts with the nine-role crew as test data; the first-install
+   * specs opt out with `seededCrew: false`.
+   */
+  seededCrew: boolean;
+  crewSeed: void;
   /** True for the few specs that talk to the real /api/settings route. */
   realSettingsStore: boolean;
   settingsStore: void;
@@ -269,6 +287,14 @@ export const test = base.extend<{
   modelSeed: [
     async ({ context, configuredModel }, provide) => {
       if (configuredModel) await seedStoredModel(context);
+      await provide();
+    },
+    { auto: true },
+  ],
+  seededCrew: [true, { option: true }],
+  crewSeed: [
+    async ({ context, seededCrew }, provide) => {
+      if (seededCrew) await seedCrew(context);
       await provide();
     },
     { auto: true },

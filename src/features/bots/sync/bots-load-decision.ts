@@ -29,7 +29,8 @@ export function buildPayload(
 /**
  * What the first load does. The server is the source of truth, except when
  * it cannot be reached, or when this browser has edits it never delivered.
- * An empty server takes the browser's bots, else the presets.
+ * An empty server takes the browser's bots, else the presets when there
+ * are any; with none, nothing is written until the agent setup.
  */
 export function decideBotsLoad(input: {
   server: ApiResult;
@@ -52,6 +53,8 @@ export function decideBotsLoad(input: {
     return { action: "use-server", state: server.state };
   }
   if (local) return importLocal(local);
+  // Nothing anywhere: a fresh install waits for the agent setup.
+  if (presets.length === 0) return { action: "use-local" };
   return {
     action: "seed",
     payload: buildPayload([...presets], DEFAULT_BOT.id, null),

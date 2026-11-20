@@ -108,7 +108,6 @@ export function ChatConversationPane({
           onOpenSettings={onOpenSettings}
           onDraftChange={onDraftChange}
           onSend={() => void onSend()}
-          onSelectPrompt={(prompt) => void onSend(prompt)}
         />
       ) : (
         <ConversationView
