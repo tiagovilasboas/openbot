@@ -98,6 +98,9 @@ export function RoutineForm(props: RoutineFormProps) {
         <legend className="mb-1.5 text-sm font-medium text-foreground">
           {copy.scheduleLabel}
         </legend>
+        {draft.kind === "once" && (
+          <p className="text-xs text-muted md:text-[13px]">{copy.onceNote}</p>
+        )}
         <div className="flex flex-wrap gap-1 rounded-[1.25rem] border border-border p-0.5">
           {KINDS.map((kind) => (
             <button
@@ -111,7 +114,7 @@ export function RoutineForm(props: RoutineFormProps) {
             </button>
           ))}
         </div>
-        {draft.kind === "interval" ? (
+        {draft.kind === "once" ? null : draft.kind === "interval" ? (
           <FormField label={copy.everyMinutesLabel}>
             {(control) => (
               <input

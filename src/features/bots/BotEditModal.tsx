@@ -39,6 +39,7 @@ interface BotEditModalProps {
   canHide?: boolean;
   onHide?: (id: string) => void;
   onRestore?: (id: string) => void;
+  onMoveToFolder?: (id: string, folder: string) => void;
   /** Every bot, offered as channel members when this is the main bot. */
   crewBots?: BotProfile[];
 }
@@ -57,6 +58,7 @@ function BotEditForm({
   canHide = false,
   onHide,
   onRestore,
+  onMoveToFolder,
   crewBots,
 }: BotEditFormProps) {
   const isEditing = Boolean(bot?.id && bot.id !== "new");
@@ -258,6 +260,13 @@ function BotEditForm({
           onMakeMain={onMakeMain}
           onHide={onHide && ((id) => closeAfter(onHide, id))}
           onRestore={onRestore && ((id) => closeAfter(onRestore, id))}
+          onMoveToFolder={
+            onMoveToFolder &&
+            ((id, folder) => {
+              onMoveToFolder(id, folder);
+              onClose();
+            })
+          }
         />
       )}
 

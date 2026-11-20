@@ -7,6 +7,8 @@ import { chatCopy } from "./chat-copy.ts";
 import type { ChatLanguage } from "./respond-to-message.ts";
 import { SidebarActionRow } from "./SidebarActionRow.tsx";
 import { SidebarBotList } from "./SidebarBotList.tsx";
+import { SidebarBotFolder } from "./SidebarBotFolder.tsx";
+import { groupByFolder } from "@/features/bots/bot-folders.ts";
 import { SidebarHiddenBots } from "./SidebarHiddenBots.tsx";
 import { NeedsYouSection } from "@/features/attention/NeedsYouSection.tsx";
 import { hiddenBots, visibleBots } from "@/features/bots/bot-visibility.ts";
@@ -75,6 +77,17 @@ export function SidebarPanel({
   const content = chatCopy[language];
   const botsLabelId = useId();
   const shownBots = visibleBots(bots);
+  const groups = groupByFolder(bots, mainBotId);
+  // The loose list reorders by its own rows; the stored list also holds
+  // hidden and foldered bots, so a drop maps onto the row it landed on.
+  const reorderLoose =
+    onReorderBot &&
+    ((id: string, toIndex: number) => {
+      const anchor =
+        groups.loose[Math.min(Math.max(toIndex, 0), groups.loose.length - 1)];
+      const target = bots.findIndex((bot) => bot.id === anchor?.id);
+      if (target !== -1) onReorderBot(id, target);
+    });
   const tuckedAway = hiddenBots(bots);
 
   return (
@@ -124,15 +137,34 @@ export function SidebarPanel({
           >
             <SidebarBotList
               language={language}
-              bots={shownBots}
+              bots={groups.loose}
               activeBotId={activeBotId}
               mainBotId={mainBotId}
               workingBotIds={workingBotIds}
               attentionCounts={attentionCounts}
               onSelectBot={onSelectBot}
               onEditBot={onEditBot}
-              onReorderBot={onReorderBot}
+              onReorderBot={reorderLoose}
             />
+            {groups.folders.map((folder, index) => (
+              <SidebarBotFolder
+                key={folder.name}
+                language={language}
+                name={folder.name}
+                bots={folder.bots}
+                activeBotId={activeBotId}
+                shortcutOffset={
+                  groups.loose.length +
+                  groups.folders
+                    .slice(0, index)
+                    .reduce((sum, f) => sum + f.bots.length, 0)
+                }
+                workingBotIds={workingBotIds}
+                attentionCounts={attentionCounts}
+                onSelectBot={onSelectBot}
+                onEditBot={onEditBot}
+              />
+            ))}
             <div className="mt-0.5">
               <SidebarActionRow
                 icon={<CreateBotGlyph />}

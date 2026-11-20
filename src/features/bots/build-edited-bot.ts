@@ -47,6 +47,7 @@ export function buildEditedBot(
     skills: values.skills,
     ...(values.toolsEnabled ? { toolsEnabled: true } : {}),
     ...(existing?.hidden ? { hidden: true } : {}),
+    ...(existing?.folder ? { folder: existing.folder } : {}),
     createdAt: existing?.createdAt || stamp,
     updatedAt: stamp,
   };

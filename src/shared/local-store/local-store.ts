@@ -21,7 +21,9 @@ export type LocalStore = DatabaseSync;
 
 function restrictFiles(file: string): void {
   for (const path of [file, `${file}-wal`, `${file}-shm`]) {
-    if (existsSync(path)) chmodSync(path, PRIVATE_FILE_MODE);
+    if (existsSync(/* turbopackIgnore: true */ path)) {
+      chmodSync(/* turbopackIgnore: true */ path, PRIVATE_FILE_MODE);
+    }
   }
 }
 

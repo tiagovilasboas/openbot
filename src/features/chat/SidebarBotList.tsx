@@ -22,6 +22,8 @@ interface SidebarBotListProps {
   onEditBot: (bot: BotProfile) => void;
   /** Moves a bot to a position of the list as shown; omit to lock the order. */
   onReorderBot?: (botId: string, toIndex: number) => void;
+  /** Rows shown above this list, so the Alt+N hints keep counting. */
+  shortcutOffset?: number;
 }
 
 export function SidebarBotList({
@@ -34,6 +36,7 @@ export function SidebarBotList({
   onSelectBot,
   onEditBot,
   onReorderBot,
+  shortcutOffset = 0,
 }: SidebarBotListProps) {
   const content = chatCopy[language];
   const hintId = useId();
@@ -58,7 +61,7 @@ export function SidebarBotList({
               role={
                 bot.id === mainBotId ? content.chiefOfStaffTitle : bot.title
               }
-              shortcutHint={agentShortcutHint(index)}
+              shortcutHint={agentShortcutHint(index + shortcutOffset)}
               isActive={bot.id === activeBotId}
               isWorking={workingBotIds.includes(bot.id)}
               unseenReplies={attentionCounts[bot.id] ?? 0}

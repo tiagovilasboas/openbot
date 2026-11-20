@@ -9,8 +9,13 @@ export const MAX_INTERVAL_MINUTES = 7 * 24 * 60;
 /** 0 = Sunday … 6 = Saturday, as in `Date.getDay()`. */
 export type Weekday = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
+/** Furthest a one-time run may be set: the same week as the longest interval. */
+export const MAX_ONCE_AHEAD_MS = MAX_INTERVAL_MINUTES * 60_000;
+
 export type RoutineSchedule =
   | { kind: "interval"; everyMinutes: number }
+  /** Runs once at `at` (epoch ms), then stays off: a bot's wake-up. */
+  | { kind: "once"; at: number }
   | { kind: "daily"; time: string; timeZone: string }
   | {
       kind: "weekly";
@@ -25,7 +30,8 @@ export type ScheduleProblem =
   | "interval_too_long"
   | "bad_time"
   | "bad_time_zone"
-  | "no_days";
+  | "no_days"
+  | "bad_once_time";
 
 export type ScheduleCheck =
   | { ok: true; schedule: RoutineSchedule }
@@ -81,6 +87,13 @@ export function checkSchedule(input: unknown): ScheduleCheck {
       return { ok: false, problem: "interval_too_long" };
     }
     return { ok: true, schedule: { kind: "interval", everyMinutes: minutes } };
+  }
+  if (raw.kind === "once") {
+    const at = raw.at;
+    if (typeof at !== "number" || !Number.isSafeInteger(at) || at <= 0) {
+      return { ok: false, problem: "bad_once_time" };
+    }
+    return { ok: true, schedule: { kind: "once", at } };
   }
   if (raw.kind !== "daily" && raw.kind !== "weekly") {
     return { ok: false, problem: "unknown_kind" };

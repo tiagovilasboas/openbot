@@ -62,8 +62,8 @@ function validatingLookup(
 }
 
 /**
- * A GET-only fetch over node:http(s) that connects only to addresses the
- * validating lookup approved. The URL keeps its original hostname, so the Host
+ * A fetch over node:http(s) that connects only to addresses the validating
+ * lookup approved. GET by default; a string body may go with POST (MCP). The URL keeps its original hostname, so the Host
  * header and the TLS server name (SNI and certificate check) stay correct.
  * Redirects are never followed; the caller handles them.
  */
@@ -82,7 +82,7 @@ export function createPinnedFetch(
       const request = send(
         url,
         {
-          method: "GET",
+          method: init.method ?? "GET",
           headers: init.headers as Record<string, string> | undefined,
           signal: init.signal ?? undefined,
           lookup,
@@ -112,6 +112,7 @@ export function createPinnedFetch(
         },
       );
       request.on("error", reject);
+      if (typeof init.body === "string") request.write(init.body);
       request.end();
     })) as typeof fetch;
 }

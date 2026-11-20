@@ -1,6 +1,6 @@
 # Spike TOL-5: MCP como ferramenta
 
-Data: 2026-11-20. Status: **feito; desenho aprovado para fatias**. Pergunta:
+Data: 2026-11-20. Status: **feito; MCP-1 a MCP-3 entregues, MCP-4 e MCP-5 abertas**. Pergunta:
 como um bot usa um servidor MCP sem abrir mão das regras de permissão que o
 tool loop já tem (`tools/`, níveis perguntar/permitir/bloquear)?
 

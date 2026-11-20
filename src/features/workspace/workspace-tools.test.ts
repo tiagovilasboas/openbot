@@ -59,7 +59,7 @@ test("paths that could leave the workspace or reach dotfiles are refused", () =>
 test("no tools without an absolute workspace root", () => {
   assert.equal(workspaceTools(undefined).length, 0);
   assert.equal(workspaceTools("relative/dir").length, 0);
-  assert.equal(workspaceTools("/srv/openbot").length, 2);
+  assert.equal(workspaceTools("/srv/openbot").length, 3);
 });
 
 test(

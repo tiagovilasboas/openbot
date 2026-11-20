@@ -21,6 +21,9 @@ export function scheduleSummary(
   language: Language,
 ): string {
   if (schedule.kind === "interval") return copy.every(schedule.everyMinutes);
+  if (schedule.kind === "once") {
+    return copy.onceAt(formatWhen(schedule.at, language));
+  }
   if (schedule.kind === "daily") return copy.dailyAt(schedule.time);
   const days = FORM_WEEKDAYS.filter((d) => schedule.days.includes(d))
     .map((d) => weekdayName(d, language))

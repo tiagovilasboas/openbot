@@ -68,6 +68,7 @@ export function ChatDialogs({
         canHide={canHideBot(bots.bots, editing?.id ?? "", bots.mainBotId)}
         onHide={bots.hideBot}
         onRestore={bots.restoreBot}
+        onMoveToFolder={bots.moveBotToFolder}
         onDelete={bots.removeBot}
         onMakeMain={bots.makeMainBot}
         crewBots={bots.bots}

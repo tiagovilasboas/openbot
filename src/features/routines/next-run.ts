@@ -8,10 +8,19 @@ import { addDays, instantAt, wallClockAt } from "./zoned-time.ts";
 const MINUTE = 60_000;
 
 /**
- * The first instant strictly after `from` when the schedule fires. An
- * interval counts from `from` (the last run, or the moment it was enabled).
+ * The first instant strictly after `from` when the schedule fires, or null
+ * when it never will again (a one-time run already past). An interval counts
+ * from `from` (the last run, or the moment it was enabled).
  */
-export function nextRunAt(schedule: RoutineSchedule, from: Date): Date {
+export function nextRunAt(
+  schedule: Exclude<RoutineSchedule, { kind: "once" }>,
+  from: Date,
+): Date;
+export function nextRunAt(schedule: RoutineSchedule, from: Date): Date | null;
+export function nextRunAt(schedule: RoutineSchedule, from: Date): Date | null {
+  if (schedule.kind === "once") {
+    return schedule.at > from.getTime() ? new Date(schedule.at) : null;
+  }
   if (schedule.kind === "interval") {
     return new Date(from.getTime() + schedule.everyMinutes * MINUTE);
   }

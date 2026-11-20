@@ -122,12 +122,22 @@ export function finishRun(
     "UPDATE routine_runs SET finished_at = ?, status = ?, reason = ?, nothing_new = ?, output = ? WHERE id = ?",
   ).run(now, end.status, reason, nothingNew, output, runId);
   const routine = getRoutine(db, routineId);
-  const next = routine?.enabled
-    ? nextRunAt(routine.schedule, new Date(now)).getTime()
-    : null;
+  // A one-time run is done after any run, by its time or by a chain.
+  const once = routine?.schedule.kind === "once";
+  const next =
+    routine?.enabled && !once
+      ? (nextRunAt(routine.schedule, new Date(now))?.getTime() ?? null)
+      : null;
   db.prepare(
     "UPDATE routines SET running_since = NULL, last_run_at = ?, next_run_at = ? WHERE id = ?",
   ).run(now, next, routineId);
+  if (once) {
+    // Both copies of the flag: the column the scheduler reads and the JSON
+    // the chain and the UI read.
+    db.prepare(
+      "UPDATE routines SET enabled = 0, data = json_set(data, '$.enabled', json('false')) WHERE id = ?",
+    ).run(routineId);
+  }
   db.prepare(
     "DELETE FROM routine_runs WHERE routine_id = ? AND id NOT IN (SELECT id FROM routine_runs WHERE routine_id = ? ORDER BY id DESC LIMIT ?)",
   ).run(routineId, routineId, HISTORY_KEPT);

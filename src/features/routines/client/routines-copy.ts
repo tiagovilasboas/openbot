@@ -30,6 +30,8 @@ export interface RoutinesCopy {
   threadLabel: string;
   threadHint: string;
   every: (minutes: number) => string;
+  onceAt: (when: string) => string;
+  onceNote: string;
   dailyAt: (time: string) => string;
   weeklyAt: (days: string, time: string) => string;
   nextRun: (when: string) => string;
@@ -64,7 +66,12 @@ const PT: RoutinesCopy = {
   promptLabel: "O que o bot deve fazer",
   promptPlaceholder: "ex: Liste as três notícias de IA mais relevantes de hoje",
   scheduleLabel: "Quando",
-  kinds: { interval: "A cada", daily: "Todo dia", weekly: "Dias da semana" },
+  kinds: {
+    interval: "A cada",
+    daily: "Todo dia",
+    weekly: "Dias da semana",
+    once: "Uma vez",
+  },
   everyMinutesLabel: "Intervalo em minutos",
   timeLabel: "Horário",
   daysLabel: "Dias",
@@ -75,6 +82,9 @@ const PT: RoutinesCopy = {
   threadLabel: "Rodar em thread própria",
   threadHint: "Cada execução vira uma mensagem numa thread só dela no chat.",
   every: (m) => (m % 60 === 0 ? `A cada ${m / 60} h` : `A cada ${m} min`),
+  onceAt: (when) => `Uma vez, ${when}`,
+  onceNote:
+    "O bot marcou esta espera. Ela roda uma vez e depois fica desligada.",
   dailyAt: (time) => `Todo dia às ${time}`,
   weeklyAt: (days, time) => `${days} às ${time}`,
   nextRun: (when) => `Próxima: ${when}`,
@@ -98,6 +108,7 @@ const PT: RoutinesCopy = {
     interval_too_long: "O intervalo máximo é 1 semana.",
     bad_time: "Use um horário como 08:30.",
     bad_time_zone: "Fuso horário inválido.",
+    bad_once_time: "Horário da espera inválido.",
     no_days: "Escolha pelo menos um dia.",
     save: "Não deu para salvar. Tente de novo.",
     load: "Não deu para carregar as rotinas.",
@@ -122,7 +133,12 @@ const EN: RoutinesCopy = {
   promptLabel: "What the bot should do",
   promptPlaceholder: "e.g. List today's three most relevant AI news items",
   scheduleLabel: "When",
-  kinds: { interval: "Every", daily: "Every day", weekly: "Weekdays" },
+  kinds: {
+    interval: "Every",
+    daily: "Every day",
+    weekly: "Weekdays",
+    once: "Once",
+  },
   everyMinutesLabel: "Interval in minutes",
   timeLabel: "Time",
   daysLabel: "Days",
@@ -134,6 +150,8 @@ const EN: RoutinesCopy = {
   threadHint:
     "Each run is added as a message to a thread of its own in the chat.",
   every: (m) => (m % 60 === 0 ? `Every ${m / 60} h` : `Every ${m} min`),
+  onceAt: (when) => `Once, ${when}`,
+  onceNote: "The bot set this wait. It runs once and then stays off.",
   dailyAt: (time) => `Every day at ${time}`,
   weeklyAt: (days, time) => `${days} at ${time}`,
   nextRun: (when) => `Next: ${when}`,
@@ -157,6 +175,7 @@ const EN: RoutinesCopy = {
     interval_too_long: "The longest interval is 1 week.",
     bad_time: "Use a time like 08:30.",
     bad_time_zone: "Invalid time zone.",
+    bad_once_time: "Invalid wait time.",
     no_days: "Pick at least one day.",
     save: "Could not save. Try again.",
     load: "Could not load the routines.",
@@ -186,6 +205,7 @@ const ES: RoutinesCopy = {
     interval: "Cada",
     daily: "Todos los días",
     weekly: "Días de la semana",
+    once: "Una vez",
   },
   everyMinutesLabel: "Intervalo en minutos",
   timeLabel: "Hora",
@@ -198,6 +218,9 @@ const ES: RoutinesCopy = {
   threadHint:
     "Cada ejecución se añade como mensaje a un hilo propio en el chat.",
   every: (m) => (m % 60 === 0 ? `Cada ${m / 60} h` : `Cada ${m} min`),
+  onceAt: (when) => `Una vez, ${when}`,
+  onceNote:
+    "El bot programó esta espera. Se ejecuta una vez y luego queda apagada.",
   dailyAt: (time) => `Todos los días a las ${time}`,
   weeklyAt: (days, time) => `${days} a las ${time}`,
   nextRun: (when) => `Próxima: ${when}`,
@@ -221,6 +244,7 @@ const ES: RoutinesCopy = {
     interval_too_long: "El intervalo máximo es de 1 semana.",
     bad_time: "Usa una hora como 08:30.",
     bad_time_zone: "Zona horaria inválida.",
+    bad_once_time: "Hora de la espera inválida.",
     no_days: "Elige al menos un día.",
     save: "No se pudo guardar. Inténtalo de nuevo.",
     load: "No se pudieron cargar las rutinas.",

@@ -23,6 +23,8 @@ export type RoutineDraft = {
   runInThread: boolean;
   /** The routine this one runs after; empty for none. */
   afterRoutineId: string;
+  /** A one-time run's moment (epoch ms); set only by a bot's wake-up. */
+  onceAt: number | null;
 };
 
 export type DraftProblem =
@@ -69,6 +71,7 @@ export function emptyDraft(
     silentWhenNothingNew: true,
     runInThread: false,
     afterRoutineId: "",
+    onceAt: null,
   };
 }
 
@@ -90,12 +93,15 @@ export function draftFromRoutine(
     kind: schedule.kind,
     ...(schedule.kind === "interval"
       ? { everyMinutes: String(schedule.everyMinutes) }
-      : { time: schedule.time, timeZone: schedule.timeZone }),
+      : schedule.kind === "once"
+        ? { onceAt: schedule.at }
+        : { time: schedule.time, timeZone: schedule.timeZone }),
     ...(schedule.kind === "weekly" ? { days: [...schedule.days] } : {}),
   };
 }
 
 function scheduleOf(draft: RoutineDraft): unknown {
+  if (draft.kind === "once") return { kind: "once", at: draft.onceAt };
   if (draft.kind === "interval") {
     return { kind: "interval", everyMinutes: Number(draft.everyMinutes) };
   }
