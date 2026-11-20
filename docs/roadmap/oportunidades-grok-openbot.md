@@ -1,4 +1,4 @@
-# Open Bot: comparação e roadmap de oportunidades
+# Open Bot: comparação e roadmap de oportunidades (Grok Bot e Dots)
 
 Data: 20/11/2026. Base: código do `main` (b4ac0ab), site openbot.run, docs públicas do Grok Bot (xAI).
 
@@ -168,82 +168,46 @@ Data: 20/11/2026. Base: código do `main` (b4ac0ab), site openbot.run, docs púb
 
 ---
 
-## 4. Roadmap de oportunidades (por valor)
+## 4. Roadmap de oportunidades (referência: Grok Bot e Dots)
 
-**Fora:** Telegram e novas conexões externas. Regra do repo: até 5 pontos por PR e no máximo 3 PRs abertos.
+**Direção:** o modelo é o do Grok Bot (xAI) e do Dots (OpenAI), não o do openbot.run.
 
-### Agora
+- **Grok Bot:** grupos de 2 a 6 bots em que os próprios bots decidem quem responde, `@bot` define o responsável, responder a uma mensagem direciona ao autor, threads para comentar um resultado, handoff visível entre bots e "Stop now".
+- **Dots:** agentes sempre ligados, com nome e avatar, que lembram objetivos, aprendem preferências e continuam trabalhando em segundo plano.
 
-**1. Sala de reunião de verdade** (≈ 22 pts em 6 PRs). É o diferencial pedido e já tem base: canal, guarda de loop, `@menção`.
+**Fora:** Telegram, novas conexões externas e itens que só faziam sentido no modelo do openbot.run (reunião agendada, workflow com etapas de aprovação, `/reuniao`). Regra do repo: até 5 pontos por PR e no máximo 3 PRs abertos.
 
-| ID     | Tarefa                                                                                                                                    | Pts |
-| ------ | ----------------------------------------------------------------------------------------------------------------------------------------- | --: |
-| MEET-1 | Canais na barra lateral, com tela cheia própria (sair do editor do agente)                                                                |   3 |
-| MEET-2 | Cada especialista recebe um resumo curto do canal e as falas anteriores da rodada (marcadas como dado externo)                            |   3 |
-| MEET-3 | Mostrar cada fala assim que fica pronta: gravar a fala no servidor e o cliente busca a cada poucos segundos, com "falando agora: X"       |   5 |
-| MEET-4 | Modo reunião: pauta e até 3 rodadas. Cada agente vê as outras falas e concorda, discorda ou complementa; a guarda de loop vale por rodada |   5 |
-| MEET-5 | Pessoa no meio: botões "Parar" e "Sua vez" entre rodadas; mensagem da pessoa entra na próxima rodada                                      |   3 |
-| MEET-6 | Ata no fim: decisões, pendências e responsável, com botão para salvar como arquivo do líder                                               |   3 |
+### Agora: chat em grupo no estilo Grok Bot
 
-**2. Validar com modelo real** (2 pts). Sem isso não dá para afirmar que delegação ou reunião funcionam (CRW-2 está aberta).
+| ID     | Tarefa                                                                                                                                                                    | Pts |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --: |
+| GRP-1  | "Novo chat em grupo" na barra lateral: escolher de 2 a 6 agentes; o grupo aparece na lista como um chat próprio (reaproveita o canal da equipe no servidor)               |   5 |
+| GRP-2  | Todos os agentes do grupo veem o histórico do grupo, inclusive a fala dos outros (marcada como dado externo)                                                              |   3 |
+| GRP-3  | Sem menção, os agentes decidem quem responde (um passo curto de "quem é o dono disso"); `@agente` define o responsável e responder a uma mensagem direciona ao autor dela |   5 |
+| GRP-4  | Cada resposta aparece assim que fica pronta, com "digitando: X", e um botão "Parar agora" que encerra o trabalho em andamento                                             |   5 |
+| GRP-5  | Mensagem nova da pessoa tem prioridade e redireciona o turno do grupo (o "corrigir o rumo" que já existe, levado ao grupo)                                                |   2 |
+| RELY-1 | Casos de grupo e delegação no `run-real-model.sh --vault`, com relatório no PR                                                                                            |   2 |
 
-| ID     | Tarefa                                                                         | Pts |
-| ------ | ------------------------------------------------------------------------------ | --: |
-| RELY-1 | Casos de canal e delegação no `run-real-model.sh --vault`, com relatório no PR |   2 |
+### Próximo: agentes que conversam e continuam trabalhando
 
-**3. Primeira instalação que monta a equipe** (5 pts). Com zero agentes, é a primeira impressão.
-
-| ID      | Tarefa                                                                                                | Pts |
-| ------- | ----------------------------------------------------------------------------------------------------- | --: |
-| SETUP-1 | No `AgentSetup`, campo "o que você quer resolver?" com papéis sugeridos (só sugestão, a pessoa marca) |   3 |
-| SETUP-2 | Ao marcar 2 ou mais agentes, oferecer criar um canal "Equipe" já pronto                               |   2 |
-
-### Próximo
-
-**4. Reunião agendada** (5 pts). Uma "daily dos agentes" que entrega a ata de manhã junta rotina e reunião.
-
-| ID     | Tarefa                                                                 | Pts |
-| ------ | ---------------------------------------------------------------------- | --: |
-| AUTO-1 | Rotina com destino "canal": roda a reunião do MEET-4 e grava a ata     |   3 |
-| AUTO-2 | Rotina de canal silenciosa quando a ata não traz decisão nem pendência |   2 |
-
-**5. Aprovação humana dentro da automação** (8 pts em 2 PRs). Os dois concorrentes têm, e isso deixa a automação segura.
-
-| ID     | Tarefa                                                                                          | Pts |
-| ------ | ----------------------------------------------------------------------------------------------- | --: |
-| AUTO-3 | Passo "pedir aprovação" na rotina encadeada: pausa, cartão em "Precisam de você", segue ou para |   5 |
-| AUTO-4 | Aprovação de rotina expira (ex.: 30 min) e a execução fica como "não aprovada"                  |   3 |
-
-**6. Chamar reunião pelo chat** (3 pts). A pessoa não deveria precisar criar o canal antes.
-
-| ID     | Tarefa                                                                                                 | Pts |
-| ------ | ------------------------------------------------------------------------------------------------------ | --: |
-| MEET-7 | Comando `/reuniao @a @b assunto` no chat do principal abre um canal temporário e leva a pessoa até ele |   3 |
-
-**7. Agente fala com agente** (5 pts). Hoje só o chefe delega. Tem mais risco, por isso vem depois da guarda por rodada.
-
-| ID    | Tarefa                                                                                                              | Pts |
-| ----- | ------------------------------------------------------------------------------------------------------------------- | --: |
-| BOT-6 | Ferramenta `message_bot` (assíncrona, com teto por hora e guarda de loop). A resposta chega na thread de quem pediu |   5 |
+| ID     | Tarefa                                                                                                                                      | Pts |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------- | --: |
+| GRP-6  | Thread numa resposta do grupo, para comentar um resultado sem poluir a conversa                                                             |   3 |
+| BOT-6  | Handoff entre agentes: ferramenta `message_bot`, assíncrona e visível na conversa, com teto por hora e guarda de loop                       |   5 |
+| GRP-7  | `@todos` para avisos gerais, usado com parcimônia (só quem tiver algo a dizer responde)                                                     |   2 |
+| GOAL-1 | Objetivo por agente (estilo Dots): o agente guarda o objetivo, mostra o progresso e as esperas e rotinas dele ficam ligadas a esse objetivo |   5 |
+| GOAL-2 | Preferências aprendidas: quando a pessoa corrige o agente, ele propõe salvar na memória dele, com confirmação                               |   3 |
 
 ### Depois
 
 | Item                                                        | Por quê                                                    |                      Pts |
 | ----------------------------------------------------------- | ---------------------------------------------------------- | -----------------------: |
 | Pausar rotinas sem uso (AUTO-5)                             | Grok faz isso; evita gastar cota à toa                     |                        2 |
-| Thread por fala no canal (MEET-8)                           | Comentar uma fala sem bagunçar a reunião                   |                        3 |
-| Ferramentas no canal, com a mesma aprovação (MEET-9)        | Reunião que age, não só opina. Só depois da MEET-4 estável |                        5 |
-| Revisão em aparelho real do PWA (APP-5, já no roadmap)      | Mobile-first sem prova em aparelho                         |                        3 |
+| Ferramentas no grupo, com a mesma aprovação (GRP-8)         | Grupo que age, não só conversa. Só depois do GRP-3 estável |                        5 |
+| Revisão em aparelho real do PWA (APP-5)                     | Mobile-first sem prova em aparelho                         |                        3 |
 | Histórico só no servidor (fim do `localStorage` como fonte) | Mesmo histórico em vários aparelhos                        | dividir em tarefas antes |
 
-**Não recomendo agora:**
-
-- Controle de navegador e comandos.
-- Multiusuário e papéis.
-- Aprender rotina por demonstração.
-- Marketplace.
-
-São grandes e fogem do "um servidor, uma pessoa".
+**Não recomendo agora:** controle de navegador e comandos, multiusuário, aprender rotina por demonstração e marketplace. São grandes e fogem do "um servidor, uma pessoa".
 
 ---
 
@@ -272,3 +236,8 @@ São grandes e fogem do "um servidor, uma pessoa".
 - https://docs.x.ai/grok-bot/chat-and-collaboration.md
 - https://docs.x.ai/grok-bot/skills-routines-and-automations.md
 - https://docs.x.ai/grok-bot/approvals-security-and-privacy.md
+
+**Dots (OpenAI):**
+
+- https://pcworld.com/article/3246780/openais-dots-are-always-on-ai-agents-for-work.html
+- https://yourstory.com/ai-story/openai-dots-ai-agents-keep-working
