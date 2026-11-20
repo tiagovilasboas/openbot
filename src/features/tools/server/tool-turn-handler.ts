@@ -43,6 +43,7 @@ import {
 import { checkResume, claimTurn, recordGrants } from "./resume-turn.ts";
 import { runToolTurn, type ToolTurnRun } from "./run-tool-turn.ts";
 import { serverToolRegistry } from "./server-tools.ts";
+import { loadMcpTools } from "../../mcp/server/mcp-tools.ts";
 import { createToolStep } from "./tool-step.ts";
 
 export type ToolTurnOptions = StreamChatOptions & {
@@ -133,6 +134,7 @@ async function startToolTurn(
       fetchImpl,
       githubToken: env.GITHUB_TOKEN,
       workspaceRoot: env.OPENBOT_WORKSPACE_DIR,
+      extraTools: await loadMcpTools(env),
     });
   const digest = requestDigest(
     botId,

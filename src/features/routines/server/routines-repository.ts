@@ -91,7 +91,7 @@ export function saveRoutine(
       return { ok: false, error: "too_many_routines" };
   }
   const next = routine.enabled
-    ? nextRunAt(routine.schedule, new Date(now)).getTime()
+    ? (nextRunAt(routine.schedule, new Date(now))?.getTime() ?? null)
     : null;
   db.prepare(
     `INSERT INTO routines (id, bot_id, enabled, running_since, next_run_at, last_run_at, data, updated_at)

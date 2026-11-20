@@ -21,6 +21,8 @@ interface ToolsCopy {
     update_bot: string;
     workspace_list: string;
     workspace_read: string;
+    workspace_write: string;
+    schedule_wakeup: string;
   };
   unknownTool: string;
   previewLabel: string;
@@ -51,6 +53,8 @@ export const toolsCopy: Record<Language, ToolsCopy> = {
       update_bot: "Alterar um bot da equipe",
       workspace_list: "Listar a pasta de trabalho",
       workspace_read: "Ler um arquivo da pasta de trabalho",
+      workspace_write: "Gravar um arquivo na pasta de trabalho",
+      schedule_wakeup: "Pausar e continuar depois",
     },
     unknownTool: "Usar uma ferramenta",
     previewLabel: "O que será usado",
@@ -87,6 +91,8 @@ export const toolsCopy: Record<Language, ToolsCopy> = {
       update_bot: "Change a bot in the crew",
       workspace_list: "List the workspace folder",
       workspace_read: "Read a workspace file",
+      workspace_write: "Write a workspace file",
+      schedule_wakeup: "Pause and continue later",
     },
     unknownTool: "Use a tool",
     previewLabel: "What it will use",
@@ -123,6 +129,8 @@ export const toolsCopy: Record<Language, ToolsCopy> = {
       update_bot: "Cambiar un bot del equipo",
       workspace_list: "Listar la carpeta de trabajo",
       workspace_read: "Leer un archivo de la carpeta de trabajo",
+      workspace_write: "Escribir un archivo en la carpeta de trabajo",
+      schedule_wakeup: "Pausar y seguir después",
     },
     unknownTool: "Usar una herramienta",
     previewLabel: "Lo que usará",
@@ -151,7 +159,10 @@ export const toolsCopy: Record<Language, ToolsCopy> = {
 /** A tool's name in plain words for the user. */
 export function toolLabel(name: string, language: Language): string {
   const copy = toolsCopy[language];
-  return Object.hasOwn(copy.toolNames, name)
-    ? copy.toolNames[name as keyof ToolsCopy["toolNames"]]
-    : copy.unknownTool;
+  if (Object.hasOwn(copy.toolNames, name)) {
+    return copy.toolNames[name as keyof ToolsCopy["toolNames"]];
+  }
+  // mcp__<server>__<tool>: the user sees which server and which tool.
+  const mcp = /^mcp__([a-z0-9_-]+?)__(.+)$/.exec(name);
+  return mcp ? `${copy.unknownTool} (${mcp[1]}: ${mcp[2]})` : copy.unknownTool;
 }

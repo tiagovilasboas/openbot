@@ -5,10 +5,13 @@ import { ChannelsSection } from "@/features/crew/channel/client/ChannelsSection.
 import { getChannelsCopy } from "@/features/crew/channel/client/channels-copy.ts";
 import type { Language } from "@/features/language/language.ts";
 import { MemorySection } from "@/features/memory/MemorySection.tsx";
+import { WorkspaceFilesSection } from "@/features/workspace/client/WorkspaceFilesSection.tsx";
+import { getWorkspaceCopy } from "@/features/workspace/client/workspace-copy.ts";
 import { RoutinesSection } from "@/features/routines/client/RoutinesSection.tsx";
 import { getRoutinesCopy } from "@/features/routines/client/routines-copy.ts";
 import { BotEditDisclosure } from "./BotEditDisclosure.tsx";
 import { BotHideControl } from "./BotHideControl.tsx";
+import { BotFolderControl } from "./BotFolderControl.tsx";
 import { BotMainControl } from "./BotMainControl.tsx";
 import type { BotProfile } from "./bot-types.ts";
 import { getBotEditSectionsCopy } from "./bot-edit-sections-copy.ts";
@@ -23,6 +26,7 @@ interface BotEditSavedSectionsProps {
   onMakeMain?: (id: string) => void;
   onHide?: (id: string) => void;
   onRestore?: (id: string) => void;
+  onMoveToFolder?: (id: string, folder: string) => void;
 }
 
 /**
@@ -39,6 +43,7 @@ export function BotEditSavedSections({
   onMakeMain,
   onHide,
   onRestore,
+  onMoveToFolder,
 }: BotEditSavedSectionsProps) {
   const sections = getBotEditSectionsCopy(language);
   const routines = getRoutinesCopy(language);
@@ -51,6 +56,10 @@ export function BotEditSavedSections({
 
       <BotEditDisclosure title={routines.title}>
         <RoutinesSection botId={bot.id} language={language} />
+      </BotEditDisclosure>
+
+      <BotEditDisclosure title={getWorkspaceCopy(language).title}>
+        <WorkspaceFilesSection botId={bot.id} language={language} />
       </BotEditDisclosure>
 
       {isMain && crewBots && (
@@ -77,6 +86,13 @@ export function BotEditSavedSections({
             isHidden={bot.hidden === true}
             onHide={() => onHide(bot.id)}
             onRestore={() => onRestore(bot.id)}
+          />
+        )}
+        {onMoveToFolder && !isMain && (
+          <BotFolderControl
+            language={language}
+            folder={bot.folder}
+            onSave={(folder) => onMoveToFolder(bot.id, folder)}
           />
         )}
         <BotTemplateExport bot={bot} language={language} />

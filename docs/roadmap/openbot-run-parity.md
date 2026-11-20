@@ -82,8 +82,8 @@ coordenar só `ChatExperience.tsx`.
 | TOL-2 **(entregue #186)** | Ferramenta `ask_user` com cartão de opções                       | AG-11        |   3 | —          |
 | TOL-3 **(entregue #187)** | `read_page`: leitura de página pelo servidor, com `server-guard` | TL-01        |   5 | TOL-1      |
 | TOL-4 **(entregue)**      | Pasta de trabalho por bot, só leitura no início                  | TL-08        |   5 | TOL-1      |
-| TOL-5 **(spike)**         | Spike de MCP como ferramenta (transporte, OAuth, permissão)      | PR-18, TL-11 |   3 | TOL-1      |
-| TOL-6                     | Biblioteca de arquivos gerados                                   | TL-09        |   2 | TOL-4      |
+| TOL-5 **(entregue)**      | Spike de MCP como ferramenta (transporte, OAuth, permissão)      | PR-18, TL-11 |   3 | TOL-1      |
+| TOL-6 **(entregue)**      | Biblioteca de arquivos gerados                                   | TL-09        |   2 | TOL-4      |
 
 O #188 fechou a janela de DNS rebinding do `read_page`: a conexão vai só ao endereço já validado (`server-guard/pinned-fetch.ts`), sem reaproveitar sockets.
 
@@ -96,7 +96,7 @@ O #188 fechou a janela de DNS rebinding do `read_page`: a conexão vai só ao en
 | ROT-3 **(entregue #187)** | Tela de rotinas e execução silenciosa ("sem novidade")        | AU-03, AG-15 |   5 | ROT-2        |
 | ROT-4 **(entregue #188)** | Rotina com thread própria                                     | AG-16        |   2 | ROT-3, CHT-5 |
 | ROT-5 **(entregue #188)** | Rota local de automação com token, só loopback                | AU-05, AG-21 |   5 | ROT-2        |
-| ROT-6                     | Esperas: bot pausa até rotina ou evento acordar               | AG-17        |   3 | ROT-5        |
+| ROT-6 **(entregue)**      | Esperas: bot pausa até rotina ou evento acordar               | AG-17        |   3 | ROT-5        |
 | ROT-7 **(entregue)**      | Rotinas encadeadas                                            | AU-04        |   3 | ROT-3        |
 | ROT-8 **(spike)**         | Spike de Telegram sobre a rota de automação                   | AU-10        |   3 | ROT-5        |
 
@@ -115,7 +115,7 @@ CRW-2 no #188 entregou a guarda de loop dentro do turno do crew, a nota de parad
 | ------------------------- | ------------------------------------------------ | ----- | --: | ---------- |
 | APP-1 **(entregue #189)** | Aviso de nova versão do service worker           | PR-13 |   2 | —          |
 | APP-2 **(substituída)**   | Onboarding: provedor conectado ou começar grátis | PR-01 |   3 | CON-4      |
-| APP-3 **(parcial)**       | Fixar conversas e pastas na barra lateral        | TL-13 |   3 | —          |
+| APP-3 **(entregue)**      | Fixar conversas e pastas na barra lateral        | TL-13 |   3 | —          |
 | APP-4 **(entregue)**      | Ditado e leitura em voz alta com Web Speech API  | TL-12 |   3 | —          |
 | APP-5                     | Revisão do fluxo móvel instalado                 | AU-09 |   3 | —          |
 
@@ -188,6 +188,28 @@ Ainda abertos: PRV-2 (endpoint próprio com nome como conexão; o preset Router
 já aceita qualquer URL compatível com OpenAI), ROT-6 (esperas), TOL-6
 (biblioteca de arquivos, depende de escrita na pasta de trabalho), APP-3
 (pastas), APP-5 (revisão em aparelho) e a validação da CRW-2 com modelo real.
+
+## Segunda rodada (2026-11-20)
+
+- **TOL-5 / MCP-1 a MCP-3:** `mcp/` com config (`OPENBOT_MCP_SERVERS`), nome
+  qualificado (`mcp__<servidor>__<tool>`), cliente Streamable HTTP (JSON e SSE,
+  sessão, teto de 1 MB) pelo transporte com IP fixado e adaptador para
+  `ToolDefinition`. Toda tool MCP pergunta antes; o resultado vai como dado
+  externo. MCP-4 (tela em Conexões) e MCP-5 (OAuth) ficam abertas: por ora o
+  servidor é configurado no ambiente.
+- **TOL-6:** `workspace_write` (pergunta antes, até 7 KB por chamada, porque os
+  argumentos de uma tool têm teto de 8 KB) e a seção **Arquivos** no editor do
+  bot, que lista e baixa sempre como anexo.
+- **ROT-6:** `schedule_wakeup` cria uma rotina de uma vez (novo tipo de agenda
+  `once`) numa thread própria: num horário, depois de uma rotina do bot, ou o
+  que vier primeiro (até 7 dias). Até 20 esperas por bot; roda uma vez e
+  desliga.
+- **APP-3:** pastas de bots na barra lateral, pelo editor; os atalhos Alt+N
+  seguem a ordem mostrada. Arrastar só reordena fora das pastas.
+
+Continuam abertos: PRV-2 (exige mais de uma vaga de chave por provedor no
+cofre), MCP-4 e MCP-5, Telegram (TG-1 a TG-4), SIWC (CON-7), APP-5 e a
+validação da CRW-2 com modelo real.
 
 ## Ordem sugerida dos primeiros PRs
 

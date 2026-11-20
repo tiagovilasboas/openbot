@@ -42,6 +42,7 @@ import {
   type PendingDeletion,
 } from "./bot-deletion.ts";
 import { canHideBot, setBotHidden } from "./bot-visibility.ts";
+import { setBotFolder } from "./bot-folders.ts";
 import { reorderBots } from "./reorder-bots.ts";
 import {
   loadStoredMainBotId,
@@ -245,6 +246,11 @@ export function useBots() {
     pushBots();
   }, []);
 
+  const moveBotToFolder = useCallback((id: string, folder: string) => {
+    saveBotsToStorage(setBotFolder(loadBotsFromStorage(), id, folder));
+    pushBots();
+  }, []);
+
   const activeBot =
     bots.find((b) => b.id === activeBotId) || bots[0] || DEFAULT_BOT;
 
@@ -260,6 +266,7 @@ export function useBots() {
     pendingDeletedBot,
     hideBot,
     restoreBot,
+    moveBotToFolder,
     reorderBot,
     mainBotId,
     makeMainBot,

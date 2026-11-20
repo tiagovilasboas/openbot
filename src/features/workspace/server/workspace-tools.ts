@@ -4,6 +4,7 @@ import type {
   ParsedArgs,
   ToolDefinition,
 } from "../../tools/tool-definition.ts";
+import { createWorkspaceWriteTool } from "./workspace-write-tool.ts";
 import {
   WORKSPACE_PATH_MAX,
   isInsideRoot,
@@ -47,12 +48,16 @@ export async function resolveInWorkspace(
   if (!segments) return { ok: false, code: "workspace_path" };
   let botRoot: string;
   try {
-    botRoot = await realpath(path.join(root, botId));
+    botRoot = await realpath(
+      /* turbopackIgnore: true */ path.join(root, botId),
+    );
   } catch {
     return { ok: false, code: "workspace_missing" };
   }
   try {
-    const full = await realpath(path.join(botRoot, ...segments));
+    const full = await realpath(
+      /* turbopackIgnore: true */ path.join(botRoot, ...segments),
+    );
     return isInsideRoot(botRoot, full)
       ? { ok: true, full }
       : { ok: false, code: "workspace_path" };
@@ -92,7 +97,9 @@ export function createWorkspaceListTool(root: string): ToolDefinition<Args> {
       if (!resolved.ok) return resolved;
       let entries;
       try {
-        entries = await readdir(resolved.full, { withFileTypes: true });
+        entries = await readdir(/* turbopackIgnore: true */ resolved.full, {
+          withFileTypes: true,
+        });
       } catch {
         return { ok: false, code: "workspace_not_folder" };
       }
@@ -123,9 +130,11 @@ export function createWorkspaceReadTool(root: string): ToolDefinition<Args> {
       if (ctx.signal.aborted) return { ok: false, code: "aborted" };
       const resolved = await resolveInWorkspace(root, ctx.botId, args.path);
       if (!resolved.ok) return resolved;
-      const info = await lstat(resolved.full).catch(() => null);
+      const info = await lstat(/* turbopackIgnore: true */ resolved.full).catch(
+        () => null,
+      );
       if (!info?.isFile()) return { ok: false, code: "workspace_not_file" };
-      const bytes = await readFile(resolved.full);
+      const bytes = await readFile(/* turbopackIgnore: true */ resolved.full);
       if (bytes.subarray(0, 8000).includes(0)) {
         return { ok: false, code: "workspace_binary" };
       }
@@ -143,8 +152,21 @@ export function createWorkspaceReadTool(root: string): ToolDefinition<Args> {
 /** The workspace tools, only when the server names a workspace root. */
 export function workspaceTools(
   root: string | undefined,
-): ToolDefinition<Args>[] {
+): (
+  | ToolDefinition<{ path: string }>
+  | ToolDefinition<{ path: string; content: string }>
+)[] {
+  const trimmed = workspaceRootOf(root);
+  if (!trimmed) return [];
+  return [
+    createWorkspaceListTool(trimmed),
+    createWorkspaceReadTool(trimmed),
+    createWorkspaceWriteTool(trimmed),
+  ];
+}
+
+/** The configured root, only when it is an absolute path. */
+export function workspaceRootOf(root: string | undefined): string | null {
   const trimmed = root?.trim();
-  if (!trimmed || !path.isAbsolute(trimmed)) return [];
-  return [createWorkspaceListTool(trimmed), createWorkspaceReadTool(trimmed)];
+  return trimmed && path.isAbsolute(trimmed) ? trimmed : null;
 }

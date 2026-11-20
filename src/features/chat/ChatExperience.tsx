@@ -37,6 +37,7 @@ import { useDocumentTheme } from "./use-document-theme.ts";
 import { useLanguage } from "./use-language.ts";
 import { useMessageQueue } from "./use-message-queue.ts";
 import { useAgentShortcuts } from "./use-agent-shortcuts.ts";
+import { sidebarOrder } from "../bots/bot-folders.ts";
 import { useNewChatUndo } from "./use-new-chat-undo.ts";
 import { useSidebarCollapse } from "./use-sidebar-collapse.ts";
 import { TasksPanel } from "../tasks/TasksPanel.tsx";
@@ -95,7 +96,7 @@ export function ChatExperience() {
   useMigrateLocalKeys();
   useAgentShortcuts({
     language,
-    bots,
+    bots: sidebarOrder(bots, mainBotId),
     locked: gate.locked,
     onSelect: (id) => {
       clearQueue();

@@ -51,6 +51,8 @@ export interface BotProfile {
   toolsEnabled?: boolean;
   /** Tucked away in the sidebar's "Hidden" group and out of @ mentions. */
   hidden?: boolean;
+  /** Sidebar folder the bot is grouped under; none means the main list. */
+  folder?: string;
   avatarShape: AvatarShape;
   avatarColor: AvatarColor;
   /** Skills this bot owns: they enter its prompt and its / palette only. */
