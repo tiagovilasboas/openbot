@@ -98,7 +98,7 @@ O #188 fechou a janela de DNS rebinding do `read_page`: a conexão vai só ao en
 | ROT-5 **(entregue #188)** | Rota local de automação com token, só loopback                | AU-05, AG-21 |   5 | ROT-2        |
 | ROT-6 **(entregue)**      | Esperas: bot pausa até rotina ou evento acordar               | AG-17        |   3 | ROT-5        |
 | ROT-7 **(entregue)**      | Rotinas encadeadas                                            | AU-04        |   3 | ROT-3        |
-| ROT-8 **(spike)**         | Spike de Telegram sobre a rota de automação                   | AU-10        |   3 | ROT-5        |
+| ROT-8 **(entregue)**      | Spike de Telegram sobre a rota de automação                   | AU-10        |   3 | ROT-5        |
 
 ## 7. Equipe (`crew/`)
 
@@ -209,6 +209,26 @@ já aceita qualquer URL compatível com OpenAI), ROT-6 (esperas), TOL-6
 
 Continuam abertos: PRV-2 (exige mais de uma vaga de chave por provedor no
 cofre), MCP-4 e MCP-5, Telegram (TG-1 a TG-4), SIWC (CON-7), APP-5 e a
+validação da CRW-2 com modelo real.
+
+## Terceira rodada (2026-11-20)
+
+- **ROT-8 / TG-1 a TG-3:** ponte do Telegram em `telegram/`, ligada por
+  `TELEGRAM_BOT_TOKEN` e `TELEGRAM_ALLOWED_CHATS` (sem lista, fica
+  desligada). Long polling com backoff, offset salvo antes de responder (não
+  repete depois de reiniciar), mensagens com mais de 10 minutos descartadas,
+  contexto das últimas 20 falas por chat no SQLite, `/new` limpa, resposta em
+  partes de 4096. Chat fora da lista só recebe o próprio id no `/start`. A
+  conversa do Telegram ainda não aparece como thread no app; TG-4 (aprovação
+  por botão) segue aberta, então o bot responde sem ferramentas por lá.
+- **MCP-4 (parcial):** seção **Integrações do servidor** em Conexões: cada
+  servidor MCP (host, no ar, quantas ferramentas) e o estado do Telegram, sem
+  tokens, caminhos ou chat ids. Adicionar servidor pela tela continua aberto.
+- **Refatoração:** `askBotOnServer` reúne o caminho "perguntar ao bot no
+  servidor" usado pelas rotinas e pelo Telegram.
+
+Continuam abertos: PRV-2 (o cofre tem `provider` como chave primária: precisa
+de migração), MCP-4 (cadastro pela tela), MCP-5, TG-4, SIWC (CON-7), APP-5 e a
 validação da CRW-2 com modelo real.
 
 ## Ordem sugerida dos primeiros PRs
