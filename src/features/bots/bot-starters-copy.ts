@@ -8,6 +8,11 @@ interface StartersCopy {
   fallbackTask: string;
   skillTask: string;
   planTask: string;
+  introduceLabel: string;
+  roleLabel: string;
+  fallbackLabel: string;
+  skillLabel: string;
+  planLabel: string;
 }
 
 const STARTERS_COPY: Record<Language, StartersCopy> = {
@@ -18,6 +23,11 @@ const STARTERS_COPY: Record<Language, StartersCopy> = {
     fallbackTask: "Quais informações você precisa sobre o meu projeto?",
     skillTask: "Mostre como usar a habilidade {skill} em um exemplo.",
     planTask: "Monte um plano para eu começar a trabalhar com você hoje.",
+    introduceLabel: "O que você faz?",
+    roleLabel: "Exemplo prático",
+    fallbackLabel: "O que precisa saber?",
+    skillLabel: "Usar {skill}",
+    planLabel: "Plano para começar",
   },
   en: {
     groupLabel: "Suggested first tasks",
@@ -26,6 +36,11 @@ const STARTERS_COPY: Record<Language, StartersCopy> = {
     fallbackTask: "What do you need to know about my project?",
     skillTask: "Show how to use the {skill} skill in an example.",
     planTask: "Draft a plan so I can start working with you today.",
+    introduceLabel: "What do you do?",
+    roleLabel: "Practical example",
+    fallbackLabel: "What do you need?",
+    skillLabel: "Use {skill}",
+    planLabel: "Plan to start",
   },
   es: {
     groupLabel: "Primeras tareas sugeridas",
@@ -34,6 +49,11 @@ const STARTERS_COPY: Record<Language, StartersCopy> = {
     fallbackTask: "¿Qué necesitas saber sobre mi proyecto?",
     skillTask: "Muestra cómo usar la habilidad {skill} en un ejemplo.",
     planTask: "Arma un plan para que empiece a trabajar contigo hoy.",
+    introduceLabel: "¿Qué haces?",
+    roleLabel: "Ejemplo práctico",
+    fallbackLabel: "¿Qué necesitas?",
+    skillLabel: "Usar {skill}",
+    planLabel: "Plan para empezar",
   },
 };
 

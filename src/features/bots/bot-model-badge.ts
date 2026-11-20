@@ -13,7 +13,5 @@ export function botModelBadge(
 ): string {
   const own = modelId?.trim();
   if (!own) return globalLabel;
-  return provider
-    ? formatModelBadge({ provider, model: own }, false, language)
-    : own;
+  return provider ? formatModelBadge({ provider, model: own }, language) : own;
 }

@@ -52,7 +52,7 @@ import {
   subscribeMainBotId,
 } from "./main-bot.ts";
 
-const SERVER_BOTS: BotProfile[] = [DEFAULT_BOT];
+const SERVER_BOTS: BotProfile[] = [];
 const getServerBots = () => SERVER_BOTS;
 const getServerActiveBotId = () => DEFAULT_BOT.id;
 const getServerMainBotId = () => null;

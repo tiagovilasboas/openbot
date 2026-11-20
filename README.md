@@ -35,19 +35,19 @@ On a phone the bot list is a drawer and the composer sits in reach of your thumb
 
 Each bot has its own conversation, prompt, avatar and skills. Switching bots switches the chat, and each history stays on this device. Type `@` to hand a message to another bot, and `/` to run one of your skills.
 
-Open Bot starts with a crew of nine. Every crew prompt asks for your explicit approval before any external change.
+No agent comes ready-made. On first launch Open Bot opens the setup: you create the main agent and, if you want, check roles below to create with it. None comes checked, and an existing user can restore a backup from the same screen. Every role prompt asks for your explicit approval before any external change.
 
-| Bot            | Handles                                                               |
-| -------------- | --------------------------------------------------------------------- |
-| Chief of Staff | Plans, summarizes and delegates to the others. The main bot at start. |
-| Engineering    | Code, pull requests and CI                                            |
-| Publishing     | Docs and public content                                               |
-| Security       | AppSec and privacy                                                    |
-| Inbox          | Triage and drafts                                                     |
-| Career         | Opportunity triage                                                    |
-| Finance        | Reconciliation drafts                                                 |
-| Product        | Requirements and previews                                             |
-| Hobby          | Research and shortlists                                               |
+| Bot            | Handles                                        |
+| -------------- | ---------------------------------------------- |
+| Chief of Staff | Plans, summarizes and delegates to the others. |
+| Engineering    | Code, pull requests and CI                     |
+| Publishing     | Docs and public content                        |
+| Security       | AppSec and privacy                             |
+| Inbox          | Triage and drafts                              |
+| Career         | Opportunity triage                             |
+| Finance        | Reconciliation drafts                          |
+| Product        | Requirements and previews                      |
+| Hobby          | Research and shortlists                        |
 
 You can edit any of them or create your own, from a blank form or from a template: Architect, Code Reviewer, AppSec Lead, Platform Engineer, Technical Writer or Bug Hunter.
 

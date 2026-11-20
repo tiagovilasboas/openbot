@@ -59,13 +59,10 @@ test("an exported backup imports into a fresh browser profile", async ({
   const freshPage = await fresh.newPage();
   await freshPage.goto("/");
   const freshApp = appPage(freshPage);
-  await expect(freshApp.botRows()).toHaveCount(9);
-
-  await freshApp.openSettingsTab("Segurança");
+  // A fresh install has no agents: the setup itself offers the restore.
+  await expect(freshApp.botRows()).toHaveCount(0);
   await freshPage
-    .getByRole("group")
-    .filter({ hasText: "Backup" })
-    .getByText("Avançado", { exact: true })
+    .getByText("Já usa o Open Bot? Restaurar um backup", { exact: true })
     .click();
   await freshPage
     .getByLabel("Arquivo de backup do OpenBot")

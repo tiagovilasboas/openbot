@@ -1,5 +1,4 @@
 import {
-  DEFAULT_BOTS_LIST,
   loadActiveBotId,
   saveActiveBotId,
   saveBotsToStorage,
@@ -67,7 +66,8 @@ export function loadBotsFromServer(): Promise<LoadOutcome> {
       if (state.activeBotId) saveActiveBotId(state.activeBotId);
       if (state.mainBotId) saveMainBotId(state.mainBotId);
     },
-    presets: DEFAULT_BOTS_LIST,
+    // A fresh install seeds nothing: agents come from the agent setup.
+    presets: [],
     reportFailure: report,
   }).then((outcome) => {
     queue.noteServerMain(outcome.serverMainBotId);

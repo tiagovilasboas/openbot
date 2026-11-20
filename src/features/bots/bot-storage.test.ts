@@ -31,15 +31,9 @@ function createMockStorage(): Storage {
   };
 }
 
-test("loadBotsFromStorage returns the crew presets on empty storage", () => {
+test("loadBotsFromStorage returns no agents on empty storage", () => {
   const storage = createMockStorage();
-  const bots = loadBotsFromStorage(storage);
-  assert.equal(bots.length, 9);
-  assert.equal(bots[0]?.id, "chief-of-staff");
-  assert.equal(bots[0]?.name, DEFAULT_BOT.name);
-  assert.equal(new Set(bots.map((b) => b.id)).size, 9);
-  assert.equal(bots[0]?.avatarShape, "ghost");
-  assert.equal(bots[0]?.avatarColor, "teal");
+  assert.deepEqual(loadBotsFromStorage(storage), []);
 });
 
 test("loadBotsFromStorage preserves stored bots without adding presets", () => {

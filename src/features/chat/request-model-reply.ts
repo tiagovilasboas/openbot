@@ -57,8 +57,7 @@ export type ModelReplyOutcome =
 
 /**
  * Asks the server chat route for a model reply. "unavailable" means the server
- * has no provider configured, so callers can keep the explicit demo behavior
- * instead of pretending a model answered.
+ * has no provider configured: callers say so and never invent a reply.
  */
 export async function requestModelReply(
   language: ChatLanguage,

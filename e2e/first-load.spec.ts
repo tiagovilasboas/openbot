@@ -18,7 +18,7 @@ test("first load shows nine bots, the Chief of Staff on top, and the empty state
     }),
   ).toBeVisible();
   await expect(
-    page.getByRole("group", { name: "Sugestões para começar" }),
+    page.getByRole("group", { name: "Primeiras tarefas sugeridas" }),
   ).toBeVisible();
   await expect(page.getByRole("region", { name: "Conversa" })).toHaveCount(0);
   expect(model.chatRequests()).toHaveLength(0);

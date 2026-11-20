@@ -115,24 +115,23 @@ test("rejects malformed or unknown provider inputs", () => {
 
 test("formatModelBadge formats label for providers and unconfigured state", () => {
   assert.equal(
-    formatModelBadge({ provider: "router", model: "o3-mini" }, false, "pt"),
+    formatModelBadge({ provider: "router", model: "o3-mini" }, "pt"),
     "Router: o3-mini",
   );
   assert.equal(
-    formatModelBadge({ provider: "local", model: "llama3" }, false, "pt"),
+    formatModelBadge({ provider: "local", model: "llama3" }, "pt"),
     "Local: llama3",
   );
   assert.equal(
     formatModelBadge(
       { provider: "anthropic", model: "claude-3-5-sonnet" },
-      false,
       "en",
     ),
     "Anthropic: claude-3-5-sonnet",
   );
-  assert.equal(formatModelBadge(null, true, "pt"), "Sem modelo");
-  assert.equal(formatModelBadge(null, true, "en"), "No model");
-  assert.equal(formatModelBadge(null, false, "pt"), "Sem modelo");
+  assert.equal(formatModelBadge(null, "pt"), "Sem modelo");
+  assert.equal(formatModelBadge(null, "en"), "No model");
+  assert.equal(formatModelBadge(null, "pt"), "Sem modelo");
 });
 
 test("validates all OpenRouter free tier models and presets", () => {

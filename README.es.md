@@ -35,19 +35,19 @@ En un celular, la lista de bots es un panel deslizable y el campo de mensaje que
 
 Cada bot tiene su propia conversación, prompt, avatar y skills. Cambiar de bot cambia el chat, y cada historial se queda en este dispositivo. Escribe `@` para pasar un mensaje a otro bot y `/` para ejecutar una de tus skills.
 
-Open Bot arranca con un equipo de nueve. Todos los prompts del equipo piden tu aprobación explícita antes de cualquier cambio externo.
+Ningún agente viene listo. La primera vez, Open Bot abre el setup: creas el agente principal y, si quieres, marcas roles de abajo para crearlos junto. Ninguno viene marcado, y quien ya lo usa puede restaurar una copia desde la misma pantalla. El prompt de cada rol pide tu aprobación explícita antes de cualquier cambio externo.
 
-| Bot            | Se encarga de                                                        |
-| -------------- | -------------------------------------------------------------------- |
-| Chief of Staff | Planifica, resume y delega en los demás. El bot principal al inicio. |
-| Engineering    | Código, pull requests y CI                                           |
-| Publishing     | Documentación y contenido público                                    |
-| Security       | AppSec y privacidad                                                  |
-| Inbox          | Clasificación de mensajes y borradores                               |
-| Career         | Clasificación de oportunidades                                       |
-| Finance        | Borradores de conciliación                                           |
-| Product        | Requisitos y vistas previas                                          |
-| Hobby          | Investigación y listas comparativas                                  |
+| Bot            | Se encarga de                            |
+| -------------- | ---------------------------------------- |
+| Chief of Staff | Planifica, resume y delega en los demás. |
+| Engineering    | Código, pull requests y CI               |
+| Publishing     | Documentación y contenido público        |
+| Security       | AppSec y privacidad                      |
+| Inbox          | Clasificación de mensajes y borradores   |
+| Career         | Clasificación de oportunidades           |
+| Finance        | Borradores de conciliación               |
+| Product        | Requisitos y vistas previas              |
+| Hobby          | Investigación y listas comparativas      |
 
 Puedes editar cualquiera de ellos o crear los tuyos, desde un formulario en blanco o desde una plantilla: Architect, Code Reviewer, AppSec Lead, Platform Engineer, Technical Writer o Bug Hunter.
 
