@@ -26,7 +26,7 @@ async function fetchStatus(): Promise<State> {
 
 const ROW = "flex items-center justify-between gap-3 py-1.5 text-sm";
 
-/** MCP servers and the Telegram bridge, as the server sees them now. */
+/** The configured MCP servers, as the server sees them now. */
 export function IntegrationsSection({ language }: { language: Language }) {
   const c = getIntegrationsCopy(language);
   const [state, setState] = useState<State>({ kind: "loading" });
@@ -98,16 +98,6 @@ export function IntegrationsSection({ language }: { language: Language }) {
                 </span>
               </div>
             ))}
-          </div>
-          <div className={ROW}>
-            <span className="text-[13px] font-medium">{c.telegramTitle}</span>
-            <span className="text-xs text-muted">
-              {state.status.telegram.enabled
-                ? c.telegramOn(state.status.telegram.allowedChats)
-                : state.status.telegram.problem
-                  ? c.telegramProblem(state.status.telegram.problem)
-                  : c.telegramOff}
-            </span>
           </div>
         </div>
       )}

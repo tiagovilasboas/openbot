@@ -1,6 +1,5 @@
 import { parseMcpConfig } from "../../mcp/mcp-config.ts";
 import { createMcpClient, McpError } from "../../mcp/server/mcp-client.ts";
-import { parseTelegramConfig } from "../../telegram/telegram-config.ts";
 
 type Env = Readonly<Record<string, string | undefined>>;
 
@@ -13,12 +12,11 @@ export type McpServerStatus = {
 
 export type IntegrationsStatus = {
   mcp: { configError?: string; servers: McpServerStatus[] };
-  telegram: { enabled: boolean; problem?: string; allowedChats: number };
 };
 
 /**
  * What the server-side integrations look like right now, for Settings.
- * Names, hosts and counts only: never a URL path, token or chat id.
+ * Names, hosts and counts only: never a URL path or token.
  */
 export async function integrationsStatus(
   env: Env,
@@ -52,16 +50,8 @@ export async function integrationsStatus(
         }),
       )
     : [];
-  const telegram = parseTelegramConfig(env);
   return {
     mcp: config.ok ? { servers } : { configError: config.error, servers },
-    telegram: telegram.enabled
-      ? { enabled: true, allowedChats: telegram.allowedChats.size }
-      : {
-          enabled: false,
-          ...(telegram.problem ? { problem: telegram.problem } : {}),
-          allowedChats: 0,
-        },
   };
 }
 
