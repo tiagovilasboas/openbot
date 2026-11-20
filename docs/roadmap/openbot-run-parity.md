@@ -224,6 +224,31 @@ Continuam abertos: PRV-2 (o cofre tem `provider` como chave primária: precisa
 de migração), MCP-4 (cadastro pela tela), MCP-5, SIWC (CON-7), APP-5 e a
 validação da CRW-2 com modelo real.
 
+## Passe funcional (2026-11-20)
+
+Sem feature nova: testes de ponta a ponta para o que entrou nas rodadas
+anteriores e correção do que eles acharam.
+
+- **e2e novos** (`e2e/parity-features.spec.ts`, mais um caso em
+  `stub-model.spec.ts`): corrigir o rumo, pergunta lateral, conversa fixada
+  depois de recarregar, pasta de bots, link de instalação válido e quebrado,
+  estado do MCP e seção Arquivos, e rotinas encadeadas contra o modelo
+  simulado.
+- **Integração no servidor** (`tool-turn-real-tools.test.ts`): rota de
+  ferramentas de verdade, registro montado do ambiente e um servidor MCP em
+  localhost. `create_bot`, `workspace_write`/`workspace_read`,
+  `schedule_wakeup` e uma tool MCP pausam, são aprovadas uma vez, rodam e o
+  resultado chega ao passo seguinte; uma escrita negada não grava nada.
+- **Bugs corrigidos:**
+  - O resultado de uma tool MCP chegava ao modelo embrulhado duas vezes como
+    dado externo (o ciclo de ferramentas já marca todo resultado).
+  - Depois de `create_bot`/`update_bot`, a barra lateral não atualizava:
+    `loadBotsFromServer` só carrega uma vez por página. `refreshBots` relê o
+    servidor a cada mudança e nunca atropela edição local ainda não enviada.
+  - Uma rotina em thread ou uma espera que rodava com o app aberto só aparecia
+    depois de trocar de janela. Agora sincroniza também ao voltar a ficar
+    visível e a cada minuto enquanto está na tela.
+
 ## Ordem sugerida dos primeiros PRs
 
 | Ordem | PRs em paralelo (máx. 3 abertos) | Motivo                                       |

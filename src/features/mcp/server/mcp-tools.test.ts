@@ -78,7 +78,7 @@ const env = (extra: Record<string, string> = {}) => ({
 
 const ctx = { botId: "b", signal: new AbortController().signal };
 
-test("tools load, ask first and wrap their result as data", async () => {
+test("tools load, ask first and return the server's text", async () => {
   clearMcpToolCache();
   const server = fakeServer();
   const tools = await loadMcpTools(env(), { fetchImpl: server.fetchImpl });
@@ -91,7 +91,7 @@ test("tools load, ask first and wrap their result as data", async () => {
   assert.match(create.description, /^\[tracker\] Create an issue/);
   const result = await create.run({ title: "Bug" }, ctx);
   assert.ok(result.ok);
-  assert.match(result.text, /<external-data>\nmade Bug\n<\/external-data>/);
+  assert.equal(result.text, "made Bug");
   assert.deepEqual(await boom.run({}, ctx), {
     ok: false,
     code: "mcp_tool_error",

@@ -19,6 +19,7 @@ import {
   setUnsynced,
 } from "./local-bots-port.ts";
 import { pushRestoredBots } from "./push-restored-bots.ts";
+import { refreshBots } from "./refresh-bots.ts";
 import { syncBotsOnLoad, type LoadOutcome } from "./sync-bots-on-load.ts";
 
 /** The browser's wiring of the bot sync: real fetch, real localStorage. */
@@ -75,6 +76,15 @@ export function loadBotsFromServer(): Promise<LoadOutcome> {
     return outcome;
   });
   return loading;
+}
+
+/** Reloads the crew after a server-side change; see refreshBots. */
+export function refreshBotsFromServer(): Promise<boolean> {
+  return refreshBots({
+    api,
+    hasUnsentEdits: () => isUnsynced(storage()),
+    save: saveBotsToStorage,
+  });
 }
 
 /** Sends the bots as they are now, after a short pause that merges edits. */

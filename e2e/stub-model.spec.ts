@@ -158,3 +158,50 @@ test("the loop guard stops a crew turn whose bots repeat each other", async ({
     "Você é o Chief of St",
   ]);
 });
+
+test("a chained routine runs after the first one, with its result", async ({
+  page,
+  request,
+  context,
+}) => {
+  const model = uniqueModel("chain");
+  await useStubOnServer(request, model);
+  await useStubInBrowser(context, model);
+  await page.goto("/");
+
+  await page.getByRole("button", { name: "Editar Engineering" }).click();
+  const dialog = page.getByRole("dialog", { name: "Editar bot" });
+  await dialog.getByText("Rotinas", { exact: true }).click();
+
+  await dialog.getByRole("button", { name: "Nova rotina" }).click();
+  await dialog.getByPlaceholder("ex: Resumo da manhã").fill("Coleta");
+  await dialog
+    .getByRole("textbox", { name: "O que o bot deve fazer" })
+    .fill("colete os dados");
+  await dialog.getByRole("button", { name: "Salvar rotina" }).click();
+
+  await dialog.getByRole("button", { name: "Nova rotina" }).click();
+  await dialog.getByPlaceholder("ex: Resumo da manhã").fill("Relatório");
+  await dialog
+    .getByRole("textbox", { name: "O que o bot deve fazer" })
+    .fill("escreva o relatório");
+  await dialog
+    .getByRole("combobox", { name: "Depois de outra rotina" })
+    .selectOption({ label: "Coleta" });
+  await dialog.getByRole("button", { name: "Salvar rotina" }).click();
+
+  // Running the first one also runs the chained one, with the first result.
+  await dialog
+    .getByRole("listitem")
+    .filter({ hasText: "Coleta" })
+    .getByRole("button", { name: "Rodar agora" })
+    .click();
+  await expect
+    .poll(async () => (await stubCalls(request, model)).length)
+    .toBe(2);
+  const [first, second] = await stubCalls(request, model);
+  expect(first.user).toContain("colete os dados");
+  expect(second.user).toContain("escreva o relatório");
+  expect(second.user).toContain("Resultado da rotina anterior:");
+  expect(second.user).toContain("Stub answer to:");
+});

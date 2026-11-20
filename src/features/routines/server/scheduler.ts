@@ -1,7 +1,9 @@
 import type { DatabaseSync } from "node:sqlite";
+import { TICK_MS } from "../routine-tick.ts";
 import { runDueRoutines, type RoutineRunner } from "./run-routines.ts";
 
-export const TICK_MS = 60_000;
+export { TICK_MS };
+
 const STARTED = Symbol.for("openbot.routines.scheduler");
 
 type Deps = {
