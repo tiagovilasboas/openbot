@@ -1,6 +1,5 @@
 import { MAX_TOOL_ARGS_CHARS } from "../../model/tool-wire.ts";
 import type { ToolDefinition } from "../../tools/tool-definition.ts";
-import { wrapExternalText } from "../../untrusted-text/wrap-external-text.ts";
 import { parseMcpConfig, type McpServerConfig } from "../mcp-config.ts";
 import {
   cleanDescription,
@@ -38,7 +37,10 @@ function parseArgs(raw: unknown): { ok: true; args: Args } | { ok: false } {
     : { ok: false };
 }
 
-/** One MCP tool as a loop tool: always asks first, result marked as data. */
+/**
+ * One MCP tool as a loop tool: always asks first. The tool loop marks every
+ * result as external data, so the text goes back as the server sent it.
+ */
 export function mcpToolDefinition(
   server: McpServerConfig,
   client: McpClient,
@@ -68,7 +70,7 @@ export function mcpToolDefinition(
           return { ok: false, code: "mcp_tool_error" };
         return {
           ok: true,
-          text: wrapExternalText(text || "(no text content)"),
+          text: text || "(no text content)",
           preview: text.slice(0, 200) || original,
         };
       } catch (error) {

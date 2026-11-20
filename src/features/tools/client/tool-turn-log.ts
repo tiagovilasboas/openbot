@@ -1,4 +1,4 @@
-import { loadBotsFromServer } from "../../bots/sync/browser-bots-sync.ts";
+import { refreshBotsFromServer } from "../../bots/sync/browser-bots-sync.ts";
 import { applyToolEvent, type LiveToolStep } from "./live-tool-steps.ts";
 import type { ToolProgressEvent } from "./tool-stream-events.ts";
 
@@ -40,7 +40,7 @@ export function createToolTurnLog({
       }
       if (event.type === "bots_changed") {
         // The crew changed on the server: the browser cache catches up.
-        void loadBotsFromServer().catch(() => undefined);
+        void refreshBotsFromServer().catch(() => false);
         return;
       }
       if (event.type === "tools_unavailable") {
