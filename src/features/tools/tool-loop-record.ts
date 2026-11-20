@@ -68,9 +68,7 @@ export function* recordResult(
   state.transcript.push({ call, result: { ok: outcome.ok, text } });
   state.answered.add(call.id);
   yield { type: "tool_result", callId: call.id, ok: outcome.ok, preview };
-  if (outcome.ok && outcome.effect?.kind === "memory_changed") {
-    yield { type: "memory_changed" };
-  }
+  if (outcome.ok && outcome.effect) yield { type: outcome.effect.kind };
   return outcome.ok ? "ok" : safeCode(outcome.code);
 }
 

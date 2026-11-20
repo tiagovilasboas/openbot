@@ -20,6 +20,8 @@ export interface Thread {
   parentThreadId?: string;
   /** Set on a branch: the last message copied from the parent. */
   branchedFromMessageId?: number;
+  /** Kept at the front of the list, right after the default thread. */
+  pinned?: boolean;
 }
 
 /** The id the thread's messages are stored under; the default is the bot id. */
@@ -97,6 +99,7 @@ function sanitizeThread(botId: string, value: unknown): Thread | null {
   if (typeof v.branchedFromMessageId === "number") {
     thread.branchedFromMessageId = v.branchedFromMessageId;
   }
+  if (v.pinned === true) thread.pinned = true;
   return thread;
 }
 
@@ -114,7 +117,11 @@ export function withDefaultThread(botId: string, stored: unknown): Thread[] {
     seen.add(thread.id);
     extras.push(thread);
   }
-  extras.sort((a, b) => a.createdAt - b.createdAt);
+  extras.sort(
+    (a, b) =>
+      Number(Boolean(b.pinned)) - Number(Boolean(a.pinned)) ||
+      a.createdAt - b.createdAt,
+  );
   return [defaultThread(botId), ...extras];
 }
 
@@ -134,6 +141,21 @@ export function renameThread(
       ? { ...t, title: cleanTitle(title), updatedAt: now }
       : t,
   );
+}
+
+/** Pins or unpins a thread; the default thread is always first already. */
+export function setThreadPinned(
+  threads: readonly Thread[],
+  id: string,
+  pinned: boolean,
+): Thread[] {
+  return threads.map((t) => {
+    if (t.id !== id || isDefaultThread(id)) return t;
+    const next: Thread = { ...t };
+    if (pinned) next.pinned = true;
+    else delete next.pinned;
+    return next;
+  });
 }
 
 /** The default thread cannot be removed: it is the one the server mirrors. */

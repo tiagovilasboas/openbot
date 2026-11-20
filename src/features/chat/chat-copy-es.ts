@@ -114,6 +114,8 @@ export const chatCopyEs = {
   copyCode: "Copiar código",
   copied: "Copiado",
   queueSuffix: "en cola",
+  steerAction: "Corregir el rumbo",
+  steerHint: "Detiene la respuesta y contesta tu último mensaje ahora.",
   rollbackAction: "Editar y reenviar",
   rollbackActionHint: "Volver a este mensaje",
   rollbackRunning: "Espera la respuesta o cancélala para volver.",

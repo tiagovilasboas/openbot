@@ -173,7 +173,8 @@ export async function requestModelStream(
           event?.type === "tool_call" ||
           event?.type === "tool_result" ||
           event?.type === "tools_unavailable" ||
-          event?.type === "memory_changed"
+          event?.type === "memory_changed" ||
+          event?.type === "bots_changed"
         ) {
           options.onToolEvent?.(event);
         } else if (event?.type === "delta") {

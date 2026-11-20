@@ -29,7 +29,8 @@ export type ToolLoopEvent =
       policy: ToolPolicy;
     }
   | { type: "tool_result"; callId: string; ok: boolean; preview: string }
-  | { type: "memory_changed" };
+  | { type: "memory_changed" }
+  | { type: "bots_changed" };
 
 /** A call waiting for the user, exactly as the server stored it. */
 export type PendingCall = {

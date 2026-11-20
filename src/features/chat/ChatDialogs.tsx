@@ -1,6 +1,7 @@
 "use client";
 
 import { BotDeletionNotice } from "@/features/bots/BotDeletionNotice.tsx";
+import { TemplateInstallPrompt } from "../bot-sharing/TemplateInstallPrompt.tsx";
 import { BotEditModal } from "@/features/bots/BotEditModal.tsx";
 import { canHideBot } from "@/features/bots/bot-visibility.ts";
 import type { useBots } from "@/features/bots/use-bots.ts";
@@ -70,6 +71,24 @@ export function ChatDialogs({
         onDelete={bots.removeBot}
         onMakeMain={bots.makeMainBot}
         crewBots={bots.bots}
+      />
+
+      <TemplateInstallPrompt
+        language={language}
+        onInstall={(draft) => {
+          const created = bots.createAndActivateBot(draft);
+          // Fields the quick create leaves out come back on the saved bot.
+          bots.saveBot({
+            ...created,
+            ...(draft.workspaceContext
+              ? { workspaceContext: draft.workspaceContext }
+              : {}),
+            ...(draft.modelId ? { modelId: draft.modelId } : {}),
+            ...(draft.backupModelIds
+              ? { backupModelIds: draft.backupModelIds }
+              : {}),
+          });
+        }}
       />
     </>
   );

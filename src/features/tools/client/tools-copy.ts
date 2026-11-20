@@ -17,6 +17,10 @@ interface ToolsCopy {
     github_list_open_items: string;
     ask_user: string;
     read_page: string;
+    create_bot: string;
+    update_bot: string;
+    workspace_list: string;
+    workspace_read: string;
   };
   unknownTool: string;
   previewLabel: string;
@@ -43,6 +47,10 @@ export const toolsCopy: Record<Language, ToolsCopy> = {
       github_list_open_items: "Ler issues e PRs abertos no GitHub",
       ask_user: "Pergunta para você",
       read_page: "Ler uma página da web",
+      create_bot: "Criar um bot na equipe",
+      update_bot: "Alterar um bot da equipe",
+      workspace_list: "Listar a pasta de trabalho",
+      workspace_read: "Ler um arquivo da pasta de trabalho",
     },
     unknownTool: "Usar uma ferramenta",
     previewLabel: "O que será usado",
@@ -75,6 +83,10 @@ export const toolsCopy: Record<Language, ToolsCopy> = {
       github_list_open_items: "Read open GitHub issues and PRs",
       ask_user: "Question for you",
       read_page: "Read a web page",
+      create_bot: "Create a bot in the crew",
+      update_bot: "Change a bot in the crew",
+      workspace_list: "List the workspace folder",
+      workspace_read: "Read a workspace file",
     },
     unknownTool: "Use a tool",
     previewLabel: "What it will use",
@@ -107,6 +119,10 @@ export const toolsCopy: Record<Language, ToolsCopy> = {
       github_list_open_items: "Leer issues y PR abiertos en GitHub",
       ask_user: "Pregunta para ti",
       read_page: "Leer una página web",
+      create_bot: "Crear un bot en el equipo",
+      update_bot: "Cambiar un bot del equipo",
+      workspace_list: "Listar la carpeta de trabajo",
+      workspace_read: "Leer un archivo de la carpeta de trabajo",
     },
     unknownTool: "Usar una herramienta",
     previewLabel: "Lo que usará",

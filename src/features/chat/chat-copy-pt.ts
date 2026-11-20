@@ -113,6 +113,8 @@ export const chatCopyPt = {
   copyCode: "Copiar código",
   copied: "Copiado",
   queueSuffix: "na fila",
+  steerAction: "Corrigir o rumo",
+  steerHint: "Interrompe a resposta e responde a última mensagem agora.",
   rollbackAction: "Editar e reenviar",
   rollbackActionHint: "Voltar a esta mensagem",
   rollbackRunning: "Aguarde a resposta ou cancele para voltar.",

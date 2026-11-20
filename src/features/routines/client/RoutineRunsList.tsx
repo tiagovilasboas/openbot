@@ -50,6 +50,7 @@ export function RoutineRunsList(props: RoutineRunsListProps) {
             <p className="text-[12px] text-muted">
               {formatWhen(run.finishedAt ?? run.startedAt, language)}
               {run.origin === "manual" && ` · ${copy.manualRun}`}
+              {run.origin === "chain" && ` · ${copy.chainRun}`}
               {label && ` · ${label}`}
             </p>
             {run.output && (

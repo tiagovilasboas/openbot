@@ -128,7 +128,12 @@ async function startToolTurn(
   const now = options.now ?? Date.now;
   const tools =
     options.tools ??
-    serverToolRegistry({ db, fetchImpl, githubToken: env.GITHUB_TOKEN });
+    serverToolRegistry({
+      db,
+      fetchImpl,
+      githubToken: env.GITHUB_TOKEN,
+      workspaceRoot: env.OPENBOT_WORKSPACE_DIR,
+    });
   const digest = requestDigest(
     botId,
     modelRequest.language,

@@ -9,10 +9,23 @@ export const dynamic = "force-dynamic";
 
 export function GET() {
   const db = getLocalStore();
-  return handleGetLevels(db, serverToolRegistry({ db }));
+  return handleGetLevels(
+    db,
+    serverToolRegistry({
+      db,
+      workspaceRoot: process.env.OPENBOT_WORKSPACE_DIR,
+    }),
+  );
 }
 
 export function PUT(request: Request) {
   const db = getLocalStore();
-  return handlePutLevel(request, db, serverToolRegistry({ db }));
+  return handlePutLevel(
+    request,
+    db,
+    serverToolRegistry({
+      db,
+      workspaceRoot: process.env.OPENBOT_WORKSPACE_DIR,
+    }),
+  );
 }

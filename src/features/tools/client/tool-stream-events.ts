@@ -13,7 +13,8 @@ export type ToolProgressEvent =
     }
   | { type: "tool_result"; callId: string; ok: boolean; preview: string }
   | { type: "tools_unavailable" }
-  | { type: "memory_changed" };
+  | { type: "memory_changed" }
+  | { type: "bots_changed" };
 
 /** The turn stopped: these calls wait for the user until expiresAt. */
 export type ApprovalPause = {
@@ -115,6 +116,8 @@ export function parseToolEvent(
       return { type: "tools_unavailable" };
     case "memory_changed":
       return { type: "memory_changed" };
+    case "bots_changed":
+      return { type: "bots_changed" };
     default:
       return null;
   }

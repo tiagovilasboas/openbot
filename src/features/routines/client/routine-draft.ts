@@ -21,6 +21,8 @@ export type RoutineDraft = {
   enabled: boolean;
   silentWhenNothingNew: boolean;
   runInThread: boolean;
+  /** The routine this one runs after; empty for none. */
+  afterRoutineId: string;
 };
 
 export type DraftProblem =
@@ -66,6 +68,7 @@ export function emptyDraft(
     enabled: true,
     silentWhenNothingNew: true,
     runInThread: false,
+    afterRoutineId: "",
   };
 }
 
@@ -83,6 +86,7 @@ export function draftFromRoutine(
     enabled: routine.enabled,
     silentWhenNothingNew: routine.silentWhenNothingNew,
     runInThread: routine.runInThread,
+    afterRoutineId: routine.afterRoutineId ?? "",
     kind: schedule.kind,
     ...(schedule.kind === "interval"
       ? { everyMinutes: String(schedule.everyMinutes) }
@@ -125,6 +129,7 @@ export function checkDraft(draft: RoutineDraft, botId: string): DraftCheck {
       enabled: draft.enabled,
       silentWhenNothingNew: draft.silentWhenNothingNew,
       runInThread: draft.runInThread,
+      ...(draft.afterRoutineId ? { afterRoutineId: draft.afterRoutineId } : {}),
     },
   };
 }

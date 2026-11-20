@@ -42,11 +42,25 @@ async function timed(run) {
   }
 }
 
+// With --vault the server holds the key: each request names the provider and
+// model without a key, and the server fills the key from its own vault.
+const VAULT_CONFIG = process.env.OPENBOT_RUN_CONFIG
+  ? JSON.parse(process.env.OPENBOT_RUN_CONFIG)
+  : null;
+if (VAULT_CONFIG && "apiKey" in VAULT_CONFIG) {
+  console.error("OPENBOT_RUN_CONFIG must not carry a key.");
+  process.exit(2);
+}
+
 async function post(path, body) {
+  const withConfig =
+    VAULT_CONFIG && body && !("config" in body)
+      ? { ...body, config: VAULT_CONFIG }
+      : body;
   const response = await fetch(`${BASE}${path}`, {
     method: "POST",
     headers: HEADERS,
-    body: JSON.stringify(body),
+    body: JSON.stringify(withConfig),
   });
   return response;
 }

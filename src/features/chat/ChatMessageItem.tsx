@@ -22,6 +22,7 @@ import { chatCopy } from "./chat-copy.ts";
 import { branchBlock } from "./branch-thread.ts";
 import { BranchButton } from "./BranchButton.tsx";
 import { CopyButton } from "./CopyButton.tsx";
+import { ReadAloudButton } from "../voice/ReadAloudButton.tsx";
 import {
   canRetryIncomplete,
   incompleteNote,
@@ -232,6 +233,7 @@ export function ChatMessageItem({
           language={message.language}
           kind="message"
         />
+        <ReadAloudButton text={message.text} language={message.language} />
         {branch && branchBlock(message, false) === null && (
           <BranchButton
             label={content.branchAction}

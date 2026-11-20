@@ -15,6 +15,7 @@ interface ThreadBarProps {
   onSelect: (id: string) => void;
   onCreate: () => void;
   onRename: (id: string, title: string) => void;
+  onTogglePin: (id: string) => void;
   onRemove: (id: string) => void;
   onUndoRemove: () => void;
   /** Pinned to the end of the bar, for example the all-bots task list. */
@@ -34,6 +35,7 @@ export function ThreadBar({
   onSelect,
   onCreate,
   onRename,
+  onTogglePin,
   onRemove,
   onUndoRemove,
   trailing,
@@ -79,12 +81,28 @@ export function ThreadBar({
                   : "text-muted hover:bg-surface"
               }`}
             >
+              {thread.pinned && (
+                <>
+                  <span aria-hidden="true" className="mr-1">
+                    •
+                  </span>
+                  <span className="sr-only">{copy.pinnedMark}: </span>
+                </>
+              )}
               {displayTitle(thread, copy)}
             </button>
           ),
         )}
       {active && !isDefaultThread(active.id) && editing === null && (
         <>
+          <button
+            type="button"
+            aria-pressed={Boolean(active.pinned)}
+            onClick={() => onTogglePin(active.id)}
+            className={`${chip} text-muted hover:bg-surface`}
+          >
+            {active.pinned ? copy.unpin : copy.pin}
+          </button>
           <button
             type="button"
             onClick={() => setEditing(active.id)}

@@ -14,6 +14,8 @@ export interface MessageQueue {
   peek(): QueuedMessage | undefined;
   size(): number;
   clear(): void;
+  /** Moves the newest message to the front; false when nothing waits. */
+  promoteLast(): boolean;
   getAll(): readonly QueuedMessage[];
 }
 
@@ -35,6 +37,12 @@ export function createMessageQueue(): MessageQueue {
     },
     clear() {
       items.length = 0;
+    },
+    promoteLast() {
+      const last = items.pop();
+      if (!last) return false;
+      items.unshift(last);
+      return true;
     },
     getAll() {
       return [...items];

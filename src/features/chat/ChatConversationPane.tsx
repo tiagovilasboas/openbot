@@ -42,6 +42,8 @@ interface ChatConversationPaneProps {
   onSend: (value?: string) => void;
   onOpenSettings: () => void;
   onCancel: () => void;
+  /** Stops the reply and answers the newest queued message next. */
+  onSteer?: () => void;
   onRetry: (userMessageId: number) => void;
   onRollBack: (userMessageId: number) => void;
   branch: MessageBranch;
@@ -72,6 +74,7 @@ export function ChatConversationPane({
   onSend,
   onOpenSettings,
   onCancel,
+  onSteer,
   onRetry,
   onRollBack,
   branch,
@@ -126,6 +129,7 @@ export function ChatConversationPane({
           onSend={() => void onSend()}
           onOpenSettings={onOpenSettings}
           onCancel={onCancel}
+          onSteer={onSteer}
           onRetry={onRetry}
           rollbackBlocked={rollbackBlocked}
           onRollBack={onRollBack}

@@ -14,6 +14,8 @@ import {
   buildBotTemplateFile,
 } from "./build-bot-template-file.ts";
 import { parseBotTemplateFile } from "./parse-bot-template-file.ts";
+import { buildInstallLink } from "./install-link.ts";
+import { getInstallLinkCopy } from "./install-link-copy.ts";
 
 /** Button and its hint side by side, so the pair costs one row. */
 const ROW = "flex items-center gap-3";
@@ -43,20 +45,54 @@ export function BotTemplateExport({
   language: ChatLanguage;
 }) {
   const c = getBotTemplateFileCopy(language);
-  const [done, setDone] = useState(false);
+  const linkCopy = getInstallLinkCopy(language);
+  const [done, setDone] = useState<"file" | "link" | "link_failed" | null>(
+    null,
+  );
 
   function handleExport() {
     downloadJson(botTemplateFileName(bot.name), buildBotTemplateFile(bot));
-    setDone(true);
+    setDone("file");
   }
 
+  async function handleCopyLink() {
+    const link = buildInstallLink(
+      window.location.href,
+      JSON.stringify(buildBotTemplateFile(bot)),
+    );
+    try {
+      await navigator.clipboard.writeText(link);
+      setDone("link");
+    } catch {
+      setDone("link_failed");
+    }
+  }
+
+  const status =
+    done === "file"
+      ? c.exported
+      : done === "link"
+        ? linkCopy.linkCopied
+        : done === "link_failed"
+          ? linkCopy.linkFailed
+          : c.exportHint;
+
   return (
-    <section className={ROW}>
-      <button type="button" onClick={handleExport} className={BUTTON}>
-        {c.exportAction}
-      </button>
+    <section className="flex flex-col gap-2">
+      <div className="flex flex-wrap gap-2">
+        <button type="button" onClick={handleExport} className={BUTTON}>
+          {c.exportAction}
+        </button>
+        <button
+          type="button"
+          onClick={() => void handleCopyLink()}
+          className={BUTTON}
+        >
+          {linkCopy.copyLink}
+        </button>
+      </div>
       <p className={`${HINT} text-subtle`} role="status">
-        {done ? c.exported : c.exportHint}
+        {status}
       </p>
     </section>
   );

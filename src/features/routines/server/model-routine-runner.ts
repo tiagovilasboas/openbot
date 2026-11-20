@@ -6,7 +6,12 @@ import { answerChatRequest } from "../../model/answer-chat-request.ts";
 import { parseChatRequest } from "../../model/parse-chat-request.ts";
 import { providerOffResponse } from "../../model/provider-off-guard.ts";
 import { readSettings } from "../../settings/server/settings-repository.ts";
+import { chainedPrompt } from "../routine-chain.ts";
 import { routinePrompt } from "../silent-run.ts";
+import {
+  externalDataRule,
+  wrapExternalText,
+} from "../../untrusted-text/wrap-external-text.ts";
 import type { RoutineRunner } from "./run-routines.ts";
 
 /**
@@ -18,7 +23,7 @@ export function createModelRoutineRunner(
   db: DatabaseSync,
   env: Readonly<Record<string, string | undefined>> = process.env,
 ): RoutineRunner {
-  return async (routine) => {
+  return async (routine, previousOutput) => {
     const bot = listBots(db).find(
       (candidate) => candidate.id === routine.botId,
     );
@@ -31,14 +36,20 @@ export function createModelRoutineRunner(
         {
           role: "user",
           text: routinePrompt(
-            routine.prompt,
+            chainedPrompt(
+              routine.prompt,
+              previousOutput ? wrapExternalText(previousOutput) : undefined,
+              language,
+            ),
             routine.silentWhenNothingNew,
             language,
           ),
         },
       ],
       ...(settings.modelConfig ? { config: settings.modelConfig } : {}),
-      systemPrompt: buildBotSystemPrompt(bot, language),
+      systemPrompt: previousOutput
+        ? `${buildBotSystemPrompt(bot, language, externalDataRule(language).length + 2)}\n\n${externalDataRule(language)}`
+        : buildBotSystemPrompt(bot, language),
       ...(bot.modelId ? { modelId: bot.modelId } : {}),
       ...(bot.backupModelIds?.length
         ? { backupModelIds: bot.backupModelIds }
