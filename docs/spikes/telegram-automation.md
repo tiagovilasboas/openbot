@@ -1,6 +1,8 @@
 # Spike ROT-8: Telegram sobre a rota de automação
 
-Data: 2026-11-20. Status: **feito; TG-1 a TG-3 entregues (configuração por ambiente), TG-4 aberta**. Pergunta:
+Data: 2026-11-20. Status: **descartado**: o dono do projeto não quer ponte com o Telegram. O
+código entrou no #193 e foi removido logo depois; este documento fica só como
+registro. Pergunta:
 como falar com um bot do Open Bot pelo Telegram sem expor o servidor?
 
 ## O que já existe
