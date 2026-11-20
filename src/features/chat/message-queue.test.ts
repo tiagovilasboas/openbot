@@ -35,3 +35,16 @@ test("createMessageQueue clear empties all queued messages", () => {
   assert.equal(queue.size(), 0);
   assert.equal(queue.dequeue(), undefined);
 });
+
+test("promoteLast moves the newest message ahead of older ones", () => {
+  const queue = createMessageQueue();
+  assert.equal(queue.promoteLast(), false);
+  queue.enqueue({ id: 1, text: "a", conversationId: 1 });
+  queue.enqueue({ id: 2, text: "b", conversationId: 1 });
+  queue.enqueue({ id: 3, text: "c", conversationId: 1 });
+  assert.equal(queue.promoteLast(), true);
+  assert.deepEqual(
+    queue.getAll().map((m) => m.id),
+    [3, 1, 2],
+  );
+});

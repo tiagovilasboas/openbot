@@ -42,6 +42,7 @@ import { useSidebarCollapse } from "./use-sidebar-collapse.ts";
 import { TasksPanel } from "../tasks/TasksPanel.tsx";
 import { selectThread } from "../threads/thread-selection.ts";
 import { ThreadBar } from "../threads/ThreadBar.tsx";
+import { SideQuestionPanel } from "../side-question/SideQuestionPanel.tsx";
 import { useBotThreads } from "../threads/use-bot-threads.ts";
 import { useRoutineThreads } from "../routines/client/use-routine-threads.ts";
 
@@ -49,7 +50,8 @@ export function ChatExperience() {
   const [language, setLanguage] = useLanguage();
   const attachments = useComposerAttachments();
   const auth = useLocalAuth();
-  const { queueCount, enqueue, dequeue, clearQueue } = useMessageQueue();
+  const { queueCount, enqueue, dequeue, clearQueue, promoteLast } =
+    useMessageQueue();
 
   // Dots / Grok Bot systems
   const botsState = useBots();
@@ -128,6 +130,7 @@ export function ChatExperience() {
     turnModel,
     sendText,
     cancelTurn,
+    steerTurn,
     retryMessage,
     resetConversation,
     toolTurn,
@@ -147,6 +150,7 @@ export function ChatExperience() {
     enqueue,
     dequeue,
     clearQueue,
+    promoteLast,
     onReply: noteReply,
   });
   const { modelPicker, headerModelLabel, composerModel } = useChatModelPicker({
@@ -252,20 +256,30 @@ export function ChatExperience() {
           onSelect={threadList.select}
           onCreate={threadList.create}
           onRename={threadList.rename}
+          onTogglePin={threadList.togglePin}
           onRemove={threadList.remove}
           onUndoRemove={threadList.undoRemove}
           trailing={
-            <TasksPanel
-              language={language}
-              bots={bots}
-              workingBotIds={workingBotIds}
-              onOpenThread={(botId, threadId) => {
-                if (gate.locked || threadsLocked) return;
-                clearQueue();
-                setActiveBotId(botId);
-                selectThread(botId, threadId);
-              }}
-            />
+            <>
+              <TasksPanel
+                language={language}
+                bots={bots}
+                workingBotIds={workingBotIds}
+                onOpenThread={(botId, threadId) => {
+                  if (gate.locked || threadsLocked) return;
+                  clearQueue();
+                  setActiveBotId(botId);
+                  selectThread(botId, threadId);
+                }}
+              />
+              <SideQuestionPanel
+                language={language}
+                bot={activeBot}
+                threadId={threadList.activeId}
+                modelConfig={modelConfig}
+                isConfigured={isConfigured}
+              />
+            </>
           }
         />
         <BotModelNotice message={modelPicker.notice} />
@@ -309,6 +323,7 @@ export function ChatExperience() {
           onSend={sendMessage}
           onOpenSettings={() => setIsSettingsOpen(true)}
           onCancel={cancelTurn}
+          onSteer={steerTurn}
           onRetry={retryMessage}
           onRollBack={rollBack}
           branch={{

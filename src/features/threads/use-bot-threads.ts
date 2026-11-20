@@ -16,6 +16,7 @@ import {
   removeThread,
   renameThread,
   resolveThreadId,
+  setThreadPinned,
   type Thread,
 } from "./thread-model.ts";
 import {
@@ -90,6 +91,16 @@ export function useBotThreads(botId: string, language: ChatLanguage) {
     [botId],
   );
 
+  const togglePin = useCallback(
+    (id: string) => {
+      const current = loadThreads(botId);
+      const thread = current.find((t) => t.id === id);
+      if (!thread) return;
+      saveThreads(botId, setThreadPinned(current, id, !thread.pinned));
+    },
+    [botId],
+  );
+
   const remove = useCallback(
     (id: string) => {
       const thread = loadThreads(botId).find((t) => t.id === id);
@@ -143,6 +154,7 @@ export function useBotThreads(botId: string, language: ChatLanguage) {
     select: (id: string) => selectThread(botId, id),
     create,
     rename,
+    togglePin,
     remove,
     removed: removed?.botId === botId ? removed.thread : null,
     undoRemove,

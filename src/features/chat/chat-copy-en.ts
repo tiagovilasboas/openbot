@@ -110,6 +110,8 @@ export const chatCopyEn = {
   copyCode: "Copy code",
   copied: "Copied",
   queueSuffix: "in queue",
+  steerAction: "Correct course",
+  steerHint: "Stops the reply and answers your latest message now.",
   rollbackAction: "Edit and resend",
   rollbackActionHint: "Go back to this message",
   rollbackRunning: "Wait for the reply or cancel it to go back.",

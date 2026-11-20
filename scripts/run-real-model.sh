@@ -17,6 +17,12 @@
 #                                                     a throwaway data dir too;
 #                                                     OPENBOT_WAVE3_REPORT=<path>
 #                                                     also writes the report.
+#   bash scripts/run-real-model.sh --vault [model]    the first run with the key
+#                                                     already saved in Settings:
+#                                                     no prompt; the server reads
+#                                                     it from its own vault (your
+#                                                     OPENBOT_DATA_DIR) and the
+#                                                     script never sees it
 #   bash scripts/run-real-model.sh --tools --dry-run  the same scenario against
 #                                                     a scripted provider; no
 #                                                     server, no key, no network
@@ -37,12 +43,14 @@ NODE_RUN=(node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACK
 TOOLS=0
 WAVE3=0
 DRY=0
+VAULT=0
 ARGS=()
 for arg in "$@"; do
   case "$arg" in
     --tools) TOOLS=1 ;;
     --wave3) WAVE3=1 ;;
     --dry-run) DRY=1 ;;
+    --vault) VAULT=1 ;;
     *) ARGS+=("$arg") ;;
   esac
 done
@@ -57,6 +65,9 @@ LOG=/tmp/oc-run-$PORT.log
 DATA_DIR=""
 if [ "$TOOLS" = 1 ] && [ "$WAVE3" = 1 ]; then
   echo "Pick one of --tools and --wave3." >&2; exit 2
+fi
+if [ "$VAULT" = 1 ] && { [ "$TOOLS" = 1 ] || [ "$WAVE3" = 1 ]; }; then
+  echo "--vault runs the default cases only: those runs use a throwaway data dir with an empty vault." >&2; exit 2
 fi
 if [ "$WAVE3" = 1 ]; then
   DATA_DIR="$(mktemp -d "${TMPDIR:-/tmp}/openbot-wave3-run.XXXXXX")"
@@ -75,14 +86,22 @@ if lsof -iTCP:$PORT -sTCP:LISTEN -n -P >/dev/null 2>&1; then
   exit 2
 fi
 
-read -r -s -p "Chave OpenRouter: " KEY
-echo
-[ -n "$KEY" ] || { echo "Empty key; nothing was started." >&2; exit 2; }
-
-ROUTER_URL=https://openrouter.ai/api/v1 ROUTER_MODEL="$MODEL" ROUTER_API_KEY="$KEY" \
+if [ "$VAULT" = 1 ]; then
+  # No key in this process at all: requests name the provider and model, and
+  # the server adds the key it keeps in its vault for that origin.
+  export OPENBOT_RUN_CONFIG="{\"provider\":\"router\",\"baseUrl\":\"https://openrouter.ai/api/v1\",\"model\":\"$MODEL\"}"
   npx next dev -H 127.0.0.1 -p $PORT >"$LOG" 2>&1 &
-SERVER=$!
-unset KEY
+  SERVER=$!
+else
+  read -r -s -p "Chave OpenRouter: " KEY
+  echo
+  [ -n "$KEY" ] || { echo "Empty key; nothing was started." >&2; exit 2; }
+
+  ROUTER_URL=https://openrouter.ai/api/v1 ROUTER_MODEL="$MODEL" ROUTER_API_KEY="$KEY" \
+    npx next dev -H 127.0.0.1 -p $PORT >"$LOG" 2>&1 &
+  SERVER=$!
+  unset KEY
+fi
 trap 'kill $SERVER 2>/dev/null || true; [ -z "$DATA_DIR" ] || rm -rf "$DATA_DIR"' EXIT
 
 for _ in $(seq 1 90); do

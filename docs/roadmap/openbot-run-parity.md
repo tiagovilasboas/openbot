@@ -33,8 +33,8 @@ Detalhe e arquitetura em [openbot-run-connect-rea.md](../spikes/openbot-run-conn
 | CON-2 **(entregue)** | Mover chave e tela atual para `api-key/`, `credentials/`, `panel/` | PR-03        |   5 | CON-1        |
 | CON-3 **(entregue)** | OAuth PKCE do OpenRouter e `server/` (início, callback, troca)     | PR-03        |   5 | CON-1        |
 | CON-4 **(entregue)** | Botão Conectar, diálogo de estados e Desconectar                   | PR-03, PR-11 |   3 | CON-2, CON-3 |
-| CON-5                | Script de teste real lê o cofre                                    | PR-03        |   3 | CON-3        |
-| CON-6                | Spike `cli-login/` (Codex, OpenCode) com análise de termos         | PR-10        |   3 | CON-1        |
+| CON-5 **(entregue)** | Script de teste real lê o cofre                                    | PR-03        |   3 | CON-3        |
+| CON-6 **(spike)**    | Spike `cli-login/` (Codex, OpenCode) com análise de termos         | PR-10        |   3 | CON-1        |
 
 Paralelo: CON-2 e CON-3; CON-5 e CON-6 depois de CON-3.
 
@@ -55,9 +55,9 @@ Paralelo: PRV-1 e PRV-4 desde já, sem tocar em `connections/`.
 | Task                      | Entrega                                                          | Casos | Pts | Depende de |
 | ------------------------- | ---------------------------------------------------------------- | ----- | --: | ---------- |
 | CHT-1 **(entregue)**      | `clientMessageId` no envio: reenvio não duplica                  | AG-06 |   3 | —          |
-| CHT-2                     | Modo "corrigir o rumo": mensagem entra no próximo passo do turno | AG-07 |   5 | CHT-1      |
+| CHT-2 **(entregue)**      | Modo "corrigir o rumo": mensagem entra no próximo passo do turno | AG-07 |   5 | CHT-1      |
 | CHT-3 **(entregue #187)** | Ramificar: copia até um turno concluído para conversa nova       | AG-09 |   3 | —          |
-| CHT-4                     | Pergunta lateral: contexto recente, nada gravado no histórico    | AG-13 |   3 | —          |
+| CHT-4 **(entregue)**      | Pergunta lateral: contexto recente, nada gravado no histórico    | AG-13 |   3 | —          |
 | CHT-5 **(entregue #187)** | Thread filha de uma conversa (modelo de dados e lista)           | AG-08 |   5 | —          |
 | CHT-6 **(entregue #189)** | Painel de tarefas com as threads de todos os bots                | AG-10 |   3 | CHT-5      |
 
@@ -69,10 +69,10 @@ coordenar só `ChatExperience.tsx`.
 | Task                 | Entrega                                                          | Casos        | Pts | Depende de |
 | -------------------- | ---------------------------------------------------------------- | ------------ | --: | ---------- |
 | BOT-1 **(entregue)** | Excluir com desfazer: some da lista, apaga depois de 8 s         | AG-04        |   2 | —          |
-| BOT-2                | Ocultar e restaurar, com grupo recolhido na barra lateral        | AG-05        |   2 | —          |
-| BOT-3                | Boas-vindas: 3 primeiras tarefas sugeridas pelo perfil           | AG-02        |   2 | —          |
-| BOT-4                | Card de preview do template e link de instalação com confirmação | AG-18, AG-19 |   5 | —          |
-| BOT-5                | Ferramentas `create_bot` e `update_bot`, sempre com aprovação    | AG-03        |   3 | TOL-1      |
+| BOT-2 **(entregue)** | Ocultar e restaurar, com grupo recolhido na barra lateral        | AG-05        |   2 | —          |
+| BOT-3 **(entregue)** | Boas-vindas: 3 primeiras tarefas sugeridas pelo perfil           | AG-02        |   2 | —          |
+| BOT-4 **(entregue)** | Card de preview do template e link de instalação com confirmação | AG-18, AG-19 |   5 | —          |
+| BOT-5 **(entregue)** | Ferramentas `create_bot` e `update_bot`, sempre com aprovação    | AG-03        |   3 | TOL-1      |
 
 ## 5. Ferramentas (`tools/`, `attachments/`)
 
@@ -81,8 +81,8 @@ coordenar só `ChatExperience.tsx`.
 | TOL-1 **(entregue #176)** | Nível por ferramenta: perguntar, permitir, bloquear              | TL-10        |   3 | —          |
 | TOL-2 **(entregue #186)** | Ferramenta `ask_user` com cartão de opções                       | AG-11        |   3 | —          |
 | TOL-3 **(entregue #187)** | `read_page`: leitura de página pelo servidor, com `server-guard` | TL-01        |   5 | TOL-1      |
-| TOL-4                     | Pasta de trabalho por bot, só leitura no início                  | TL-08        |   5 | TOL-1      |
-| TOL-5                     | Spike de MCP como ferramenta (transporte, OAuth, permissão)      | PR-18, TL-11 |   3 | TOL-1      |
+| TOL-4 **(entregue)**      | Pasta de trabalho por bot, só leitura no início                  | TL-08        |   5 | TOL-1      |
+| TOL-5 **(spike)**         | Spike de MCP como ferramenta (transporte, OAuth, permissão)      | PR-18, TL-11 |   3 | TOL-1      |
 | TOL-6                     | Biblioteca de arquivos gerados                                   | TL-09        |   2 | TOL-4      |
 
 O #188 fechou a janela de DNS rebinding do `read_page`: a conexão vai só ao endereço já validado (`server-guard/pinned-fetch.ts`), sem reaproveitar sockets.
@@ -97,8 +97,8 @@ O #188 fechou a janela de DNS rebinding do `read_page`: a conexão vai só ao en
 | ROT-4 **(entregue #188)** | Rotina com thread própria                                     | AG-16        |   2 | ROT-3, CHT-5 |
 | ROT-5 **(entregue #188)** | Rota local de automação com token, só loopback                | AU-05, AG-21 |   5 | ROT-2        |
 | ROT-6                     | Esperas: bot pausa até rotina ou evento acordar               | AG-17        |   3 | ROT-5        |
-| ROT-7                     | Rotinas encadeadas                                            | AU-04        |   3 | ROT-3        |
-| ROT-8                     | Spike de Telegram sobre a rota de automação                   | AU-10        |   3 | ROT-5        |
+| ROT-7 **(entregue)**      | Rotinas encadeadas                                            | AU-04        |   3 | ROT-3        |
+| ROT-8 **(spike)**         | Spike de Telegram sobre a rota de automação                   | AU-10        |   3 | ROT-5        |
 
 ## 7. Equipe (`crew/`)
 
@@ -114,9 +114,9 @@ CRW-2 no #188 entregou a guarda de loop dentro do turno do crew, a nota de parad
 | Task                      | Entrega                                          | Casos | Pts | Depende de |
 | ------------------------- | ------------------------------------------------ | ----- | --: | ---------- |
 | APP-1 **(entregue #189)** | Aviso de nova versão do service worker           | PR-13 |   2 | —          |
-| APP-2                     | Onboarding: provedor conectado ou começar grátis | PR-01 |   3 | CON-4      |
-| APP-3                     | Fixar conversas e pastas na barra lateral        | TL-13 |   3 | —          |
-| APP-4                     | Ditado e leitura em voz alta com Web Speech API  | TL-12 |   3 | —          |
+| APP-2 **(substituída)**   | Onboarding: provedor conectado ou começar grátis | PR-01 |   3 | CON-4      |
+| APP-3 **(parcial)**       | Fixar conversas e pastas na barra lateral        | TL-13 |   3 | —          |
+| APP-4 **(entregue)**      | Ditado e leitura em voz alta com Web Speech API  | TL-12 |   3 | —          |
 | APP-5                     | Revisão do fluxo móvel instalado                 | AU-09 |   3 | —          |
 
 ## 9. Trilha UX: paridade de experiência com o openbot.run
@@ -125,7 +125,7 @@ Telas, fluxos e critérios de aceite estão na [especificação de paridade de U
 
 Prioridade visível: primeiro a primeira execução terminar numa conversa funcionando, depois o modelo por agente no chat e, por último, a navegação centrada no agente.
 
-Fatias entregues: **UX-2** (#148), **UX-1** (#149), **UX-3** (#152), **UX-7** (#153), **UX-5** (#155), **UX-4** (#158, com o aviso de falha em #164), **UX-9** (#166, com o replay no servidor em #172 e #175), **UX-8** (#167, com correções em #179 e #182), **UX-12** (#168, com o provedor desligado em #174 e #177), **UX-6** (#169) e **UX-11** (#171). A TOL-1 saiu em #176. Falta a **UX-10**. Fora da tabela, na mesma trilha: ações em erro de modelo (#154), desfazer em "Nova conversa" (#157), conexão obrigatória antes dos agentes (#159) e seletor de modelo no campo de mensagem (#160, #161). Os pontos marcados com `*` são estimativa, não medida.
+Fatias entregues: **UX-10** (com a CHT-2), **UX-2** (#148), **UX-1** (#149), **UX-3** (#152), **UX-7** (#153), **UX-5** (#155), **UX-4** (#158, com o aviso de falha em #164), **UX-9** (#166, com o replay no servidor em #172 e #175), **UX-8** (#167, com correções em #179 e #182), **UX-12** (#168, com o provedor desligado em #174 e #177), **UX-6** (#169) e **UX-11** (#171). A TOL-1 saiu em #176. Fora da tabela, na mesma trilha: ações em erro de modelo (#154), desfazer em "Nova conversa" (#157), conexão obrigatória antes dos agentes (#159) e seletor de modelo no campo de mensagem (#160, #161). Os pontos marcados com `*` são estimativa, não medida.
 
 | Ordem | Fatia                                 | Entrega                                                                                        | Referências            | Pts | Depende de   | Grupo |
 | ----: | ------------------------------------- | ---------------------------------------------------------------------------------------------- | ---------------------- | --: | ------------ | ----- |
@@ -138,7 +138,7 @@ Fatias entregues: **UX-2** (#148), **UX-1** (#149), **UX-3** (#152), **UX-7** (#
 |     7 | UX-7 **(entregue #153)**              | Seção "precisam de você" acima da lista de agentes, com link para o chat                       | TL-13, AG-11, AG-12    |   3 | —            | G1    |
 |     8 | UX-8 **(entregue #167, #182)**        | Trocar entre os 9 primeiros agentes pelo teclado, na ordem da lista                            | TL-13                  |   2 | UX-7         | G2    |
 |     9 | UX-9 **(entregue #166, #172, #175)**  | Envio idempotente com id de cliente e "tentar de novo" sem duplicar                            | AG-06, CHT-1           |   3 | UX-5         | G3    |
-|    10 | UX-10                                 | Modo "corrigir o rumo" por agente (é a CHT-2; não replanejar)                                  | AG-07, CHT-2           |   5 | UX-9         | G3    |
+|    10 | UX-10 **(entregue, via CHT-2)**       | Modo "corrigir o rumo" por agente (é a CHT-2; não replanejar)                                  | AG-07, CHT-2           |   5 | UX-9         | G3    |
 |    11 | UX-12 **(entregue #168, #174, #177)** | Provedores em lista, com página por provedor, liga/desliga e menu de ações                     | PR-07, PR-11, PR-19    |   5 | UX-2         | G2    |
 |    12 | UX-11 **(entregue #171)**             | Listar e revogar "sempre permitir" em Configurações                                            | AG-12, TOL-1           |   3 | UX-12, TOL-1 | G3    |
 
@@ -155,6 +155,39 @@ Regras da trilha:
 - APP-2 fica substituída por UX-3 e UX-4. Não abrir as duas.
 - Rotinas, canais e webhooks (AU-03 a AU-05) não entram aqui: continuam em ROT-* e CRW-*.
 - Cada fatia fecha com os `AC-*` da especificação da sua área, verificados em 375 px e em desktop.
+
+## Rodada de paridade funcional (2026-11-20)
+
+Uma auditoria do código achou BOT-2 e BOT-3 já prontos (`bot-visibility.ts`,
+`WelcomeStarters.tsx`); a tabela só estava atrasada. A mesma rodada entregou:
+
+- **CHT-2 / UX-10:** botão "Corrigir o rumo" ao lado da fila. A resposta em
+  curso para onde está, a resposta parcial fica na thread e a última mensagem
+  da fila é respondida antes das outras. É a versão no cliente: a mensagem não
+  entra no meio de um passo do tool loop.
+- **CHT-4:** painel "Pergunta lateral" com as 12 últimas mensagens da thread;
+  nada é gravado.
+- **BOT-4:** link de instalação com o template no fragmento da URL (nunca vai ao
+  servidor), card de prévia e confirmação.
+- **BOT-5:** `create_bot` e `update_bot`, sempre perguntando, sem "sempre
+  permitir", validados pelo mesmo `validateBotsWrite` da API.
+- **TOL-4:** `workspace_list` e `workspace_read`, só leitura, em
+  `OPENBOT_WORKSPACE_DIR/<bot>`; sem dotfiles, sem symlink para fora, 64 KB.
+- **ROT-7:** campo "Depois de outra rotina"; a seguinte recebe o resultado como
+  dado externo, sem ciclo e com no máximo 5 rotinas por cadeia.
+- **APP-3 (parcial):** fixar conversas paralelas na barra; pastas ficam para
+  depois.
+- **APP-4:** ditado (Web Speech) no campo de mensagem e leitura em voz alta nas
+  respostas, só onde o navegador oferece.
+- **CON-5:** `run-real-model.sh --vault` roda os casos padrão com a chave salva
+  no cofre, sem pedir nem ver a chave.
+- **Spikes:** [CON-6](../spikes/cli-login-terms.md),
+  [TOL-5](../spikes/mcp-tools.md) e [ROT-8](../spikes/telegram-automation.md).
+
+Ainda abertos: PRV-2 (endpoint próprio com nome como conexão; o preset Router
+já aceita qualquer URL compatível com OpenAI), ROT-6 (esperas), TOL-6
+(biblioteca de arquivos, depende de escrita na pasta de trabalho), APP-3
+(pastas), APP-5 (revisão em aparelho) e a validação da CRW-2 com modelo real.
 
 ## Ordem sugerida dos primeiros PRs
 

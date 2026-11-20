@@ -66,6 +66,13 @@ export function RoutinesSection({ botId, language }: RoutinesSectionProps) {
           language={language}
           onSave={handleSave}
           onCancel={() => setEditing(null)}
+          chainOptions={
+            state.status === "ready"
+              ? state.routines
+                  .filter((r) => r.id !== editing.id)
+                  .map((r) => ({ id: r.id, title: r.title }))
+              : []
+          }
         />
       ) : (
         state.status === "ready" && (

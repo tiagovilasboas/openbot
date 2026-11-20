@@ -23,6 +23,8 @@ export interface ChatTurnsInput {
   enqueue: (item: QueuedMessage) => void;
   dequeue: () => QueuedMessage | undefined;
   clearQueue: () => void;
+  /** Moves the newest queued message to the front of the queue. */
+  promoteLast: () => boolean;
   /** A bot's reply was stored (not one the user cancelled). */
   onReply: (botId: string) => void;
 }

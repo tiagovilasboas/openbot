@@ -3,7 +3,7 @@ import { nextRunAt } from "../next-run.ts";
 import { getRoutine, type StoredRoutine } from "./routines-repository.ts";
 import { ensureRoutinesSchema } from "./routines-schema.ts";
 
-export type RunOrigin = "schedule" | "manual";
+export type RunOrigin = "schedule" | "manual" | "chain";
 
 export type RoutineRunRecord = {
   id: number;

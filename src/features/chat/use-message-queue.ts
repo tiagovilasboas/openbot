@@ -23,8 +23,12 @@ export function useMessageQueue() {
     setQueueCount(0);
   }, []);
 
+  /** The newest queued message jumps ahead of the others. */
+  const promoteLast = useCallback(() => queueRef.current.promoteLast(), []);
+
   return {
     queueCount,
+    promoteLast,
     enqueue,
     dequeue,
     clearQueue,

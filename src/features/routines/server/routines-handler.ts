@@ -3,6 +3,7 @@ import {
   bodyLimitFor,
   readBodyWithCap,
 } from "../../server-guard/body-limits.ts";
+import { makesCycle } from "../routine-chain.ts";
 import { checkRoutineInput, isRoutineId } from "../routine-input.ts";
 import { claimRoutine, listRuns } from "./routine-runs-repository.ts";
 import {
@@ -57,6 +58,17 @@ export async function handleSaveRoutine(
   if (!checked.ok) return json({ error: checked.problem }, 400);
   if (!botExists(checked.routine.botId))
     return json({ error: "bot_missing" }, 404);
+  const after = checked.routine.afterRoutineId;
+  if (after) {
+    const target = getRoutine(db, after);
+    // Only a routine of the same bot, and never one that leads back here.
+    if (
+      target?.botId !== checked.routine.botId ||
+      makesCycle(checked.routine.id, after, listRoutines(db))
+    ) {
+      return json({ error: "invalid_chain" }, 400);
+    }
+  }
   const saved = saveRoutine(db, checked.routine, now());
   if (!saved.ok) return json({ error: saved.error }, 409);
   return json({ routine: saved.routine });

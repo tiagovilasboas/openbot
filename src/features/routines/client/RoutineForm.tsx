@@ -25,6 +25,8 @@ interface RoutineFormProps {
   language: Language;
   onSave: (input: RoutineInput) => Promise<boolean>;
   onCancel: () => void;
+  /** The bot's other routines, to run this one after. */
+  chainOptions?: readonly { id: string; title: string }[];
 }
 
 const KINDS: readonly ScheduleKind[] = ["daily", "weekly", "interval"];
@@ -46,6 +48,7 @@ const keepEnter = (e: KeyboardEvent) => {
 /** Create or edit one routine. Validates on save, like the server does. */
 export function RoutineForm(props: RoutineFormProps) {
   const { botId, initial, language, onSave, onCancel } = props;
+  const chainOptions = props.chainOptions ?? [];
   const copy = getRoutinesCopy(language);
   const [draft, setDraft] = useState(initial);
   const [error, setError] = useState<string | null>(null);
@@ -193,6 +196,26 @@ export function RoutineForm(props: RoutineFormProps) {
           </span>
         </span>
       </label>
+
+      {chainOptions.length > 0 && (
+        <FormField label={copy.chainLabel} helper={copy.chainHint}>
+          {(control) => (
+            <select
+              {...control}
+              value={draft.afterRoutineId}
+              onChange={(e) => set({ afterRoutineId: e.target.value })}
+              className={FIELD_CLASS}
+            >
+              <option value="">{copy.chainNone}</option>
+              {chainOptions.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.title}
+                </option>
+              ))}
+            </select>
+          )}
+        </FormField>
+      )}
 
       {error && (
         <p role="alert" className="text-xs md:text-[13px] text-danger">

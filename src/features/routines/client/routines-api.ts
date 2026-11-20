@@ -11,7 +11,7 @@ export type SavedRoutine = RoutineInput & {
 /** One past run, newest first in the list. Output is null when silent. */
 export type RoutineRun = {
   id: number;
-  origin: "schedule" | "manual";
+  origin: "schedule" | "manual" | "chain";
   startedAt: number;
   finishedAt: number | null;
   status: "running" | "succeeded" | "failed";
@@ -52,7 +52,8 @@ export function parseRun(raw: unknown): RoutineRun | null {
   if (typeof r.status !== "string" || !RUN_STATUSES.has(r.status)) return null;
   return {
     id: r.id,
-    origin: r.origin === "manual" ? "manual" : "schedule",
+    origin:
+      r.origin === "manual" || r.origin === "chain" ? r.origin : "schedule",
     startedAt: r.startedAt,
     finishedAt: numberOrNull(r.finishedAt),
     status: r.status as RoutineRun["status"],

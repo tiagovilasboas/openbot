@@ -12,7 +12,7 @@ export type ApprovalDecision = {
 };
 
 // Describes a side effect a tool performed, so the loop can notify the client.
-export type ToolEffect = { kind: "memory_changed" };
+export type ToolEffect = { kind: "memory_changed" } | { kind: "bots_changed" };
 
 export type ToolRunContext = { botId: string; signal: AbortSignal };
 

@@ -13,6 +13,8 @@ import { chatCopy } from "./chat-copy.ts";
 import { CommandPalette } from "./CommandPalette.tsx";
 import { paletteOptionId } from "./ComposerPalette.tsx";
 import { ComposerToolbar } from "./ComposerToolbar.tsx";
+import { DictateButton } from "../voice/DictateButton.tsx";
+import { appendDictation } from "../voice/voice-support.ts";
 import type { ChatLanguage } from "./respond-to-message.ts";
 import { useCoarsePointer } from "./use-coarse-pointer.ts";
 import { useComposerPalette } from "./use-composer-palette.ts";
@@ -165,12 +167,20 @@ export function ChatComposer({
           busy={busy}
           canSend={canSend}
           actions={
-            attachments && (
-              <AttachButton
+            <>
+              {attachments && (
+                <AttachButton
+                  language={language}
+                  onFiles={(files) => void attachments.addFiles(files)}
+                />
+              )}
+              <DictateButton
                 language={language}
-                onFiles={(files) => void attachments.addFiles(files)}
+                onHeard={(heard) =>
+                  onDraftChange(appendDictation(draft, heard))
+                }
               />
-            )
+            </>
           }
           onTogglePalette={(kind) => {
             palette.toggle(kind);

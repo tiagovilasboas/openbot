@@ -17,6 +17,8 @@ export type RoutineInput = {
   silentWhenNothingNew: boolean;
   /** Each run lands in a thread of its own in the bot's chat. */
   runInThread: boolean;
+  /** Also runs right after this routine of the same bot reports something. */
+  afterRoutineId?: string;
 };
 
 export type RoutineInputProblem =
@@ -24,7 +26,8 @@ export type RoutineInputProblem =
   | "invalid_id"
   | "invalid_title"
   | "invalid_prompt"
-  | "invalid_schedule";
+  | "invalid_schedule"
+  | "invalid_chain";
 
 export type RoutineInputCheck =
   | { ok: true; routine: RoutineInput }
@@ -58,6 +61,12 @@ export function checkRoutineInput(input: unknown): RoutineInputCheck {
   if (!prompt) return { ok: false, problem: "invalid_prompt" };
   const schedule = checkSchedule(raw.schedule);
   if (!schedule.ok) return { ok: false, problem: "invalid_schedule" };
+  const after = raw.afterRoutineId;
+  if (after !== undefined && after !== null && after !== "") {
+    if (!isRoutineId(after) || after === raw.id) {
+      return { ok: false, problem: "invalid_chain" };
+    }
+  }
   return {
     ok: true,
     routine: {
@@ -69,6 +78,7 @@ export function checkRoutineInput(input: unknown): RoutineInputCheck {
       enabled: raw.enabled !== false,
       silentWhenNothingNew: raw.silentWhenNothingNew === true,
       runInThread: raw.runInThread === true,
+      ...(isRoutineId(after) ? { afterRoutineId: after } : {}),
     },
   };
 }

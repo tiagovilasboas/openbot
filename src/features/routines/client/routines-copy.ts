@@ -39,6 +39,10 @@ export interface RoutinesCopy {
   historyEmpty: string;
   nothingNew: string;
   manualRun: string;
+  chainRun: string;
+  chainLabel: string;
+  chainHint: string;
+  chainNone: string;
   failed: (reason: string) => string;
   errors: Record<DraftProblem | "save" | "load" | "run", string>;
 }
@@ -80,6 +84,11 @@ const PT: RoutinesCopy = {
   historyEmpty: "Ainda não rodou.",
   nothingNew: "Sem novidade",
   manualRun: "manual",
+  chainRun: "em cadeia",
+  chainLabel: "Depois de outra rotina",
+  chainHint:
+    "Roda também logo após essa rotina trazer novidade, com o resultado dela.",
+  chainNone: "Nenhuma",
   failed: (reason) => `Falhou (${reason})`,
   errors: {
     invalid_title: "Dê um nome à rotina.",
@@ -134,6 +143,11 @@ const EN: RoutinesCopy = {
   historyEmpty: "Has not run yet.",
   nothingNew: "Nothing new",
   manualRun: "manual",
+  chainRun: "chained",
+  chainLabel: "After another routine",
+  chainHint:
+    "Also runs right after that routine reports something, with its result.",
+  chainNone: "None",
   failed: (reason) => `Failed (${reason})`,
   errors: {
     invalid_title: "Give the routine a name.",
@@ -193,6 +207,11 @@ const ES: RoutinesCopy = {
   historyEmpty: "Todavía no se ejecutó.",
   nothingNew: "Sin novedades",
   manualRun: "manual",
+  chainRun: "en cadena",
+  chainLabel: "Después de otra rutina",
+  chainHint:
+    "También se ejecuta justo después de que esa rutina traiga novedades, con su resultado.",
+  chainNone: "Ninguna",
   failed: (reason) => `Falló (${reason})`,
   errors: {
     invalid_title: "Ponle un nombre a la rutina.",

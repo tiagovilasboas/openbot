@@ -41,6 +41,7 @@ export interface ConversationViewProps {
   onSend: () => void;
   onOpenSettings: () => void;
   onCancel: () => void;
+  onSteer?: () => void;
   /** Resends a user message that has no reply. */
   onRetry: (userMessageId: number) => void;
   /** Why going back is off right now, or null when it is allowed. */
@@ -71,6 +72,7 @@ export function ConversationView({
   onSend,
   onOpenSettings,
   onCancel,
+  onSteer,
   onRetry,
   rollbackBlocked,
   onRollBack,
@@ -193,13 +195,23 @@ export function ConversationView({
         />
         <div className="mx-auto w-full max-w-3xl">
           {queueCount > 0 && (
-            <div className="mb-2 flex justify-center">
+            <div className="mb-2 flex items-center justify-center gap-2">
               <span
                 role="status"
                 className="rounded-full border border-border bg-surface px-3 py-1 text-xs font-medium tabular-nums text-muted"
               >
                 {queueCount} {content.queueSuffix}
               </span>
+              {busy && onSteer && (
+                <button
+                  type="button"
+                  title={content.steerHint}
+                  onClick={onSteer}
+                  className="min-h-8 rounded-full border border-border bg-surface px-3 text-xs font-semibold text-foreground transition-colors duration-(--duration-micro) ease-out-expo hover:bg-surface-secondary"
+                >
+                  {content.steerAction}
+                </button>
+              )}
             </div>
           )}
           <ChatComposer

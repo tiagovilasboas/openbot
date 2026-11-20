@@ -47,6 +47,7 @@ export function useChatTurns(input: ChatTurnsInput) {
     enqueue,
     dequeue,
     clearQueue,
+    promoteLast,
     onReply,
   } = input;
   const [busy, setBusy] = useState(false);
@@ -207,6 +208,16 @@ export function useChatTurns(input: ChatTurnsInput) {
     turnAbortRef.current?.abort();
   }
 
+  /**
+   * Corrects the course: the reply in flight stops where it is and the
+   * newest queued message is answered next, ahead of older ones. The partial
+   * reply stays in the thread, so the bot sees what it was doing.
+   */
+  function steerTurn() {
+    if (!busy || !promoteLast()) return;
+    turnAbortRef.current?.abort();
+  }
+
   /** Answers a user message left without a reply, e.g. after a reload. */
   function retryMessage(userMessageId: number) {
     if (busy) return;
@@ -250,6 +261,7 @@ export function useChatTurns(input: ChatTurnsInput) {
     turnModel,
     sendText,
     cancelTurn,
+    steerTurn,
     retryMessage,
     resetConversation,
     /** The tool turn as the conversation shows it. */

@@ -11,6 +11,9 @@ interface ThreadCopy {
   busy: string;
   removed: string;
   undo: string;
+  pin: string;
+  unpin: string;
+  pinnedMark: string;
 }
 
 const COPY: Record<Language, ThreadCopy> = {
@@ -25,6 +28,9 @@ const COPY: Record<Language, ThreadCopy> = {
     busy: "Aguarde a resposta terminar para trocar de conversa.",
     removed: "Conversa excluída.",
     undo: "Desfazer",
+    pin: "Fixar",
+    unpin: "Desafixar",
+    pinnedMark: "Fixada",
   },
   en: {
     listLabel: "This agent's conversations",
@@ -37,6 +43,9 @@ const COPY: Record<Language, ThreadCopy> = {
     busy: "Wait for the reply to finish before switching conversations.",
     removed: "Conversation deleted.",
     undo: "Undo",
+    pin: "Pin",
+    unpin: "Unpin",
+    pinnedMark: "Pinned",
   },
   es: {
     listLabel: "Conversaciones de este agente",
@@ -49,6 +58,9 @@ const COPY: Record<Language, ThreadCopy> = {
     busy: "Espera a que termine la respuesta para cambiar de conversación.",
     removed: "Conversación eliminada.",
     undo: "Deshacer",
+    pin: "Fijar",
+    unpin: "Desfijar",
+    pinnedMark: "Fijada",
   },
 };
 
