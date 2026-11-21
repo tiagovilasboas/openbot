@@ -188,6 +188,8 @@ Data: 20/11/2026. Base: código do `main` (b4ac0ab), site openbot.run, docs púb
 | GRP-5  | Mensagem nova da pessoa tem prioridade e redireciona o turno do grupo (o "corrigir o rumo" que já existe, levado ao grupo)                                                |   2 |
 | RELY-1 | Casos de grupo e delegação no `run-real-model.sh --vault`, com relatório no PR                                                                                            |   2 |
 
+**Entregue:** GRP-1 a GRP-5, e também o GRP-7 (`@todos`, e quem não tem nada a acrescentar fica quieto), no PR do chat em grupo.
+
 ### Próximo: agentes que conversam e continuam trabalhando
 
 | ID     | Tarefa                                                                                                                                      | Pts |

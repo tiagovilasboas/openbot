@@ -83,16 +83,40 @@ export function removeChannel(id: string) {
   return call(path, { method: "DELETE" }, () => true as const);
 }
 
+export type ChannelRoomSnapshot = {
+  messages: ChannelMessage[];
+  /** The live turn: null when nobody is answering. */
+  turn: { speakingBotId: string | null } | null;
+};
+
+function parseTurn(raw: unknown): ChannelRoomSnapshot["turn"] {
+  if (typeof raw !== "object" || raw === null) return null;
+  const speaking = (raw as Record<string, unknown>).speakingBotId;
+  return { speakingBotId: typeof speaking === "string" ? speaking : null };
+}
+
 export function fetchChannelMessages(channelId: string) {
   const path = `${BASE}/messages?channelId=${encodeURIComponent(channelId)}`;
-  return call(path, { method: "GET" }, (b) =>
-    listOf(b.messages, parseChannelMessage),
+  return call(path, { method: "GET" }, (b): ChannelRoomSnapshot => ({
+    messages: listOf(b.messages, parseChannelMessage),
+    turn: parseTurn(b.turn),
+  }));
+}
+
+/** Posts; the group answers in the background. The stored post. */
+export function postChannelMessage(
+  channelId: string,
+  text: string,
+  replyToSeq?: number,
+) {
+  return call(
+    `${BASE}/messages`,
+    json("POST", { channelId, text, ...(replyToSeq ? { replyToSeq } : {}) }),
+    (b) => listOf(b.messages, parseChannelMessage),
   );
 }
 
-/** Posts and waits for the whole crew turn; the messages it added. */
-export function postChannelMessage(channelId: string, text: string) {
-  return call(`${BASE}/messages`, json("POST", { channelId, text }), (b) =>
-    listOf(b.messages, parseChannelMessage),
-  );
+/** Stops whoever is answering in the group right now. */
+export function stopChannel(channelId: string) {
+  return call(`${BASE}/stop`, json("POST", { channelId }), () => true as const);
 }

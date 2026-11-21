@@ -205,3 +205,54 @@ test("a chained routine runs after the first one, with its result", async ({
   expect(second.user).toContain("Resultado da rotina anterior:");
   expect(second.user).toContain("Stub answer to:");
 });
+
+test("a group chat: @todos asks every member, a reply goes to that member", async ({
+  page,
+  request,
+  context,
+}) => {
+  const model = uniqueModel("group");
+  await useStubOnServer(request, model);
+  await useStubInBrowser(context, model);
+  await page.goto("/");
+  // Bots reach the server store once the app has synced them.
+  await expect(appPage(page).botRows().first()).toBeVisible();
+
+  const sidebar = page.getByRole("group", { name: "Grupos" });
+  await sidebar.getByRole("button", { name: "Novo grupo" }).click();
+  const form = page.getByRole("dialog");
+  await form.getByLabel("Nome").fill(`Lançamento ${model.slice(-5)}`);
+  await form.getByRole("checkbox", { name: "Security" }).check();
+  await form.getByRole("checkbox", { name: "Publishing" }).check();
+  await form.getByRole("button", { name: "Salvar grupo" }).click();
+
+  const room = page.getByRole("dialog");
+  const composer = room.getByLabel("Mensagem para o grupo");
+  await composer.fill("@todos status do lançamento");
+  await composer.press("Enter");
+
+  const messages = room.getByTestId("group-message");
+  // The person's post and one answer per member, each under its name.
+  await expect(messages).toHaveCount(4);
+  for (const name of ["Chief of Staff", "Security", "Publishing"]) {
+    // Each answer opens with its member's name.
+    await expect(
+      messages.filter({ hasText: new RegExp(`^${name}Stub answer`) }),
+    ).toHaveCount(1);
+  }
+  const firstCalls = await stubCalls(request, model);
+  expect(firstCalls).toHaveLength(3);
+  expect(
+    firstCalls.every((call) => call.system.includes("chat em grupo")),
+  ).toBe(true);
+
+  await room.getByRole("button", { name: "Responder: Security" }).click();
+  await expect(room.getByText("Respondendo a Security")).toBeVisible();
+  await composer.fill("por quê?");
+  await composer.press("Enter");
+  await expect(messages).toHaveCount(6);
+  const calls = await stubCalls(request, model);
+  expect(calls).toHaveLength(4);
+  expect(calls[3].system).toContain("Você é o Security");
+  await expect(room.getByRole("button", { name: "Parar agora" })).toBeHidden();
+});

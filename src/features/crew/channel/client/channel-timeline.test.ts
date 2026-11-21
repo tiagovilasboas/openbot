@@ -77,3 +77,28 @@ test("an answer from a deleted bot stays in the timeline", () => {
     ],
   );
 });
+
+test("group answers stay in line, and a reply points at its message", () => {
+  const timeline = buildChannelTimeline(
+    [
+      message(1, { kind: "human" }),
+      message(2, { kind: "member", botId: "security", ok: true }, "risky"),
+      message(3, { kind: "member", botId: "publishing", ok: false }),
+      message(4, { kind: "human", replyToSeq: 2 }, "why?"),
+    ],
+    bots,
+  );
+  assert.deepEqual(
+    timeline.map((e) => [e.seq, e.bot?.id ?? null, e.failed ?? false]),
+    [
+      [1, null, false],
+      [2, "security", false],
+      [3, "publishing", true],
+      [4, null, false],
+    ],
+  );
+  assert.deepEqual(
+    [timeline[3]!.replyTo?.seq, timeline[3]!.replyTo?.bot?.id],
+    [2, "security"],
+  );
+});

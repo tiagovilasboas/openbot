@@ -69,6 +69,14 @@ Peça ao Chief algo que precise de mais de um especialista e ele escreve uma lin
 - Nomes que o Chief inventa, ele mesmo e repetições são descartados. Um especialista que falha não quebra a resposta.
 - Você ainda pode falar com qualquer bot direto, ou passar uma mensagem avulsa com `@`.
 
+### Chats em grupo
+
+Em Grupos, na barra lateral, Novo grupo põe vários bots num chat só. Cada um responde com o próprio nome e vê o que os outros disseram.
+
+- Sem ninguém citado, o grupo escolhe quem responde, no máximo dois. `@nome` chama um bot, `@todos` chama todos, e Responder numa mensagem manda a próxima para o autor dela.
+- As respostas aparecem uma a uma, assim que ficam prontas, com quem está digitando. Parar agora encerra o turno, e uma mensagem nova sua substitui a que ainda estava em andamento.
+- Um bot sem nada a acrescentar fica quieto. A fala dos outros bots chega a cada bot como dado, nunca como instrução.
+
 ## O que ele faz hoje
 
 | Recurso                | Como funciona                                                                                                                                                                                                                                           |

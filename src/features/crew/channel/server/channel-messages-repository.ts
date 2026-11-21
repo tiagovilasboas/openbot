@@ -121,7 +121,10 @@ export function claimTurn(
   }
 }
 
-/** Ends a turn; a finished turn no longer counts against the limit. */
+/**
+ * Ends a turn; a finished turn no longer counts against the limit. A turn
+ * already stopped stays stopped: a late finish never revives it.
+ */
 export function finishTurn(
   db: DatabaseSync,
   turnId: number,
@@ -130,6 +133,60 @@ export function finishTurn(
 ): void {
   ensureCrewChannelsSchema(db);
   db.prepare(
-    "UPDATE crew_channel_turns SET status = ?, finished_at = ? WHERE id = ?",
+    "UPDATE crew_channel_turns SET status = ?, finished_at = ?, speaking_bot_id = NULL WHERE id = ? AND status = 'running'",
   ).run(status, now, turnId);
+}
+
+/** Who is answering right now in a running turn; null between speakers. */
+export function setSpeaking(
+  db: DatabaseSync,
+  turnId: number,
+  botId: string | null,
+): void {
+  ensureCrewChannelsSchema(db);
+  db.prepare(
+    "UPDATE crew_channel_turns SET speaking_bot_id = ? WHERE id = ? AND status = 'running'",
+  ).run(botId, turnId);
+}
+
+/** True once the turn is no longer running (stopped, superseded or done). */
+export function isTurnOver(db: DatabaseSync, turnId: number): boolean {
+  ensureCrewChannelsSchema(db);
+  const row = db
+    .prepare("SELECT status FROM crew_channel_turns WHERE id = ?")
+    .get(turnId) as { status: string } | undefined;
+  return row?.status !== "running";
+}
+
+/** Stops every running turn of the channel; how many it stopped. */
+export function stopRunningTurns(
+  db: DatabaseSync,
+  channelId: string,
+  now: number,
+): number {
+  ensureCrewChannelsSchema(db);
+  const result = db
+    .prepare(
+      "UPDATE crew_channel_turns SET status = 'stopped', finished_at = ?, speaking_bot_id = NULL WHERE channel_id = ? AND status = 'running'",
+    )
+    .run(now, channelId);
+  return Number(result.changes);
+}
+
+export type RunningTurn = { id: number; speakingBotId: string | null };
+
+/** The channel's live turn, if any; a stale one does not count. */
+export function runningTurn(
+  db: DatabaseSync,
+  channelId: string,
+  now: number,
+): RunningTurn | null {
+  ensureCrewChannelsSchema(db);
+  const row = db
+    .prepare(
+      "SELECT id, speaking_bot_id FROM crew_channel_turns WHERE channel_id = ? AND status = 'running' AND started_at > ? ORDER BY id DESC LIMIT 1",
+    )
+    .get(channelId, now - STALE_TURN_MS) as
+    { id: number; speaking_bot_id: string | null } | undefined;
+  return row ? { id: row.id, speakingBotId: row.speaking_bot_id } : null;
 }

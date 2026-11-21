@@ -10,6 +10,7 @@ import { SidebarBotList } from "./SidebarBotList.tsx";
 import { SidebarBotFolder } from "./SidebarBotFolder.tsx";
 import { groupByFolder } from "@/features/bots/bot-folders.ts";
 import { SidebarHiddenBots } from "./SidebarHiddenBots.tsx";
+import { SidebarGroups } from "@/features/crew/channel/client/SidebarGroups.tsx";
 import { NeedsYouSection } from "@/features/attention/NeedsYouSection.tsx";
 import { hiddenBots, visibleBots } from "@/features/bots/bot-visibility.ts";
 import {
@@ -185,6 +186,14 @@ export function SidebarPanel({
             />
           )}
         </div>
+
+        {!agentsLockedReason && (
+          <SidebarGroups
+            language={language}
+            bots={bots}
+            mainBotId={mainBotId}
+          />
+        )}
       </nav>
 
       <div className="flex shrink-0 flex-col gap-1 border-t border-separator px-2 py-1 md:py-2">

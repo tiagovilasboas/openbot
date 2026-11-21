@@ -15,6 +15,10 @@ export type ChannelEntry = {
   text: string;
   /** The turn's team room, on the leader's closing reply of a delegated turn. */
   room?: CrewRoomView;
+  /** A member's answer that failed. */
+  failed?: boolean;
+  /** The message this post answered, when the person replied to one. */
+  replyTo?: { seq: number; bot: BotProfile | null; text: string };
 };
 
 function asRoomMessage(
@@ -59,8 +63,14 @@ export function buildChannelTimeline(
   }
   return ordered
     .filter((m) => !inRoom.has(m.seq))
-    .map((m) => {
+    .map((m): ChannelEntry => {
       const room = rooms.get(m.seq);
+      const replyToSeq =
+        m.author.kind === "human" ? m.author.replyToSeq : undefined;
+      const target =
+        replyToSeq === undefined
+          ? undefined
+          : ordered.find((other) => other.seq === replyToSeq);
       return {
         seq: m.seq,
         bot:
@@ -68,6 +78,19 @@ export function buildChannelTimeline(
         fromPerson: m.author.kind === "human",
         text: m.text,
         ...(room ? { room } : {}),
+        ...(m.author.kind === "member" && !m.author.ok ? { failed: true } : {}),
+        ...(target
+          ? {
+              replyTo: {
+                seq: target.seq,
+                bot:
+                  target.author.kind === "human"
+                    ? null
+                    : (byId.get(target.author.botId) ?? null),
+                text: target.text,
+              },
+            }
+          : {}),
       };
     });
 }
