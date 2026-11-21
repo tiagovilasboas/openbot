@@ -8,9 +8,12 @@ export const CHANNEL_PAGE_SIZE = 50;
  * the channel's leader (its kickoff or its final reply).
  */
 export type ChannelAuthor =
-  | { kind: "human" }
+  /** `replyToSeq`: the message the person answered, which picks the speaker. */
+  | { kind: "human"; replyToSeq?: number }
   | { kind: "specialist"; botId: string; task: string; ok: boolean }
-  | { kind: "leader"; botId: string };
+  | { kind: "leader"; botId: string }
+  /** A group member speaking for itself; `ok` false marks a failed answer. */
+  | { kind: "member"; botId: string; ok: boolean };
 
 /** One message of a channel. `seq` orders it: 1, 2, 3… per channel. */
 export type ChannelMessage = {
@@ -48,9 +51,12 @@ export function checkChannelPost(text: unknown): string | null {
 function isAuthor(value: unknown): value is ChannelAuthor {
   if (typeof value !== "object" || value === null) return false;
   const raw = value as Record<string, unknown>;
-  if (raw.kind === "human") return true;
+  if (raw.kind === "human") {
+    return raw.replyToSeq === undefined || Number.isSafeInteger(raw.replyToSeq);
+  }
   if (typeof raw.botId !== "string") return false;
   if (raw.kind === "leader") return true;
+  if (raw.kind === "member") return typeof raw.ok === "boolean";
   return (
     raw.kind === "specialist" &&
     typeof raw.task === "string" &&

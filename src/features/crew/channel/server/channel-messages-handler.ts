@@ -2,13 +2,17 @@ import type { DatabaseSync } from "node:sqlite";
 import type { BotProfile } from "../../../bots/bot-types.ts";
 import type { ChatLanguage } from "../../../chat/respond-to-message.ts";
 import type { AskCrewModel } from "../../run-crew-turn.ts";
-import { checkChannelPost, type ChannelMessage } from "../channel-message.ts";
+import { checkChannelPost } from "../channel-message.ts";
 import { isChannelId } from "../crew-channel.ts";
 import {
   appendMessage,
   claimTurn,
   finishTurn,
+  isTurnOver,
   listMessages,
+  runningTurn,
+  setSpeaking,
+  stopRunningTurns,
 } from "./channel-messages-repository.ts";
 import {
   channelIdParam,
@@ -16,17 +20,24 @@ import {
   readJsonBody,
 } from "./channels-handler.ts";
 import { getChannel } from "./channels-repository.ts";
-import { runChannelTurn } from "./run-channel-turn.ts";
+import { runGroupTurn } from "./run-group-turn.ts";
 
-/** GET /api/crew/channels/messages?channelId=: the latest, oldest first. */
+/**
+ * GET /api/crew/channels/messages?channelId=: the latest messages, oldest
+ * first, and the live turn (who is speaking) when one runs.
+ */
 export function handleListMessages(
   request: Request,
   db: DatabaseSync,
+  now: () => number = Date.now,
 ): Response {
   const id = channelIdParam(request, "channelId");
   if (!id) return channelJson({ error: "invalid_id" }, 400);
   if (!getChannel(db, id)) return channelJson({ error: "not_found" }, 404);
-  return channelJson({ messages: listMessages(db, id) });
+  return channelJson({
+    messages: listMessages(db, id),
+    turn: runningTurn(db, id, now()),
+  });
 }
 
 export interface ChannelPostDeps {
@@ -34,12 +45,24 @@ export interface ChannelPostDeps {
   language: () => ChatLanguage;
   askModel: AskCrewModel;
   now?: () => number;
+  /**
+   * Runs the group's answers after the response is sent. The route lets the
+   * promise run on; tests await it.
+   */
+  schedule?: (work: Promise<void>) => void;
+}
+
+function readReplyTo(raw: unknown): number | undefined {
+  return typeof raw === "number" && Number.isSafeInteger(raw) && raw > 0
+    ? raw
+    : undefined;
 }
 
 /**
- * POST /api/crew/channels/messages {channelId, text}: stores the post, runs
- * the channel's crew turn and stores its replies in order. Answers with
- * every message this post added.
+ * POST /api/crew/channels/messages {channelId, text, replyToSeq?}: stores
+ * the post and answers at once; the members answer in the background, each
+ * stored as it lands. A new post takes priority: it stops the turn still
+ * running in this group.
  */
 export async function handlePostMessage(
   request: Request,
@@ -64,34 +87,56 @@ export async function handlePostMessage(
   const channel = getChannel(db, raw.channelId);
   if (!channel) return channelJson({ error: "not_found" }, 404);
 
+  stopRunningTurns(db, channel.id, now());
   const turnId = claimTurn(db, channel.id, now());
   if (turnId === null) return channelJson({ error: "channel_busy" }, 409);
-  try {
-    const history = listMessages(db, channel.id);
-    const added: ChannelMessage[] = [
-      appendMessage(db, channel.id, { kind: "human" }, text, now()),
-    ];
-    const result = await runChannelTurn({
+  const replyToSeq = readReplyTo(raw.replyToSeq);
+  const post = appendMessage(
+    db,
+    channel.id,
+    { kind: "human", ...(replyToSeq ? { replyToSeq } : {}) },
+    text,
+    now(),
+  );
+  const work = runGroupTurn(
+    {
       channel,
       bots: deps.bots(),
-      history,
-      text,
+      history: listMessages(db, channel.id),
+      post,
       language: deps.language(),
       askModel: deps.askModel,
-    });
-    if (!result.ok) {
-      finishTurn(db, turnId, "failed", now());
-      return channelJson({ error: result.error, messages: added }, 409);
-    }
-    for (const reply of result.replies) {
-      added.push(
-        appendMessage(db, channel.id, reply.author, reply.text, now()),
-      );
-    }
-    finishTurn(db, turnId, "completed", now());
-    return channelJson({ messages: added });
-  } catch (error) {
-    finishTurn(db, turnId, "failed", now());
-    throw error;
+    },
+    {
+      append: (author, reply) =>
+        appendMessage(db, channel.id, author, reply, now()),
+      isOver: () => isTurnOver(db, turnId),
+      setSpeaking: (botId) => setSpeaking(db, turnId, botId),
+    },
+  ).then(
+    () => finishTurn(db, turnId, "completed", now()),
+    () => finishTurn(db, turnId, "failed", now()),
+  );
+  (deps.schedule ?? ((p) => void p))(work);
+  return channelJson({ messages: [post], turnId }, 202);
+}
+
+/** POST /api/crew/channels/stop {channelId}: stops the group's live turn. */
+export async function handleStopChannel(
+  request: Request,
+  db: DatabaseSync,
+  now: () => number = Date.now,
+): Promise<Response> {
+  const body = await readJsonBody(request, "POST", "/api/crew/channels/stop");
+  if (body === undefined) {
+    return channelJson({ error: "payload_too_large" }, 413);
   }
+  const raw = (body ?? {}) as Record<string, unknown>;
+  if (!isChannelId(raw.channelId)) {
+    return channelJson({ error: "invalid_id" }, 400);
+  }
+  if (!getChannel(db, raw.channelId)) {
+    return channelJson({ error: "not_found" }, 404);
+  }
+  return channelJson({ stopped: stopRunningTurns(db, raw.channelId, now()) });
 }

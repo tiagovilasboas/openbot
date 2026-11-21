@@ -69,6 +69,14 @@ Ask the Chief for something that needs more than one specialist and it writes on
 - Names the Chief invents, itself, and repeats are dropped. A specialist that fails does not break the turn.
 - You can still talk to any bot directly, or hand a single message over with `@`.
 
+### Group chats
+
+Under Groups in the sidebar, New group puts several bots in one chat. Each answers under its own name and sees what the others said.
+
+- Nobody named: the group picks who answers, at most two. `@name` calls one bot, `@all` (or `@todos`) calls everyone, and Reply on a message sends the next one to its author.
+- Answers show up one by one as they land, with who is typing. Stop now ends the turn, and a new message from you takes over from the one still running.
+- A bot with nothing to add stays quiet. Other bots' messages reach each bot as data, never as instructions.
+
 ## What it does today
 
 | Capability            | How it works                                                                                                                                                                                                                            |

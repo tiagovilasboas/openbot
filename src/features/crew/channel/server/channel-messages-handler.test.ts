@@ -1,20 +1,22 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { CREW_PRESETS } from "../../../bots/crew-presets.ts";
+import { SKIP_TOKEN } from "./group-chat.ts";
 import {
   handleListMessages,
   handlePostMessage,
+  handleStopChannel,
 } from "./channel-messages-handler.ts";
-import { claimTurn } from "./channel-messages-repository.ts";
+import { claimTurn, runningTurn } from "./channel-messages-repository.ts";
 import { handleSaveChannel } from "./channels-handler.ts";
-import { fakeModel, withChannelDb } from "./channel-test-db.ts";
+import { fakeModel, withChannelDb, type ModelCall } from "./channel-test-db.ts";
 
 const base = "http://localhost/api/crew/channels";
 const botIds = () => CREW_PRESETS.map((b) => b.id);
-const channel = {
+const group = {
   id: "c1",
   name: "Launch",
-  memberBotIds: ["engineering", "publishing"],
+  memberBotIds: ["engineering", "publishing", "security"],
   leaderBotId: "engineering",
   instructions: "",
 };
@@ -26,100 +28,222 @@ const post = (body: unknown) =>
     method: "POST",
     body: JSON.stringify(body),
   });
+const list = async (db: Parameters<typeof handleListMessages>[1]) =>
+  (await handleListMessages(
+    new Request(`${base}/messages?channelId=c1`),
+    db,
+  ).json()) as {
+    messages: { seq: number; text: string; author: Record<string, unknown> }[];
+    turn: unknown;
+  };
 
-test("a post stores the person's message and the crew's replies in order", () =>
-  withChannelDb(async (db) => {
-    await handleSaveChannel(put(channel), db, botIds);
-    const model = fakeModel((call) =>
-      call.speaker ? "the draft" : "Summary for you.",
-    );
-    const deps = {
+/** Deps that collect the background work so a test can await it. */
+function deps(answer: (call: ModelCall) => string | null) {
+  const model = fakeModel(answer);
+  const work: Promise<void>[] = [];
+  return {
+    model,
+    settle: () => Promise.all(work),
+    deps: {
       bots: () => [...CREW_PRESETS],
       language: () => "en" as const,
       askModel: model.askModel,
-      now: () => 1_000,
-    };
-    const response = await handlePostMessage(
-      post({ channelId: "c1", text: "@Publishing draft it" }),
-      db,
-      deps,
+      schedule: (p: Promise<void>) => void work.push(p),
+    },
+  };
+}
+
+const speakerOf = (call: ModelCall) => call.speaker?.id ?? "picker";
+
+test("a post answers at once and the chosen members reply in the background", () =>
+  withChannelDb(async (db) => {
+    await handleSaveChannel(put(group), db, botIds);
+    const run = deps((call) =>
+      call.speaker ? `${call.speaker.name} here` : "Security, Publishing",
     );
-    assert.equal(response.status, 200);
-    const listed = await handleListMessages(
-      new Request(`${base}/messages?channelId=c1`),
+    const response = await handlePostMessage(
+      post({ channelId: "c1", text: "is the launch safe?" }),
       db,
-    ).json();
+      run.deps,
+    );
+    assert.equal(response.status, 202);
+    const body = await response.json();
+    assert.equal(body.messages.length, 1);
+    await run.settle();
+    const { messages, turn } = await list(db);
     assert.deepEqual(
-      listed.messages.map((m: { seq: number; author: { kind: string } }) => [
-        m.seq,
-        m.author.kind,
-      ]),
+      messages.map((m) => [m.author.kind, m.author.botId ?? null, m.text]),
       [
-        [1, "human"],
-        [2, "leader"],
-        [3, "specialist"],
-        [4, "leader"],
+        ["human", null, "is the launch safe?"],
+        ["member", "security", "Security here"],
+        ["member", "publishing", "Publishing here"],
       ],
     );
+    assert.equal(turn, null);
+    assert.deepEqual(run.model.calls.map(speakerOf), [
+      "picker",
+      "security",
+      "publishing",
+    ]);
+  }));
+
+test("each member sees the others' replies, marked as data", () =>
+  withChannelDb(async (db) => {
+    await handleSaveChannel(put(group), db, botIds);
+    const run = deps((call) => (call.speaker ? "ok" : "x"));
     await handlePostMessage(
-      post({ channelId: "c1", text: "thanks" }),
+      post({ channelId: "c1", text: "@Security @Publishing check" }),
       db,
-      deps,
+      run.deps,
     );
-    const after = await handleListMessages(
-      new Request(`${base}/messages?channelId=c1`),
+    await run.settle();
+    const second = run.model.calls[1]!;
+    assert.equal(second.speaker?.id, "publishing");
+    const last = second.messages.at(-1)!;
+    assert.equal(last.role, "user");
+    assert.match(
+      last.text,
+      /Security:\n<external-data>\nok\n<\/external-data>/,
+    );
+    assert.match(second.systemPrompt, /group chat/);
+  }));
+
+test("mentions and replies pick the speaker without asking the model", () =>
+  withChannelDb(async (db) => {
+    await handleSaveChannel(put(group), db, botIds);
+    const run = deps(() => "noted");
+    await handlePostMessage(
+      post({ channelId: "c1", text: "@Engineering ship it" }),
       db,
-    ).json();
-    assert.equal(after.messages.at(-1).seq, 6);
-    assert.equal(
-      model.calls.at(-1)!.messages.length,
-      4,
-      "the leader reads back the person's and its own earlier messages",
+      run.deps,
+    );
+    await run.settle();
+    assert.deepEqual(run.model.calls.map(speakerOf), ["engineering"]);
+    const { messages } = await list(db);
+    await handlePostMessage(
+      post({ channelId: "c1", text: "why?", replyToSeq: messages[1]!.seq }),
+      db,
+      run.deps,
+    );
+    await run.settle();
+    assert.deepEqual(run.model.calls.map(speakerOf), [
+      "engineering",
+      "engineering",
+    ]);
+    const after = await list(db);
+    assert.equal(after.messages[2]!.author.replyToSeq, messages[1]!.seq);
+  }));
+
+test("@todos asks every member, and a member with nothing to add stays quiet", () =>
+  withChannelDb(async (db) => {
+    await handleSaveChannel(put(group), db, botIds);
+    const run = deps((call) =>
+      call.speaker?.id === "security" ? SKIP_TOKEN : "update",
+    );
+    await handlePostMessage(
+      post({ channelId: "c1", text: "@todos status" }),
+      db,
+      run.deps,
+    );
+    await run.settle();
+    assert.equal(run.model.calls.length, 3);
+    const { messages } = await list(db);
+    assert.deepEqual(
+      messages.slice(1).map((m) => m.author.botId),
+      ["engineering", "publishing"],
     );
   }));
 
-test("a channel running two turns refuses a third", () =>
+test("stop ends the live turn: nothing more is stored", () =>
   withChannelDb(async (db) => {
-    await handleSaveChannel(put(channel), db, botIds);
-    const now = Date.now();
-    assert.notEqual(claimTurn(db, "c1", now), null);
-    assert.notEqual(claimTurn(db, "c1", now), null);
-    const model = fakeModel(() => "x");
-    const response = await handlePostMessage(
-      post({ channelId: "c1", text: "hi" }),
-      db,
-      {
-        bots: () => [...CREW_PRESETS],
-        language: () => "en",
-        askModel: model.askModel,
-        now: () => now,
-      },
-    );
-    assert.equal(response.status, 409);
-    assert.deepEqual(await response.json(), { error: "channel_busy" });
-    assert.equal(model.calls.length, 0);
-    // A turn left running by a crash stops counting after a while.
-    assert.notEqual(claimTurn(db, "c1", now + 60 * 60 * 1000), null);
-  }));
-
-test("posts to unknown channels or with bad text are refused", () =>
-  withChannelDb(async (db) => {
-    const deps = {
+    await handleSaveChannel(put(group), db, botIds);
+    let release!: () => void;
+    const gate = new Promise<void>((r) => (release = r));
+    const model = fakeModel(() => "late");
+    const work: Promise<void>[] = [];
+    const slow = {
       bots: () => [...CREW_PRESETS],
       language: () => "en" as const,
-      askModel: fakeModel(() => "x").askModel,
+      askModel: async (call: ModelCall) => {
+        await gate;
+        return model.askModel(call);
+      },
+      schedule: (p: Promise<void>) => void work.push(p),
     };
+    await handlePostMessage(
+      post({ channelId: "c1", text: "@Security look" }),
+      db,
+      slow,
+    );
+    assert.equal(runningTurn(db, "c1", Date.now())?.speakingBotId, "security");
+    const stop = await handleStopChannel(
+      new Request(`${base}/stop`, {
+        method: "POST",
+        body: JSON.stringify({ channelId: "c1" }),
+      }),
+      db,
+    );
+    assert.deepEqual(await stop.json(), { stopped: 1 });
+    release();
+    await Promise.all(work);
+    const { messages, turn } = await list(db);
+    assert.equal(messages.length, 1);
+    assert.equal(turn, null);
+  }));
+
+test("a new post takes priority over the turn still running", () =>
+  withChannelDb(async (db) => {
+    await handleSaveChannel(put(group), db, botIds);
+    let release!: () => void;
+    const gate = new Promise<void>((r) => (release = r));
+    const work: Promise<void>[] = [];
+    let first = true;
+    const d = {
+      bots: () => [...CREW_PRESETS],
+      language: () => "en" as const,
+      askModel: async (call: ModelCall) => {
+        if (first) {
+          first = false;
+          await gate;
+          return { ok: true as const, text: "stale answer" };
+        }
+        return { ok: true as const, text: `${call.speaker?.name} on it` };
+      },
+      schedule: (p: Promise<void>) => void work.push(p),
+    };
+    await handlePostMessage(
+      post({ channelId: "c1", text: "@Security a" }),
+      db,
+      d,
+    );
+    await handlePostMessage(
+      post({ channelId: "c1", text: "@Publishing never mind, b" }),
+      db,
+      d,
+    );
+    release();
+    await Promise.all(work);
+    const { messages } = await list(db);
+    assert.deepEqual(
+      messages.map((m) => m.text),
+      ["@Security a", "@Publishing never mind, b", "Publishing on it"],
+    );
+  }));
+
+test("a busy channel, unknown channels and bad text are refused", () =>
+  withChannelDb(async (db) => {
+    const run = deps(() => "x");
     const missing = await handlePostMessage(
       post({ channelId: "nope", text: "hi" }),
       db,
-      deps,
+      run.deps,
     );
     assert.equal(missing.status, 404);
-    await handleSaveChannel(put(channel), db, botIds);
+    await handleSaveChannel(put(group), db, botIds);
     const empty = await handlePostMessage(
       post({ channelId: "c1", text: "  " }),
       db,
-      deps,
+      run.deps,
     );
     assert.equal(empty.status, 400);
     const badId = handleListMessages(
@@ -127,4 +251,8 @@ test("posts to unknown channels or with bad text are refused", () =>
       db,
     );
     assert.equal(badId.status, 400);
+    // A turn left running by a crash stops counting after a while.
+    const now = Date.now();
+    assert.notEqual(claimTurn(db, "c1", now), null);
+    assert.notEqual(claimTurn(db, "c1", now + 60 * 60 * 1000), null);
   }));
