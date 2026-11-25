@@ -23,6 +23,22 @@
 #                                                     it from its own vault (your
 #                                                     OPENBOT_DATA_DIR) and the
 #                                                     script never sees it
+#   bash scripts/run-real-model.sh --crew [model]     group chat (no mention,
+#                                                     @name, thread reply) and
+#                                                     the message_bot handoff
+#                                                     with its loop guard. Needs
+#                                                     a model with native tools.
+#                                                     Throwaway data dir and
+#                                                     key prompt (not --vault:
+#                                                     the vault lives in your
+#                                                     own data dir, and these
+#                                                     cases write bots, a group
+#                                                     and routines).
+#                                                     OPENBOT_CREW_REPORT=<path>
+#                                                     also writes the report.
+#   bash scripts/run-real-model.sh --crew --dry-run   the same cases against a
+#                                                     scripted model; no server,
+#                                                     no key, no network
 #   bash scripts/run-real-model.sh --tools --dry-run  the same scenario against
 #                                                     a scripted provider; no
 #                                                     server, no key, no network
@@ -42,6 +58,7 @@ NODE_RUN=(node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACK
 
 TOOLS=0
 WAVE3=0
+CREW=0
 DRY=0
 VAULT=0
 ARGS=()
@@ -49,13 +66,17 @@ for arg in "$@"; do
   case "$arg" in
     --tools) TOOLS=1 ;;
     --wave3) WAVE3=1 ;;
+    --crew) CREW=1 ;;
     --dry-run) DRY=1 ;;
     --vault) VAULT=1 ;;
     *) ARGS+=("$arg") ;;
   esac
 done
 if [ "$DRY" = 1 ]; then
-  [ "$TOOLS" = 1 ] || { echo "--dry-run only applies to --tools." >&2; exit 2; }
+  if [ "$CREW" = 1 ]; then
+    exec "${NODE_RUN[@]}" scripts/real-model-crew-run.mjs --dry-run
+  fi
+  [ "$TOOLS" = 1 ] || { echo "--dry-run only applies to --tools or --crew." >&2; exit 2; }
   exec "${NODE_RUN[@]}" scripts/real-model-tools-run.mjs --dry-run
 fi
 
@@ -63,15 +84,21 @@ MODEL="${ARGS[0]:-google/gemma-4-31b-it:free}"
 PORT=3801
 LOG=/tmp/oc-run-$PORT.log
 DATA_DIR=""
-if [ "$TOOLS" = 1 ] && [ "$WAVE3" = 1 ]; then
-  echo "Pick one of --tools and --wave3." >&2; exit 2
+if [ $((TOOLS + WAVE3 + CREW)) -gt 1 ]; then
+  echo "Pick one of --tools, --wave3 and --crew." >&2; exit 2
 fi
-if [ "$VAULT" = 1 ] && { [ "$TOOLS" = 1 ] || [ "$WAVE3" = 1 ]; }; then
+if [ "$VAULT" = 1 ] && { [ "$TOOLS" = 1 ] || [ "$WAVE3" = 1 ] || [ "$CREW" = 1 ]; }; then
   echo "--vault runs the default cases only: those runs use a throwaway data dir with an empty vault." >&2; exit 2
 fi
 if [ "$WAVE3" = 1 ]; then
   DATA_DIR="$(mktemp -d "${TMPDIR:-/tmp}/openbot-wave3-run.XXXXXX")"
   export OPENBOT_DATA_DIR="$DATA_DIR"
+  trap 'rm -rf "$DATA_DIR"' EXIT
+fi
+if [ "$CREW" = 1 ]; then
+  # The handoff cases need the tool gate; the data dir is thrown away.
+  DATA_DIR="$(mktemp -d "${TMPDIR:-/tmp}/openbot-crew-run.XXXXXX")"
+  export OPENBOT_TOOLS=1 OPENBOT_DATA_DIR="$DATA_DIR"
   trap 'rm -rf "$DATA_DIR"' EXIT
 fi
 if [ "$TOOLS" = 1 ]; then
@@ -115,6 +142,9 @@ if [ "$TOOLS" = 1 ]; then
   # No `exec`: the EXIT trap must still stop the server and remove the data dir.
   OPENBOT_RUN_URL="http://127.0.0.1:$PORT" "${NODE_RUN[@]}" \
     scripts/real-model-tools-run.mjs ${OPENBOT_TOOLS_REPORT:+"$OPENBOT_TOOLS_REPORT"}
+elif [ "$CREW" = 1 ]; then
+  OPENBOT_RUN_URL="http://127.0.0.1:$PORT" "${NODE_RUN[@]}" \
+    scripts/real-model-crew-run.mjs ${OPENBOT_CREW_REPORT:+"$OPENBOT_CREW_REPORT"}
 elif [ "$WAVE3" = 1 ]; then
   OPENBOT_RUN_URL="http://127.0.0.1:$PORT" "${NODE_RUN[@]}" \
     scripts/real-model-wave3-run.mjs ${OPENBOT_WAVE3_REPORT:+"$OPENBOT_WAVE3_REPORT"}
