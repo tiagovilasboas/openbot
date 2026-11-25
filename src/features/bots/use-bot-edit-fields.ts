@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { BotTemplateDraft } from "@/features/bot-sharing/bot-template-file-types.ts";
 import type { SkillDefinition } from "@/features/skills/skill-types.ts";
 import type { BotTemplate } from "./bot-templates.ts";
+import { goalToDraft } from "./bot-goal.ts";
 import type { AvatarColor, AvatarShape, BotProfile } from "./bot-types.ts";
 
 /** The editable fields of the bot form, plus the template and file fills. */
@@ -24,6 +25,7 @@ export function useBotEditFields(bot: BotProfile | null) {
     bot?.avatarColor || "cyan",
   );
   const [skills, setSkills] = useState<SkillDefinition[]>(bot?.skills ?? []);
+  const [goalDraft, setGoalDraft] = useState(goalToDraft(bot?.goal));
   const [templateId, setTemplateId] = useState<string | null>(null);
   const [toolsEnabled, setToolsEnabled] = useState(bot?.toolsEnabled === true);
 
@@ -71,6 +73,8 @@ export function useBotEditFields(bot: BotProfile | null) {
     setAvatarColor,
     skills,
     setSkills,
+    goalDraft,
+    setGoalDraft,
     templateId,
     toolsEnabled,
     setToolsEnabled,

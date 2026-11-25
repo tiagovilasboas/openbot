@@ -14,6 +14,7 @@ import {
 import { sanitizeBackupModelIds } from "../model/backup-models.ts";
 import { sanitizeModelId } from "../model/model-id.ts";
 import { isValidBotId } from "./bot-id.ts";
+import { optionalGoal } from "./bot-goal.ts";
 import { cleanFolder } from "./bot-folders.ts";
 import { sanitizeSkill } from "../skills/skill-definition.ts";
 import {
@@ -131,6 +132,7 @@ export function sanitizeBotProfile(
     ...(obj.toolsEnabled === true ? { toolsEnabled: true } : {}),
     ...(obj.hidden === true ? { hidden: true } : {}),
     ...(cleanFolder(obj.folder) ? { folder: cleanFolder(obj.folder) } : {}),
+    ...optionalGoal(obj.goal),
     avatarShape: shape,
     avatarColor: color,
     skills,

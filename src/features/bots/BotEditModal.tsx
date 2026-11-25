@@ -8,6 +8,8 @@ import { BotToolsToggle } from "@/features/tools/client/BotToolsToggle.tsx";
 import { FormField, FIELD_CLASS } from "@/shared/ui/FormField.tsx";
 import { ResponsiveSheet } from "@/shared/ui/ResponsiveSheet.tsx";
 import { AutoTextarea } from "./AutoTextarea.tsx";
+import { BotGoalSection } from "./BotGoalSection.tsx";
+import { buildGoal } from "./bot-goal.ts";
 import { BotEditPreview } from "./BotEditPreview.tsx";
 import { BotAvatarPickers } from "./BotAvatarPickers.tsx";
 import { BotBackupModelsField } from "./BotBackupModelsField.tsx";
@@ -84,6 +86,8 @@ function BotEditForm({
     setAvatarColor,
     skills,
     setSkills,
+    goalDraft,
+    setGoalDraft,
     templateId,
     toolsEnabled,
     setToolsEnabled,
@@ -100,6 +104,7 @@ function BotEditForm({
       avatarShape,
       avatarColor,
       skills,
+      goal: buildGoal(goalDraft, bot?.goal),
       createdAt: "",
       updatedAt: "",
     },
@@ -119,7 +124,8 @@ function BotEditForm({
   function handleSave() {
     if (!isValid || !backups.ok) return;
     const text = { name, title, description, workspaceContext, modelId };
-    const look = { avatarShape, avatarColor, skills, toolsEnabled };
+    const goal = buildGoal(goalDraft, bot?.goal);
+    const look = { avatarShape, avatarColor, skills, toolsEnabled, goal };
     const values = { ...text, ...look, backupModelIds: backups.ids };
     const defaults = { defaultDescription: copy.defaultDescription };
     onSave(buildEditedBot(bot, values, defaults));
@@ -247,6 +253,12 @@ function BotEditForm({
           onChange={setToolsEnabled}
         />
       )}
+
+      <BotGoalSection
+        draft={goalDraft}
+        language={language}
+        onChange={setGoalDraft}
+      />
 
       <PromptBudgetNotice report={budgetReport} language={language} />
 
