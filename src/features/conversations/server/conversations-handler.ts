@@ -74,16 +74,30 @@ export async function handlePutConversation(
   } catch {
     // Falls through to invalid_body.
   }
-  const messages =
+  const fields =
     typeof body === "object" && body !== null
-      ? (body as Record<string, unknown>).messages
-      : undefined;
+      ? (body as Record<string, unknown>)
+      : {};
+  const messages = fields.messages;
   if (!Array.isArray(messages)) return json({ error: "invalid_body" }, 400);
+  const base = fields.baseUpdatedAt;
+  if (
+    base !== undefined &&
+    base !== null &&
+    !(typeof base === "number" && Number.isFinite(base))
+  ) {
+    return json({ error: "invalid_base_updated_at" }, 400);
+  }
   if (messages.length > STORED_MESSAGES_MAX) {
     return json({ error: "too_many_messages" }, 400);
   }
-  const result = replaceThread(db, botId, messages, threadId);
-  if (!result.ok) return json({ error: result.error }, 400);
+  const result = replaceThread(db, botId, messages, threadId, base);
+  if (!result.ok) {
+    if (result.error === "stale") {
+      return json({ error: "stale", updatedAt: result.updatedAt }, 409);
+    }
+    return json({ error: result.error }, 400);
+  }
   return json({ botId, updatedAt: result.updatedAt, count: result.count });
 }
 

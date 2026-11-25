@@ -18,7 +18,8 @@ export type StoredThread = {
 };
 export type ReplaceResult =
   | { ok: true; updatedAt: number | null; count: number }
-  | { ok: false; error: "too_many_threads" };
+  | { ok: false; error: "too_many_threads" }
+  | { ok: false; error: "stale"; updatedAt: number | null };
 
 /** Threads of one id (the default thread) with messages, newest first. */
 export function listThreads(
@@ -65,16 +66,32 @@ export function readThread(
 
 // Replaces the whole thread in one transaction. The messages are sanitized
 // here, so no caller can store unvalidated data; an empty result deletes it.
+// When baseUpdatedAt is given (null = "expects no row") and differs from the
+// stored updated_at, nothing is written and the stored value is returned as
+// stale. The compare and the write share the same immediate transaction.
 export function replaceThread(
   db: DatabaseSync,
   botId: string,
   messages: unknown,
   threadId: string = DEFAULT_THREAD_ID,
+  baseUpdatedAt?: number | null,
 ): ReplaceResult {
   ensureConversationsSchema(db);
   const kept = sanitizeStoredMessages(messages);
   db.exec("BEGIN IMMEDIATE");
   try {
+    if (baseUpdatedAt !== undefined) {
+      const row = db
+        .prepare(
+          "SELECT updated_at FROM conversations WHERE bot_id = ? AND thread_id = ?",
+        )
+        .get(botId, threadId) as { updated_at: number } | undefined;
+      const current = row ? row.updated_at : null;
+      if (current !== baseUpdatedAt) {
+        db.exec("ROLLBACK");
+        return { ok: false, error: "stale", updatedAt: current };
+      }
+    }
     if (kept.length === 0) {
       db.prepare(
         "DELETE FROM conversations WHERE bot_id = ? AND thread_id = ?",
@@ -83,8 +100,10 @@ export function replaceThread(
       return { ok: true, updatedAt: null, count: 0 };
     }
     const existing = db
-      .prepare("SELECT 1 FROM conversations WHERE bot_id = ? AND thread_id = ?")
-      .get(botId, threadId);
+      .prepare(
+        "SELECT updated_at FROM conversations WHERE bot_id = ? AND thread_id = ?",
+      )
+      .get(botId, threadId) as { updated_at: number } | undefined;
     if (!existing) {
       const { total } = db
         .prepare("SELECT COUNT(*) AS total FROM conversations")
@@ -94,7 +113,9 @@ export function replaceThread(
         return { ok: false, error: "too_many_threads" };
       }
     }
-    const now = Date.now();
+    // Strictly increasing per thread, so two writes in one millisecond still
+    // get different versions for the stale check.
+    const now = Math.max(Date.now(), (existing?.updated_at ?? 0) + 1);
     db.prepare(
       "INSERT INTO conversations (bot_id, thread_id, data, count, updated_at) VALUES (?, ?, ?, ?, ?) ON CONFLICT(bot_id, thread_id) DO UPDATE SET data = excluded.data, count = excluded.count, updated_at = excluded.updated_at",
     ).run(botId, threadId, JSON.stringify(kept), kept.length, now);
