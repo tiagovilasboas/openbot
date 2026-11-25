@@ -1,7 +1,9 @@
 import type { DatabaseSync } from "node:sqlite";
 import { askBotOnServer } from "../../bots/server/ask-bot-on-server.ts";
 import { readSettings } from "../../settings/server/settings-repository.ts";
+import { listBots } from "../../bots/server/bots-repository.ts";
 import { chainedPrompt } from "../routine-chain.ts";
+import { withGoalContext } from "./routine-goal.ts";
 import { routinePrompt } from "../silent-run.ts";
 import {
   externalDataRule,
@@ -19,7 +21,7 @@ export function createModelRoutineRunner(
 ): RoutineRunner {
   return async (routine, previousOutput) => {
     const language = readSettings(db).language ?? "pt";
-    const text = routinePrompt(
+    const base = routinePrompt(
       chainedPrompt(
         routine.prompt,
         previousOutput ? wrapExternalText(previousOutput) : undefined,
@@ -28,6 +30,10 @@ export function createModelRoutineRunner(
       routine.silentWhenNothingNew,
       language,
     );
+    const goal = routine.goalLinked
+      ? listBots(db).find((bot) => bot.id === routine.botId)?.goal
+      : undefined;
+    const text = withGoalContext(base, goal, language);
     return askBotOnServer(
       db,
       routine.botId,

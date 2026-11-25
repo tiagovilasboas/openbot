@@ -1,6 +1,6 @@
 import type { DatabaseSync } from "node:sqlite";
 import { isValidBotId } from "../bot-id.ts";
-import { DEFAULT_BOT } from "../bot-types.ts";
+import { DEFAULT_BOT, type BotProfile } from "../bot-types.ts";
 import { resolveMainBotId } from "../main-bot.ts";
 import {
   bodyLimitFor,
@@ -52,11 +52,15 @@ export function handleGetBots(db: DatabaseSync): Response {
 /** Told which bot ids a write removed, so other domains can clean up. */
 export type BotsRemovedHook = (botIds: string[]) => void;
 
+/** Told the bots a write saved, so other domains can follow their goals. */
+export type BotsSavedHook = (bots: readonly BotProfile[]) => void;
+
 /** PUT /api/bots: replaces the whole list atomically; any invalid bot rejects it. */
 export async function handlePutBots(
   request: Request,
   db: DatabaseSync,
   onBotsRemoved?: BotsRemovedHook,
+  onBotsSaved?: BotsSavedHook,
 ): Promise<Response> {
   // The guard checks the declared length; this bounds the bytes actually read.
   const text = await readBodyWithCap(request, bodyLimitFor("PUT", "/api/bots"));
@@ -92,5 +96,6 @@ export async function handlePutBots(
   const kept = new Set(result.bots.map((bot) => bot.id));
   const removed = before.filter((id) => !kept.has(id));
   if (removed.length > 0) onBotsRemoved?.(removed);
+  onBotsSaved?.(result.bots);
   return json(storedState(db));
 }

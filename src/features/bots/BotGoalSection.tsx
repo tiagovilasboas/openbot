@@ -2,6 +2,7 @@
 
 import type { Language } from "../language/language.ts";
 import { FormField, FIELD_CLASS } from "@/shared/ui/FormField.tsx";
+import { GoalRoutinesList } from "@/features/routines/client/GoalRoutinesList.tsx";
 import { AutoTextarea } from "./AutoTextarea.tsx";
 import { BotEditDisclosure } from "./BotEditDisclosure.tsx";
 import {
@@ -17,6 +18,8 @@ interface BotGoalSectionProps {
   draft: GoalDraft;
   language: Language;
   onChange: (draft: GoalDraft) => void;
+  /** A saved bot's id, to list the routines linked to its goal. */
+  botId?: string;
 }
 
 /** The bot's goal, in a collapsed group like the other rare settings. */
@@ -24,6 +27,7 @@ export function BotGoalSection({
   draft,
   language,
   onChange,
+  botId,
 }: BotGoalSectionProps) {
   const copy = getBotGoalCopy(language);
   const set = (patch: Partial<GoalDraft>) => onChange({ ...draft, ...patch });
@@ -83,6 +87,7 @@ export function BotGoalSection({
           />
         )}
       </FormField>
+      {botId && <GoalRoutinesList botId={botId} language={language} />}
     </BotEditDisclosure>
   );
 }

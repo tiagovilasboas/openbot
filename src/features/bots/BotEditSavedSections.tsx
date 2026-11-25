@@ -55,7 +55,11 @@ export function BotEditSavedSections({
       <MemorySection botId={bot.id} language={language} />
 
       <BotEditDisclosure title={routines.title}>
-        <RoutinesSection botId={bot.id} language={language} />
+        <RoutinesSection
+          botId={bot.id}
+          language={language}
+          goalActive={bot.goal?.status === "active"}
+        />
       </BotEditDisclosure>
 
       <BotEditDisclosure title={getWorkspaceCopy(language).title}>

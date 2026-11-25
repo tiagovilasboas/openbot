@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { onOpenRoutine } from "./open-routine-event.ts";
 import type { Language } from "../../language/language.ts";
 import {
   draftFromRoutine,
@@ -15,13 +16,35 @@ import { useRoutines } from "./use-routines.ts";
 interface RoutinesSectionProps {
   botId: string;
   language: Language;
+  /** The bot has an active goal, so a routine may be linked to it. */
+  goalActive?: boolean;
 }
 
 /** The routines of a saved bot: list, create, edit, pause, run, history. */
-export function RoutinesSection({ botId, language }: RoutinesSectionProps) {
+export function RoutinesSection({
+  botId,
+  language,
+  goalActive,
+}: RoutinesSectionProps) {
   const copy = getRoutinesCopy(language);
   const { state, runningIds, save, remove, runNow } = useRoutines(botId);
   const [editing, setEditing] = useState<RoutineDraft | null>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+  const routines = state.status === "ready" ? state.routines : null;
+
+  // The goal section asks to open one of its linked routines here.
+  useEffect(
+    () =>
+      onOpenRoutine((id) => {
+        const found = routines?.find((r) => r.id === id);
+        if (!found) return;
+        setEditing(draftFromRoutine(found));
+        const details = sectionRef.current?.closest("details");
+        if (details) details.open = true;
+        sectionRef.current?.scrollIntoView?.({ block: "nearest" });
+      }),
+    [routines],
+  );
 
   async function handleSave(...args: Parameters<typeof save>) {
     const ok = await save(...args);
@@ -30,7 +53,11 @@ export function RoutinesSection({ botId, language }: RoutinesSectionProps) {
   }
 
   return (
-    <section aria-label={copy.title} className="flex flex-col gap-2">
+    <section
+      ref={sectionRef}
+      aria-label={copy.title}
+      className="flex flex-col gap-2"
+    >
       <p className="text-xs text-muted md:text-[13px]">{copy.note}</p>
 
       {state.status === "failed" && (
@@ -66,6 +93,7 @@ export function RoutinesSection({ botId, language }: RoutinesSectionProps) {
           language={language}
           onSave={handleSave}
           onCancel={() => setEditing(null)}
+          goalActive={goalActive}
           chainOptions={
             state.status === "ready"
               ? state.routines

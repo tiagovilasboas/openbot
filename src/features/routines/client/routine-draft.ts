@@ -23,6 +23,8 @@ export type RoutineDraft = {
   runInThread: boolean;
   /** The routine this one runs after; empty for none. */
   afterRoutineId: string;
+  /** Runs carry the bot's active goal as context. */
+  goalLinked: boolean;
   /** A one-time run's moment (epoch ms); set only by a bot's wake-up. */
   onceAt: number | null;
 };
@@ -71,6 +73,7 @@ export function emptyDraft(
     silentWhenNothingNew: true,
     runInThread: false,
     afterRoutineId: "",
+    goalLinked: false,
     onceAt: null,
   };
 }
@@ -90,6 +93,7 @@ export function draftFromRoutine(
     silentWhenNothingNew: routine.silentWhenNothingNew,
     runInThread: routine.runInThread,
     afterRoutineId: routine.afterRoutineId ?? "",
+    goalLinked: routine.goalLinked === true,
     kind: schedule.kind,
     ...(schedule.kind === "interval"
       ? { everyMinutes: String(schedule.everyMinutes) }
@@ -136,6 +140,7 @@ export function checkDraft(draft: RoutineDraft, botId: string): DraftCheck {
       silentWhenNothingNew: draft.silentWhenNothingNew,
       runInThread: draft.runInThread,
       ...(draft.afterRoutineId ? { afterRoutineId: draft.afterRoutineId } : {}),
+      ...(draft.goalLinked ? { goalLinked: true } : {}),
     },
   };
 }

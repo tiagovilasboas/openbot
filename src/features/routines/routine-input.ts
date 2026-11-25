@@ -1,3 +1,4 @@
+import { isOneShotRoutineId } from "./routine-idle.ts";
 import { checkSchedule, type RoutineSchedule } from "./routine-schedule.ts";
 
 export const MAX_ROUTINES_PER_BOT = 64;
@@ -19,6 +20,8 @@ export type RoutineInput = {
   runInThread: boolean;
   /** Also runs right after this routine of the same bot reports something. */
   afterRoutineId?: string;
+  /** The run gets the bot's goal as context; wake-ups and handoffs never. */
+  goalLinked?: boolean;
 };
 
 export type RoutineInputProblem =
@@ -79,6 +82,9 @@ export function checkRoutineInput(input: unknown): RoutineInputCheck {
       silentWhenNothingNew: raw.silentWhenNothingNew === true,
       runInThread: raw.runInThread === true,
       ...(isRoutineId(after) ? { afterRoutineId: after } : {}),
+      ...(raw.goalLinked === true && !isOneShotRoutineId(raw.id)
+        ? { goalLinked: true }
+        : {}),
     },
   };
 }

@@ -42,6 +42,7 @@ export async function handleSaveRoutine(
   db: DatabaseSync,
   botExists: (botId: string) => boolean,
   now: () => number = Date.now,
+  goalActive: (botId: string) => boolean = () => false,
 ): Promise<Response> {
   const text = await readBodyWithCap(
     request,
@@ -69,7 +70,10 @@ export async function handleSaveRoutine(
       return json({ error: "invalid_chain" }, 400);
     }
   }
-  const saved = saveRoutine(db, checked.routine, now());
+  const routine = { ...checked.routine };
+  // A link needs an active goal; without one it is dropped, not an error.
+  if (!goalActive(routine.botId)) delete routine.goalLinked;
+  const saved = saveRoutine(db, routine, now());
   if (!saved.ok) return json({ error: saved.error }, 409);
   return json({ routine: saved.routine });
 }

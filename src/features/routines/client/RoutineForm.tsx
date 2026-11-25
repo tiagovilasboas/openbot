@@ -7,6 +7,7 @@ import {
   FIELD_CLASS,
   TEXTAREA_CLASS,
 } from "@/shared/ui/FormField.tsx";
+import { isOneShotRoutineId } from "../routine-idle.ts";
 import { MAX_PROMPT_LENGTH, MAX_TITLE_LENGTH } from "../routine-input.ts";
 import type { RoutineInput } from "../routine-input.ts";
 import {
@@ -27,6 +28,8 @@ interface RoutineFormProps {
   onCancel: () => void;
   /** The bot's other routines, to run this one after. */
   chainOptions?: readonly { id: string; title: string }[];
+  /** The bot has an active goal, so the routine may be linked to it. */
+  goalActive?: boolean;
 }
 
 const KINDS: readonly ScheduleKind[] = ["daily", "weekly", "interval"];
@@ -49,6 +52,7 @@ const keepEnter = (e: KeyboardEvent) => {
 export function RoutineForm(props: RoutineFormProps) {
   const { botId, initial, language, onSave, onCancel } = props;
   const chainOptions = props.chainOptions ?? [];
+  const goalActive = props.goalActive === true;
   const copy = getRoutinesCopy(language);
   const [draft, setDraft] = useState(initial);
   const [error, setError] = useState<string | null>(null);
@@ -199,6 +203,23 @@ export function RoutineForm(props: RoutineFormProps) {
           </span>
         </span>
       </label>
+
+      {goalActive && !isOneShotRoutineId(draft.id) && (
+        <label className="flex items-start gap-2.5 text-sm text-foreground">
+          <input
+            type="checkbox"
+            checked={draft.goalLinked}
+            onChange={(e) => set({ goalLinked: e.target.checked })}
+            className="mt-0.5 size-4"
+          />
+          <span>
+            <span className="block font-medium">{copy.goalLabel}</span>
+            <span className="block text-xs md:text-[13px] text-muted">
+              {copy.goalHint}
+            </span>
+          </span>
+        </label>
+      )}
 
       {chainOptions.length > 0 && (
         <FormField label={copy.chainLabel} helper={copy.chainHint}>

@@ -7,6 +7,11 @@ export const IDLE_PAUSE_MS = IDLE_PAUSE_DAYS * 24 * 60 * 60_000;
 // One-shot wake-ups the bot scheduled for itself, and bot-to-bot handoffs.
 const EXEMPT_ID_PREFIXES = ["w_", "m_"];
 
+/** Whether an id is a bot's one-shot wake-up or a bot-to-bot handoff. */
+export function isOneShotRoutineId(id: string): boolean {
+  return EXEMPT_ID_PREFIXES.some((prefix) => id.startsWith(prefix));
+}
+
 /**
  * Whether the scheduler may pause a routine for inactivity: only recurring
  * routines. Wake-ups and handoffs are one-shot work somebody is waiting on.
@@ -16,7 +21,7 @@ export function canIdlePause(routine: {
   schedule: RoutineSchedule;
 }): boolean {
   if (routine.schedule.kind === "once") return false;
-  return !EXEMPT_ID_PREFIXES.some((prefix) => routine.id.startsWith(prefix));
+  return !isOneShotRoutineId(routine.id);
 }
 
 /**
