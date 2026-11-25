@@ -71,9 +71,18 @@ export function ChannelThread({
       </ol>
 
       {room.answering && (
-        <p role="status" className="text-xs md:text-[13px] text-muted">
-          {speaking ? copy.speaking(speaking.name) : copy.working}
-        </p>
+        <div className="flex items-center justify-between gap-2">
+          <p role="status" className="text-xs md:text-[13px] text-muted">
+            {speaking ? copy.speaking(speaking.name) : copy.working}
+          </p>
+          <button
+            type="button"
+            onClick={() => void room.stop()}
+            className={`${SMALL_BUTTON} border border-border text-foreground hover:bg-surface-secondary`}
+          >
+            {copy.stop}
+          </button>
+        </div>
       )}
       {room.error && (
         <p role="alert" className="text-xs md:text-[13px] text-danger">
