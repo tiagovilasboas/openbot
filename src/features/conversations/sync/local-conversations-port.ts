@@ -5,7 +5,9 @@
  */
 export const MESSAGES_UNSYNCED_KEY = "openbot_conversations_unsynced";
 
-function readIds(storage: Storage): Set<string> {
+type UnsyncedStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
+
+function readIds(storage: UnsyncedStorage): Set<string> {
   try {
     const parsed: unknown = JSON.parse(
       storage.getItem(MESSAGES_UNSYNCED_KEY) ?? "[]",
@@ -20,12 +22,15 @@ function readIds(storage: Storage): Set<string> {
   }
 }
 
-export function isMessagesUnsynced(storage: Storage, botId: string): boolean {
+export function isMessagesUnsynced(
+  storage: UnsyncedStorage,
+  botId: string,
+): boolean {
   return readIds(storage).has(botId);
 }
 
 export function setMessagesUnsynced(
-  storage: Storage,
+  storage: UnsyncedStorage,
   botId: string,
   value: boolean,
 ): void {
@@ -41,4 +46,19 @@ export function setMessagesUnsynced(
   } catch {
     // Without storage the next load simply trusts the server.
   }
+}
+
+/**
+ * A restore writes conversations straight into storage, bypassing the save
+ * path. This is the unsynced list with those bots added, as a storage write
+ * the restore applies with its other writes: the next load then keeps and
+ * sends the restored chats instead of letting an older server copy win.
+ */
+export function restoredConversationsUnsyncedWrite(
+  storage: UnsyncedStorage,
+  botIds: readonly string[],
+): { key: string; value: string } {
+  const ids = readIds(storage);
+  for (const botId of botIds) ids.add(botId);
+  return { key: MESSAGES_UNSYNCED_KEY, value: JSON.stringify([...ids]) };
 }
