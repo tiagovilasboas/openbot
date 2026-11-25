@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { DecisionChoice } from "../../../tools/client/paused-turn.ts";
+import type { PauseReply } from "../../../tools/client/paused-turn.ts";
 import { inChannelOrder, type ChannelMessage } from "../channel-message.ts";
 import {
   fetchChannelMessages,
@@ -106,9 +106,9 @@ export function useChannelRoom(channelId: string, parentSeq?: number) {
 
   /** Answers the waiting tool call; the member goes on, then the rest. */
   const decide = useCallback(
-    async (choice: DecisionChoice) => {
+    async (reply: PauseReply) => {
       if (!approval) return;
-      const result = await resolveApproval(channelId, approval.pause, choice);
+      const result = await resolveApproval(channelId, approval.pause, reply);
       if (!result.ok) setError(result.error);
       else setWaiting(true);
       setApproval(null);

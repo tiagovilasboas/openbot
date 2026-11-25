@@ -2,15 +2,12 @@ import type { DatabaseSync } from "node:sqlite";
 import type { StepFn } from "../tool-loop-types.ts";
 import type { ToolRegistry } from "../tool-registry.ts";
 import type { ToolPause } from "../tool-turn-events.ts";
-import { closePendingTurn } from "./pending-turns-repository.ts";
 import { runToolTurn, type ToolTurnRun } from "./run-tool-turn.ts";
 
 export type BotToolsText =
   | { kind: "text"; text: string }
   /** A call waits for the user; the turn is stored and resumes on a decision. */
   | { kind: "paused"; pause: ToolPause }
-  /** The model asked the user a question, which this room cannot show. */
-  | { kind: "unsupported"; tools: string[] }
   | { kind: "failed" };
 
 export type BotToolsRun = {
@@ -30,7 +27,8 @@ export type BotToolsRun = {
  * Runs one bot's tool loop where the reply is plain text (a group room):
  * calls the bot's grants and the user's levels allow run as in a 1:1 chat,
  * and a call that needs approval stores the turn as a pending turn, the same
- * way a 1:1 turn does, and reports the pause. Every decision lands in the
+ * way a 1:1 turn does, and reports the pause (an ask_user question pauses
+ * the same way, with its question on the call). Every decision lands in the
  * audit log, as in a 1:1 turn.
  */
 export async function runBotToolsText(run: BotToolsRun): Promise<BotToolsText> {
@@ -53,11 +51,6 @@ export async function runBotToolsText(run: BotToolsRun): Promise<BotToolsText> {
       else if (event.type === "error") return { kind: "failed" };
       else if (event.type === "done") finished = true;
       else if (event.type === "approval_required") {
-        const asking = event.calls.filter((call) => call.ask);
-        if (asking.length > 0) {
-          closePendingTurn(run.db, event.turnId, "expired");
-          return { kind: "unsupported", tools: asking.map((c) => c.name) };
-        }
         const { turnId, calls, expiresAt } = event;
         return { kind: "paused", pause: { turnId, calls, expiresAt } };
       }

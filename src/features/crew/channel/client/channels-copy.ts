@@ -30,6 +30,7 @@ export interface ChannelsCopy {
   speaking: (name: string) => string;
   stop: string;
   approvalFrom: (name: string) => string;
+  questionFrom: (name: string) => string;
   reply: string;
   replyingTo: (name: string) => string;
   cancelReply: string;
@@ -74,6 +75,7 @@ const pt: ChannelsCopy = {
   speaking: (name) => `${name} está digitando…`,
   stop: "Parar agora",
   approvalFrom: (name) => `${name} pede para usar uma ferramenta`,
+  questionFrom: (name) => `${name} tem uma pergunta para você`,
   reply: "Responder",
   replyingTo: (name) => `Respondendo a ${name}`,
   cancelReply: "Cancelar resposta",
@@ -133,6 +135,7 @@ const en: ChannelsCopy = {
   speaking: (name) => `${name} is typing…`,
   stop: "Stop now",
   approvalFrom: (name) => `${name} wants to use a tool`,
+  questionFrom: (name) => `${name} has a question for you`,
   reply: "Reply",
   replyingTo: (name) => `Replying to ${name}`,
   cancelReply: "Cancel reply",
@@ -192,6 +195,7 @@ const es: ChannelsCopy = {
   speaking: (name) => `${name} está escribiendo…`,
   stop: "Parar ahora",
   approvalFrom: (name) => `${name} pide usar una herramienta`,
+  questionFrom: (name) => `${name} tiene una pregunta para ti`,
   reply: "Responder",
   replyingTo: (name) => `Respondiendo a ${name}`,
   cancelReply: "Cancelar respuesta",
