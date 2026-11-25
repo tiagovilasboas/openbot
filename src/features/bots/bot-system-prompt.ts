@@ -1,6 +1,7 @@
 import type { Language } from "../language/language.ts";
 import { MAX_SYSTEM_PROMPT_CHARS } from "../model/system-prompt-limit.ts";
 import { buildSkillsBlock } from "../skills/skill-prompt-block.ts";
+import { buildGoalBlock } from "./bot-goal-prompt.ts";
 import type { BotProfile } from "./bot-types.ts";
 
 type PromptLanguage = Language;
@@ -62,12 +63,28 @@ export function buildBotSystemPromptWithin(
   budget: number,
 ): string {
   const description = describeBot(bot, language);
+  if (description.length >= budget) return cut(description, budget);
+  // The goal sits right after the description; workspace and skills give way
+  // to it when the budget is short.
+  const goalBlock = buildGoalBlock(
+    bot.goal,
+    language,
+    budget - description.length - 2,
+  );
+  const head = goalBlock ? `${description}\n\n${goalBlock}` : description;
+  return finishPrompt(bot, language, budget, head);
+}
+
+function finishPrompt(
+  bot: BotProfile,
+  language: PromptLanguage,
+  budget: number,
+  description: string,
+): string {
   const workspaceLabel = WORKSPACE_LABEL[language];
   const workspaceText = bot.workspaceContext ?? "";
   const workspaceOf = (text: string) =>
     text ? `\n\n${workspaceLabel}\n${text}` : "";
-
-  if (description.length >= budget) return cut(description, budget);
   const workspaceRoom = budget - description.length - workspaceLabel.length - 3;
   const workspace = workspaceOf(
     workspaceText && workspaceRoom > 0 ? cut(workspaceText, workspaceRoom) : "",

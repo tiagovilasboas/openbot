@@ -1,4 +1,5 @@
 import type { SkillDefinition } from "../skills/skill-types.ts";
+import type { BotGoal } from "./bot-goal.ts";
 
 export type AvatarShape =
   | "hexagon"
@@ -53,6 +54,8 @@ export interface BotProfile {
   hidden?: boolean;
   /** Sidebar folder the bot is grouped under; none means the main list. */
   folder?: string;
+  /** The bot's one objective; only an active goal enters its prompt. */
+  goal?: BotGoal;
   avatarShape: AvatarShape;
   avatarColor: AvatarColor;
   /** Skills this bot owns: they enter its prompt and its / palette only. */
