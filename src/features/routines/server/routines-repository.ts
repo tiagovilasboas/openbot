@@ -12,7 +12,7 @@ export type StoredRoutine = RoutineInput & {
   runningSince: number | null;
   nextRunAt: number | null;
   lastRunAt: number | null;
-  /** When the routine was last saved: created, edited, resumed. */
+  /** Its last activity: the last save (create, edit, resume) or the upgrade baseline. */
   updatedAt: number;
   /** When the scheduler paused it for inactivity; null when it did not. */
   idlePausedAt: number | null;
@@ -23,12 +23,12 @@ type Row = {
   running_since: number | null;
   next_run_at: number | null;
   last_run_at: number | null;
-  updated_at: number;
   idle_paused_at: number | null;
+  active_at: number;
 };
 
 const COLUMNS =
-  "data, running_since, next_run_at, last_run_at, updated_at, idle_paused_at";
+  "data, running_since, next_run_at, last_run_at, idle_paused_at, MAX(updated_at, COALESCE(idle_baseline_at, 0)) AS active_at";
 
 // A damaged row is skipped, never trusted and never fatal.
 function fromRow(row: Row): StoredRoutine | null {
@@ -45,7 +45,7 @@ function fromRow(row: Row): StoredRoutine | null {
     runningSince: row.running_since,
     nextRunAt: row.next_run_at,
     lastRunAt: row.last_run_at,
-    updatedAt: row.updated_at,
+    updatedAt: row.active_at,
     idlePausedAt: row.idle_paused_at,
   };
 }

@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { migrate } from "../../../shared/local-store/migrate.ts";
 import { IDLE_PAUSE_MS } from "../routine-idle.ts";
+import { ROUTINES_MIGRATIONS } from "./routines-schema.ts";
 import { pauseIdleRoutines } from "./idle-pause.ts";
 import { getRoutine, saveRoutine } from "./routines-repository.ts";
 import { routine, withDb } from "./routines-test-db.ts";
@@ -85,4 +87,21 @@ test("a tick without an activity source never pauses", () =>
     saveRoutine(db, routine(), T0);
     await runDueRoutines(db, replies, () => T0 + 60 * DAY);
     assert.equal(getRoutine(db, "r1")!.enabled, true);
+  }));
+
+test("routines saved before the upgrade get a fresh idle clock", () =>
+  withDb((db) => {
+    // The schema as it was before idle pausing: the first four steps.
+    migrate(db, "routines", ROUTINES_MIGRATIONS.slice(0, 4));
+    db.prepare(
+      `INSERT INTO routines (id, bot_id, enabled, running_since, next_run_at, last_run_at, data, updated_at)
+       VALUES ('r1', 'bot-a', 1, NULL, ?, NULL, ?, ?)`,
+    ).run(T0, JSON.stringify(routine()), T0 - 90 * DAY);
+    const upgraded = Date.now();
+    assert.equal(pauseIdleRoutines(db, upgraded, never), 0);
+    assert.equal(getRoutine(db, "r1")!.enabled, true);
+    assert.equal(
+      pauseIdleRoutines(db, upgraded + IDLE_PAUSE_MS + 60_000, never),
+      1,
+    );
   }));

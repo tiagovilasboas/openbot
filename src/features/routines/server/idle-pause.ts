@@ -1,6 +1,7 @@
 import type { DatabaseSync } from "node:sqlite";
 import { canIdlePause, isIdle } from "../routine-idle.ts";
 import { listRoutines } from "./routines-repository.ts";
+import { ensureRoutinesSchema } from "./routines-schema.ts";
 
 /** When the person last chatted with a bot (epoch ms); null when unknown. */
 export type LastInteraction = (botId: string) => number | null;
@@ -16,6 +17,7 @@ export function pauseIdleRoutines(
   now: number,
   lastInteraction: LastInteraction,
 ): number {
+  ensureRoutinesSchema(db);
   let paused = 0;
   const pause = db.prepare(
     `UPDATE routines SET enabled = 0, next_run_at = NULL, idle_paused_at = ?,
