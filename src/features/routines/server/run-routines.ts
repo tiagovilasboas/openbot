@@ -1,5 +1,6 @@
 import type { DatabaseSync } from "node:sqlite";
 import { isNothingNew } from "../silent-run.ts";
+import { pauseIdleRoutines, type LastInteraction } from "./idle-pause.ts";
 import { followersOf, MAX_CHAIN_DEPTH } from "../routine-chain.ts";
 import {
   claimDueRoutines,
@@ -20,7 +21,7 @@ export type RoutineRunResult =
  * also gets the previous routine's result, which is untrusted text.
  */
 export type RoutineRunner = (
-  routine: StoredRoutine,
+  routine: Omit<StoredRoutine, "updatedAt" | "idlePausedAt">,
   previousOutput?: string,
 ) => Promise<RoutineRunResult>;
 
@@ -95,7 +96,10 @@ export async function runDueRoutines(
   db: DatabaseSync,
   runner: RoutineRunner,
   clock: () => number = Date.now,
+  lastInteraction?: LastInteraction,
 ): Promise<number> {
+  // Without a way to know when the person was last here, nothing is paused.
+  if (lastInteraction) pauseIdleRoutines(db, clock(), lastInteraction);
   const due = claimDueRoutines(db, clock());
   for (const routine of due) {
     await runClaimedRoutine(db, routine, "schedule", runner, clock);

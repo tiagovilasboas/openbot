@@ -12,6 +12,10 @@ export type StoredRoutine = RoutineInput & {
   runningSince: number | null;
   nextRunAt: number | null;
   lastRunAt: number | null;
+  /** When the routine was last saved: created, edited, resumed. */
+  updatedAt: number;
+  /** When the scheduler paused it for inactivity; null when it did not. */
+  idlePausedAt: number | null;
 };
 
 type Row = {
@@ -19,9 +23,12 @@ type Row = {
   running_since: number | null;
   next_run_at: number | null;
   last_run_at: number | null;
+  updated_at: number;
+  idle_paused_at: number | null;
 };
 
-const COLUMNS = "data, running_since, next_run_at, last_run_at";
+const COLUMNS =
+  "data, running_since, next_run_at, last_run_at, updated_at, idle_paused_at";
 
 // A damaged row is skipped, never trusted and never fatal.
 function fromRow(row: Row): StoredRoutine | null {
@@ -38,6 +45,8 @@ function fromRow(row: Row): StoredRoutine | null {
     runningSince: row.running_since,
     nextRunAt: row.next_run_at,
     lastRunAt: row.last_run_at,
+    updatedAt: row.updated_at,
+    idlePausedAt: row.idle_paused_at,
   };
 }
 
@@ -97,7 +106,8 @@ export function saveRoutine(
     `INSERT INTO routines (id, bot_id, enabled, running_since, next_run_at, last_run_at, data, updated_at)
      VALUES (?, ?, ?, NULL, ?, NULL, ?, ?)
      ON CONFLICT(id) DO UPDATE SET bot_id = excluded.bot_id, enabled = excluded.enabled,
-       next_run_at = excluded.next_run_at, data = excluded.data, updated_at = excluded.updated_at`,
+       next_run_at = excluded.next_run_at, data = excluded.data, updated_at = excluded.updated_at,
+       idle_paused_at = NULL`,
   ).run(
     routine.id,
     routine.botId,

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { Language } from "../../language/language.ts";
 import type { SavedRoutine } from "./routines-api.ts";
+import { IDLE_PAUSE_DAYS } from "../routine-idle.ts";
 import { formatWhen, scheduleSummary } from "./routine-format.ts";
 import { RoutineRunsList } from "./RoutineRunsList.tsx";
 import { getRoutinesCopy } from "./routines-copy.ts";
@@ -36,6 +37,7 @@ export function RoutineRow(props: RoutineRowProps) {
     setVersion((v) => v + 1);
   }
 
+  const idlePaused = !routine.enabled && routine.idlePausedAt !== null;
   const when = routine.enabled
     ? routine.nextRunAt !== null
       ? copy.nextRun(formatWhen(routine.nextRunAt, language))
@@ -98,6 +100,18 @@ export function RoutineRow(props: RoutineRowProps) {
         </button>
       </div>
 
+      {idlePaused && (
+        <div className="flex flex-wrap items-center gap-2 text-xs md:text-[13px] text-muted">
+          <p>{copy.idlePaused(IDLE_PAUSE_DAYS)}</p>
+          <button
+            type="button"
+            onClick={onToggle}
+            className={`${ACTION} text-foreground`}
+          >
+            {copy.resume}
+          </button>
+        </div>
+      )}
       {runError && (
         <p role="alert" className="text-xs md:text-[13px] text-danger">
           {copy.errors.run}
