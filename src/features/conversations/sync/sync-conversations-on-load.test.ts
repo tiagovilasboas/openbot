@@ -154,3 +154,43 @@ test("an undelivered clear is sent as an empty thread, only for that bot", async
   assert.deepEqual(h.mirrored, [{ botId: "b", messages: [msg(2)] }]);
   assert.equal(h.isUnsynced("a"), false);
 });
+
+test("every thread the browser lists loads by its own rules, plus the default", async () => {
+  const calls: string[] = [];
+  const mirrored: string[] = [];
+  const local: Record<string, MessageData[]> = { "a~t1": [msg(9)] };
+  const unsynced = new Set<string>();
+  const key = (b: string, t: string) => (t === "default" ? b : `${b}~${t}`);
+  await syncConversationsOnLoad({
+    api: {
+      get: async (b, t = "default") => {
+        calls.push(`get ${key(b, t)}`);
+        return t === "t1" ? found() : found(msg(1));
+      },
+      put: async (b, _m, t = "default") => {
+        calls.push(`put ${key(b, t)}`);
+        return { ok: true };
+      },
+      remove: async () => ({ ok: true }),
+    },
+    botIds: () => ["a"],
+    threadIds: () => ["default", "t1", "t2"],
+    readLocal: (b, t) => local[key(b, t)] ?? EMPTY,
+    isUnsynced: (b, t) => unsynced.has(key(b, t)),
+    setUnsynced: (b, v, t) =>
+      void (v ? unsynced.add(key(b, t)) : unsynced.delete(key(b, t))),
+    mirror: (b, m, t) => {
+      mirrored.push(key(b, t));
+      local[key(b, t)] = m;
+    },
+    reportFailure: () => {},
+  });
+  assert.deepEqual(calls.sort(), ["get a", "get a~t1", "get a~t2", "put a~t1"]);
+  assert.deepEqual(mirrored.sort(), ["a", "a~t2"]);
+});
+
+test("without a thread list only the default thread loads", async () => {
+  const h = harness({ server: { a: found(msg(1)) }, local: {} });
+  await syncConversationsOnLoad(h.deps);
+  assert.equal(h.mirrored.length, 1);
+});

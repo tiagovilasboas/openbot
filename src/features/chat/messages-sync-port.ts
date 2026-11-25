@@ -6,9 +6,9 @@ import type { MessageData } from "./ChatMessageItem.tsx";
  */
 export interface MessagesSyncPort {
   /** The thread was saved locally; the server copy is now behind. */
-  saved(botId: string, messages: MessageData[]): void;
+  saved(botId: string, messages: MessageData[], threadId?: string): void;
   /** The thread was dropped locally; the server copy must go too. */
-  forgotten(botId: string): void;
+  forgotten(botId: string, threadId?: string): void;
 }
 
 let port: MessagesSyncPort | null = null;

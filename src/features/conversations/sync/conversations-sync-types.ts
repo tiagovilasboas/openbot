@@ -10,10 +10,14 @@ export type ThreadResult =
 export type WriteResult = { ok: true } | { ok: false; failure: SyncFailure };
 
 export interface ConversationsApi {
-  get(botId: string): Promise<ThreadResult>;
+  get(botId: string, threadId?: string): Promise<ThreadResult>;
   /** Replaces the whole thread; an empty list deletes it. */
-  put(botId: string, messages: MessageData[]): Promise<WriteResult>;
-  remove(botId: string): Promise<WriteResult>;
+  put(
+    botId: string,
+    messages: MessageData[],
+    threadId?: string,
+  ): Promise<WriteResult>;
+  remove(botId: string, threadId?: string): Promise<WriteResult>;
 }
 
 /** One write to a bot's thread on the server. */

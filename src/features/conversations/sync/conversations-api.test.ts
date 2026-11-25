@@ -97,3 +97,23 @@ test("a refused connection is a network failure", async () => {
   const result = await createConversationsApi(fetchFn).get("a");
   assert.deepEqual(result, { ok: false, failure: { kind: "network" } });
 });
+
+test("an extra thread carries its threadId; the default keeps the bare URL", async () => {
+  const { calls, fetchFn } = fakeFetch(() =>
+    Response.json({ messages: [], count: 0 }),
+  );
+  const api = createConversationsApi(fetchFn);
+  await api.get("a", "t1");
+  await api.put("a", [msg(1)], "t1");
+  await api.remove("a", "t1");
+  await api.get("a", "default");
+  assert.deepEqual(
+    calls.map((c) => [c.init.method, c.url]),
+    [
+      ["GET", "/api/conversations?botId=a&threadId=t1"],
+      ["PUT", "/api/conversations?botId=a&threadId=t1"],
+      ["DELETE", "/api/conversations?botId=a&threadId=t1"],
+      ["GET", "/api/conversations?botId=a"],
+    ],
+  );
+});

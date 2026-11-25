@@ -1,4 +1,4 @@
-import { DEFAULT_THREAD_ID } from "../../threads/thread-model.ts";
+import { loadThreads } from "../../threads/thread-storage.ts";
 import { loadBotsFromStorage } from "../../bots/bot-storage.ts";
 import type { MessagesSyncPort } from "../../chat/messages-sync-port.ts";
 import {
@@ -42,23 +42,25 @@ const storage = (): Storage => window.localStorage;
 const api = createConversationsApi();
 
 const queue = createConversationsPutQueue({
-  send: (botId, op) =>
-    op.kind === "delete" ? api.remove(botId) : api.put(botId, op.messages),
-  onResult: (botId, result: WriteResult, settled) => {
+  send: (botId, op, threadId) =>
+    op.kind === "delete"
+      ? api.remove(botId, threadId)
+      : api.put(botId, op.messages, threadId),
+  onResult: (botId, result: WriteResult, settled, threadId) => {
     if (!result.ok) report(result.failure);
-    else if (settled) setMessagesUnsynced(storage(), botId, false);
+    else if (settled) setMessagesUnsynced(storage(), botId, false, threadId);
   },
 });
 
 /** What the thread cache calls on every save and every forget. */
 export const browserMessagesSyncPort: MessagesSyncPort = {
-  saved(botId, messages) {
-    setMessagesUnsynced(storage(), botId, true);
-    queue.put(botId, messages);
+  saved(botId, messages, threadId) {
+    setMessagesUnsynced(storage(), botId, true, threadId);
+    queue.put(botId, messages, threadId);
   },
-  forgotten(botId) {
-    setMessagesUnsynced(storage(), botId, true);
-    queue.remove(botId);
+  forgotten(botId, threadId) {
+    setMessagesUnsynced(storage(), botId, true, threadId);
+    queue.remove(botId, threadId);
   },
 };
 
@@ -68,15 +70,14 @@ const resync = createResync({
     syncConversationsOnLoad({
       api,
       botIds: () => loadBotsFromStorage().map((bot) => bot.id),
-      readLocal: (botId) => loadBotMessages(botId, DEFAULT_THREAD_ID),
-      isUnsynced: (botId) => isMessagesUnsynced(storage(), botId),
-      setUnsynced: (botId, value) =>
-        setMessagesUnsynced(storage(), botId, value),
-      mirror: (botId, messages) =>
-        saveBotMessages(botId, messages, {
-          sync: false,
-          threadId: DEFAULT_THREAD_ID,
-        }),
+      threadIds: (botId) => loadThreads(botId).map((thread) => thread.id),
+      readLocal: (botId, threadId) => loadBotMessages(botId, threadId),
+      isUnsynced: (botId, threadId) =>
+        isMessagesUnsynced(storage(), botId, threadId),
+      setUnsynced: (botId, value, threadId) =>
+        setMessagesUnsynced(storage(), botId, value, threadId),
+      mirror: (botId, messages, threadId) =>
+        saveBotMessages(botId, messages, { sync: false, threadId }),
       reportFailure: report,
     }).catch(() => {
       // Loading never throws: the cache is used as it is.

@@ -81,12 +81,14 @@ export function forgetBotMessages(
     ? window.localStorage
     : undefined,
 ): void {
+  const extraThreadIds: string[] = [];
   try {
     const prefix = MESSAGES_KEY_PREFIX + botId + THREAD_KEY_SEPARATOR;
     for (const suffix of keySuffixes(
       storage as unknown as KeyListingStorage,
       prefix,
     )) {
+      extraThreadIds.push(suffix);
       storage?.removeItem(prefix + suffix);
       cachedMessages.delete(botId + THREAD_KEY_SEPARATOR + suffix);
     }
@@ -97,7 +99,9 @@ export function forgetBotMessages(
   } catch {
     // Blocked storage: the thread then stays until it can be removed.
   }
-  currentMessagesSync()?.forgotten(botId);
+  const sync = currentMessagesSync();
+  sync?.forgotten(botId);
+  for (const threadId of extraThreadIds) sync?.forgotten(botId, threadId);
 }
 
 /** Drops one extra thread's messages; the default thread is never dropped. */
@@ -109,6 +113,8 @@ export function forgetThreadMessages(botId: string, threadId: string): void {
   } catch {
     // Blocked storage: the thread then stays until it can be removed.
   }
+  // Even with blocked storage the server copy can still be dropped.
+  currentMessagesSync()?.forgotten(botId, threadId);
 }
 
 /** A thread's messages: the one the chat shows, unless another is named. */
@@ -146,7 +152,7 @@ export function loadBotMessages(
 /**
  * Saves a thread in the cache and queues it for the server. The load passes
  * `sync: false` to mirror what the server holds without sending it back.
- * Only the default thread is synced; the other threads are local-only.
+ * Every thread is synced under its own id.
  */
 export function saveBotMessages(
   botId: string,
@@ -168,8 +174,8 @@ export function saveBotMessages(
     // ignore
   }
   // Even with blocked storage the server copy can still be kept.
-  if (options.sync !== false && isDefaultThread(threadId)) {
-    currentMessagesSync()?.saved(botId, messages);
+  if (options.sync !== false) {
+    currentMessagesSync()?.saved(botId, messages, threadId);
   }
 }
 

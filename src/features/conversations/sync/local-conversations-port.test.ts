@@ -33,3 +33,15 @@ test("a broken stored value reads as nothing unsynced", () => {
   assert.equal(isMessagesUnsynced(fakeStorage("1").storage, "a"), false);
   assert.equal(isMessagesUnsynced(fakeStorage("{").storage, "a"), false);
 });
+
+test("unsynced is kept per thread; a plain bot id means the default thread", () => {
+  const { storage } = fakeStorage(JSON.stringify(["a"]));
+  assert.equal(isMessagesUnsynced(storage, "a"), true);
+  assert.equal(isMessagesUnsynced(storage, "a", "default"), true);
+  assert.equal(isMessagesUnsynced(storage, "a", "t1"), false);
+  setMessagesUnsynced(storage, "a", true, "t1");
+  assert.equal(isMessagesUnsynced(storage, "a", "t1"), true);
+  setMessagesUnsynced(storage, "a", false);
+  assert.equal(isMessagesUnsynced(storage, "a"), false);
+  assert.equal(isMessagesUnsynced(storage, "a", "t1"), true);
+});
