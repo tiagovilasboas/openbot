@@ -52,6 +52,11 @@ export function defaultThread(botId: string): Thread {
 
 const THREAD_ID_PATTERN = /^[A-Za-z0-9_-]{1,40}$/;
 
+/** Server-side guard for a thread id before it becomes a row key. */
+export function isValidThreadId(value: unknown): value is string {
+  return typeof value === "string" && THREAD_ID_PATTERN.test(value);
+}
+
 export function cleanTitle(title: string): string | null {
   const trimmed = title.trim().slice(0, THREAD_TITLE_MAX);
   return trimmed === "" ? null : trimmed;

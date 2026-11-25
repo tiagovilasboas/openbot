@@ -229,6 +229,70 @@ test("GET list orders the newest thread first", async () => {
   });
 });
 
+test("two threads of one bot stay separate through the API", async () => {
+  await withDb(async (db) => {
+    await put(db, "?botId=a", { messages: [msg(1, "main")] });
+    const put2 = await put(db, "?botId=a&threadId=t-2", {
+      messages: [msg(1, "branch"), msg(2)],
+    });
+    assert.equal(put2.status, 200);
+    assert.equal((await put2.json()).count, 2);
+
+    const main = await get(db, "?botId=a").json();
+    const other = await get(db, "?botId=a&threadId=t-2").json();
+    assert.equal(main.messages[0].text, "main");
+    assert.equal(main.messages.length, 1);
+    assert.equal(other.messages[0].text, "branch");
+    assert.equal(other.messages.length, 2);
+
+    const explicit = await get(db, "?botId=a&threadId=default").json();
+    assert.equal(explicit.messages[0].text, "main");
+
+    const lists = await get(db, "").json();
+    assert.deepEqual(
+      lists.threads.map((t: { botId: string }) => t.botId),
+      ["a"],
+    );
+    const listOther = await get(db, "?threadId=t-2").json();
+    assert.equal(listOther.threads[0].count, 2);
+
+    assert.equal((await del(db, "?botId=a&threadId=t-2")).status, 204);
+    const gone = await get(db, "?botId=a&threadId=t-2").json();
+    assert.equal(gone.messages.length, 0);
+    const kept = await get(db, "?botId=a").json();
+    assert.equal(kept.messages.length, 1);
+  });
+});
+
+test("a bad threadId is rejected with 400 on every method", async () => {
+  await withDb(async (db) => {
+    const bad = ["", "a".repeat(41), "has space", "a~b", "../x", "x;drop"];
+    for (const id of bad) {
+      const q = `?botId=a&threadId=${encodeURIComponent(id)}`;
+      const responses = [
+        get(db, q),
+        await put(db, q, { messages: [msg(1)] }),
+        del(db, q),
+      ];
+      for (const response of responses) {
+        assert.equal(response.status, 400, `threadId ${JSON.stringify(id)}`);
+        assert.equal((await response.json()).error, "invalid_thread_id");
+      }
+    }
+    assert.deepEqual((await get(db).json()).threads, []);
+  });
+});
+
+test("a 40 character threadId is accepted", async () => {
+  await withDb(async (db) => {
+    const id = "a".repeat(40);
+    const response = await put(db, `?botId=a&threadId=${id}`, {
+      messages: [msg(1)],
+    });
+    assert.equal(response.status, 200);
+  });
+});
+
 test("a damaged row GETs as empty messages with a 200", async () => {
   await withDb(async (db) => {
     await put(db, "?botId=a", { messages: [msg(1)] });
