@@ -76,7 +76,7 @@ Data: 20/11/2026. Base: código do `main` (b4ac0ab), site openbot.run, docs púb
 | Agente cria/edita agente por conversa                  | ✅ (`create_bot`/`update_bot`, com aprovação) | ✅ (REA)                    | ?                               |
 | Modelo por agente e modelos de backup                  | ✅                                            | ✅                          | ?                               |
 | Delegação do principal para especialistas              | ✅ (até 3, um salto)                          | ✅                          | ✅ (um passa trabalho ao outro) |
-| Agente manda mensagem a outro agente por conta própria | ❌                                            | ✅ (`send_message`, REA)    | ✅                              |
+| Agente manda mensagem a outro agente por conta própria | ✅ (`message_bot`, #201)                      | ✅ (`send_message`, REA)    | ✅                              |
 | Memória por agente                                     | ✅                                            | ✅                          | ✅                              |
 | Link/modelo de agente para compartilhar                | ✅ (link com prévia)                          | ✅                          | ✅ (Shared Bots e marketplace)  |
 | Ocultar, pastas, excluir com desfazer                  | ✅                                            | ✅                          | ?                               |
@@ -162,7 +162,7 @@ Data: 20/11/2026. Base: código do `main` (b4ac0ab), site openbot.run, docs púb
 - **O canal é difícil de achar:** fica dentro do editor do agente principal.
 - **Pouca coisa ao vivo:** o canal só mostra o resultado no fim, então reuniões longas parecem travadas.
 - **Fluxo com aprovação humana no meio:** existe nos dois concorrentes.
-- **Um agente não fala com outro por conta própria:** não há mensagem assíncrona entre agentes.
+- ~~**Um agente não fala com outro por conta própria.**~~ Resolvido com o `message_bot` (#201).
 - **Montar a equipe:** com instalação zerada, falta "me diga seu objetivo e eu sugiro os agentes".
 - **Prova com modelo real:** delegação e canais nunca rodaram em teste contra um modelo de verdade.
 
@@ -199,6 +199,10 @@ Data: 20/11/2026. Base: código do `main` (b4ac0ab), site openbot.run, docs púb
 | GRP-7  | `@todos` para avisos gerais, usado com parcimônia (só quem tiver algo a dizer responde)                                                     |   2 |
 | GOAL-1 | Objetivo por agente (estilo Dots): o agente guarda o objetivo, mostra o progresso e as esperas e rotinas dele ficam ligadas a esse objetivo |   5 |
 | GOAL-2 | Preferências aprendidas: quando a pessoa corrige o agente, ele propõe salvar na memória dele, com confirmação                               |   3 |
+
+**Entregue:** GRP-6 (#202), BOT-6 (#201), GOAL-1 (#200) e GOAL-2 (#203). Também o RELY-1 (#204): os casos de grupo, thread e `message_bot` rodam com `bash scripts/run-real-model.sh --crew`, que pede a chave num prompt oculto; o `--vault` não serve porque os casos usam uma pasta de dados descartável. Ainda falta rodar com um modelo de verdade e colar o relatório.
+
+**Ficou de fora:** ligar rotinas ao objetivo (GOAL-1), botão Parar dentro da thread (GRP-6) e um e2e do chip de preferência (GOAL-2).
 
 ### Depois
 

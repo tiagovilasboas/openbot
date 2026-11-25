@@ -76,6 +76,13 @@ Under Groups in the sidebar, New group puts several bots in one chat. Each answe
 - Nobody named: the group picks who answers, at most two. `@name` calls one bot, `@all` (or `@todos`) calls everyone, and Reply on a message sends the next one to its author.
 - Answers show up one by one as they land, with who is typing. Stop now ends the turn, and a new message from you takes over from the one still running.
 - A bot with nothing to add stays quiet. Other bots' messages reach each bot as data, never as instructions.
+- Reply in thread opens a side conversation on one answer without cluttering the group. The author of that message answers by default.
+
+### Bots that keep working
+
+- A bot can message another bot on its own with the `message_bot` tool, after your approval. The exchange shows up in a thread, with an hourly cap and an echo guard.
+- Each bot can have a goal, with status and progress, under Goal in the editor. Only an active goal reaches the prompt.
+- When you correct a bot ("no, I prefer…", "always…"), Save as a preference? appears. Nothing reaches its memory without your click.
 
 ## What it does today
 
