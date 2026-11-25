@@ -18,6 +18,7 @@ import {
 import { userMessageBefore } from "./retry-partial-reply.ts";
 import type { ChatLanguage } from "./respond-to-message.ts";
 import type { RollbackBlock } from "./roll-back-thread.ts";
+import { LearnedPreferenceChip } from "@/features/preferences/LearnedPreferenceChip.tsx";
 import { ThinkingIndicator } from "./ThinkingIndicator.tsx";
 import type { ToolTurnView } from "./tool-turn-view.ts";
 
@@ -153,6 +154,13 @@ export function ConversationView({
                 />
               ))}
             </div>
+          )}
+          {!busy && liveMessages.length === 0 && (
+            <LearnedPreferenceChip
+              botId={activeBot.id}
+              language={language}
+              turns={messages}
+            />
           )}
           {busy && (
             <ThinkingIndicator
