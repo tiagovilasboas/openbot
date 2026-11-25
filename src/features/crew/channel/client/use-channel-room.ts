@@ -24,8 +24,9 @@ function merge(current: ChannelMessage[], incoming: ChannelMessage[]) {
  * One group's messages, live: while someone answers the room polls, so each
  * answer shows up as soon as it is stored. Post, reply and stop.
  */
-export function useChannelRoom(channelId: string) {
+export function useChannelRoom(channelId: string, parentSeq?: number) {
   const [messages, setMessages] = useState<ChannelMessage[]>([]);
+  const [threadCounts, setThreadCounts] = useState<Record<number, number>>({});
   const [turn, setTurn] = useState<ChannelRoomSnapshot["turn"]>(null);
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
@@ -41,24 +42,25 @@ export function useChannelRoom(channelId: string) {
         return;
       }
       setMessages((current) => merge(current, result.value.messages));
+      if (!parentSeq) setThreadCounts(result.value.threadCounts);
       setTurn(result.value.turn);
       if (!result.value.turn) setWaiting(false);
     },
-    [],
+    [parentSeq],
   );
 
   const refresh = useCallback(
-    () => fetchChannelMessages(channelId).then(apply),
-    [channelId, apply],
+    () => fetchChannelMessages(channelId, parentSeq).then(apply),
+    [channelId, parentSeq, apply],
   );
 
   useEffect(() => {
     live.current = true;
-    void fetchChannelMessages(channelId).then(apply);
+    void fetchChannelMessages(channelId, parentSeq).then(apply);
     return () => {
       live.current = false;
     };
-  }, [channelId, apply]);
+  }, [channelId, parentSeq, apply]);
 
   const answering = waiting || turn !== null;
   useEffect(() => {
@@ -72,7 +74,12 @@ export function useChannelRoom(channelId: string) {
     async (text: string, replyToSeq?: number): Promise<boolean> => {
       setSending(true);
       setError(null);
-      const result = await postChannelMessage(channelId, text, replyToSeq);
+      const result = await postChannelMessage(
+        channelId,
+        text,
+        replyToSeq,
+        parentSeq,
+      );
       setSending(false);
       if (!result.ok) {
         setError(result.error);
@@ -82,7 +89,7 @@ export function useChannelRoom(channelId: string) {
       setWaiting(true);
       return true;
     },
-    [channelId],
+    [channelId, parentSeq],
   );
 
   const stop = useCallback(async () => {
@@ -94,6 +101,8 @@ export function useChannelRoom(channelId: string) {
 
   return {
     messages,
+    threadCounts,
+    refresh,
     error,
     sending,
     answering,

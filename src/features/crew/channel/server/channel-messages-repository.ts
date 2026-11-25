@@ -16,6 +16,7 @@ type MessageRow = {
   author: string;
   text: string;
   created_at: number;
+  parent_seq: number | null;
 };
 
 function fromRow(row: MessageRow): ChannelMessage | null {
@@ -32,6 +33,7 @@ function fromRow(row: MessageRow): ChannelMessage | null {
     author,
     text: row.text,
     createdAt: row.created_at,
+    ...(row.parent_seq === null ? {} : { parentSeq: row.parent_seq }),
   };
 }
 
@@ -45,6 +47,7 @@ export function appendMessage(
   author: ChannelAuthor,
   text: string,
   now: number,
+  parentSeq?: number,
 ): ChannelMessage {
   ensureCrewChannelsSchema(db);
   db.exec("BEGIN IMMEDIATE");
@@ -56,17 +59,24 @@ export function appendMessage(
       .get(channelId) as { seq: number | null };
     const seq = nextSequence(last.seq);
     db.prepare(
-      "INSERT INTO crew_channel_messages (channel_id, seq, author, text, created_at) VALUES (?, ?, ?, ?, ?)",
-    ).run(channelId, seq, JSON.stringify(author), text, now);
+      "INSERT INTO crew_channel_messages (channel_id, seq, author, text, created_at, parent_seq) VALUES (?, ?, ?, ?, ?, ?)",
+    ).run(channelId, seq, JSON.stringify(author), text, now, parentSeq ?? null);
     db.exec("COMMIT");
-    return { channelId, seq, author, text, createdAt: now };
+    return {
+      channelId,
+      seq,
+      author,
+      text,
+      createdAt: now,
+      ...(parentSeq === undefined ? {} : { parentSeq }),
+    };
   } catch (error) {
     db.exec("ROLLBACK");
     throw error;
   }
 }
 
-/** The channel's latest messages, oldest first. */
+/** The channel's latest main-timeline messages, oldest first (no threads). */
 export function listMessages(
   db: DatabaseSync,
   channelId: string,
@@ -75,12 +85,59 @@ export function listMessages(
   ensureCrewChannelsSchema(db);
   const rows = db
     .prepare(
-      "SELECT channel_id, seq, author, text, created_at FROM crew_channel_messages WHERE channel_id = ? ORDER BY seq DESC LIMIT ?",
+      "SELECT channel_id, seq, author, text, created_at, parent_seq FROM crew_channel_messages WHERE channel_id = ? AND parent_seq IS NULL ORDER BY seq DESC LIMIT ?",
     )
     .all(channelId, limit) as MessageRow[];
   return inChannelOrder(
     rows.map(fromRow).filter((m): m is ChannelMessage => m !== null),
   );
+}
+
+/** A main-timeline message of the channel, or null (threads do not nest). */
+export function getMainMessage(
+  db: DatabaseSync,
+  channelId: string,
+  seq: number,
+): ChannelMessage | null {
+  ensureCrewChannelsSchema(db);
+  const row = db
+    .prepare(
+      "SELECT channel_id, seq, author, text, created_at, parent_seq FROM crew_channel_messages WHERE channel_id = ? AND seq = ? AND parent_seq IS NULL",
+    )
+    .get(channelId, seq) as MessageRow | undefined;
+  return row ? fromRow(row) : null;
+}
+
+/** The thread's messages under a parent, oldest first. */
+export function listThread(
+  db: DatabaseSync,
+  channelId: string,
+  parentSeq: number,
+  limit: number = CHANNEL_PAGE_SIZE,
+): ChannelMessage[] {
+  ensureCrewChannelsSchema(db);
+  const rows = db
+    .prepare(
+      "SELECT channel_id, seq, author, text, created_at, parent_seq FROM crew_channel_messages WHERE channel_id = ? AND parent_seq = ? ORDER BY seq DESC LIMIT ?",
+    )
+    .all(channelId, parentSeq, limit) as MessageRow[];
+  return inChannelOrder(
+    rows.map(fromRow).filter((m): m is ChannelMessage => m !== null),
+  );
+}
+
+/** How many thread replies each parent has: parent seq to count. */
+export function threadCounts(
+  db: DatabaseSync,
+  channelId: string,
+): Record<number, number> {
+  ensureCrewChannelsSchema(db);
+  const rows = db
+    .prepare(
+      "SELECT parent_seq, COUNT(*) AS n FROM crew_channel_messages WHERE channel_id = ? AND parent_seq IS NOT NULL GROUP BY parent_seq",
+    )
+    .all(channelId) as { parent_seq: number; n: number }[];
+  return Object.fromEntries(rows.map((r) => [r.parent_seq, r.n]));
 }
 
 /** A turn still "running" after this long died with its process. */

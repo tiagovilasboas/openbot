@@ -11,6 +11,8 @@ export const CREW_CHANNELS_MIGRATIONS: readonly MigrationStep[] = [
   "CREATE TABLE crew_channel_turns (id INTEGER PRIMARY KEY AUTOINCREMENT, channel_id TEXT NOT NULL REFERENCES crew_channels(id) ON DELETE CASCADE, status TEXT NOT NULL, started_at INTEGER NOT NULL, finished_at INTEGER)",
   "CREATE INDEX crew_channel_turns_active ON crew_channel_turns (channel_id, status)",
   "ALTER TABLE crew_channel_turns ADD COLUMN speaking_bot_id TEXT",
+  // A thread message points at the main-timeline message it comments on.
+  "ALTER TABLE crew_channel_messages ADD COLUMN parent_seq INTEGER",
 ];
 
 const migrated = new WeakSet<DatabaseSync>();

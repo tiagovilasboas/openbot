@@ -1,13 +1,12 @@
 "use client";
 
-import { useMemo, useState, type KeyboardEvent } from "react";
-import { BotAvatar } from "@/features/bots/BotAvatar.tsx";
+import { useMemo, useState } from "react";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
 import type { Language } from "@/features/language/language.ts";
-import { CrewRoomControl } from "@/features/crew/CrewRoomControl.tsx";
-import { FormField, TEXTAREA_CLASS } from "@/shared/ui/FormField.tsx";
-import { MAX_CHANNEL_POST_LENGTH } from "../channel-message.ts";
 import type { CrewChannel } from "../crew-channel.ts";
+import { ChannelComposer } from "./ChannelComposer.tsx";
+import { ChannelMessageRow } from "./ChannelMessageRow.tsx";
+import { ChannelThread } from "./ChannelThread.tsx";
 import { buildChannelTimeline, type ChannelEntry } from "./channel-timeline.ts";
 import { channelErrorText, getChannelsCopy } from "./channels-copy.ts";
 import { useChannelRoom } from "./use-channel-room.ts";
@@ -20,39 +19,48 @@ interface ChannelRoomProps {
 
 const SMALL_BUTTON =
   "min-h-9 rounded-full px-3 text-xs font-medium md:text-[13px] transition-colors active:scale-[0.97]";
+const LINK_BUTTON = `${SMALL_BUTTON} self-start px-0 text-muted hover:text-foreground`;
 
 /**
  * A group chat: the person and the members in one timeline. Answers land
  * live, each member says who it is, and the person can reply to a message,
- * call someone with @name or everyone with @todos, and stop the group.
+ * open a side thread on it, call someone with @name or everyone with @todos,
+ * and stop the group.
  */
 export function ChannelRoom({ channel, bots, language }: ChannelRoomProps) {
   const copy = getChannelsCopy(language);
   const room = useChannelRoom(channel.id);
-  const [draft, setDraft] = useState("");
   const [replyTo, setReplyTo] = useState<ChannelEntry | null>(null);
+  const [thread, setThread] = useState<ChannelEntry | null>(null);
   const timeline = useMemo(
-    () => buildChannelTimeline(room.messages, bots),
-    [room.messages, bots],
+    () => buildChannelTimeline(room.messages, bots, room.threadCounts),
+    [room.messages, room.threadCounts, bots],
   );
   const nameOf = (entry: { bot: BotProfile | null }) =>
     entry.bot?.name ?? copy.removedBot;
   const speaking = bots.find((bot) => bot.id === room.speakingBotId);
 
-  /** Not a <form>: React would bubble its submit to an outer form. */
-  async function send() {
-    if (!draft.trim() || room.sending) return;
-    if (await room.post(draft, replyTo?.seq)) {
-      setDraft("");
-      setReplyTo(null);
-    }
+  async function send(text: string): Promise<boolean> {
+    const sent = await room.post(text, replyTo?.seq);
+    if (sent) setReplyTo(null);
+    return sent;
   }
 
-  function onKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
-    if (event.key !== "Enter" || event.shiftKey) return;
-    if (event.nativeEvent.isComposing) return;
-    event.preventDefault();
-    void send();
+  function closeThread() {
+    setThread(null);
+    void room.refresh();
+  }
+
+  if (thread) {
+    return (
+      <ChannelThread
+        channel={channel}
+        bots={bots}
+        language={language}
+        parent={thread}
+        onBack={closeThread}
+      />
+    );
   }
 
   return (
@@ -62,53 +70,41 @@ export function ChannelRoom({ channel, bots, language }: ChannelRoomProps) {
       ) : (
         <ol className="flex flex-col gap-3" aria-live="polite">
           {timeline.map((entry) => (
-            <li
+            <ChannelMessageRow
               key={entry.seq}
-              data-testid="group-message"
-              className="group/msg flex gap-3"
+              entry={entry}
+              language={language}
             >
-              {entry.bot ? (
-                <BotAvatar
-                  shape={entry.bot.avatarShape}
-                  color={entry.bot.avatarColor}
-                  size={28}
-                />
-              ) : (
-                <span className="size-7 shrink-0" aria-hidden="true" />
-              )}
-              <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-                <p className="flex items-center gap-2 text-xs md:text-[13px] font-semibold text-foreground">
-                  {entry.fromPerson ? copy.you : nameOf(entry)}
-                  {entry.failed && (
-                    <span className="font-normal text-danger">
-                      {copy.failed}
-                    </span>
-                  )}
-                </p>
-                {entry.replyTo && (
-                  <p className="line-clamp-2 border-s-2 border-border ps-2 text-xs text-muted md:text-[13px]">
-                    {entry.replyTo.bot ? `${nameOf(entry.replyTo)}: ` : ""}
-                    {entry.replyTo.text}
-                  </p>
-                )}
-                <p className="whitespace-pre-wrap break-words text-[14px] leading-[1.55] text-foreground">
-                  {entry.text}
-                </p>
-                {entry.room && (
-                  <CrewRoomControl room={entry.room} language={language} />
-                )}
-                {entry.bot && (
+              {entry.bot && (
+                <div className="flex flex-wrap items-center gap-x-4">
                   <button
                     type="button"
                     onClick={() => setReplyTo(entry)}
                     aria-label={`${copy.reply}: ${nameOf(entry)}`}
-                    className={`${SMALL_BUTTON} self-start px-0 text-muted hover:text-foreground`}
+                    className={LINK_BUTTON}
                   >
                     {copy.reply}
                   </button>
-                )}
-              </div>
-            </li>
+                  <button
+                    type="button"
+                    onClick={() => setThread(entry)}
+                    aria-label={`${copy.replyInThread}: ${nameOf(entry)}`}
+                    className={LINK_BUTTON}
+                  >
+                    {copy.replyInThread}
+                  </button>
+                </div>
+              )}
+              {entry.replyCount ? (
+                <button
+                  type="button"
+                  onClick={() => setThread(entry)}
+                  className={`${LINK_BUTTON} font-semibold text-accent`}
+                >
+                  {copy.replyCount(entry.replyCount)}
+                </button>
+              ) : null}
+            </ChannelMessageRow>
           ))}
         </ol>
       )}
@@ -148,27 +144,13 @@ export function ChannelRoom({ channel, bots, language }: ChannelRoomProps) {
             </button>
           </div>
         )}
-        <FormField label={copy.postLabel}>
-          {(control) => (
-            <textarea
-              {...control}
-              className={TEXTAREA_CLASS}
-              value={draft}
-              maxLength={MAX_CHANNEL_POST_LENGTH}
-              placeholder={copy.postPlaceholder}
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={onKeyDown}
-            />
-          )}
-        </FormField>
-        <button
-          type="button"
-          onClick={() => void send()}
-          disabled={room.sending || !draft.trim()}
-          className="min-h-11 self-end rounded-full bg-foreground px-4 text-sm font-medium text-background disabled:opacity-50"
-        >
-          {copy.send}
-        </button>
+        <ChannelComposer
+          label={copy.postLabel}
+          placeholder={copy.postPlaceholder}
+          sendLabel={copy.send}
+          sending={room.sending}
+          onSend={send}
+        />
       </div>
     </div>
   );

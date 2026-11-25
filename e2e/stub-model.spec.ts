@@ -255,4 +255,22 @@ test("a group chat: @todos asks every member, a reply goes to that member", asyn
   expect(calls).toHaveLength(4);
   expect(calls[3].system).toContain("Você é o Security");
   await expect(room.getByRole("button", { name: "Parar agora" })).toBeHidden();
+
+  // A thread on Security's answer: it replies there, the timeline stays short.
+  await room
+    .getByRole("button", { name: "Responder em thread: Security" })
+    .first()
+    .click();
+  const thread = room.getByTestId("group-thread");
+  const threadBox = thread.getByLabel("Comente este resultado na thread");
+  await threadBox.fill("detalhe isso");
+  await threadBox.press("Enter");
+  // The parent, the person's comment and Security's answer.
+  await expect(thread.getByTestId("group-message")).toHaveCount(3);
+  const threadCalls = await stubCalls(request, model);
+  expect(threadCalls).toHaveLength(5);
+  expect(threadCalls[4].system).toContain("Você é o Security");
+  await thread.getByRole("button", { name: "Voltar ao grupo" }).click();
+  await expect(messages).toHaveCount(6);
+  await expect(room.getByRole("button", { name: "2 respostas" })).toBeVisible();
 });

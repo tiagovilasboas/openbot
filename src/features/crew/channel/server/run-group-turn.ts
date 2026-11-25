@@ -53,10 +53,12 @@ async function responders(
     input.post.author.kind === "human"
       ? input.post.author.replyToSeq
       : undefined;
+  // In a thread the parent message is what the person answers by default.
+  const target = replyToSeq ?? input.post.parentSeq;
   const replyTo =
-    replyToSeq === undefined
+    target === undefined
       ? null
-      : (input.history.find((m) => m.seq === replyToSeq) ?? null);
+      : (input.history.find((m) => m.seq === target) ?? null);
   const pick = pickResponders({ text: input.post.text, members, replyTo });
   let ids: string[];
   if (pick.kind === "fixed") {
@@ -109,7 +111,12 @@ export async function runGroupTurn(
     const reply = await input
       .askModel({
         systemPrompt: `${own}\n\n${rule}`,
-        messages: speakerMessages(seen, speaker, input.bots),
+        messages: speakerMessages(
+          seen,
+          speaker,
+          input.bots,
+          input.post.parentSeq,
+        ),
         modelId: speaker.modelId,
         speaker,
       })

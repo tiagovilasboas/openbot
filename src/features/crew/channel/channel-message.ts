@@ -23,6 +23,8 @@ export type ChannelMessage = {
   text: string;
   /** Epoch ms when it was stored. */
   createdAt: number;
+  /** Set on a thread message: the main-timeline message it comments on. */
+  parentSeq?: number;
 };
 
 /** The sequence after the channel's last one; the first message gets 1. */

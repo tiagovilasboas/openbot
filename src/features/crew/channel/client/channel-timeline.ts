@@ -19,6 +19,8 @@ export type ChannelEntry = {
   failed?: boolean;
   /** The message this post answered, when the person replied to one. */
   replyTo?: { seq: number; bot: BotProfile | null; text: string };
+  /** How many thread replies this message has; absent when none. */
+  replyCount?: number;
 };
 
 function asRoomMessage(
@@ -51,6 +53,7 @@ function asRoomMessage(
 export function buildChannelTimeline(
   messages: readonly ChannelMessage[],
   bots: readonly BotProfile[],
+  threadCounts: Readonly<Record<number, number>> = {},
 ): ChannelEntry[] {
   const byId = new Map(bots.map((bot) => [bot.id, bot]));
   const ordered = inChannelOrder(messages);
@@ -78,6 +81,7 @@ export function buildChannelTimeline(
         fromPerson: m.author.kind === "human",
         text: m.text,
         ...(room ? { room } : {}),
+        ...(threadCounts[m.seq] ? { replyCount: threadCounts[m.seq] } : {}),
         ...(m.author.kind === "member" && !m.author.ok ? { failed: true } : {}),
         ...(target
           ? {
