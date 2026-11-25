@@ -100,8 +100,10 @@ export function replaceThread(
       return { ok: true, updatedAt: null, count: 0 };
     }
     const existing = db
-      .prepare("SELECT 1 FROM conversations WHERE bot_id = ? AND thread_id = ?")
-      .get(botId, threadId);
+      .prepare(
+        "SELECT updated_at FROM conversations WHERE bot_id = ? AND thread_id = ?",
+      )
+      .get(botId, threadId) as { updated_at: number } | undefined;
     if (!existing) {
       const { total } = db
         .prepare("SELECT COUNT(*) AS total FROM conversations")
@@ -111,7 +113,9 @@ export function replaceThread(
         return { ok: false, error: "too_many_threads" };
       }
     }
-    const now = Date.now();
+    // Strictly increasing per thread, so two writes in one millisecond still
+    // get different versions for the stale check.
+    const now = Math.max(Date.now(), (existing?.updated_at ?? 0) + 1);
     db.prepare(
       "INSERT INTO conversations (bot_id, thread_id, data, count, updated_at) VALUES (?, ?, ?, ?, ?) ON CONFLICT(bot_id, thread_id) DO UPDATE SET data = excluded.data, count = excluded.count, updated_at = excluded.updated_at",
     ).run(botId, threadId, JSON.stringify(kept), kept.length, now);

@@ -93,3 +93,15 @@ test("a stale base also blocks an emptying write", () => {
     assert.equal(readThread(db, "a").messages.length, 1);
   });
 });
+
+test("two writes in one millisecond still get different versions", () => {
+  withDb((db) => {
+    const first = replaceThread(db, "a", [msg(1)]);
+    const second = replaceThread(db, "a", [msg(1), msg(2)]);
+    assert.ok(first.ok && second.ok);
+    if (!first.ok || !second.ok) return;
+    assert.ok((second.updatedAt ?? 0) > (first.updatedAt ?? 0));
+    const stale = replaceThread(db, "a", [msg(3)], "default", first.updatedAt);
+    assert.equal(stale.ok, false);
+  });
+});
