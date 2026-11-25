@@ -2,6 +2,10 @@ import type { DatabaseSync } from "node:sqlite";
 import { isValidBotId } from "../../bots/bot-id.ts";
 import { STORED_MESSAGES_MAX } from "../../chat/stored-message.ts";
 import {
+  DEFAULT_THREAD_ID,
+  isValidThreadId,
+} from "../../threads/thread-model.ts";
+import {
   bodyLimitFor,
   readBodyWithCap,
 } from "../../server-guard/body-limits.ts";
@@ -28,6 +32,15 @@ function readBotId(request: Request): string | null | false {
   return isValidBotId(value) ? value : false;
 }
 
+// The thread id of the request: the default when absent, null when invalid.
+function readThreadId(request: Request): string | null {
+  const value = new URL(request.url).searchParams.get("threadId");
+  if (value === null) return DEFAULT_THREAD_ID;
+  return isValidThreadId(value) ? value : null;
+}
+
+const invalidThreadId = () => json({ error: "invalid_thread_id" }, 400);
+
 /** GET /api/conversations[?botId=]: the thread summaries or one thread. */
 export function handleGetConversations(
   request: Request,
@@ -35,8 +48,10 @@ export function handleGetConversations(
 ): Response {
   const botId = readBotId(request);
   if (botId === false) return invalidBotId();
-  if (botId === null) return json({ threads: listThreads(db) });
-  return json({ botId, ...readThread(db, botId) });
+  const threadId = readThreadId(request);
+  if (threadId === null) return invalidThreadId();
+  if (botId === null) return json({ threads: listThreads(db, threadId) });
+  return json({ botId, ...readThread(db, botId, threadId) });
 }
 
 /** PUT /api/conversations?botId=: replaces the whole thread atomically. */
@@ -46,6 +61,8 @@ export async function handlePutConversation(
 ): Promise<Response> {
   const botId = readBotId(request);
   if (!botId) return invalidBotId();
+  const threadId = readThreadId(request);
+  if (threadId === null) return invalidThreadId();
   const text = await readBodyWithCap(
     request,
     bodyLimitFor("PUT", "/api/conversations"),
@@ -65,7 +82,7 @@ export async function handlePutConversation(
   if (messages.length > STORED_MESSAGES_MAX) {
     return json({ error: "too_many_messages" }, 400);
   }
-  const result = replaceThread(db, botId, messages);
+  const result = replaceThread(db, botId, messages, threadId);
   if (!result.ok) return json({ error: result.error }, 400);
   return json({ botId, updatedAt: result.updatedAt, count: result.count });
 }
@@ -77,6 +94,8 @@ export function handleDeleteConversation(
 ): Response {
   const botId = readBotId(request);
   if (!botId) return invalidBotId();
-  deleteThread(db, botId);
+  const threadId = readThreadId(request);
+  if (threadId === null) return invalidThreadId();
+  deleteThread(db, botId, threadId);
   return new Response(null, { status: 204, headers: NO_STORE });
 }
