@@ -1,3 +1,4 @@
+import { restoredConversationsUnsyncedWrite } from "../conversations/sync/local-conversations-port.ts";
 import { loadBotsFromStorage } from "../bots/bot-storage.ts";
 import type { MemoryEntry } from "../memory/memory-entries.ts";
 import {
@@ -73,6 +74,9 @@ export function restoreBackup(
 
   if (mode === "replace") {
     const writes = replaceWrites(backup);
+    writes.push(
+      restoredConversationsUnsyncedWrite(storage, Object.keys(data.messages)),
+    );
     const stale = staleKeys(
       existing.map((bot) => bot.id),
       writes,
@@ -102,6 +106,15 @@ export function restoreBackup(
     key: KEYS.bots,
     value: JSON.stringify([...existing, ...added]),
   });
+  if (conversations > 0) {
+    const restored = added.filter((bot) => data.messages[bot.id]);
+    writes.push(
+      restoredConversationsUnsyncedWrite(
+        storage,
+        restored.map((bot) => bot.id),
+      ),
+    );
+  }
   applyStorageChanges(storage, writes, []);
   return { bots: added.length, conversations };
 }
