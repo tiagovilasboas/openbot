@@ -152,7 +152,7 @@ Data: 20/11/2026. Base: código do `main` (b4ac0ab), site openbot.run, docs púb
 | Guarda de loop entre agentes                   | ✅                    | ✅          | parcial (pedir para parar) |
 | Testes contra modelo real                      | ❌ (só simulado)      | ?           | ?                          |
 | Trabalha com o app fechado                     | ✅ (servidor próprio) | ✅          | ✅ (nuvem)                 |
-| Pausar rotinas depois de muito tempo sem uso   | ❌                    | ?           | ✅                         |
+| Pausar rotinas depois de muito tempo sem uso   | ✅ (#207)             | ?           | ✅                         |
 
 ---
 
@@ -202,16 +202,16 @@ Data: 20/11/2026. Base: código do `main` (b4ac0ab), site openbot.run, docs púb
 
 **Entregue:** GRP-6 (#202), BOT-6 (#201), GOAL-1 (#200) e GOAL-2 (#203). Também o RELY-1 (#204): os casos de grupo, thread e `message_bot` rodam com `bash scripts/run-real-model.sh --crew`, que pede a chave num prompt oculto; o `--vault` não serve porque os casos usam uma pasta de dados descartável. Ainda falta rodar com um modelo de verdade e colar o relatório.
 
-**Ficou de fora:** ligar rotinas ao objetivo (GOAL-1), botão Parar dentro da thread (GRP-6) e um e2e do chip de preferência (GOAL-2).
+**Depois, também entregue:** ligar rotinas ao objetivo (#209), botão Parar dentro da thread e e2e do chip de preferência (#206), AUTO-5 (#207) e GRP-8 (#208 e #210).
 
 ### Depois
 
-| Item                                                        | Por quê                                                    |                      Pts |
-| ----------------------------------------------------------- | ---------------------------------------------------------- | -----------------------: |
-| Pausar rotinas sem uso (AUTO-5)                             | Grok faz isso; evita gastar cota à toa                     |                        2 |
-| Ferramentas no grupo, com a mesma aprovação (GRP-8)         | Grupo que age, não só conversa. Só depois do GRP-3 estável |                        5 |
-| Revisão em aparelho real do PWA (APP-5)                     | Mobile-first sem prova em aparelho                         |                        3 |
-| Histórico só no servidor (fim do `localStorage` como fonte) | Mesmo histórico em vários aparelhos                        | dividir em tarefas antes |
+**Entregue desta lista:** AUTO-5 (#207): rotina recorrente sem uso por 14 dias pausa sozinha, com motivo e Retomar. GRP-8 (#208, #210): membros do grupo usam ferramentas, e a que pede aprovação pausa e mostra o mesmo cartão do chat 1:1. Pergunta ao usuário (`ask_user`) ainda não funciona no grupo.
+
+| Item                                                        | Por quê                             |                      Pts |
+| ----------------------------------------------------------- | ----------------------------------- | -----------------------: |
+| Revisão em aparelho real do PWA (APP-5)                     | Mobile-first sem prova em aparelho  |                        3 |
+| Histórico só no servidor (fim do `localStorage` como fonte) | Mesmo histórico em vários aparelhos | dividir em tarefas antes |
 
 **Não recomendo agora:** controle de navegador e comandos, multiusuário, aprender rotina por demonstração e marketplace. São grandes e fogem do "um servidor, uma pessoa".
 
