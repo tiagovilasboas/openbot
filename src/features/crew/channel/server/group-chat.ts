@@ -130,12 +130,15 @@ export function groupRule(
 /**
  * The group as one member sees it: the person's messages as the user, its
  * own as the assistant, and every other member's as data with their name.
- * Turns in a row from the same side are joined, so roles alternate.
+ * Turns in a row from the same side are joined, so roles alternate. In a
+ * thread, the parent message (`parentSeq`) always comes first as context
+ * for the thread, even when this member wrote it.
  */
 export function speakerMessages(
   history: readonly ChannelMessage[],
   speaker: BotProfile,
   bots: readonly BotProfile[],
+  parentSeq?: number,
 ): CrewMessage[] {
   const names = new Map(bots.map((bot) => [bot.id, bot.name]));
   const out: CrewMessage[] = [];
@@ -144,6 +147,12 @@ export function speakerMessages(
     let entry: CrewMessage;
     if (author.kind === "human") {
       entry = { role: "user", text: message.text };
+    } else if (message.seq === parentSeq) {
+      const name = names.get(author.botId) ?? author.botId;
+      entry = {
+        role: "user",
+        text: `${name} (the message this thread is about):\n${wrapExternalText(message.text)}`,
+      };
     } else if (author.botId === speaker.id) {
       entry = { role: "assistant", text: message.text };
     } else {

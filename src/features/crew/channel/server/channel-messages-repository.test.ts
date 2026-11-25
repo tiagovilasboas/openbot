@@ -4,8 +4,11 @@ import {
   appendMessage,
   claimTurn,
   finishTurn,
+  getMainMessage,
   listMessages,
+  listThread,
   STALE_TURN_MS,
+  threadCounts,
 } from "./channel-messages-repository.ts";
 import { deleteChannel, saveChannel } from "./channels-repository.ts";
 import { withChannelDb } from "./channel-test-db.ts";
@@ -64,4 +67,41 @@ test("a channel runs at most two turns; finished or stale ones free a slot", () 
     finishTurn(db, first!, "completed", 2_000);
     assert.notEqual(claimTurn(db, "c1", 2_000), null);
     assert.notEqual(claimTurn(db, "c1", 2_000 + STALE_TURN_MS), null);
+  }));
+
+test("thread messages stay out of the timeline and are counted per parent", () =>
+  withChannelDb((db) => {
+    saveChannel(db, channel, 1);
+    const parent = appendMessage(
+      db,
+      "c1",
+      { kind: "leader", botId: "a" },
+      "p",
+      1,
+    );
+    const reply = appendMessage(
+      db,
+      "c1",
+      { kind: "human" },
+      "t1",
+      2,
+      parent.seq,
+    );
+    appendMessage(db, "c1", { kind: "human" }, "t2", 3, parent.seq);
+    appendMessage(db, "c1", { kind: "human" }, "main", 4);
+    assert.equal(reply.parentSeq, parent.seq);
+    assert.deepEqual(
+      listMessages(db, "c1").map((m) => m.text),
+      ["p", "main"],
+    );
+    assert.deepEqual(
+      listThread(db, "c1", parent.seq).map((m) => [m.text, m.parentSeq]),
+      [
+        ["t1", 1],
+        ["t2", 1],
+      ],
+    );
+    assert.deepEqual(threadCounts(db, "c1"), { 1: 2 });
+    assert.equal(getMainMessage(db, "c1", parent.seq)?.text, "p");
+    assert.equal(getMainMessage(db, "c1", reply.seq), null);
   }));

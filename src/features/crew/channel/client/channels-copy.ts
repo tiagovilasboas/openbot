@@ -32,6 +32,13 @@ export interface ChannelsCopy {
   reply: string;
   replyingTo: (name: string) => string;
   cancelReply: string;
+  replyInThread: string;
+  threadTitle: string;
+  backToGroup: string;
+  threadHint: (name: string) => string;
+  threadPlaceholder: string;
+  /** The marker under a message that has a thread. */
+  replyCount: (count: number) => string;
   failed: string;
   close: string;
   errors: Record<string, string> & { unknown: string; load: string };
@@ -68,6 +75,12 @@ const pt: ChannelsCopy = {
   reply: "Responder",
   replyingTo: (name) => `Respondendo a ${name}`,
   cancelReply: "Cancelar resposta",
+  replyInThread: "Responder em thread",
+  threadTitle: "Thread",
+  backToGroup: "Voltar ao grupo",
+  threadHint: (name) => `${name} responde aqui; @nome chama outro.`,
+  threadPlaceholder: "Comente este resultado na thread",
+  replyCount: (n) => (n === 1 ? "1 resposta" : `${n} respostas`),
   failed: "Não respondeu",
   close: "Fechar",
   errors: {
@@ -82,6 +95,7 @@ const pt: ChannelsCopy = {
     bot_missing: "Um dos membros não existe mais.",
     payload_too_large: "O conteúdo ficou grande demais.",
     channel_busy: "O grupo está ocupado. Tente de novo em instantes.",
+    invalid_parent: "A mensagem desta thread não existe mais.",
     invalid_text: "A mensagem está vazia ou longa demais.",
     not_found: "Este grupo não existe mais.",
   },
@@ -118,6 +132,12 @@ const en: ChannelsCopy = {
   reply: "Reply",
   replyingTo: (name) => `Replying to ${name}`,
   cancelReply: "Cancel reply",
+  replyInThread: "Reply in thread",
+  threadTitle: "Thread",
+  backToGroup: "Back to the group",
+  threadHint: (name) => `${name} answers here; @name picks someone else.`,
+  threadPlaceholder: "Comment on this result in the thread",
+  replyCount: (n) => (n === 1 ? "1 reply" : `${n} replies`),
   failed: "Did not answer",
   close: "Close",
   errors: {
@@ -132,6 +152,7 @@ const en: ChannelsCopy = {
     bot_missing: "One of the members no longer exists.",
     payload_too_large: "The content is too large.",
     channel_busy: "The group is busy. Try again in a moment.",
+    invalid_parent: "The message of this thread no longer exists.",
     invalid_text: "The message is empty or too long.",
     not_found: "This group no longer exists.",
   },
@@ -168,6 +189,12 @@ const es: ChannelsCopy = {
   reply: "Responder",
   replyingTo: (name) => `Respondiendo a ${name}`,
   cancelReply: "Cancelar respuesta",
+  replyInThread: "Responder en hilo",
+  threadTitle: "Hilo",
+  backToGroup: "Volver al grupo",
+  threadHint: (name) => `${name} responde aquí; @nombre llama a otro.`,
+  threadPlaceholder: "Comenta este resultado en el hilo",
+  replyCount: (n) => (n === 1 ? "1 respuesta" : `${n} respuestas`),
   failed: "No respondió",
   close: "Cerrar",
   errors: {
@@ -182,6 +209,7 @@ const es: ChannelsCopy = {
     bot_missing: "Uno de los miembros ya no existe.",
     payload_too_large: "El contenido es demasiado grande.",
     channel_busy: "El grupo está ocupado. Inténtalo de nuevo en un momento.",
+    invalid_parent: "El mensaje de este hilo ya no existe.",
     invalid_text: "El mensaje está vacío o es demasiado largo.",
     not_found: "Este grupo ya no existe.",
   },

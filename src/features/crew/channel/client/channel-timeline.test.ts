@@ -102,3 +102,13 @@ test("group answers stay in line, and a reply points at its message", () => {
     [2, "security"],
   );
 });
+
+test("a message with thread replies carries the count for its marker", () => {
+  const timeline = buildChannelTimeline(
+    [message(1, { kind: "human" }), message(2, leader)],
+    bots,
+    { 2: 3 },
+  );
+  assert.equal(timeline[0]!.replyCount, undefined);
+  assert.equal(timeline[1]!.replyCount, 3);
+});

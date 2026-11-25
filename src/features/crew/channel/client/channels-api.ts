@@ -28,6 +28,7 @@ export function parseChannelMessage(raw: unknown): ChannelMessage | null {
     author,
     text: r.text,
     createdAt: r.createdAt,
+    ...(typeof r.parentSeq === "number" ? { parentSeq: r.parentSeq } : {}),
   };
 }
 
@@ -85,6 +86,8 @@ export function removeChannel(id: string) {
 
 export type ChannelRoomSnapshot = {
   messages: ChannelMessage[];
+  /** Thread replies per main-timeline message: seq to count. */
+  threadCounts: Record<number, number>;
   /** The live turn: null when nobody is answering. */
   turn: { speakingBotId: string | null } | null;
 };
@@ -95,10 +98,24 @@ function parseTurn(raw: unknown): ChannelRoomSnapshot["turn"] {
   return { speakingBotId: typeof speaking === "string" ? speaking : null };
 }
 
-export function fetchChannelMessages(channelId: string) {
-  const path = `${BASE}/messages?channelId=${encodeURIComponent(channelId)}`;
+function parseCounts(raw: unknown): Record<number, number> {
+  if (typeof raw !== "object" || raw === null) return {};
+  const counts: Record<number, number> = {};
+  for (const [seq, n] of Object.entries(raw)) {
+    if (typeof n === "number" && Number.isSafeInteger(Number(seq))) {
+      counts[Number(seq)] = n;
+    }
+  }
+  return counts;
+}
+
+/** The room's messages, or the thread under `parentSeq` when given. */
+export function fetchChannelMessages(channelId: string, parentSeq?: number) {
+  const parent = parentSeq ? `&parentSeq=${parentSeq}` : "";
+  const path = `${BASE}/messages?channelId=${encodeURIComponent(channelId)}${parent}`;
   return call(path, { method: "GET" }, (b): ChannelRoomSnapshot => ({
     messages: listOf(b.messages, parseChannelMessage),
+    threadCounts: parseCounts(b.threadCounts),
     turn: parseTurn(b.turn),
   }));
 }
@@ -108,10 +125,16 @@ export function postChannelMessage(
   channelId: string,
   text: string,
   replyToSeq?: number,
+  parentSeq?: number,
 ) {
   return call(
     `${BASE}/messages`,
-    json("POST", { channelId, text, ...(replyToSeq ? { replyToSeq } : {}) }),
+    json("POST", {
+      channelId,
+      text,
+      ...(replyToSeq ? { replyToSeq } : {}),
+      ...(parentSeq ? { parentSeq } : {}),
+    }),
     (b) => listOf(b.messages, parseChannelMessage),
   );
 }
