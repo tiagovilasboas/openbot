@@ -6,6 +6,8 @@ import {
   externalDataRule,
   wrapExternalText,
 } from "../untrusted-text/wrap-external-text.ts";
+import type { ResumeDecision } from "../tools/tool-loop-types.ts";
+import type { ToolPause } from "../tools/tool-turn-events.ts";
 import { crewCopy } from "./crew-copy.ts";
 import {
   checkLoopGuard,
@@ -26,12 +28,19 @@ export type CrewMessage = { role: "assistant" | "user"; text: string };
  */
 export type CrewModelReply =
   | { ok: true; text: string }
-  | { ok: false; partial?: { text: string; kind: IncompleteKind } };
+  | {
+      ok: false;
+      partial?: { text: string; kind: IncompleteKind };
+      /** A group member's tool call waits for the person's decision. */
+      pause?: ToolPause;
+    };
 
 /** The model call, injected so the turn runs the same with fakes in tests. */
 export type AskCrewModel = (request: {
   systemPrompt: string;
   messages: CrewMessage[];
+  /** The person's decisions on this speaker's stored pause (a group turn). */
+  resume?: { turnId: string; decisions: ResumeDecision[] };
   /** The model of the bot answering; empty means the global model. */
   modelId?: string;
   /** The specialist answering; absent for the Chief's own synthesis. */

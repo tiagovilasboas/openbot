@@ -1,4 +1,12 @@
 import { withApiHeaders } from "../../../server-guard/api-request-init.ts";
+import {
+  decisionsFor,
+  type DecisionChoice,
+} from "../../../tools/client/paused-turn.ts";
+import {
+  parseToolEvent,
+  type ApprovalPause,
+} from "../../../tools/client/tool-stream-events.ts";
 import { parseChannelAuthor, type ChannelMessage } from "../channel-message.ts";
 import { checkCrewChannel, type CrewChannel } from "../crew-channel.ts";
 
@@ -90,7 +98,22 @@ export type ChannelRoomSnapshot = {
   threadCounts: Record<number, number>;
   /** The live turn: null when nobody is answering. */
   turn: { speakingBotId: string | null } | null;
+  /** A member's tool call waiting for the person, or null. */
+  approval: ChannelApproval | null;
 };
+
+export type ChannelApproval = { botId: string; pause: ApprovalPause };
+
+function parseApproval(raw: unknown): ChannelApproval | null {
+  if (typeof raw !== "object" || raw === null) return null;
+  const { botId, ...fields } = raw as Record<string, unknown>;
+  const event = parseToolEvent({ type: "approval_required", ...fields });
+  if (typeof botId !== "string" || event?.type !== "approval_required") {
+    return null;
+  }
+  const { turnId, calls, expiresAt } = event;
+  return { botId, pause: { turnId, calls, expiresAt } };
+}
 
 function parseTurn(raw: unknown): ChannelRoomSnapshot["turn"] {
   if (typeof raw !== "object" || raw === null) return null;
@@ -117,7 +140,25 @@ export function fetchChannelMessages(channelId: string, parentSeq?: number) {
     messages: listOf(b.messages, parseChannelMessage),
     threadCounts: parseCounts(b.threadCounts),
     turn: parseTurn(b.turn),
+    approval: parseApproval(b.approval),
   }));
+}
+
+/** The person's choice for the waiting tool call; the group goes on. */
+export function resolveApproval(
+  channelId: string,
+  pause: ApprovalPause,
+  choice: DecisionChoice,
+) {
+  return call(
+    `${BASE}/approval`,
+    json("POST", {
+      channelId,
+      turnId: pause.turnId,
+      decisions: decisionsFor(pause, choice),
+    }),
+    () => true as const,
+  );
 }
 
 /** Posts; the group answers in the background. The stored post. */

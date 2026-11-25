@@ -5,15 +5,16 @@ import type { AskCrewModel } from "../../run-crew-turn.ts";
 import { checkChannelPost } from "../channel-message.ts";
 import { isChannelId } from "../crew-channel.ts";
 import {
+  cancelApprovals,
+  listApproval,
+} from "./channel-approvals-repository.ts";
+import {
   appendMessage,
   claimTurn,
-  finishTurn,
   getMainMessage,
-  isTurnOver,
   listMessages,
   listThread,
   runningTurn,
-  setSpeaking,
   stopRunningTurns,
   threadCounts,
 } from "./channel-messages-repository.ts";
@@ -23,12 +24,14 @@ import {
   readJsonBody,
 } from "./channels-handler.ts";
 import { getChannel } from "./channels-repository.ts";
+import { groupTurnDeps, settleGroupTurn } from "./group-turn-wiring.ts";
 import { runGroupTurn } from "./run-group-turn.ts";
 
 /**
  * GET /api/crew/channels/messages?channelId=: the latest messages, oldest
  * first, how many thread replies each has, and the live turn (who is
- * speaking) when one runs. With `parentSeq`, that message's thread instead.
+ * speaking) when one runs, and the member's tool call waiting for approval
+ * (`approval`, or null). With `parentSeq`, that message's thread instead.
  */
 export function handleListMessages(
   request: Request,
@@ -40,13 +43,25 @@ export function handleListMessages(
   if (!getChannel(db, id)) return channelJson({ error: "not_found" }, 404);
   const turn = runningTurn(db, id, now());
   const parent = readSeq(new URL(request.url).searchParams.get("parentSeq"));
+  const waiting = listApproval(db, id, parent ?? null, now());
+  const approval = waiting && {
+    turnId: waiting.turnId,
+    botId: waiting.botId,
+    calls: waiting.calls,
+    expiresAt: waiting.expiresAt,
+  };
   if (parent !== undefined) {
-    return channelJson({ messages: listThread(db, id, parent), turn });
+    return channelJson({
+      messages: listThread(db, id, parent),
+      turn,
+      approval,
+    });
   }
   return channelJson({
     messages: listMessages(db, id),
     threadCounts: threadCounts(db, id),
     turn,
+    approval,
   });
 }
 
@@ -106,6 +121,7 @@ export async function handlePostMessage(
   }
 
   stopRunningTurns(db, channel.id, now());
+  cancelApprovals(db, channel.id);
   const turnId = claimTurn(db, channel.id, now());
   if (turnId === null) return channelJson({ error: "channel_busy" }, 409);
   const replyToSeq = readSeq(raw.replyToSeq);
@@ -129,17 +145,9 @@ export async function handlePostMessage(
       language: deps.language(),
       askModel: deps.askModel,
     },
-    {
-      append: (author, reply) =>
-        appendMessage(db, channel.id, author, reply, now(), parentSeq),
-      isOver: () => isTurnOver(db, turnId),
-      setSpeaking: (botId) => setSpeaking(db, turnId, botId),
-    },
-  ).then(
-    () => finishTurn(db, turnId, "completed", now()),
-    () => finishTurn(db, turnId, "failed", now()),
+    groupTurnDeps(db, channel.id, turnId, parentSeq, now),
   );
-  (deps.schedule ?? ((p) => void p))(work);
+  (deps.schedule ?? ((p) => void p))(settleGroupTurn(db, turnId, work, now));
   return channelJson({ messages: [post], turnId }, 202);
 }
 
@@ -160,5 +168,6 @@ export async function handleStopChannel(
   if (!getChannel(db, raw.channelId)) {
     return channelJson({ error: "not_found" }, 404);
   }
+  cancelApprovals(db, raw.channelId);
   return channelJson({ stopped: stopRunningTurns(db, raw.channelId, now()) });
 }

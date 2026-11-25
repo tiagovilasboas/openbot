@@ -15,12 +15,21 @@ import {
   catalogCapability,
   type CapabilityLookup,
 } from "../../../tools/server/resolve-tool-capability.ts";
-import { runBotToolsText } from "../../../tools/server/run-bot-tools-text.ts";
+import { requestDigest } from "../../../tools/server/pending-turn-codec.ts";
+import {
+  checkResume,
+  claimTurn,
+  recordGrants,
+} from "../../../tools/server/resume-turn.ts";
+import {
+  runBotToolsText,
+  type BotToolsRun,
+} from "../../../tools/server/run-bot-tools-text.ts";
 import { serverToolRegistry } from "../../../tools/server/server-tools.ts";
 import { createToolStep } from "../../../tools/server/tool-step.ts";
 import { externalDataRule } from "../../../untrusted-text/wrap-external-text.ts";
 import type { AskCrewModel } from "../../run-crew-turn.ts";
-import { NEEDS_APPROVAL } from "./group-tools-copy.ts";
+import { NEEDS_ANSWER } from "./group-tools-copy.ts";
 import { buildChannelRequest } from "./model-channel-asker.ts";
 
 export type ToolChannelAskerOptions = {
@@ -37,8 +46,9 @@ export type ToolChannelAskerOptions = {
  * A group member's model call with its tools. A member that opted into tools
  * (with the server's OPENBOT_TOOLS gate on) runs the same tool loop as a 1:1
  * chat, with its own grants and the user's levels; every other call, such as
- * the picker, goes to `plain`. A call that needs the user's approval does not
- * run: the member says so and points to a 1:1 chat.
+ * the picker, goes to `plain`. A call that needs the user's approval stores
+ * the turn and answers with the pause; the same call with `resume` carries
+ * the person's decisions and continues the stored turn.
  */
 export function createToolChannelAsker(
   db: DatabaseSync,
@@ -59,6 +69,30 @@ export function createToolChannelAsker(
       request.modelId,
       env,
     ).catch(() => "none" as const);
+    const now = options.now ?? Date.now;
+    const tools =
+      options.tools ??
+      serverToolRegistry({
+        db,
+        fetchImpl: options.fetchImpl,
+        githubToken: env.GITHUB_TOKEN,
+        workspaceRoot: env.OPENBOT_WORKSPACE_DIR,
+        extraTools: await loadMcpTools(env),
+      });
+    const digest = requestDigest(
+      speaker.id,
+      request.language,
+      request.messages,
+    );
+    let resume: BotToolsRun["resume"] = null;
+    if (call.resume) {
+      // The stored turn is the server's own: the decisions only bind to it.
+      const checked = checkResume(db, speaker.id, call.resume, digest, now());
+      if (!checked.ok) return { ok: false };
+      resume = { request: call.resume, turn: checked.turn };
+      if (!claimTurn(db, resume.request, resume.turn)) return { ok: false };
+      recordGrants(db, speaker.id, tools, resume.request, resume.turn, now());
+    }
     const signal = createStreamSignal([], options.timeoutMs);
     const rule = externalDataRule(request.language);
     const step = createToolStep({
@@ -81,22 +115,17 @@ export function createToolChannelAsker(
     const result = await runBotToolsText({
       db,
       botId: speaker.id,
-      tools:
-        options.tools ??
-        serverToolRegistry({
-          db,
-          fetchImpl: options.fetchImpl,
-          githubToken: env.GITHUB_TOKEN,
-          workspaceRoot: env.OPENBOT_WORKSPACE_DIR,
-          extraTools: await loadMcpTools(env),
-        }),
+      tools,
       step,
       signal,
+      requestDigest: digest,
+      resume,
       ...(options.now ? { now: options.now } : {}),
     });
     if (result.kind === "text") return { ok: true, text: result.text };
+    if (result.kind === "paused") return { ok: false, pause: result.pause };
     if (result.kind === "failed") return { ok: false };
     const language = readSettings(db).language ?? "pt";
-    return { ok: true, text: NEEDS_APPROVAL[language](result.tools) };
+    return { ok: true, text: NEEDS_ANSWER[language](result.tools) };
   };
 }

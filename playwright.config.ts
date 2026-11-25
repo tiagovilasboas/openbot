@@ -30,7 +30,7 @@ export default defineConfig({
   projects: [
     {
       name: "chromium",
-      testIgnore: "stub-model.spec.ts",
+      testIgnore: ["stub-model.spec.ts", "group-approval.spec.ts"],
       use: { ...devices["Desktop Chrome"] },
     },
     {
@@ -39,6 +39,13 @@ export default defineConfig({
       name: "stub-model",
       testMatch: "stub-model.spec.ts",
       dependencies: ["chromium"],
+      use: { ...devices["Desktop Chrome"] },
+    },
+    {
+      // Also rewrites the saved model settings, so it runs after stub-model.
+      name: "group-approval",
+      testMatch: "group-approval.spec.ts",
+      dependencies: ["stub-model"],
       use: { ...devices["Desktop Chrome"] },
     },
   ],
@@ -61,6 +68,10 @@ export default defineConfig({
         // Every parallel spec calls from 127.0.0.1, so they share one rate
         // bucket; the default 60 a minute would refuse some of them.
         OPENBOT_RATE_LIMIT: "100000",
+        // The group-approval spec needs the tool route on, and the stub model
+        // vouched for as tool-capable (the public catalog does not list it).
+        OPENBOT_TOOLS: "1",
+        OPENBOT_TOOLS_NATIVE_MODELS: "e2e-group-approval",
         // No provider on the server: the model is always the stub.
         ROUTER_URL: "",
         ROUTER_MODEL: "",

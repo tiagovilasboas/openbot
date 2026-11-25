@@ -20,6 +20,13 @@ function present(value: string | undefined): string | null {
   return trimmed ? trimmed : null;
 }
 
+function listed(value: string | undefined): string[] {
+  return (value ?? "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
 /**
  * The provider the server env would pick when the client sends no config,
  * in selectAdapter's order: a local endpoint wins over the router, so only a
@@ -46,6 +53,9 @@ export function createCatalogCapability(
     const config = clientConfig ?? envRouterConfig(env);
     if (config?.provider !== "router") return toolCapability(config);
     const id = modelId ?? config.model;
+    // The operator may vouch for models the public catalog does not list
+    // (a self-hosted router, the e2e stub); no catalog fetch then.
+    if (listed(env.OPENBOT_TOOLS_NATIVE_MODELS).includes(id)) return "native";
     const { models } = await listModels();
     return toolCapability(
       config,

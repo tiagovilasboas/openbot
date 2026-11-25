@@ -56,6 +56,19 @@ test("a local env endpoint wins over the router, as in selectAdapter", async () 
   assert.equal(calls(), 0);
 });
 
+test("a model the operator lists is native without a catalog fetch", async () => {
+  const { lookup, calls } = lookupWithCount();
+  const config = {
+    provider: "router" as const,
+    baseUrl: "http://127.0.0.1:3900/v1",
+    model: "e2e-model",
+  };
+  const env = { OPENBOT_TOOLS_NATIVE_MODELS: "other, e2e-model" };
+  assert.equal(await lookup(config, undefined, env), "native");
+  assert.equal(await lookup(config, "unlisted", env), "none");
+  assert.equal(calls(), 1);
+});
+
 test("no router anywhere never fetches the catalog", async () => {
   const { lookup, calls } = lookupWithCount();
   assert.equal(await lookup(undefined, undefined, {}), "none");

@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import type { BotProfile } from "@/features/bots/bot-types.ts";
 import type { Language } from "@/features/language/language.ts";
 import type { CrewChannel } from "../crew-channel.ts";
+import { ChannelApproval } from "./ChannelApproval.tsx";
 import { ChannelComposer } from "./ChannelComposer.tsx";
 import { ChannelMessageRow } from "./ChannelMessageRow.tsx";
 import { ChannelThread } from "./ChannelThread.tsx";
@@ -109,6 +110,14 @@ export function ChannelRoom({ channel, bots, language }: ChannelRoomProps) {
         </ol>
       )}
 
+      {room.approval && (
+        <ChannelApproval
+          approval={room.approval}
+          bots={bots}
+          language={language}
+          onDecide={(choice) => void room.decide(choice)}
+        />
+      )}
       {room.answering && (
         <div className="flex items-center justify-between gap-2">
           <p role="status" className="text-xs md:text-[13px] text-muted">
