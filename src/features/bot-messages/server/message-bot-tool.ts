@@ -21,6 +21,7 @@ import {
   pairMessagesInLastHour,
   recordMessage,
 } from "./bot-messages-repository.ts";
+import { HANDOFF_ID_PREFIX, pruneFinishedHandoffs } from "./prune-handoffs.ts";
 
 export const MESSAGE_BOT = "message_bot";
 export const MAX_MESSAGES_PER_HOUR = 10;
@@ -78,7 +79,7 @@ export function createMessageBotTool(
   db: DatabaseSync,
   clock: () => number = Date.now,
   newId: () => string = () =>
-    `m_${clock().toString(36)}${Math.random().toString(36).slice(2, 8)}`,
+    `${HANDOFF_ID_PREFIX}${clock().toString(36)}${Math.random().toString(36).slice(2, 8)}`,
 ): ToolDefinition<Args> {
   return {
     name: MESSAGE_BOT,
@@ -113,6 +114,7 @@ export function createMessageBotTool(
         return { ok: false, code: "cannot_message_self" };
       }
       const now = clock();
+      pruneFinishedHandoffs(db, now);
       if (countSentInLastHour(db, sender.id, now) >= MAX_MESSAGES_PER_HOUR) {
         return { ok: false, code: "too_many_messages" };
       }
