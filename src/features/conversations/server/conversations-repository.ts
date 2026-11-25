@@ -117,3 +117,14 @@ export function deleteThread(
     "DELETE FROM conversations WHERE bot_id = ? AND thread_id = ?",
   ).run(botId, threadId);
 }
+
+/** Each bot's latest update across all of its threads with messages. */
+export function latestUpdateByBot(db: DatabaseSync): Map<string, number> {
+  ensureConversationsSchema(db);
+  const rows = db
+    .prepare(
+      "SELECT bot_id, MAX(updated_at) AS updated_at FROM conversations WHERE count > 0 GROUP BY bot_id",
+    )
+    .all() as { bot_id: string; updated_at: number }[];
+  return new Map(rows.map((row) => [row.bot_id, row.updated_at]));
+}

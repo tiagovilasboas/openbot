@@ -1,5 +1,5 @@
 import type { DatabaseSync } from "node:sqlite";
-import { ensureConversationsSchema } from "../../conversations/server/conversations-schema.ts";
+import { latestUpdateByBot } from "../../conversations/server/conversations-repository.ts";
 import type { LastInteraction } from "./idle-pause.ts";
 
 /**
@@ -9,12 +9,6 @@ import type { LastInteraction } from "./idle-pause.ts";
  * bot's threads counts. One read per tick.
  */
 export function conversationActivity(db: DatabaseSync): LastInteraction {
-  ensureConversationsSchema(db);
-  const rows = db
-    .prepare(
-      "SELECT bot_id, MAX(updated_at) AS updated_at FROM conversations WHERE count > 0 GROUP BY bot_id",
-    )
-    .all() as { bot_id: string; updated_at: number }[];
-  const byBot = new Map(rows.map((r) => [r.bot_id, r.updated_at]));
+  const byBot = latestUpdateByBot(db);
   return (botId) => byBot.get(botId) ?? null;
 }
