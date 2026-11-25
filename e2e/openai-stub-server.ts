@@ -20,6 +20,9 @@ const calls = new Map<string, RecordedCall[]>();
 const fixedReplies = new Map<string, string>();
 // A tool call the model asks for first, once per request that offers tools.
 const toolCalls = new Map<string, { name: string; args: unknown }>();
+// Models whose answers never finish (a streamed one stops after one piece),
+// so a spec can press Stop on a reply that is still coming.
+const hangingModels = new Set<string>();
 
 function textOf(content: unknown): string {
   return typeof content === "string" ? content : "";
@@ -93,7 +96,10 @@ async function completion(request: IncomingMessage, response: ServerResponse) {
 
   const text = replyFor(model, user);
   const usage = { prompt_tokens: 12, completion_tokens: 7 };
+  const hangs = hangingModels.has(model);
   if (!body.stream) {
+    if (hangs) return; // never answered; left open until the client goes away
+
     sendJson(response, {
       choices: [{ message: { role: "assistant", content: text } }],
       usage,
@@ -102,11 +108,14 @@ async function completion(request: IncomingMessage, response: ServerResponse) {
   }
   response.writeHead(200, { "content-type": "text/event-stream" });
   const half = Math.ceil(text.length / 2);
-  for (const piece of [text.slice(0, half), text.slice(half)]) {
+  for (const piece of hangs
+    ? [text.slice(0, half)]
+    : [text.slice(0, half), text.slice(half)]) {
     response.write(
       `data: ${JSON.stringify({ choices: [{ delta: { content: piece } }] })}\n\n`,
     );
   }
+  if (hangs) return; // left open until the client goes away
   response.write(`data: ${JSON.stringify({ choices: [], usage })}\n\n`);
   response.end("data: [DONE]\n\n");
 }
@@ -122,6 +131,13 @@ async function control(request: IncomingMessage, response: ServerResponse) {
     const { text } = JSON.parse(await readBody(request)) as { text?: string };
     if (typeof text === "string") fixedReplies.set(model, text);
     else fixedReplies.delete(model);
+    sendJson(response, { ok: true });
+    return;
+  }
+  if (url.pathname === "/__stub/hang") {
+    const { on } = JSON.parse(await readBody(request)) as { on?: boolean };
+    if (on) hangingModels.add(model);
+    else hangingModels.delete(model);
     sendJson(response, { ok: true });
     return;
   }

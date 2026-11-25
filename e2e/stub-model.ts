@@ -58,6 +58,21 @@ export async function stubToolCall(
   );
 }
 
+/**
+ * Makes the stub's answers for `model` never finish (`on`): a streamed one
+ * stops after the first piece. `!on` answers in full again.
+ */
+export async function stubHang(
+  request: APIRequestContext,
+  model: string,
+  on: boolean,
+): Promise<void> {
+  await request.post(
+    `${STUB_URL}/__stub/hang?model=${encodeURIComponent(model)}`,
+    { data: { on } },
+  );
+}
+
 /** Points the saved model settings on the server at the stub. */
 export async function useStubOnServer(
   request: APIRequestContext,
