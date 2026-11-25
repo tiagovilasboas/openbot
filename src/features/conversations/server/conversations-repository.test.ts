@@ -162,3 +162,37 @@ test("a new thread beyond the cap is refused, existing ones still update", () =>
     assert.equal(replaceThread(db, "one-more", [msg(1)]).ok, true);
   });
 });
+
+test("threads of one bot stay separate; the default applies without an id", () => {
+  withDb((db) => {
+    replaceThread(db, "a", [msg(1, "main")]);
+    replaceThread(db, "a", [msg(1, "side"), msg(2)], "t2");
+    assert.equal(readThread(db, "a").messages.length, 1);
+    assert.equal(readThread(db, "a", "default").messages[0].text, "main");
+    assert.equal(readThread(db, "a", "t2").messages.length, 2);
+    assert.deepEqual(readThread(db, "a", "none"), {
+      messages: [],
+      updatedAt: null,
+    });
+    assert.equal(listThreads(db).length, 1);
+    assert.equal(listThreads(db, "t2")[0].count, 2);
+    deleteThread(db, "a", "t2");
+    assert.equal(readThread(db, "a", "t2").messages.length, 0);
+    assert.equal(readThread(db, "a").messages.length, 1);
+    replaceThread(db, "a", [], "default");
+    assert.equal(readThread(db, "a").messages.length, 0);
+  });
+});
+
+test("the cap counts threads, not bots", () => {
+  withDb((db) => {
+    for (let i = 0; i < THREADS_MAX; i += 1) {
+      replaceThread(db, "a", [msg(1)], `t${i}`);
+    }
+    assert.deepEqual(replaceThread(db, "b", [msg(1)]), {
+      ok: false,
+      error: "too_many_threads",
+    });
+    assert.equal(replaceThread(db, "a", [msg(1)], "t0").ok, true);
+  });
+});
