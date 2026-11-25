@@ -60,19 +60,6 @@ test("each thread has its own messages; selecting switches what loads", () => {
   assert.equal(loadBotMessages("iso")[0].text, "main");
 });
 
-test("only the default thread is synced to the server", () => {
-  win.window = { localStorage: fakeStorage() };
-  const saved: string[] = [];
-  connectMessagesSync({
-    saved: (id) => void saved.push(id),
-    forgotten: () => undefined,
-  });
-  saveBotMessages("syn", [msg(1)], { threadId: "t1" });
-  assert.deepEqual(saved, []);
-  saveBotMessages("syn", [msg(1)], { threadId: DEFAULT_THREAD_ID });
-  assert.deepEqual(saved, ["syn"]);
-});
-
 test("forgetting one thread leaves the default and the others", () => {
   win.window = { localStorage: fakeStorage() };
   saveBotMessages("one", [msg(1)], { threadId: DEFAULT_THREAD_ID });
@@ -102,4 +89,31 @@ test("deleting a bot drops every thread and its list; pruning sees extras", () =
     "openbot_msgs_keep~t9",
     "openbot_msgs_other",
   ]);
+});
+
+test("saves and forgets of every thread reach the sync port with their threadId", () => {
+  const storage = fakeStorage();
+  win.window = { localStorage: storage };
+  const events: string[] = [];
+  connectMessagesSync({
+    saved: (b, _m, t) => void events.push(`saved ${b}/${t}`),
+    forgotten: (b, t) => void events.push(`forgotten ${b}/${t}`),
+  });
+  saveBotMessages("one", [msg(1)], { threadId: "t1" });
+  saveBotMessages("one", [msg(1)], { threadId: "t2", sync: false });
+  saveBotMessages("one", [msg(1)], { threadId: DEFAULT_THREAD_ID });
+  forgetThreadMessages("one", "t1");
+  forgetThreadMessages("one", DEFAULT_THREAD_ID);
+  assert.deepEqual(events, [
+    "saved one/t1",
+    "saved one/default",
+    "forgotten one/t1",
+  ]);
+  events.length = 0;
+  forgetBotMessages("one", storage);
+  assert.deepEqual(events.sort(), [
+    "forgotten one/t2",
+    "forgotten one/undefined",
+  ]);
+  connectMessagesSync(null);
 });

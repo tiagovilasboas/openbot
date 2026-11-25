@@ -1,3 +1,4 @@
+import { DEFAULT_THREAD_ID } from "../../threads/thread-model.ts";
 import { withApiHeaders } from "../../server-guard/api-request-init.ts";
 import { sanitizeStoredMessages } from "../../chat/stored-message.ts";
 import type { MessageData } from "../../chat/ChatMessageItem.tsx";
@@ -10,17 +11,22 @@ import type {
 
 const URL_BASE = "/api/conversations";
 
-const urlFor = (botId: string) =>
-  `${URL_BASE}?botId=${encodeURIComponent(botId)}`;
+/** The default thread keeps the bare URL, as before there were threads. */
+const urlFor = (botId: string, threadId: string) =>
+  `${URL_BASE}?botId=${encodeURIComponent(botId)}` +
+  (threadId === DEFAULT_THREAD_ID
+    ? ""
+    : `&threadId=${encodeURIComponent(threadId)}`);
 
 async function request(
   fetchFn: typeof fetch,
   botId: string,
+  threadId: string,
   init: RequestInit,
 ): Promise<{ ok: true; data: unknown } | { ok: false; failure: SyncFailure }> {
   let response: Response;
   try {
-    response = await fetchFn(urlFor(botId), withApiHeaders(init));
+    response = await fetchFn(urlFor(botId, threadId), withApiHeaders(init));
   } catch {
     return { ok: false, failure: { kind: "network" } };
   }
@@ -47,8 +53,8 @@ export function createConversationsApi(
   fetchFn: typeof fetch = (...args) => fetch(...args),
 ): ConversationsApi {
   return {
-    async get(botId): Promise<ThreadResult> {
-      const result = await request(fetchFn, botId, { method: "GET" });
+    async get(botId, threadId = DEFAULT_THREAD_ID): Promise<ThreadResult> {
+      const result = await request(fetchFn, botId, threadId, { method: "GET" });
       if (!result.ok) return result;
       const messages = (result.data as { messages?: unknown } | null)?.messages;
       // The client sanitizes what the server already validated.
@@ -56,16 +62,22 @@ export function createConversationsApi(
         ? { ok: true, messages: sanitizeStoredMessages(messages) }
         : { ok: false, failure: { kind: "network" } };
     },
-    async put(botId, messages: MessageData[]): Promise<WriteResult> {
-      const result = await request(fetchFn, botId, {
+    async put(
+      botId,
+      messages: MessageData[],
+      threadId = DEFAULT_THREAD_ID,
+    ): Promise<WriteResult> {
+      const result = await request(fetchFn, botId, threadId, {
         method: "PUT",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ messages }),
       });
       return result.ok ? { ok: true } : result;
     },
-    async remove(botId): Promise<WriteResult> {
-      const result = await request(fetchFn, botId, { method: "DELETE" });
+    async remove(botId, threadId = DEFAULT_THREAD_ID): Promise<WriteResult> {
+      const result = await request(fetchFn, botId, threadId, {
+        method: "DELETE",
+      });
       return result.ok ? { ok: true } : result;
     },
   };

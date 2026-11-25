@@ -135,3 +135,32 @@ test("flush sends what waits without the delay", async () => {
   await queue.flush();
   assert.equal(sent.length, 2);
 });
+
+test("each thread of a bot has its own slot and carries its threadId", async () => {
+  const sent: { botId: string; op: ThreadOp; threadId: string }[] = [];
+  const done: string[] = [];
+  const queue = createConversationsPutQueue({
+    delayMs: 5,
+    send: async (botId, op, threadId) => {
+      sent.push({ botId, op, threadId });
+      return ok;
+    },
+    onResult: (botId, _r, _s, threadId) =>
+      void done.push(`${botId}/${threadId}`),
+  });
+  queue.put("a", [msg(1)]);
+  queue.put("a", [msg(2)], "t1");
+  queue.put("a", [msg(3)], "t1");
+  queue.remove("a", "t2");
+  await settle();
+  assert.deepEqual(sent.map((s) => `${s.threadId}:${s.op.kind}`).sort(), [
+    "default:put",
+    "t1:put",
+    "t2:delete",
+  ]);
+  assert.deepEqual(sent.find((s) => s.threadId === "t1")!.op, {
+    kind: "put",
+    messages: [msg(3)],
+  });
+  assert.deepEqual(done.sort(), ["a/default", "a/t1", "a/t2"]);
+});

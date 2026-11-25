@@ -3,6 +3,11 @@
  * confirming it, as a JSON list of bot ids. Per bot, so one stuck thread
  * never makes another bot's newer server copy lose.
  */
+import {
+  DEFAULT_THREAD_ID,
+  messageStorageId,
+} from "../../threads/thread-model.ts";
+
 export const MESSAGES_UNSYNCED_KEY = "openbot_conversations_unsynced";
 
 type UnsyncedStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
@@ -25,19 +30,22 @@ function readIds(storage: UnsyncedStorage): Set<string> {
 export function isMessagesUnsynced(
   storage: UnsyncedStorage,
   botId: string,
+  threadId: string = DEFAULT_THREAD_ID,
 ): boolean {
-  return readIds(storage).has(botId);
+  return readIds(storage).has(messageStorageId(botId, threadId));
 }
 
 export function setMessagesUnsynced(
   storage: UnsyncedStorage,
   botId: string,
   value: boolean,
+  threadId: string = DEFAULT_THREAD_ID,
 ): void {
   try {
     const ids = readIds(storage);
-    if (value) ids.add(botId);
-    else ids.delete(botId);
+    const id = messageStorageId(botId, threadId);
+    if (value) ids.add(id);
+    else ids.delete(id);
     if (ids.size > 0) {
       storage.setItem(MESSAGES_UNSYNCED_KEY, JSON.stringify([...ids]));
     } else {
