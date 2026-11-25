@@ -115,7 +115,7 @@ export function ChannelRoom({ channel, bots, language }: ChannelRoomProps) {
           approval={room.approval}
           bots={bots}
           language={language}
-          onDecide={(choice) => void room.decide(choice)}
+          onDecide={(reply) => void room.decide(reply)}
         />
       )}
       {room.answering && (

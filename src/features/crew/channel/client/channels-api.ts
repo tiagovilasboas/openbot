@@ -1,7 +1,7 @@
 import { withApiHeaders } from "../../../server-guard/api-request-init.ts";
 import {
-  decisionsFor,
-  type DecisionChoice,
+  replyDecisions,
+  type PauseReply,
 } from "../../../tools/client/paused-turn.ts";
 import {
   parseToolEvent,
@@ -148,14 +148,14 @@ export function fetchChannelMessages(channelId: string, parentSeq?: number) {
 export function resolveApproval(
   channelId: string,
   pause: ApprovalPause,
-  choice: DecisionChoice,
+  reply: PauseReply,
 ) {
   return call(
     `${BASE}/approval`,
     json("POST", {
       channelId,
       turnId: pause.turnId,
-      decisions: decisionsFor(pause, choice),
+      decisions: replyDecisions(pause, reply),
     }),
     () => true as const,
   );

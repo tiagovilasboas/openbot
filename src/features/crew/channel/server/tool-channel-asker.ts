@@ -7,7 +7,6 @@ import {
 import type { FetchLike } from "../../../model/model-adapter.ts";
 import { selectAdapter } from "../../../model/select-adapter.ts";
 import { createStreamSignal } from "../../../model/stream-signal.ts";
-import { readSettings } from "../../../settings/server/settings-repository.ts";
 import type { ToolRegistry } from "../../../tools/tool-registry.ts";
 import { loadMcpTools } from "../../../mcp/server/mcp-tools.ts";
 import { toolsGateOn } from "../../../tools/server/parse-tool-turn.ts";
@@ -29,7 +28,6 @@ import { serverToolRegistry } from "../../../tools/server/server-tools.ts";
 import { createToolStep } from "../../../tools/server/tool-step.ts";
 import { externalDataRule } from "../../../untrusted-text/wrap-external-text.ts";
 import type { AskCrewModel } from "../../run-crew-turn.ts";
-import { NEEDS_ANSWER } from "./group-tools-copy.ts";
 import { buildChannelRequest } from "./model-channel-asker.ts";
 
 export type ToolChannelAskerOptions = {
@@ -124,8 +122,6 @@ export function createToolChannelAsker(
     });
     if (result.kind === "text") return { ok: true, text: result.text };
     if (result.kind === "paused") return { ok: false, pause: result.pause };
-    if (result.kind === "failed") return { ok: false };
-    const language = readSettings(db).language ?? "pt";
-    return { ok: true, text: NEEDS_ANSWER[language](result.tools) };
+    return { ok: false };
   };
 }
