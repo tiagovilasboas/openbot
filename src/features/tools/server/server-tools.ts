@@ -6,6 +6,7 @@ import { createCreateBotTool, createUpdateBotTool } from "./bot-tools.ts";
 import { createGithubListOpenItemsTool } from "./github-list-open-items.ts";
 import { createMemoryAddNoteTool } from "./memory-add-note.ts";
 import { createReadPageTool } from "./read-page.ts";
+import { createMessageBotTool } from "../../bot-messages/server/message-bot-tool.ts";
 import { createWakeupTool } from "../../routines/server/wakeup-tool.ts";
 import { workspaceTools } from "../../workspace/server/workspace-tools.ts";
 
@@ -32,6 +33,7 @@ export function serverToolRegistry(deps: ServerToolDeps): ToolRegistry {
     createCreateBotTool(deps.db),
     createUpdateBotTool(deps.db),
     createWakeupTool(deps.db),
+    createMessageBotTool(deps.db),
     ...workspaceTools(deps.workspaceRoot),
     ...(deps.extraTools ?? []),
   ]);
