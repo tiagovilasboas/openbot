@@ -36,6 +36,9 @@ export interface RoutinesCopy {
   weeklyAt: (days: string, time: string) => string;
   nextRun: (when: string) => string;
   paused: string;
+  /** Why the scheduler paused a routine: the person has been away. */
+  idlePaused: (days: number) => string;
+  resume: string;
   history: string;
   hideHistory: string;
   historyEmpty: string;
@@ -89,6 +92,9 @@ const PT: RoutinesCopy = {
   weeklyAt: (days, time) => `${days} às ${time}`,
   nextRun: (when) => `Próxima: ${when}`,
   paused: "Pausada",
+  idlePaused: (days) =>
+    `Pausada: você ficou ${days} dias sem usar este bot. Assim ela não gasta cota à toa.`,
+  resume: "Retomar",
   history: "Histórico",
   hideHistory: "Ocultar histórico",
   historyEmpty: "Ainda não rodou.",
@@ -156,6 +162,9 @@ const EN: RoutinesCopy = {
   weeklyAt: (days, time) => `${days} at ${time}`,
   nextRun: (when) => `Next: ${when}`,
   paused: "Paused",
+  idlePaused: (days) =>
+    `Paused: you went ${days} days without using this bot, so it stops spending quota.`,
+  resume: "Resume",
   history: "History",
   hideHistory: "Hide history",
   historyEmpty: "Has not run yet.",
@@ -225,6 +234,9 @@ const ES: RoutinesCopy = {
   weeklyAt: (days, time) => `${days} a las ${time}`,
   nextRun: (when) => `Próxima: ${when}`,
   paused: "Pausada",
+  idlePaused: (days) =>
+    `Pausada: pasaste ${days} días sin usar este bot, así no gasta cuota de más.`,
+  resume: "Reanudar",
   history: "Historial",
   hideHistory: "Ocultar historial",
   historyEmpty: "Todavía no se ejecutó.",

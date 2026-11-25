@@ -10,6 +10,12 @@ export const ROUTINES_MIGRATIONS: readonly MigrationStep[] = [
   "CREATE INDEX routines_due ON routines (enabled, next_run_at)",
   "CREATE TABLE routine_runs (id INTEGER PRIMARY KEY AUTOINCREMENT, routine_id TEXT NOT NULL, origin TEXT NOT NULL, started_at INTEGER NOT NULL, finished_at INTEGER, status TEXT NOT NULL, reason TEXT, nothing_new INTEGER, output TEXT)",
   "CREATE INDEX routine_runs_by_routine ON routine_runs (routine_id, started_at)",
+  // Set when the scheduler paused the routine for inactivity; a save clears it.
+  "ALTER TABLE routines ADD COLUMN idle_paused_at INTEGER",
+  // Existing routines get a fresh idle clock at upgrade, so none pauses on
+  // the first tick for time spent before the feature existed.
+  "ALTER TABLE routines ADD COLUMN idle_baseline_at INTEGER",
+  "UPDATE routines SET idle_baseline_at = CAST(strftime('%s', 'now') AS INTEGER) * 1000",
 ];
 
 const migrated = new WeakSet<DatabaseSync>();

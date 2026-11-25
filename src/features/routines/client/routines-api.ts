@@ -6,6 +6,8 @@ export type SavedRoutine = RoutineInput & {
   runningSince: number | null;
   nextRunAt: number | null;
   lastRunAt: number | null;
+  /** When the scheduler paused it for inactivity; null when it did not. */
+  idlePausedAt: number | null;
 };
 
 /** One past run, newest first in the list. Output is null when silent. */
@@ -39,6 +41,7 @@ export function parseSavedRoutine(raw: unknown): SavedRoutine | null {
     runningSince: numberOrNull(extra.runningSince),
     nextRunAt: numberOrNull(extra.nextRunAt),
     lastRunAt: numberOrNull(extra.lastRunAt),
+    idlePausedAt: numberOrNull(extra.idlePausedAt),
   };
 }
 

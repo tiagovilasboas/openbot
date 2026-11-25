@@ -1,5 +1,6 @@
 import type { DatabaseSync } from "node:sqlite";
 import { TICK_MS } from "../routine-tick.ts";
+import { conversationActivity } from "./conversation-activity.ts";
 import { runDueRoutines, type RoutineRunner } from "./run-routines.ts";
 
 export { TICK_MS };
@@ -30,7 +31,7 @@ export function startRoutineScheduler(
     if (ticking) return;
     ticking = true;
     const db = deps.getDb();
-    runDueRoutines(db, deps.makeRunner(db))
+    runDueRoutines(db, deps.makeRunner(db), Date.now, conversationActivity(db))
       .catch((error: unknown) => {
         console.error(
           "Open Bot routines tick failed:",
