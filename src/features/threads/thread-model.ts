@@ -51,10 +51,15 @@ export function defaultThread(botId: string): Thread {
 }
 
 const THREAD_ID_PATTERN = /^[A-Za-z0-9_-]{1,40}$/;
+const RESERVED_THREAD_IDS = new Set(["__proto__", "constructor", "prototype"]);
 
 /** Server-side guard for a thread id before it becomes a row key. */
 export function isValidThreadId(value: unknown): value is string {
-  return typeof value === "string" && THREAD_ID_PATTERN.test(value);
+  return (
+    typeof value === "string" &&
+    THREAD_ID_PATTERN.test(value) &&
+    !RESERVED_THREAD_IDS.has(value)
+  );
 }
 
 export function cleanTitle(title: string): string | null {

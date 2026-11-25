@@ -1,25 +1,12 @@
 import type { DatabaseSync } from "node:sqlite";
+import { isValidThreadId } from "../../threads/thread-model.ts";
 import { ensureThreadIndexSchema } from "./thread-index-schema.ts";
+
+export { isValidThreadId };
 
 /** Threads kept per bot; a PUT with more is refused. */
 export const THREAD_INDEX_MAX_PER_BOT = 200;
 export const THREAD_INDEX_TITLE_MAX = 80;
-export const THREAD_INDEX_ID_MAX = 64;
-
-// Own copy of the thread id rule (the "~" key separator is excluded); to be
-// consolidated with the client thread model in a later slice.
-const THREAD_ID_PATTERN = /^[A-Za-z0-9_-]+$/;
-const RESERVED_IDS = new Set(["__proto__", "constructor", "prototype"]);
-
-export function isValidThreadId(id: unknown): id is string {
-  return (
-    typeof id === "string" &&
-    id.length > 0 &&
-    id.length <= THREAD_INDEX_ID_MAX &&
-    THREAD_ID_PATTERN.test(id) &&
-    !RESERVED_IDS.has(id)
-  );
-}
 
 export type ThreadIndexEntry = {
   id: string;

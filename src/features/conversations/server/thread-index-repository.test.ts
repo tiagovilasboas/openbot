@@ -108,7 +108,7 @@ test("caps: too many threads, long title, duplicates, bad entries", () => {
 test("thread id rule", () => {
   assert.ok(isValidThreadId("default"));
   assert.ok(isValidThreadId("t_1700-abc"));
-  for (const id of ["", "a~b", "a b", "__proto__", "x".repeat(65), 1, null]) {
+  for (const id of ["", "a~b", "a b", "__proto__", "x".repeat(41), 1, null]) {
     assert.equal(isValidThreadId(id), false);
   }
 });
