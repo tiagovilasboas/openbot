@@ -76,6 +76,13 @@ Em Grupos, na barra lateral, Novo grupo põe vários bots num chat só. Cada um 
 - Sem ninguém citado, o grupo escolhe quem responde, no máximo dois. `@nome` chama um bot, `@todos` chama todos, e Responder numa mensagem manda a próxima para o autor dela.
 - As respostas aparecem uma a uma, assim que ficam prontas, com quem está digitando. Parar agora encerra o turno, e uma mensagem nova sua substitui a que ainda estava em andamento.
 - Um bot sem nada a acrescentar fica quieto. A fala dos outros bots chega a cada bot como dado, nunca como instrução.
+- Responder em thread abre uma conversa ao lado de uma resposta, sem poluir o grupo. Quem escreveu a mensagem responde por padrão.
+
+### Agentes que continuam trabalhando
+
+- Um bot pode mandar mensagem a outro por conta própria com a ferramenta `message_bot`, depois da sua aprovação. A conversa aparece numa thread, com limite por hora e guarda contra eco.
+- Cada bot pode ter um objetivo, com status e progresso, na seção Objetivo do editor. Só o objetivo ativo entra no prompt.
+- Quando você corrige um bot ("não, prefiro…", "sempre…"), aparece Salvar como preferência?. Nada vai para a memória dele sem o seu clique.
 
 ## O que ele faz hoje
 
