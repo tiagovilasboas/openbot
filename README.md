@@ -77,12 +77,14 @@ Under Groups in the sidebar, New group puts several bots in one chat. Each answe
 - Answers show up one by one as they land, with who is typing. Stop now ends the turn, and a new message from you takes over from the one still running.
 - A bot with nothing to add stays quiet. Other bots' messages reach each bot as data, never as instructions.
 - Reply in thread opens a side conversation on one answer without cluttering the group. The author of that message answers by default.
+- In a group, a bot uses its tools. When one needs approval it pauses and shows the same card as a 1:1 chat; Stop now or a new post from you cancels it.
 
 ### Bots that keep working
 
 - A bot can message another bot on its own with the `message_bot` tool, after your approval. The exchange shows up in a thread, with an hourly cap and an echo guard.
 - Each bot can have a goal, with status and progress, under Goal in the editor. Only an active goal reaches the prompt.
 - When you correct a bot ("no, I prefer…", "always…"), Save as a preference? appears. Nothing reaches its memory without your click.
+- A routine can be linked to the bot's goal and gets the goal as context when it runs. Recurring routines of a bot you have not used for 14 days pause on their own, with the reason and a Resume button.
 
 ## What it does today
 
