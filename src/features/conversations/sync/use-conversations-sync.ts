@@ -6,6 +6,7 @@ import { connectMessagesSync } from "../../chat/messages-sync-port.ts";
 import {
   browserMessagesSyncPort,
   loadConversationsFromServer,
+  resyncConversationsFromServer,
   subscribeConversationsSyncErrors,
 } from "./browser-conversations-sync.ts";
 import type { ConversationsSyncErrorCode } from "./conversations-sync-failure.ts";
@@ -23,7 +24,16 @@ export function useConversationsSync() {
     connectMessagesSync(browserMessagesSyncPort);
     void loadBotsFromServer().then(loadConversationsFromServer);
     const unsubscribe = subscribeConversationsSyncErrors(setSyncError);
+    const onReturn = () => {
+      if (document.visibilityState === "visible") {
+        resyncConversationsFromServer();
+      }
+    };
+    document.addEventListener("visibilitychange", onReturn);
+    window.addEventListener("focus", onReturn);
     return () => {
+      document.removeEventListener("visibilitychange", onReturn);
+      window.removeEventListener("focus", onReturn);
       unsubscribe();
       connectMessagesSync(null);
     };
