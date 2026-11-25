@@ -45,7 +45,7 @@ function parseDecision(raw: unknown): ResumeDecision | null {
   };
 }
 
-function parseResume(raw: unknown): ToolTurnFields["resume"] | false {
+export function parseResume(raw: unknown): ToolTurnFields["resume"] | false {
   if (raw === undefined || raw === null) return null;
   if (typeof raw !== "object") return false;
   const { turnId, decisions } = raw as Record<string, unknown>;

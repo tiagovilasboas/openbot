@@ -29,6 +29,7 @@ export interface ChannelsCopy {
   working: string;
   speaking: (name: string) => string;
   stop: string;
+  approvalFrom: (name: string) => string;
   reply: string;
   replyingTo: (name: string) => string;
   cancelReply: string;
@@ -72,6 +73,7 @@ const pt: ChannelsCopy = {
   working: "O grupo está vendo quem responde…",
   speaking: (name) => `${name} está digitando…`,
   stop: "Parar agora",
+  approvalFrom: (name) => `${name} pede para usar uma ferramenta`,
   reply: "Responder",
   replyingTo: (name) => `Respondendo a ${name}`,
   cancelReply: "Cancelar resposta",
@@ -98,6 +100,7 @@ const pt: ChannelsCopy = {
     invalid_parent: "A mensagem desta thread não existe mais.",
     invalid_text: "A mensagem está vazia ou longa demais.",
     not_found: "Este grupo não existe mais.",
+    turn_expired: "Esse pedido expirou. Mande a mensagem de novo.",
   },
 };
 
@@ -129,6 +132,7 @@ const en: ChannelsCopy = {
   working: "The group is working out who answers…",
   speaking: (name) => `${name} is typing…`,
   stop: "Stop now",
+  approvalFrom: (name) => `${name} wants to use a tool`,
   reply: "Reply",
   replyingTo: (name) => `Replying to ${name}`,
   cancelReply: "Cancel reply",
@@ -155,6 +159,7 @@ const en: ChannelsCopy = {
     invalid_parent: "The message of this thread no longer exists.",
     invalid_text: "The message is empty or too long.",
     not_found: "This group no longer exists.",
+    turn_expired: "That request expired. Send the message again.",
   },
 };
 
@@ -186,6 +191,7 @@ const es: ChannelsCopy = {
   working: "El grupo está viendo quién responde…",
   speaking: (name) => `${name} está escribiendo…`,
   stop: "Parar ahora",
+  approvalFrom: (name) => `${name} pide usar una herramienta`,
   reply: "Responder",
   replyingTo: (name) => `Respondiendo a ${name}`,
   cancelReply: "Cancelar respuesta",
@@ -212,6 +218,7 @@ const es: ChannelsCopy = {
     invalid_parent: "El mensaje de este hilo ya no existe.",
     invalid_text: "El mensaje está vacío o es demasiado largo.",
     not_found: "Este grupo ya no existe.",
+    turn_expired: "Ese pedido venció. Envía el mensaje de nuevo.",
   },
 };
 

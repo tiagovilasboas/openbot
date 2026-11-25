@@ -13,6 +13,9 @@ export const CREW_CHANNELS_MIGRATIONS: readonly MigrationStep[] = [
   "ALTER TABLE crew_channel_turns ADD COLUMN speaking_bot_id TEXT",
   // A thread message points at the main-timeline message it comments on.
   "ALTER TABLE crew_channel_messages ADD COLUMN parent_seq INTEGER",
+  // A member's tool call waiting for the person: the paused turn lives in
+  // tool_pending_turns (turn_id); this keeps what the group needs to go on.
+  "CREATE TABLE crew_channel_approvals (turn_id TEXT PRIMARY KEY, channel_id TEXT NOT NULL REFERENCES crew_channels(id) ON DELETE CASCADE, group_turn_id INTEGER NOT NULL, bot_id TEXT NOT NULL, parent_seq INTEGER, remaining TEXT NOT NULL, calls TEXT NOT NULL, expires_at INTEGER NOT NULL)",
 ];
 
 const migrated = new WeakSet<DatabaseSync>();

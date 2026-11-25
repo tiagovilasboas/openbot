@@ -79,7 +79,7 @@ test("a group member runs a no-approval tool, wraps its result and audits it", a
   });
 });
 
-test("a tool that needs approval is not run: the member points to a 1:1 chat", async () => {
+test("a tool that needs approval does not run: the turn pauses with its call", async () => {
   await withDb(async (db) => {
     setup(db);
     const { fetchImpl, bodies } = scriptedProvider(() =>
@@ -87,9 +87,11 @@ test("a tool that needs approval is not run: the member points to a 1:1 chat", a
     );
     const { ask, note } = asker(db, fetchImpl, noPlain);
     const reply = await ask(call());
-    assert.equal(reply.ok, true);
-    assert.match(reply.ok ? reply.text : "", /1:1 chat/);
-    assert.match(reply.ok ? reply.text : "", /note/);
+    assert.equal(reply.ok, false);
+    const pause = reply.ok ? null : reply.pause;
+    assert.equal(pause?.calls.length, 1);
+    assert.equal(pause?.calls[0]?.name, "note");
+    assert.equal(pause?.calls[0]?.allowAlways, true);
     assert.equal(note.runs.length, 0);
     assert.equal(bodies.length, 1);
   });

@@ -12,6 +12,13 @@ export type ApprovalCall = {
   ask?: AskUserPrompt;
 };
 
+/** A turn stopped for the user: these calls wait until expiresAt. */
+export type ToolPause = {
+  turnId: string;
+  calls: ApprovalCall[];
+  expiresAt: number;
+};
+
 /**
  * Wire format of POST /api/chat/tools: the /api/chat/stream events plus the
  * tool events. A turn ends with exactly one of done, error or
@@ -20,10 +27,5 @@ export type ApprovalCall = {
  */
 export type ToolTurnEvent =
   | ToolLoopEvent
-  | {
-      type: "approval_required";
-      turnId: string;
-      calls: ApprovalCall[];
-      expiresAt: number;
-    }
+  | ({ type: "approval_required" } & ToolPause)
   | { type: "tools_unavailable" };

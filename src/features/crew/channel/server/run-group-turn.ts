@@ -1,47 +1,23 @@
-import { buildBotSystemPrompt } from "../../../bots/bot-system-prompt.ts";
 import type { BotProfile } from "../../../bots/bot-types.ts";
-import type { ChatLanguage } from "../../../chat/respond-to-message.ts";
-import type { AskCrewModel } from "../../run-crew-turn.ts";
-import type { ChannelAuthor, ChannelMessage } from "../channel-message.ts";
-import type { CrewChannel } from "../crew-channel.ts";
+import type { ChannelMessage } from "../channel-message.ts";
 import {
-  groupRule,
-  isSkip,
   MAX_GROUP_RESPONDERS,
   parsePickerAnswer,
   pickerPrompt,
   pickResponders,
-  speakerMessages,
 } from "./group-chat.ts";
+import {
+  groupMembers,
+  runSpeakers,
+  type GroupRoom,
+  type GroupTurnDeps,
+  type GroupTurnState,
+} from "./group-speakers.ts";
 
-const INSTRUCTIONS: Record<ChatLanguage, string> = {
-  pt: "Instruções deste grupo:",
-  en: "This group's instructions:",
-  es: "Instrucciones de este grupo:",
-};
-
-const FAILED: Record<ChatLanguage, string> = {
-  pt: "Não consegui responder agora.",
-  en: "I could not answer right now.",
-  es: "No pude responder ahora.",
-};
-
-export interface GroupTurnDeps {
-  /** Stores one message and returns it as stored. */
-  append: (author: ChannelAuthor, text: string) => ChannelMessage;
-  /** True once the person stopped the turn or a newer post replaced it. */
-  isOver: () => boolean;
-  setSpeaking: (botId: string | null) => void;
-}
-
-interface GroupTurnInput {
-  channel: CrewChannel;
-  bots: BotProfile[];
+interface GroupTurnInput extends GroupRoom {
   /** The group's messages up to and including the person's post. */
   history: ChannelMessage[];
   post: ChannelMessage;
-  language: ChatLanguage;
-  askModel: AskCrewModel;
 }
 
 /** Who answers: the fixed pick, else the members' choice, else the first. */
@@ -87,45 +63,20 @@ async function responders(
 /**
  * One post in a group: the chosen members answer one after another, each
  * seeing the group so far, and each answer is stored as soon as it lands so
- * the room shows it live. Stops at once when the turn is over.
+ * the room shows it live. Stops at once when the turn is over, and pauses
+ * when a member's tool call waits for the person (see runSpeakers).
  */
 export async function runGroupTurn(
   input: GroupTurnInput,
   deps: GroupTurnDeps,
-): Promise<void> {
-  const members = input.bots.filter(
-    (bot) => input.channel.memberBotIds.includes(bot.id) && !bot.hidden,
-  );
-  if (members.length === 0 || deps.isOver()) return;
+): Promise<GroupTurnState> {
+  const members = groupMembers(input);
+  if (members.length === 0 || deps.isOver()) return "done";
   const speakers = await responders(input, members);
-  const seen = [...input.history];
-  for (const speaker of speakers) {
-    if (deps.isOver()) return;
-    deps.setSpeaking(speaker.id);
-    const notes = input.channel.instructions.trim();
-    const rule = [
-      groupRule(speaker, members, input.language),
-      ...(notes ? [`${INSTRUCTIONS[input.language]}\n${notes}`] : []),
-    ].join("\n\n");
-    const own = buildBotSystemPrompt(speaker, input.language, rule.length + 2);
-    const reply = await input
-      .askModel({
-        systemPrompt: `${own}\n\n${rule}`,
-        messages: speakerMessages(
-          seen,
-          speaker,
-          input.bots,
-          input.post.parentSeq,
-        ),
-        modelId: speaker.modelId,
-        speaker,
-      })
-      .catch(() => ({ ok: false as const }));
-    if (deps.isOver()) return;
-    if (reply.ok && isSkip(reply.text)) continue;
-    const ok = reply.ok && reply.text.trim() !== "";
-    const text = ok ? reply.text.trim() : FAILED[input.language];
-    seen.push(deps.append({ kind: "member", botId: speaker.id, ok }, text));
-  }
-  deps.setSpeaking(null);
+  return runSpeakers(
+    { ...input, parentSeq: input.post.parentSeq },
+    deps,
+    speakers,
+    [...input.history],
+  );
 }

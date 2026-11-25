@@ -42,6 +42,22 @@ export async function stubFixedReply(
   );
 }
 
+/**
+ * Makes the stub ask for a tool first, whenever a request offers tools and
+ * has no tool result yet; with the result in, it answers in text.
+ */
+export async function stubToolCall(
+  request: APIRequestContext,
+  model: string,
+  name: string,
+  args: unknown,
+): Promise<void> {
+  await request.post(
+    `${STUB_URL}/__stub/tool-call?model=${encodeURIComponent(model)}`,
+    { data: { name, args } },
+  );
+}
+
 /** Points the saved model settings on the server at the stub. */
 export async function useStubOnServer(
   request: APIRequestContext,

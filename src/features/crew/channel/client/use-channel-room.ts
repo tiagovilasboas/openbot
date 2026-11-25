@@ -1,10 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { DecisionChoice } from "../../../tools/client/paused-turn.ts";
 import { inChannelOrder, type ChannelMessage } from "../channel-message.ts";
 import {
   fetchChannelMessages,
   postChannelMessage,
+  resolveApproval,
   stopChannel,
   type ChannelRoomSnapshot,
 } from "./channels-api.ts";
@@ -28,6 +30,8 @@ export function useChannelRoom(channelId: string, parentSeq?: number) {
   const [messages, setMessages] = useState<ChannelMessage[]>([]);
   const [threadCounts, setThreadCounts] = useState<Record<number, number>>({});
   const [turn, setTurn] = useState<ChannelRoomSnapshot["turn"]>(null);
+  const [approval, setApproval] =
+    useState<ChannelRoomSnapshot["approval"]>(null);
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [waiting, setWaiting] = useState(false);
@@ -44,6 +48,7 @@ export function useChannelRoom(channelId: string, parentSeq?: number) {
       setMessages((current) => merge(current, result.value.messages));
       if (!parentSeq) setThreadCounts(result.value.threadCounts);
       setTurn(result.value.turn);
+      setApproval(result.value.approval);
       if (!result.value.turn) setWaiting(false);
     },
     [parentSeq],
@@ -99,7 +104,22 @@ export function useChannelRoom(channelId: string, parentSeq?: number) {
     await refresh();
   }, [channelId, refresh]);
 
+  /** Answers the waiting tool call; the member goes on, then the rest. */
+  const decide = useCallback(
+    async (choice: DecisionChoice) => {
+      if (!approval) return;
+      const result = await resolveApproval(channelId, approval.pause, choice);
+      if (!result.ok) setError(result.error);
+      else setWaiting(true);
+      setApproval(null);
+      await refresh();
+    },
+    [approval, channelId, refresh],
+  );
+
   return {
+    approval,
+    decide,
     messages,
     threadCounts,
     refresh,
