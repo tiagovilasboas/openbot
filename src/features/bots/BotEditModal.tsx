@@ -116,8 +116,8 @@ function BotEditForm({
   const isValid =
     name.trim().length > 0 && isBotModelIdValid(modelId) && backups.ok;
 
-  function closeAfter(action: (id: string) => void, id: string) {
-    action(id);
+  function closeAfter<A extends unknown[]>(action: (...a: A) => void, ...a: A) {
+    action(...a);
     onClose();
   }
 
@@ -258,6 +258,7 @@ function BotEditForm({
         draft={goalDraft}
         language={language}
         onChange={setGoalDraft}
+        botId={isEditing && bot ? bot.id : undefined}
       />
 
       <PromptBudgetNotice report={budgetReport} language={language} />
@@ -274,10 +275,7 @@ function BotEditForm({
           onRestore={onRestore && ((id) => closeAfter(onRestore, id))}
           onMoveToFolder={
             onMoveToFolder &&
-            ((id, folder) => {
-              onMoveToFolder(id, folder);
-              onClose();
-            })
+            ((id, folder) => closeAfter(onMoveToFolder, id, folder))
           }
         />
       )}

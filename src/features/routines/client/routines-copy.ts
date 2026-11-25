@@ -48,6 +48,10 @@ export interface RoutinesCopy {
   chainLabel: string;
   chainHint: string;
   chainNone: string;
+  goalLabel: string;
+  goalHint: string;
+  goalRoutinesTitle: string;
+  openRoutine: string;
   failed: (reason: string) => string;
   errors: Record<DraftProblem | "save" | "load" | "run", string>;
 }
@@ -105,6 +109,10 @@ const PT: RoutinesCopy = {
   chainHint:
     "Roda também logo após essa rotina trazer novidade, com o resultado dela.",
   chainNone: "Nenhuma",
+  goalLabel: "Ligada ao objetivo",
+  goalHint: "Cada execução recebe o objetivo do bot como contexto.",
+  goalRoutinesTitle: "Rotinas ligadas a este objetivo",
+  openRoutine: "Abrir",
   failed: (reason) => `Falhou (${reason})`,
   errors: {
     invalid_title: "Dê um nome à rotina.",
@@ -175,6 +183,10 @@ const EN: RoutinesCopy = {
   chainHint:
     "Also runs right after that routine reports something, with its result.",
   chainNone: "None",
+  goalLabel: "Linked to the goal",
+  goalHint: "Each run gets the bot's goal as context.",
+  goalRoutinesTitle: "Routines linked to this goal",
+  openRoutine: "Open",
   failed: (reason) => `Failed (${reason})`,
   errors: {
     invalid_title: "Give the routine a name.",
@@ -247,6 +259,10 @@ const ES: RoutinesCopy = {
   chainHint:
     "También se ejecuta justo después de que esa rutina traiga novedades, con su resultado.",
   chainNone: "Ninguna",
+  goalLabel: "Ligada al objetivo",
+  goalHint: "Cada ejecución recibe el objetivo del bot como contexto.",
+  goalRoutinesTitle: "Rutinas ligadas a este objetivo",
+  openRoutine: "Abrir",
   failed: (reason) => `Falló (${reason})`,
   errors: {
     invalid_title: "Ponle un nombre a la rutina.",

@@ -1,5 +1,6 @@
 import type { DatabaseSync } from "node:sqlite";
 import { nextRunAt } from "../next-run.ts";
+import { isOneShotRoutineId } from "../routine-idle.ts";
 import {
   checkRoutineInput,
   MAX_ROUTINES_PER_BOT,
@@ -24,11 +25,12 @@ type Row = {
   next_run_at: number | null;
   last_run_at: number | null;
   idle_paused_at: number | null;
+  goal_linked: number;
   active_at: number;
 };
 
 const COLUMNS =
-  "data, running_since, next_run_at, last_run_at, idle_paused_at, MAX(updated_at, COALESCE(idle_baseline_at, 0)) AS active_at";
+  "data, running_since, next_run_at, last_run_at, idle_paused_at, goal_linked, MAX(updated_at, COALESCE(idle_baseline_at, 0)) AS active_at";
 
 // A damaged row is skipped, never trusted and never fatal.
 function fromRow(row: Row): StoredRoutine | null {
@@ -40,8 +42,14 @@ function fromRow(row: Row): StoredRoutine | null {
   }
   const checked = checkRoutineInput(parsed);
   if (!checked.ok) return null;
+  // The column is the one source of the link; the stored data may be stale.
+  const routine = { ...checked.routine };
+  delete routine.goalLinked;
   return {
-    ...checked.routine,
+    ...routine,
+    ...(row.goal_linked === 1 && !isOneShotRoutineId(routine.id)
+      ? { goalLinked: true }
+      : {}),
     runningSince: row.running_since,
     nextRunAt: row.next_run_at,
     lastRunAt: row.last_run_at,
@@ -102,19 +110,21 @@ export function saveRoutine(
   const next = routine.enabled
     ? (nextRunAt(routine.schedule, new Date(now))?.getTime() ?? null)
     : null;
+  const { goalLinked, ...stored } = routine;
   db.prepare(
-    `INSERT INTO routines (id, bot_id, enabled, running_since, next_run_at, last_run_at, data, updated_at)
-     VALUES (?, ?, ?, NULL, ?, NULL, ?, ?)
+    `INSERT INTO routines (id, bot_id, enabled, running_since, next_run_at, last_run_at, data, updated_at, goal_linked)
+     VALUES (?, ?, ?, NULL, ?, NULL, ?, ?, ?)
      ON CONFLICT(id) DO UPDATE SET bot_id = excluded.bot_id, enabled = excluded.enabled,
        next_run_at = excluded.next_run_at, data = excluded.data, updated_at = excluded.updated_at,
-       idle_paused_at = NULL`,
+       goal_linked = excluded.goal_linked, idle_paused_at = NULL`,
   ).run(
     routine.id,
     routine.botId,
     routine.enabled ? 1 : 0,
     next,
-    JSON.stringify(routine),
+    JSON.stringify(stored),
     now,
+    goalLinked ? 1 : 0,
   );
   return { ok: true, routine: getRoutine(db, routine.id)! };
 }

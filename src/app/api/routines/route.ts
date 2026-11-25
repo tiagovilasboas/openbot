@@ -14,8 +14,15 @@ export function GET(request: Request) {
 
 export function PUT(request: Request) {
   const db = getLocalStore();
-  return handleSaveRoutine(request, db, (botId) =>
-    listBots(db).some((bot) => bot.id === botId),
+  return handleSaveRoutine(
+    request,
+    db,
+    (botId) => listBots(db).some((bot) => bot.id === botId),
+    Date.now,
+    (botId) =>
+      listBots(db).some(
+        (bot) => bot.id === botId && bot.goal?.status === "active",
+      ),
   );
 }
 

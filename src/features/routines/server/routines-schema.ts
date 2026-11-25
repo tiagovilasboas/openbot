@@ -16,6 +16,8 @@ export const ROUTINES_MIGRATIONS: readonly MigrationStep[] = [
   // the first tick for time spent before the feature existed.
   "ALTER TABLE routines ADD COLUMN idle_baseline_at INTEGER",
   "UPDATE routines SET idle_baseline_at = CAST(strftime('%s', 'now') AS INTEGER) * 1000",
+  // 1 while the routine's runs carry the bot's goal as context.
+  "ALTER TABLE routines ADD COLUMN goal_linked INTEGER NOT NULL DEFAULT 0",
 ];
 
 const migrated = new WeakSet<DatabaseSync>();
