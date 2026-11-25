@@ -6,6 +6,7 @@ import {
   saveBotMessages,
 } from "../../chat/use-bot-messages.ts";
 import { createConversationsApi } from "./conversations-api.ts";
+import { createResync } from "./conversations-resync.ts";
 import { createConversationsPutQueue } from "./conversations-put-queue.ts";
 import {
   conversationsSyncErrorCode,
@@ -61,24 +62,33 @@ export const browserMessagesSyncPort: MessagesSyncPort = {
   },
 };
 
-let loading: Promise<void> | null = null;
+const resync = createResync({
+  now: () => Date.now(),
+  load: () =>
+    syncConversationsOnLoad({
+      api,
+      botIds: () => loadBotsFromStorage().map((bot) => bot.id),
+      readLocal: (botId) => loadBotMessages(botId, DEFAULT_THREAD_ID),
+      isUnsynced: (botId) => isMessagesUnsynced(storage(), botId),
+      setUnsynced: (botId, value) =>
+        setMessagesUnsynced(storage(), botId, value),
+      mirror: (botId, messages) =>
+        saveBotMessages(botId, messages, {
+          sync: false,
+          threadId: DEFAULT_THREAD_ID,
+        }),
+      reportFailure: report,
+    }).catch(() => {
+      // Loading never throws: the cache is used as it is.
+    }),
+});
 
-/** Loads every bot's thread once per page; safe to call repeatedly. */
+/** Loads every bot's thread; shares a load already in flight. */
 export function loadConversationsFromServer(): Promise<void> {
-  loading ??= syncConversationsOnLoad({
-    api,
-    botIds: () => loadBotsFromStorage().map((bot) => bot.id),
-    readLocal: (botId) => loadBotMessages(botId, DEFAULT_THREAD_ID),
-    isUnsynced: (botId) => isMessagesUnsynced(storage(), botId),
-    setUnsynced: (botId, value) => setMessagesUnsynced(storage(), botId, value),
-    mirror: (botId, messages) =>
-      saveBotMessages(botId, messages, {
-        sync: false,
-        threadId: DEFAULT_THREAD_ID,
-      }),
-    reportFailure: report,
-  }).catch(() => {
-    // Loading never throws: the cache is used as it is.
-  });
-  return loading;
+  return resync.first();
+}
+
+/** Reloads on return to the tab; throttled, never concurrent. */
+export function resyncConversationsFromServer(): boolean {
+  return resync.trigger();
 }
