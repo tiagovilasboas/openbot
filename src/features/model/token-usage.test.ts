@@ -155,3 +155,19 @@ test("failover keeps the usage of the model that answered", async () => {
     assert.equal(result.failover?.toModel, "b");
   }
 });
+
+test("openAiUsage captures provider costUsd when finite and non-negative", () => {
+  assert.deepEqual(
+    openAiUsage({
+      usage: { prompt_tokens: 10, completion_tokens: 5, cost: 0.0042 },
+    }),
+    { inputTokens: 10, outputTokens: 5, costUsd: 0.0042 },
+  );
+  assert.deepEqual(openAiUsage({ usage: { prompt_tokens: 10, cost: -1 } }), {
+    inputTokens: 10,
+  });
+  assert.deepEqual(
+    readTokenUsage({ inputTokens: 10, outputTokens: 2, costUsd: 0.12 }),
+    { inputTokens: 10, outputTokens: 2, costUsd: 0.12 },
+  );
+});

@@ -4,6 +4,11 @@ import { createToolRegistry, type ToolRegistry } from "../tool-registry.ts";
 import { createAskUserTool } from "./ask-user-tool.ts";
 import { createCreateBotTool, createUpdateBotTool } from "./bot-tools.ts";
 import { createGithubListOpenItemsTool } from "./github-list-open-items.ts";
+import {
+  createGithubCommentItemTool,
+  createGithubCreatePullRequestTool,
+  createGithubGetPullRequestTool,
+} from "./github-pr-tools.ts";
 import { createMemoryAddNoteTool } from "./memory-add-note.ts";
 import { createReadPageTool } from "./read-page.ts";
 import { createMessageBotTool } from "../../bot-messages/server/message-bot-tool.ts";
@@ -24,6 +29,18 @@ export type ServerToolDeps = {
 export function serverToolRegistry(deps: ServerToolDeps): ToolRegistry {
   return createToolRegistry([
     createGithubListOpenItemsTool({
+      fetchImpl: deps.fetchImpl,
+      token: deps.githubToken,
+    }),
+    createGithubGetPullRequestTool({
+      fetchImpl: deps.fetchImpl,
+      token: deps.githubToken,
+    }),
+    createGithubCommentItemTool({
+      fetchImpl: deps.fetchImpl,
+      token: deps.githubToken,
+    }),
+    createGithubCreatePullRequestTool({
       fetchImpl: deps.fetchImpl,
       token: deps.githubToken,
     }),

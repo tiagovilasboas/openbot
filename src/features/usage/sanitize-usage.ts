@@ -1,6 +1,11 @@
 import { isValidBotId } from "../bots/bot-id.ts";
 import { isUsageDay } from "./usage-day.ts";
-import { capCount, capDaysPerBot, type UsageRecord } from "./usage-record.ts";
+import {
+  capCostUsd,
+  capCount,
+  capDaysPerBot,
+  type UsageRecord,
+} from "./usage-record.ts";
 
 /** Hard stop for hostile storage: more bots than anyone keeps. */
 const MAX_BOTS = 100;
@@ -12,6 +17,13 @@ function count(value: unknown): number {
   return capCount(Math.floor(value));
 }
 
+function validCostUsd(value: unknown): number | undefined {
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
+    return undefined;
+  }
+  return capCostUsd(value);
+}
+
 function sanitizeRecord(value: unknown): UsageRecord | null {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     return null;
@@ -19,6 +31,7 @@ function sanitizeRecord(value: unknown): UsageRecord | null {
   const raw = value as Record<string, unknown>;
   if (!isValidBotId(raw.botId) || !isUsageDay(raw.day)) return null;
   const calls = count(raw.calls);
+  const costUsd = validCostUsd(raw.costUsd);
   return {
     botId: raw.botId,
     day: raw.day,
@@ -27,6 +40,7 @@ function sanitizeRecord(value: unknown): UsageRecord | null {
     calls,
     // Cannot exceed the calls they belong to.
     callsWithoutUsage: Math.min(count(raw.callsWithoutUsage), calls),
+    ...(costUsd !== undefined ? { costUsd } : {}),
   };
 }
 
@@ -61,6 +75,13 @@ export function sanitizeUsage(value: unknown): UsageRecord[] {
               capCount(previous.callsWithoutUsage + record.callsWithoutUsage),
               capCount(previous.calls + record.calls),
             ),
+            ...(previous.costUsd !== undefined || record.costUsd !== undefined
+              ? {
+                  costUsd: capCostUsd(
+                    (previous.costUsd ?? 0) + (record.costUsd ?? 0),
+                  ),
+                }
+              : {}),
           }
         : record,
     );

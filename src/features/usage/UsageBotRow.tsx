@@ -15,6 +15,13 @@ interface UsageBotRowProps {
   onReset: () => void;
 }
 
+const usdFormatter = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 4,
+});
+
 function Tokens({
   copy,
   format,
@@ -28,6 +35,12 @@ function Tokens({
     <span className="tabular-nums">
       {format(totals.inputTokens)} {copy.input} · {format(totals.outputTokens)}{" "}
       {copy.output}
+      {totals.costUsd !== undefined && totals.costUsd > 0 && (
+        <span className="text-muted">
+          {" "}
+          · {usdFormatter.format(totals.costUsd)}
+        </span>
+      )}
     </span>
   );
 }

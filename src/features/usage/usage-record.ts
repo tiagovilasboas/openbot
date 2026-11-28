@@ -18,6 +18,7 @@ export interface UsageRecord {
   outputTokens: number;
   calls: number;
   callsWithoutUsage: number;
+  costUsd?: number;
 }
 
 export interface UsageTotals {
@@ -25,6 +26,7 @@ export interface UsageTotals {
   outputTokens: number;
   calls: number;
   callsWithoutUsage: number;
+  costUsd?: number;
 }
 
 const NO_TOTALS: UsageTotals = {
@@ -36,6 +38,11 @@ const NO_TOTALS: UsageTotals = {
 
 export function capCount(value: number): number {
   return Math.min(value, USAGE_MAX_COUNT);
+}
+
+export function capCostUsd(value: number): number {
+  const clamped = Math.min(Math.max(0, value), 100_000);
+  return Math.round(clamped * 1_000_000) / 1_000_000;
 }
 
 /** Keeps the newest days of each bot. Input order does not matter. */
@@ -66,6 +73,10 @@ export function addCall(
     usage !== undefined &&
     (usage.inputTokens !== undefined || usage.outputTokens !== undefined);
   const current = records.find((r) => r.botId === botId && r.day === day);
+  const nextCost =
+    usage?.costUsd !== undefined
+      ? capCostUsd((current?.costUsd ?? 0) + usage.costUsd)
+      : current?.costUsd;
   const next: UsageRecord = {
     botId,
     day,
@@ -79,23 +90,28 @@ export function addCall(
     callsWithoutUsage: capCount(
       (current?.callsWithoutUsage ?? 0) + (known ? 0 : 1),
     ),
+    ...(nextCost !== undefined ? { costUsd: nextCost } : {}),
   };
   const others = records.filter((r) => r !== current);
   return capDaysPerBot([...others, next]);
 }
 
 function sum(records: readonly UsageRecord[]): UsageTotals {
-  return records.reduce<UsageTotals>(
-    (total, r) => ({
+  return records.reduce<UsageTotals>((total, r) => {
+    const costUsd =
+      r.costUsd !== undefined || total.costUsd !== undefined
+        ? capCostUsd((total.costUsd ?? 0) + (r.costUsd ?? 0))
+        : undefined;
+    return {
       inputTokens: capCount(total.inputTokens + r.inputTokens),
       outputTokens: capCount(total.outputTokens + r.outputTokens),
       calls: capCount(total.calls + r.calls),
       callsWithoutUsage: capCount(
         total.callsWithoutUsage + r.callsWithoutUsage,
       ),
-    }),
-    NO_TOTALS,
-  );
+      ...(costUsd !== undefined ? { costUsd } : {}),
+    };
+  }, NO_TOTALS);
 }
 
 /** Everything kept for the bot. */

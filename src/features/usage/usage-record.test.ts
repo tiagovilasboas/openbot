@@ -168,3 +168,23 @@ describe("days", () => {
     assert.equal(isUsageDay(20260101), false);
   });
 });
+
+describe("costUsd tracking", () => {
+  it("accumulates provider-reported USD cost per bot and day", () => {
+    let records = addCall(
+      NONE,
+      "a",
+      { inputTokens: 100, outputTokens: 20, costUsd: 0.0015 },
+      "2026-03-01",
+    );
+    records = addCall(
+      records,
+      "a",
+      { inputTokens: 200, outputTokens: 40, costUsd: 0.0025 },
+      "2026-03-01",
+    );
+    assert.equal(records[0]?.costUsd, 0.004);
+    const totals = totalForBot(records, "a");
+    assert.equal(totals.costUsd, 0.004);
+  });
+});

@@ -15,6 +15,9 @@ interface ToolsCopy {
   toolNames: {
     memory_add_note: string;
     github_list_open_items: string;
+    github_get_pull_request: string;
+    github_comment_item: string;
+    github_create_pull_request: string;
     ask_user: string;
     read_page: string;
     create_bot: string;
@@ -47,6 +50,9 @@ export const toolsCopy: Record<Language, ToolsCopy> = {
     toolNames: {
       memory_add_note: "Salvar uma nota na memória",
       github_list_open_items: "Ler issues e PRs abertos no GitHub",
+      github_get_pull_request: "Ler detalhes de um PR no GitHub",
+      github_comment_item: "Comentar em issue ou PR no GitHub",
+      github_create_pull_request: "Abrir um Pull Request no GitHub",
       ask_user: "Pergunta para você",
       read_page: "Ler uma página da web",
       create_bot: "Criar um bot na equipe",
@@ -85,6 +91,9 @@ export const toolsCopy: Record<Language, ToolsCopy> = {
     toolNames: {
       memory_add_note: "Save a note to memory",
       github_list_open_items: "Read open GitHub issues and PRs",
+      github_get_pull_request: "Read a GitHub pull request",
+      github_comment_item: "Comment on a GitHub issue or PR",
+      github_create_pull_request: "Open a GitHub pull request",
       ask_user: "Question for you",
       read_page: "Read a web page",
       create_bot: "Create a bot in the crew",
@@ -123,6 +132,9 @@ export const toolsCopy: Record<Language, ToolsCopy> = {
     toolNames: {
       memory_add_note: "Guardar una nota en la memoria",
       github_list_open_items: "Leer issues y PR abiertos en GitHub",
+      github_get_pull_request: "Leer detalles de un PR en GitHub",
+      github_comment_item: "Comentar en un issue o PR de GitHub",
+      github_create_pull_request: "Abrir un Pull Request en GitHub",
       ask_user: "Pregunta para ti",
       read_page: "Leer una página web",
       create_bot: "Crear un bot en el equipo",
