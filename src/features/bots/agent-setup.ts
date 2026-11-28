@@ -51,3 +51,17 @@ export function buildSetupCrew(
   );
   return { bots: [main, ...roles], mainBotId: main.id };
 }
+
+/**
+ * Opt-in Starter Kit: creates the full pre-configured 9-role crew template
+ * when the user explicitly chooses it instead of starting clean.
+ */
+export function buildStarterKitCrew(now = new Date()): SetupResult {
+  const stamp = now.toISOString();
+  const bots = CREW_PRESETS.map((bot) => ({
+    ...bot,
+    createdAt: stamp,
+    updatedAt: stamp,
+  }));
+  return { bots, mainBotId: DEFAULT_BOT.id };
+}

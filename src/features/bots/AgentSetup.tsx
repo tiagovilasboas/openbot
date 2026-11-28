@@ -3,7 +3,12 @@
 import { useState } from "react";
 import type { Language } from "../language/language.ts";
 import { BotAvatar } from "./BotAvatar.tsx";
-import { buildSetupCrew, SETUP_ROLES } from "./agent-setup.ts";
+import {
+  buildSetupCrew,
+  buildStarterKitCrew,
+  SETUP_ROLES,
+  type SetupResult,
+} from "./agent-setup.ts";
 import { getAgentSetupCopy } from "./agent-setup-copy.ts";
 import { saveActiveBotId, saveBotsToStorage } from "./bot-storage.ts";
 import { BOT_LABEL_MAX_LENGTH, BOT_NAME_MAX_LENGTH } from "./bot-types.ts";
@@ -22,16 +27,24 @@ export function AgentSetup({ language }: { language: Language }) {
   const [instructions, setInstructions] = useState("");
   const [roleIds, setRoleIds] = useState<string[]>([]);
 
+  function persistCrew(crew: SetupResult) {
+    saveMainBotId(crew.mainBotId);
+    saveActiveBotId(crew.mainBotId);
+    saveBotsToStorage(crew.bots);
+    pushBots();
+  }
+
   function create() {
     const crew = buildSetupCrew(
       { name, title, instructions, roleIds },
       language,
     );
     if (!crew) return;
-    saveMainBotId(crew.mainBotId);
-    saveActiveBotId(crew.mainBotId);
-    saveBotsToStorage(crew.bots);
-    pushBots();
+    persistCrew(crew);
+  }
+
+  function applyStarterKit() {
+    persistCrew(buildStarterKitCrew());
   }
 
   return (
@@ -140,6 +153,21 @@ export function AgentSetup({ language }: { language: Language }) {
             {copy.create}
           </button>
         </form>
+        <section className="flex flex-col gap-2 rounded-xl border border-border bg-surface/50 px-3.5 py-3">
+          <div className="flex flex-col gap-1">
+            <h2 className="text-sm font-medium text-foreground">
+              {copy.starterKitTitle}
+            </h2>
+            <p className="text-xs text-muted">{copy.starterKitHint}</p>
+          </div>
+          <button
+            type="button"
+            onClick={applyStarterKit}
+            className="min-h-10 self-start rounded-full border border-border bg-surface px-4 text-xs font-semibold text-foreground hover:bg-surface-hover"
+          >
+            {copy.starterKitAction}
+          </button>
+        </section>
         {/* Someone moving in brings their crew back instead of starting over. */}
         <details className="rounded-xl border border-border px-3 py-2">
           <summary className="min-h-9 cursor-pointer py-1.5 text-sm font-medium text-foreground">

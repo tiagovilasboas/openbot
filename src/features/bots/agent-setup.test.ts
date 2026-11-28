@@ -1,6 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildSetupCrew, SETUP_ROLES } from "./agent-setup.ts";
+import {
+  buildSetupCrew,
+  buildStarterKitCrew,
+  SETUP_ROLES,
+} from "./agent-setup.ts";
+import { CREW_PRESETS } from "./crew-presets.ts";
+import { DEFAULT_BOT } from "./bot-types.ts";
 import { DEFAULT_BOTS_LIST, parseBots } from "./bot-storage.ts";
 
 test("a fresh install has no agents at all", () => {
@@ -45,4 +51,19 @@ test("checked roles join after the main agent, in the offered order", () => {
   assert.deepEqual(crew.bots.map((b) => b.id).slice(1), [first.id, second.id]);
   assert.equal(crew.bots[0].description, "Be brief.");
   assert.ok(!SETUP_ROLES.some((r) => r.id === "chief-of-staff"));
+});
+
+test("starter kit is opt-in and builds the full preset crew with fresh timestamps", () => {
+  const now = new Date("2026-11-28T12:00:00.000Z");
+  const crew = buildStarterKitCrew(now);
+  assert.equal(crew.mainBotId, DEFAULT_BOT.id);
+  assert.equal(crew.bots.length, CREW_PRESETS.length);
+  assert.deepEqual(
+    crew.bots.map((b) => b.id),
+    CREW_PRESETS.map((b) => b.id),
+  );
+  for (const bot of crew.bots) {
+    assert.equal(bot.createdAt, now.toISOString());
+    assert.equal(bot.updatedAt, now.toISOString());
+  }
 });

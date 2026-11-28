@@ -12,6 +12,9 @@ interface AgentSetupCopy {
   extraTitle: string;
   extraHint: string;
   create: string;
+  starterKitTitle: string;
+  starterKitHint: string;
+  starterKitAction: string;
   loading: string;
   restoreTitle: string;
 }
@@ -31,6 +34,10 @@ const COPY: Record<Language, AgentSetupCopy> = {
     extraTitle: "Mais agentes (opcional)",
     extraHint: "Marque só os que quiser. Você também pode criar outros depois.",
     create: "Criar e começar",
+    starterKitTitle: "Prefere um Starter Kit pronto?",
+    starterKitHint:
+      "Carrega o template com Chief of Staff e 8 especialistas já configurados. Se preferir manter limpo, crie apenas o seu agente acima.",
+    starterKitAction: "Usar Starter Kit (9 agentes)",
     loading: "Carregando…",
     restoreTitle: "Já usa o Open Bot? Restaurar um backup",
   },
@@ -48,6 +55,10 @@ const COPY: Record<Language, AgentSetupCopy> = {
     extraTitle: "More agents (optional)",
     extraHint: "Check only the ones you want. You can create others later too.",
     create: "Create and start",
+    starterKitTitle: "Prefer a ready-made Starter Kit?",
+    starterKitHint:
+      "Loads the template with Chief of Staff and 8 configured specialists. To keep it clean, just create your own agent above.",
+    starterKitAction: "Use Starter Kit (9 agents)",
     loading: "Loading…",
     restoreTitle: "Already use Open Bot? Restore a backup",
   },
@@ -66,6 +77,10 @@ const COPY: Record<Language, AgentSetupCopy> = {
     extraHint:
       "Marca solo los que quieras. También puedes crear otros después.",
     create: "Crear y empezar",
+    starterKitTitle: "¿Prefieres un Starter Kit listo?",
+    starterKitHint:
+      "Carga la plantilla con Chief of Staff y 8 especialistas configurados. Si prefieres empezar limpio, crea solo tu agente arriba.",
+    starterKitAction: "Usar Starter Kit (9 agentes)",
     loading: "Cargando…",
     restoreTitle: "¿Ya usas Open Bot? Restaurar una copia",
   },
