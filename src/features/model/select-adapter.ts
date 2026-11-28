@@ -1,4 +1,5 @@
 import { createAnthropicAdapter } from "./anthropic-adapter.ts";
+import { createChatGptAdapter } from "./chatgpt-adapter.ts";
 import { createLocalAdapter } from "./local-adapter.ts";
 import { createRouterAdapter } from "./router-adapter.ts";
 import type { ModelNetworkOptions } from "./guarded-model-fetch.ts";
@@ -7,6 +8,10 @@ import type { StreamingModelAdapter } from "./stream-adapter.ts";
 import type { ClientModelConfig } from "./model-config.ts";
 
 type Env = Record<string, string | undefined>;
+
+export type SelectAdapterOptions = ModelNetworkOptions & {
+  oauthTokens?: Readonly<Record<string, string | undefined>>;
+};
 
 function present(value: string | undefined): string | null {
   const trimmed = value?.trim();
@@ -26,8 +31,9 @@ export function selectAdapter(
   env: Env,
   customConfig?: ClientModelConfig | null,
   fetchImpl?: FetchLike,
-  network: ModelNetworkOptions = {},
+  network: SelectAdapterOptions = {},
 ): StreamingModelAdapter | null {
+  const { oauthTokens, ...networkOptions } = network;
   if (customConfig) {
     if (customConfig.provider === "local") {
       return createLocalAdapter({
@@ -35,7 +41,7 @@ export function selectAdapter(
         model: customConfig.model,
         fetchImpl,
         guardUrl: true,
-        ...network,
+        ...networkOptions,
       });
     }
     if (customConfig.provider === "router") {
@@ -45,7 +51,7 @@ export function selectAdapter(
         apiKey: customConfig.apiKey,
         fetchImpl,
         guardUrl: true,
-        ...network,
+        ...networkOptions,
       });
     }
     if (customConfig.provider === "anthropic") {
@@ -54,7 +60,15 @@ export function selectAdapter(
         apiKey: customConfig.apiKey ?? "",
         model: customConfig.model,
         fetchImpl,
-        ...network,
+        ...networkOptions,
+      });
+    }
+    if (customConfig.provider === "chatgpt") {
+      return createChatGptAdapter({
+        accessToken: oauthTokens?.chatgpt ?? "",
+        model: customConfig.model,
+        fetchImpl,
+        ...networkOptions,
       });
     }
   }
@@ -66,7 +80,7 @@ export function selectAdapter(
       baseUrl: localUrl,
       model: localModel,
       fetchImpl,
-      ...network,
+      ...networkOptions,
     });
   }
 
@@ -79,7 +93,7 @@ export function selectAdapter(
       model: routerModel,
       apiKey: routerApiKey,
       fetchImpl,
-      ...network,
+      ...networkOptions,
     });
   }
 
@@ -90,7 +104,7 @@ export function selectAdapter(
       apiKey,
       model: anthropicModel,
       fetchImpl,
-      ...network,
+      ...networkOptions,
     });
   }
 

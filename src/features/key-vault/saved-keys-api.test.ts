@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   deleteAllSavedKeys,
   fetchSavedKeys,
+  fetchVaultStatus,
   hasSavedKeyFor,
   putSavedKey,
 } from "./saved-keys-api.ts";
@@ -57,9 +58,31 @@ test("the saved list is read by provider and never has a value", async () => {
       { provider: "router", origin: "https://openrouter.ai", updatedAt: 5 },
       { provider: "bogus", origin: "https://x.test", updatedAt: 1 },
     ],
+    oauthSessions: [
+      {
+        provider: "chatgpt",
+        origin: "https://api.openai.com",
+        updatedAt: 10,
+        expiresAt: 20,
+        needsReauth: true,
+        accountLabel: "Plus",
+      },
+      {
+        provider: "unknown",
+        origin: "https://x.test",
+        updatedAt: 1,
+        expiresAt: null,
+        needsReauth: false,
+        accountLabel: null,
+      },
+    ],
   });
   const saved = await fetchSavedKeys(impl);
   assert.deepEqual(Object.keys(saved ?? {}), ["router"]);
+  const snapshot = await fetchVaultStatus(impl);
+  assert.equal(snapshot?.oauthSessions.chatgpt?.accountLabel, "Plus");
+  assert.equal(snapshot?.oauthSessions.chatgpt?.needsReauth, true);
+  assert.equal(Object.keys(snapshot?.oauthSessions ?? {}).length, 1);
   assert.equal(await fetchSavedKeys(stubFetch(500).impl), null);
 });
 

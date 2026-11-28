@@ -5,17 +5,39 @@ import type { ConnectionId } from "./connection-methods.ts";
  * so a flow never knows where a credential is kept or how it is encrypted.
  */
 
+export type ConnectCredential =
+  | { kind: "api-key"; secret: string }
+  | {
+      kind: "oauth-session";
+      accessToken: string;
+      refreshToken?: string;
+      expiresAt: number | null;
+      clientId?: string;
+      hostId?: string;
+      accountLabel?: string | null;
+    };
+
 export interface CredentialStatus {
   connected: boolean;
   /** Epoch milliseconds of the last save, or null when not connected. */
   updatedAt: number | null;
+  expiresAt?: number | null;
+  needsReauth?: boolean;
+  accountLabel?: string | null;
 }
 
 /** Keeps the one credential of each connection. Implemented over the key vault. */
 export interface CredentialStore {
-  save(id: ConnectionId, credential: string): Promise<void>;
+  save(id: ConnectionId, credential: ConnectCredential): Promise<void>;
   remove(id: ConnectionId): Promise<void>;
   status(id: ConnectionId): Promise<CredentialStatus>;
+}
+
+/** Keeps the per-provider host UUID and dynamic OAuth client_id on the server. */
+export interface OAuthClientIdentityStore {
+  readOrCreateHostId(id: ConnectionId): string;
+  saveClientId(id: ConnectionId, clientId: string): void;
+  readClientId(id: ConnectionId): string | null;
 }
 
 /** What a started OAuth Connect must remember until its callback. */
@@ -23,6 +45,8 @@ export interface PendingAuth {
   id: ConnectionId;
   /** PKCE secret: never leaves the server. */
   verifier: string;
+  redirectUri: string;
+  nonce?: string;
   createdAt: number;
 }
 

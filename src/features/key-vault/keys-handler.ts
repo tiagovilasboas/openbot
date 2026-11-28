@@ -1,4 +1,5 @@
 import type { DatabaseSync } from "node:sqlite";
+import { listOAuthSessionSummaries } from "./oauth-session-repository.ts";
 import {
   deleteProviderKey,
   listProviderKeys,
@@ -27,7 +28,10 @@ function failure(error: string, status = 400): Response {
 }
 
 export function handleListKeys(context: VaultContext): Response {
-  return json({ keys: listProviderKeys(context.db) });
+  return json({
+    keys: listProviderKeys(context.db),
+    oauthSessions: listOAuthSessionSummaries(context.db),
+  });
 }
 
 async function readBody(request: Request): Promise<Record<string, unknown>> {

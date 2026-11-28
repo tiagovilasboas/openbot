@@ -33,14 +33,17 @@ export function ConnectionsPanel({
   hideSecretLabel,
 }: ConnectionsPanelProps) {
   const c = getConnectionsCopy(language);
-  const { keys } = useSavedKeys();
+  const { keys, oauthSessions } = useSavedKeys();
   const gitHubToken = useGitHubToken();
   const activeConfig = useModelConfig();
   const offProviders = useOffProviders();
   const [openId, setOpenId] = useState<ConnectionId | null>(null);
+  const chatgptSession = oauthSessions.chatgpt;
 
   function isSaved(id: ConnectionId): boolean {
-    return id === "github" ? Boolean(gitHubToken) : Boolean(keys[id]);
+    if (id === "github") return Boolean(gitHubToken);
+    if (id === "chatgpt") return Boolean(chatgptSession);
+    return Boolean(keys[id]);
   }
 
   const body = openId ? (
@@ -53,6 +56,12 @@ export function ConnectionsPanel({
       providerPage={{
         isOff: offProviders.includes(openId),
         activeConfig,
+        ...(openId === "chatgpt"
+          ? {
+              accountLabel: chatgptSession?.accountLabel ?? null,
+              needsReauth: Boolean(chatgptSession?.needsReauth),
+            }
+          : {}),
       }}
       showSecretLabel={showSecretLabel}
       hideSecretLabel={hideSecretLabel}
@@ -67,25 +76,37 @@ export function ConnectionsPanel({
           </h3>
           <ul className="divide-y divide-border overflow-hidden rounded-2xl border border-border">
             {CONNECTIONS.filter((entry) => entry.group === group).map(
-              (entry) => (
-                <ConnectionRow
-                  key={entry.id}
-                  name={entry.name}
-                  description={c.descriptions[entry.id]}
-                  state={describeProviderState({
-                    isSaved: isSaved(entry.id),
-                    isInUse: activeConfig?.provider === entry.id,
-                    isOff: offProviders.includes(entry.id),
-                  })}
-                  labels={{
-                    notConfigured: c.connect,
-                    connected: c.connected,
-                    inUse: c.stateInUse,
-                    off: c.stateOff,
-                  }}
-                  onOpen={() => setOpenId(entry.id)}
-                />
-              ),
+              (entry) => {
+                const accountLabel =
+                  entry.id === "chatgpt" ? chatgptSession?.accountLabel : null;
+                const needsReauth =
+                  entry.id === "chatgpt" &&
+                  Boolean(chatgptSession?.needsReauth);
+                const description = accountLabel
+                  ? `${c.descriptions[entry.id]} · ${accountLabel}`
+                  : c.descriptions[entry.id];
+                return (
+                  <ConnectionRow
+                    key={entry.id}
+                    name={entry.name}
+                    description={description}
+                    state={describeProviderState({
+                      isSaved: isSaved(entry.id),
+                      isInUse: activeConfig?.provider === entry.id,
+                      isOff: offProviders.includes(entry.id),
+                      needsReauth,
+                    })}
+                    labels={{
+                      notConfigured: c.connect,
+                      connected: c.connected,
+                      inUse: c.stateInUse,
+                      off: c.stateOff,
+                      needsReauth: c.stateNeedsReauth,
+                    }}
+                    onOpen={() => setOpenId(entry.id)}
+                  />
+                );
+              },
             )}
           </ul>
         </section>

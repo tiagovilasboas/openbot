@@ -11,6 +11,7 @@ import {
   handlePutKey,
   type VaultContext,
 } from "./keys-handler.ts";
+import { saveOAuthSession } from "./oauth-session-repository.ts";
 import { migrateKeyVault, readProviderKey } from "./provider-key-repository.ts";
 
 const SECRET = "sk-or-v1-HANDLER-SECRET-42";
@@ -66,11 +67,32 @@ test("PUT saves the key and answers without it", async () => {
 test("GET lists summaries only, with no-store", async () => {
   await withContext(async (context) => {
     await handlePutKey(put(valid), context);
+    saveOAuthSession(
+      context.db,
+      context.masterKey,
+      {
+        provider: "chatgpt",
+        origin: "https://api.openai.com",
+        session: {
+          accessToken: "oauth-secret-access-token",
+          refreshToken: "oauth-secret-refresh-token",
+          expiresAt: 9000,
+          clientId: "oaiapp_secret_client",
+          hostId: "host-secret",
+          accountLabel: "Plus",
+        },
+      },
+      1234,
+    );
     const response = handleListKeys(context);
     assert.equal(response.status, 200);
     assert.equal(response.headers.get("cache-control"), "no-store");
     const text = await response.text();
     assert.ok(!text.includes(SECRET));
+    assert.ok(!text.includes("oauth-secret-access-token"));
+    assert.ok(!text.includes("oauth-secret-refresh-token"));
+    assert.ok(!text.includes("oaiapp_secret_client"));
+    assert.ok(!text.includes("host-secret"));
     const body = JSON.parse(text);
     assert.deepEqual(
       body.keys.map((k: { provider: string; origin: string }) => [
@@ -79,6 +101,16 @@ test("GET lists summaries only, with no-store", async () => {
       ]),
       [["router", "https://openrouter.ai"]],
     );
+    assert.deepEqual(body.oauthSessions, [
+      {
+        provider: "chatgpt",
+        origin: "https://api.openai.com",
+        updatedAt: 1234,
+        expiresAt: 9000,
+        needsReauth: false,
+        accountLabel: "Plus",
+      },
+    ]);
   });
 });
 

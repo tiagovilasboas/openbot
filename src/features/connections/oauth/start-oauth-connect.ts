@@ -2,15 +2,26 @@ import {
   connectRoute,
   type Clock,
   type ConnectionId,
+  type OAuthClientIdentityStore,
   type PendingAuthStore,
 } from "../core/index.ts";
-import { authorizeUrlFor, callbackUrlFor } from "./openrouter-oauth.ts";
+import { chatgptSiwcOAuthProvider } from "./chatgpt-siwc-oauth.ts";
+import type { OAuthProviderSpec } from "./oauth-provider.ts";
+import { openRouterOAuthProvider } from "./openrouter-oauth.ts";
 import { createPkce, createState, type RandomBytes } from "./pkce.ts";
+
+export const OAUTH_PROVIDERS: Readonly<
+  Partial<Record<ConnectionId, OAuthProviderSpec>>
+> = {
+  router: openRouterOAuthProvider,
+  chatgpt: chatgptSiwcOAuthProvider,
+};
 
 export interface StartOAuthDeps {
   pending: PendingAuthStore;
   clock: Clock;
   random?: RandomBytes;
+  clientIdentities?: OAuthClientIdentityStore;
 }
 
 export type StartOAuthResult =
@@ -27,13 +38,29 @@ export async function startOAuthConnect(
   id: ConnectionId,
   origin: string,
 ): Promise<StartOAuthResult> {
-  // OpenRouter is the only OAuth provider wired; its endpoints are fixed.
-  if (id !== "router" || connectRoute(id, origin).connect !== "oauth") {
+  const provider = OAUTH_PROVIDERS[id];
+  if (!provider || connectRoute(id, origin).connect !== "oauth") {
     return { ok: false, error: "oauth_unavailable" };
   }
   const { verifier, challenge } = await createPkce(deps.random);
   const state = createState(deps.random);
-  deps.pending.put(state, { id, verifier, createdAt: deps.clock() });
-  const callbackUrl = callbackUrlFor(new URL(origin).origin, id, state);
-  return { ok: true, authorizeUrl: authorizeUrlFor(callbackUrl, challenge) };
+  const built = provider.buildAuthorizeUrl({
+    id,
+    origin,
+    state,
+    challenge,
+    random: deps.random,
+    clientIdentities: deps.clientIdentities,
+  });
+  if (!built) {
+    return { ok: false, error: "oauth_unavailable" };
+  }
+  deps.pending.put(state, {
+    id,
+    verifier,
+    redirectUri: built.redirectUri,
+    ...(built.nonce ? { nonce: built.nonce } : {}),
+    createdAt: deps.clock(),
+  });
+  return { ok: true, authorizeUrl: built.authorizeUrl };
 }

@@ -10,7 +10,7 @@ import {
 
 const base = { isSaved: false, isInUse: false, isOff: false };
 
-test("a provider shows one of four states, off first", () => {
+test("a provider shows one of five states, off first, then needsReauth", () => {
   assert.equal(describeProviderState(base), "notConfigured");
   assert.equal(describeProviderState({ ...base, isSaved: true }), "connected");
   assert.equal(
@@ -18,7 +18,21 @@ test("a provider shows one of four states, off first", () => {
     "inUse",
   );
   assert.equal(
-    describeProviderState({ isSaved: true, isInUse: true, isOff: true }),
+    describeProviderState({
+      isSaved: true,
+      isInUse: true,
+      isOff: false,
+      needsReauth: true,
+    }),
+    "needsReauth",
+  );
+  assert.equal(
+    describeProviderState({
+      isSaved: true,
+      isInUse: true,
+      isOff: true,
+      needsReauth: true,
+    }),
     "off",
   );
 });

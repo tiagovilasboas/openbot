@@ -6,10 +6,10 @@ export interface ConnectionEntry {
   id: ConnectionId;
   group: ConnectionGroup;
   name: string;
-  /** Where the user creates the key. */
-  keyUrl: string;
-  keyUrlLabel: string;
-  placeholder: string;
+  /** Where the user creates the key, when the service takes an API key. */
+  keyUrl?: string;
+  keyUrlLabel?: string;
+  placeholder?: string;
 }
 
 export const CONNECTIONS: readonly ConnectionEntry[] = [
@@ -28,6 +28,11 @@ export const CONNECTIONS: readonly ConnectionEntry[] = [
     keyUrl: "https://console.anthropic.com/settings/keys",
     keyUrlLabel: "console.anthropic.com",
     placeholder: "sk-ant-api03-...",
+  },
+  {
+    id: "chatgpt",
+    group: "models",
+    name: "ChatGPT",
   },
   {
     id: "github",

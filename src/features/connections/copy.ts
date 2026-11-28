@@ -3,6 +3,7 @@ export { connectionsCopy } from "./panel/connections-copy.ts";
 export { isOpenRouterUrl } from "./api-key/openrouter-url.ts";
 export {
   ANTHROPIC_DEFAULT_MODEL,
+  CHATGPT_DEFAULT_MODEL,
   OPENROUTER_FREE_MODEL,
   OPENROUTER_URL,
 } from "./api-key/model-config-on-connection.ts";

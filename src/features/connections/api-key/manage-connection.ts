@@ -62,6 +62,7 @@ export async function checkConnectionKey(
   id: ConnectionId,
   key: string,
 ): Promise<KeyCheckOutcome> {
+  if (id === "chatgpt") return { ok: false, error: "unauthorized" };
   if (id === "github") {
     const outcome = await testGitHubToken(key);
     if (!outcome.ok) return { ok: false, error: outcome.error };
@@ -101,6 +102,7 @@ export async function connectKey(
   id: ConnectionId,
   key: string,
 ): Promise<boolean> {
+  if (id === "chatgpt") return false;
   if (id === "github") {
     saveStoredGitHubToken(key);
     applyModelAfterConnect(id);
@@ -120,11 +122,12 @@ export async function connectKey(
 export function applyModelAfterConnect(id: ConnectionId): void {
   clearProviderOff(id);
   if (id === "github") return;
-  const next = configAfterConnect(
-    id,
-    loadStoredModelConfig(),
-    Object.keys(readSavedKeysState().keys),
-  );
+  const vault = readSavedKeysState();
+  const connected = [
+    ...Object.keys(vault.keys),
+    ...Object.keys(vault.oauthSessions),
+  ];
+  const next = configAfterConnect(id, loadStoredModelConfig(), connected);
   if (next) saveStoredModelConfig(next);
 }
 
@@ -137,6 +140,7 @@ export function clearModelAfterDisconnect(id: ConnectionId): void {
 
 /** Forgets the key on the server. */
 export async function disconnectKey(id: ConnectionId): Promise<void> {
+  if (id === "chatgpt") return;
   if (id === "github") {
     clearStoredGitHubToken();
     return;

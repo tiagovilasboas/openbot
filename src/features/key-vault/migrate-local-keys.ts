@@ -46,7 +46,14 @@ function readJson(storage: MigrationStorage, name: string): unknown {
 // kept (the vault holds one key per provider). Its origin is its own URL.
 function configCandidate(config: unknown): Candidate | null {
   const valid = validateClientModelConfig(config);
-  if (!valid || valid.provider === "local" || !valid.apiKey) return null;
+  if (
+    !valid ||
+    valid.provider === "local" ||
+    valid.provider === "chatgpt" ||
+    !valid.apiKey
+  ) {
+    return null;
+  }
   const origin = keyOriginFor(valid);
   return origin
     ? { provider: valid.provider, origin, key: valid.apiKey }

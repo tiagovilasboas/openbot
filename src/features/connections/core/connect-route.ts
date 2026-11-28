@@ -15,17 +15,24 @@ const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
 
 /**
  * Whether a provider's sign-in page can send the browser back to this origin:
- * https anywhere, or plain http on a loopback host (what OpenRouter accepts).
+ * dynamic SIWC (`chatgpt`) accepts loopback origins only; other OAuth
+ * providers accept https anywhere or plain http on a loopback host.
  */
-export function canTakeCallback(origin: string): boolean {
+export function canTakeCallback(origin: string, id?: ConnectionId): boolean {
   let url: URL;
   try {
     url = new URL(origin);
   } catch {
     return false;
   }
+  const isLoopback = LOOPBACK_HOSTS.has(url.hostname);
+  if (id === "chatgpt") {
+    return (
+      (url.protocol === "http:" || url.protocol === "https:") && isLoopback
+    );
+  }
   if (url.protocol === "https:") return true;
-  return url.protocol === "http:" && LOOPBACK_HOSTS.has(url.hostname);
+  return url.protocol === "http:" && isLoopback;
 }
 
 /**
@@ -35,7 +42,7 @@ export function canTakeCallback(origin: string): boolean {
  */
 export function connectRoute(id: ConnectionId, origin: string): ConnectRoute {
   const { preferred, alternative } = connectionMethods(id);
-  if (preferred !== "oauth" || canTakeCallback(origin)) {
+  if (preferred !== "oauth" || canTakeCallback(origin, id)) {
     return { connect: preferred, alternative };
   }
   return { connect: alternative, alternative: null };

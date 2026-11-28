@@ -4,7 +4,11 @@ import { useState } from "react";
 import type { ChatLanguage } from "@/features/chat/respond-to-message.ts";
 import { fillCopy } from "@/features/model/settings-copy.ts";
 import type { ClientModelConfig } from "@/features/model/model-config.ts";
-import { ANTHROPIC_DEFAULT_MODEL, OPENROUTER_FREE_MODEL } from "../copy.ts";
+import {
+  ANTHROPIC_DEFAULT_MODEL,
+  CHATGPT_DEFAULT_MODEL,
+  OPENROUTER_FREE_MODEL,
+} from "../copy.ts";
 import { setProviderEnabled } from "../switch/set-provider-enabled.ts";
 import type { ConnectionEntry } from "./connection-catalog.ts";
 import { getConnectionsCopy } from "./connections-copy.ts";
@@ -12,6 +16,8 @@ import { getConnectionsCopy } from "./connections-copy.ts";
 export interface ProviderPageState {
   isOff: boolean;
   activeConfig: ClientModelConfig | null;
+  accountLabel?: string | null;
+  needsReauth?: boolean;
 }
 
 interface ProviderPageSectionProps extends ProviderPageState {
@@ -27,20 +33,33 @@ export function ProviderPageSection({
   isSaved,
   isOff,
   activeConfig,
+  accountLabel,
+  needsReauth = false,
 }: ProviderPageSectionProps) {
   const c = getConnectionsCopy(language);
   const [refused, setRefused] = useState(false);
   if (entry.group !== "models") return null;
 
   const isInUse = activeConfig?.provider === entry.id;
+  const defaultModel =
+    entry.id === "anthropic"
+      ? ANTHROPIC_DEFAULT_MODEL
+      : entry.id === "chatgpt"
+        ? CHATGPT_DEFAULT_MODEL
+        : OPENROUTER_FREE_MODEL;
   const model = isInUse
     ? fillCopy(c.modelsActive, { model: activeConfig.model })
-    : fillCopy(c.modelsDefault, {
-        model:
-          entry.id === "anthropic"
-            ? ANTHROPIC_DEFAULT_MODEL
-            : OPENROUTER_FREE_MODEL,
-      });
+    : fillCopy(c.modelsDefault, { model: defaultModel });
+  const statusText =
+    entry.id === "chatgpt"
+      ? !isSaved
+        ? c.keyStatusMissing
+        : needsReauth
+          ? c.sessionStatusNeedsReauth
+          : c.sessionStatusSaved
+      : isSaved
+        ? c.keyStatusSaved
+        : c.keyStatusMissing;
   const on = !isOff;
 
   function toggle() {
@@ -55,10 +74,20 @@ export function ProviderPageSection({
           <dt className="text-subtle">{c.modelsLabel}</dt>
           <dd className="min-w-0 truncate text-foreground">{model}</dd>
         </div>
+        {accountLabel && (
+          <div className="flex justify-between gap-3">
+            <dt className="text-subtle">{c.accountLabel}</dt>
+            <dd className="min-w-0 truncate text-foreground">{accountLabel}</dd>
+          </div>
+        )}
         <div className="flex justify-between gap-3">
           <dt className="text-subtle">{c.keyStatusLabel}</dt>
-          <dd className="text-foreground">
-            {isSaved ? c.keyStatusSaved : c.keyStatusMissing}
+          <dd
+            className={
+              isSaved && needsReauth ? "text-warning" : "text-foreground"
+            }
+          >
+            {statusText}
           </dd>
         </div>
       </dl>

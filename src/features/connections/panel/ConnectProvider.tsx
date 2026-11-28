@@ -27,13 +27,19 @@ export function ConnectProvider({
   onBegin,
 }: ConnectProviderProps) {
   const s = getSettingsCopy(language);
-  const { keys } = useSavedKeys();
+  const { keys, oauthSessions } = useSavedKeys();
+  const isSaved =
+    id === "router" || id === "anthropic"
+      ? Boolean(keys[id])
+      : id === "chatgpt"
+        ? Boolean(oauthSessions.chatgpt)
+        : false;
   return (
     <ConnectionDetail
       entry={findConnection(id)}
       language={language}
       savedToken={null}
-      isSaved={id !== "github" && Boolean(keys[id])}
+      isSaved={isSaved}
       showSecretLabel={s.showSecret}
       hideSecretLabel={s.hideSecret}
       onBack={onBack}

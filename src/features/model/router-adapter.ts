@@ -1,12 +1,10 @@
-import { BlockedBaseUrlError, modelFetch } from "./guarded-model-fetch.ts";
 import type { ModelNetworkOptions } from "./guarded-model-fetch.ts";
 import type { FetchLike, ModelRequest } from "./model-adapter.ts";
+import { openAiGenerateReply } from "./openai-chat-reply.ts";
 import { openModelStream } from "./open-model-stream.ts";
 import { parseRouterStream } from "./router-stream.ts";
-import { openAiUsage } from "./token-usage.ts";
 import type { StreamingModelAdapter } from "./stream-adapter.ts";
 import { toolsBody, toWireMessages } from "./wire-messages.ts";
-import { providerErrorDetail } from "./provider-error-detail.ts";
 
 export type RouterAdapterConfig = {
   baseUrl: string;
@@ -46,12 +44,12 @@ export function createRouterAdapter(
       const model = request.modelId ?? config.model;
       return openModelStream({
         provider: "router",
-        model: model,
+        model,
         fetchImpl,
         url: endpoint,
         headers: requestHeaders(config.apiKey),
         body: {
-          model: model,
+          model,
           stream: true,
           messages: toWireMessages(request),
           ...toolsBody(request.tools),
@@ -61,92 +59,16 @@ export function createRouterAdapter(
         parse: parseRouterStream,
       });
     },
-    async generateReply(request: ModelRequest) {
-      const headers = requestHeaders(config.apiKey);
-
-      let response: Response;
-      try {
-        response = await modelFetch(
-          fetchImpl,
-          endpoint,
-          {
-            method: "POST",
-            headers,
-            body: JSON.stringify({
-              model: request.modelId ?? config.model,
-              stream: false,
-              messages: [
-                ...(request.systemPrompt
-                  ? [{ role: "system", content: request.systemPrompt }]
-                  : []),
-                ...request.messages.map((message) => ({
-                  role: message.role,
-                  content: message.text,
-                })),
-              ],
-            }),
-          },
-          config,
-        );
-      } catch (error) {
-        if (error instanceof BlockedBaseUrlError) {
-          return { ok: false, code: "blocked_base_url", provider: "router" };
-        }
-        return { ok: false, code: "provider_unreachable", provider: "router" };
-      }
-
-      if (!response.ok) {
-        const errorPayload = (await response.json().catch(() => null)) as {
-          error?: { message?: unknown };
-        } | null;
-        const msg =
-          typeof errorPayload?.error?.message === "string"
-            ? errorPayload.error.message.trim()
-            : null;
-        const detail = providerErrorDetail(
-          response.status,
-          msg,
-          response.headers,
-        );
-        return {
-          ok: false,
-          code: "provider_rejected",
-          provider: "router",
-          detail,
-        };
-      }
-
-      const payload: unknown = await response.json().catch(() => null);
-      const choice = (
-        payload as {
-          choices?: Array<{
-            message?: { content?: unknown; reasoning?: unknown };
-          }>;
-        } | null
-      )?.choices?.[0];
-      const content = choice?.message?.content;
-
-      if (typeof content !== "string" || !content.trim()) {
-        // Say why, so a failover reason tells "no text at all" apart from
-        // "the text came only as reasoning".
-        const reasoning = choice?.message?.reasoning;
-        return {
-          ok: false,
-          code: "invalid_provider_response",
-          provider: "router",
-          detail:
-            typeof reasoning === "string" && reasoning.trim()
-              ? `${response.status}: empty_content_reasoning_only`
-              : `${response.status}: empty_content`,
-        };
-      }
-      const usage = openAiUsage(payload);
-      return {
-        ok: true,
+    generateReply(request: ModelRequest) {
+      return openAiGenerateReply({
         provider: "router",
-        text: content,
-        ...(usage ? { usage } : {}),
-      };
+        endpoint,
+        model: config.model,
+        headers: requestHeaders(config.apiKey),
+        request,
+        fetchImpl,
+        network: config,
+      });
     },
   };
 }

@@ -72,7 +72,10 @@ export function useChatModelPicker({
 
   // Connections refuses to switch off or disconnect a provider mid-turn.
   const running =
-    turnModel && (provider === "router" || provider === "anthropic")
+    turnModel &&
+    (provider === "router" ||
+      provider === "anthropic" ||
+      provider === "chatgpt")
       ? provider
       : null;
   useEffect(() => {

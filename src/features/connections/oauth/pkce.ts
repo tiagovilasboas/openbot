@@ -47,3 +47,8 @@ export async function createPkce(
 export function createState(random: RandomBytes = webRandomBytes): string {
   return base64url(random(STATE_BYTES));
 }
+
+/** One-time OIDC nonce bound into an ID token to prevent token replay. */
+export function createNonce(random: RandomBytes = webRandomBytes): string {
+  return base64url(random(STATE_BYTES));
+}

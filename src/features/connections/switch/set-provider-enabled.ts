@@ -31,9 +31,12 @@ export function setProviderEnabled(
   if (reason) return { ok: false, reason };
   writeOffProviders(withProviderOff(readOffProviders(), id, !enabled));
   if (enabled) {
-    // Without a saved key there is nothing to start a model on.
-    if (id !== "github" && readSavedKeysState().keys[id])
-      applyModelAfterConnect(id);
+    // Without a saved credential there is nothing to start a model on.
+    const vault = readSavedKeysState();
+    const hasCredential =
+      ((id === "router" || id === "anthropic") && Boolean(vault.keys[id])) ||
+      (id === "chatgpt" && Boolean(vault.oauthSessions.chatgpt));
+    if (hasCredential) applyModelAfterConnect(id);
   } else clearModelAfterDisconnect(id);
   return { ok: true };
 }

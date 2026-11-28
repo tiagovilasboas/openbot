@@ -1,4 +1,9 @@
 import type { ConnectFailure } from "../core/index.ts";
+import type {
+  ExchangeResult,
+  HttpClient,
+  OAuthProviderSpec,
+} from "./oauth-provider.ts";
 
 /**
  * OpenRouter's PKCE endpoints: where the user signs in, and where the code
@@ -7,12 +12,6 @@ import type { ConnectFailure } from "../core/index.ts";
 
 export const OPENROUTER_AUTH_URL = "https://openrouter.ai/auth";
 export const OPENROUTER_KEYS_URL = "https://openrouter.ai/api/v1/auth/keys";
-
-/** Fetch-shaped port, so the exchange is testable without a network. */
-export type HttpClient = (url: string, init: RequestInit) => Promise<Response>;
-
-export type ExchangeResult =
-  { ok: true; key: string } | { ok: false; reason: ConnectFailure };
 
 /** Where the provider sends the browser back: the app, with the Connect's state. */
 export function callbackUrlFor(
@@ -73,5 +72,20 @@ export async function exchangeCode(
     return { ok: false, reason: failureForStatus(response.status) };
   }
   const key = await readKey(response);
-  return key ? { ok: true, key } : { ok: false, reason: "invalid_key" };
+  return key
+    ? { ok: true, credential: { kind: "api-key", secret: key } }
+    : { ok: false, reason: "invalid_key" };
 }
+
+export const openRouterOAuthProvider: OAuthProviderSpec = {
+  buildAuthorizeUrl({ id, origin, state, challenge }) {
+    const redirectUri = callbackUrlFor(new URL(origin).origin, id, state);
+    return {
+      authorizeUrl: authorizeUrlFor(redirectUri, challenge),
+      redirectUri,
+    };
+  },
+  exchangeCode({ http, code, pending }) {
+    return exchangeCode(http, code, pending.verifier);
+  },
+};

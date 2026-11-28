@@ -106,6 +106,22 @@ test("validates anthropic configuration correctly", () => {
   );
 });
 
+test("validates chatgpt configuration without apiKey or baseUrl", () => {
+  assert.deepEqual(
+    validateClientModelConfig({
+      provider: "chatgpt",
+      model: " gpt-4o ",
+      apiKey: "should-be-stripped",
+      baseUrl: "https://evil.example",
+    }),
+    { provider: "chatgpt", model: "gpt-4o" },
+  );
+  assert.equal(
+    validateClientModelConfig({ provider: "chatgpt", model: "  " }),
+    null,
+  );
+});
+
 test("rejects malformed or unknown provider inputs", () => {
   assert.equal(validateClientModelConfig(null), null);
   assert.equal(validateClientModelConfig(undefined), null);
@@ -128,6 +144,10 @@ test("formatModelBadge formats label for providers and unconfigured state", () =
       "en",
     ),
     "Anthropic: claude-3-5-sonnet",
+  );
+  assert.equal(
+    formatModelBadge({ provider: "chatgpt", model: "gpt-4o" }, "pt"),
+    "ChatGPT: gpt-4o",
   );
   assert.equal(formatModelBadge(null, "pt"), "Sem modelo");
   assert.equal(formatModelBadge(null, "en"), "No model");

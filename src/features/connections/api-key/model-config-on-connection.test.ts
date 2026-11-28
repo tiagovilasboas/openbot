@@ -68,6 +68,20 @@ test("disconnect keeps configs that never used that key", () => {
   assert.equal(shouldClearConfigOnDisconnect("router", null), false);
 });
 
+test("a first ChatGPT connection starts on the default ChatGPT model", () => {
+  assert.deepEqual(configAfterConnect("chatgpt", null), {
+    provider: "chatgpt",
+    model: "gpt-4o",
+  });
+  assert.equal(
+    shouldClearConfigOnDisconnect("chatgpt", {
+      provider: "chatgpt",
+      model: "gpt-4o",
+    }),
+    true,
+  );
+});
+
 test("a router on a lookalike host is not cleared as OpenRouter", () => {
   const lookalike: ClientModelConfig = {
     provider: "router",

@@ -50,6 +50,7 @@ export const offProviderCopy: Record<Lang, OffProviderCopy> = {
 const NAMES: Record<ConnectionId, string> = {
   router: "OpenRouter",
   anthropic: "Anthropic",
+  chatgpt: "ChatGPT",
   github: "GitHub",
 };
 

@@ -1,6 +1,6 @@
 import type { Language } from "../language/language.ts";
 import { notifySettingsChanged } from "../settings/settings-sync-port.ts";
-export type ModelProviderType = "router" | "local" | "anthropic";
+export type ModelProviderType = "router" | "local" | "anthropic" | "chatgpt";
 
 export type RouterConfig = {
   provider: "router";
@@ -21,7 +21,13 @@ export type AnthropicConfig = {
   model: string;
 };
 
-export type ClientModelConfig = RouterConfig | LocalConfig | AnthropicConfig;
+export type ChatGptConfig = {
+  provider: "chatgpt";
+  model: string;
+};
+
+export type ClientModelConfig =
+  RouterConfig | LocalConfig | AnthropicConfig | ChatGptConfig;
 
 export const MODEL_CONFIG_STORAGE_KEY = "openbot_model_config";
 
@@ -121,6 +127,21 @@ export function validateClientModelConfig(
     };
   }
 
+  if (provider === "chatgpt") {
+    if (
+      typeof candidate.model !== "string" ||
+      !candidate.model.trim() ||
+      candidate.model.length > maxModelLength
+    ) {
+      return null;
+    }
+
+    return {
+      provider: "chatgpt",
+      model: candidate.model.trim(),
+    };
+  }
+
   return null;
 }
 
@@ -129,7 +150,9 @@ export function validateClientModelConfig(
  * kept in this browser and sent with requests never carries one.
  */
 export function withoutApiKey(config: ClientModelConfig): ClientModelConfig {
-  if (config.provider === "local") return config;
+  if (config.provider === "local" || config.provider === "chatgpt") {
+    return config;
+  }
   const { apiKey: _key, ...rest } = config;
   return rest;
 }
@@ -248,7 +271,9 @@ export function formatModelBadge(
         ? "Local"
         : config.provider === "anthropic"
           ? "Anthropic"
-          : config.provider;
+          : config.provider === "chatgpt"
+            ? "ChatGPT"
+            : config.provider;
 
   if (config.model && config.model.trim()) {
     return `${providerLabel}: ${config.model.trim()}`;

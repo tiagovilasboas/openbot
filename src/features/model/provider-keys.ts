@@ -5,6 +5,7 @@
  */
 
 export type KeyedProvider = "router" | "anthropic";
+export type OAuthProvider = "chatgpt";
 export type ProviderKeys = Partial<Record<KeyedProvider, string>>;
 
 /** The old browser keyring. Only the migration reads it now. */
@@ -13,6 +14,13 @@ export const KEYED_PROVIDERS: readonly KeyedProvider[] = [
   "router",
   "anthropic",
 ];
+export const OAUTH_PROVIDERS: readonly OAuthProvider[] = ["chatgpt"];
+
+export function isOAuthProvider(
+  provider: string | undefined,
+): provider is OAuthProvider {
+  return provider === "chatgpt";
+}
 
 const maxKeyLength = 500;
 

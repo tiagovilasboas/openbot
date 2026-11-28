@@ -8,8 +8,8 @@ const AAD_PREFIX = "openbot-key-vault:v1";
 
 export type SealedKey = { iv: Buffer; tag: Buffer; ciphertext: Buffer };
 
-function aad(provider: string, origin: string): Buffer {
-  return Buffer.from(`${AAD_PREFIX}|${provider}|${origin}`, "utf8");
+function aad(provider: string, origin: string, prefix: string): Buffer {
+  return Buffer.from(`${prefix}|${provider}|${origin}`, "utf8");
 }
 
 export function sealKey(
@@ -17,10 +17,11 @@ export function sealKey(
   provider: string,
   origin: string,
   plaintext: string,
+  aadPrefix = AAD_PREFIX,
 ): SealedKey {
   const iv = randomBytes(IV_BYTES);
   const cipher = createCipheriv("aes-256-gcm", masterKey, iv);
-  cipher.setAAD(aad(provider, origin));
+  cipher.setAAD(aad(provider, origin, aadPrefix));
   const ciphertext = Buffer.concat([
     cipher.update(plaintext, "utf8"),
     cipher.final(),
@@ -34,10 +35,11 @@ export function openKey(
   provider: string,
   origin: string,
   sealed: SealedKey,
+  aadPrefix = AAD_PREFIX,
 ): string | undefined {
   try {
     const decipher = createDecipheriv("aes-256-gcm", masterKey, sealed.iv);
-    decipher.setAAD(aad(provider, origin));
+    decipher.setAAD(aad(provider, origin, aadPrefix));
     decipher.setAuthTag(sealed.tag);
     return Buffer.concat([
       decipher.update(sealed.ciphertext),

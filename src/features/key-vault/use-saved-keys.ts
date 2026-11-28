@@ -10,6 +10,7 @@ import {
 
 const notLoaded: SavedKeysState = {
   keys: {},
+  oauthSessions: {},
   loaded: false,
   failed: false,
 };

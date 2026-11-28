@@ -1,7 +1,11 @@
 import { withVaultKey } from "../../../../features/key-vault/apply-vault-keys.ts";
-import { vaultKeyLookup } from "../../../../features/key-vault/vault-key-lookup.ts";
+import {
+  resolveVaultOAuthSession,
+  vaultKeyLookup,
+} from "../../../../features/key-vault/vault-key-lookup.ts";
 import { TEST_TIMEOUT_MS } from "../../../../features/model/guarded-model-fetch.ts";
 import { validateClientModelConfig } from "../../../../features/model/model-config.ts";
+import { resolveOAuthAuth } from "../../../../features/model/resolve-oauth-auth.ts";
 import { selectAdapter } from "../../../../features/model/select-adapter.ts";
 
 export const dynamic = "force-dynamic";
@@ -21,8 +25,19 @@ export async function POST(request: Request) {
 
   // A key typed for a test travels in the body; a saved one comes from the vault.
   const keyed = customConfig && withVaultKey(customConfig, vaultKeyLookup);
+  const auth = await resolveOAuthAuth({
+    config: keyed,
+    oauthLookup: resolveVaultOAuthSession,
+  });
+  if (!auth.ok) {
+    return Response.json(
+      { ok: false, error: auth.failure.error, provider: auth.failure.provider },
+      { status: auth.failure.status },
+    );
+  }
   const adapter = selectAdapter(process.env, keyed, undefined, {
     timeoutMs: TEST_TIMEOUT_MS,
+    ...(auth.oauthTokens ? { oauthTokens: auth.oauthTokens } : {}),
   });
   if (!adapter) {
     return Response.json(

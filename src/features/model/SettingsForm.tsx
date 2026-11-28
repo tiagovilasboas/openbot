@@ -13,7 +13,6 @@ import { clearStoredGitHubToken } from "@/features/github/github-config.ts";
 import {
   clearStoredModelConfig,
   saveStoredModelConfig,
-  validateClientModelConfig,
   type ClientModelConfig,
   type ModelProviderType,
 } from "./model-config.ts";
@@ -36,7 +35,10 @@ import { SettingsProviderFields } from "./SettingsProviderFields.tsx";
 import { SettingsFormFooter } from "./SettingsFormFooter.tsx";
 import { SettingsProviderSelector } from "./SettingsProviderSelector.tsx";
 import { testModelConnection } from "./test-model-connection.ts";
-import { SETTINGS_FORM_DEFAULTS } from "./settings-form-defaults.ts";
+import {
+  buildCandidateModelConfig,
+  SETTINGS_FORM_DEFAULTS,
+} from "./settings-form-defaults.ts";
 
 export interface SettingsFormProps {
   language: ChatLanguage;
@@ -93,6 +95,11 @@ export function SettingsForm({
       ? currentConfig.model
       : SETTINGS_FORM_DEFAULTS.anthropicModel,
   );
+  const [chatgptModel, setChatgptModel] = useState(
+    currentConfig?.provider === "chatgpt"
+      ? currentConfig.model
+      : SETTINGS_FORM_DEFAULTS.chatgptModel,
+  );
 
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<{
@@ -103,27 +110,15 @@ export function SettingsForm({
 
   function getCandidateConfig(): ClientModelConfig | null {
     // No key here: the server adds the saved one when the config is used.
-    if (provider === "router") {
-      return validateClientModelConfig({
-        provider: "router",
-        baseUrl: routerUrl,
-        model: routerModel,
-      });
-    }
-    if (provider === "local") {
-      return validateClientModelConfig({
-        provider: "local",
-        baseUrl: localUrl,
-        model: localModel,
-      });
-    }
-    if (provider === "anthropic") {
-      return validateClientModelConfig({
-        provider: "anthropic",
-        model: anthropicModel,
-      });
-    }
-    return null;
+    return buildCandidateModelConfig({
+      provider,
+      routerUrl,
+      routerModel,
+      localUrl,
+      localModel,
+      anthropicModel,
+      chatgptModel,
+    });
   }
 
   // OpenRouter answers 401 to every call without a key, free models included.
@@ -141,13 +136,18 @@ export function SettingsForm({
       : provider === "anthropic" && !saved.keys.anthropic
         ? "Anthropic"
         : null;
+  const chatgptSession = saved.oauthSessions.chatgpt;
+  const chatgptBlocked =
+    provider === "chatgpt" &&
+    saved.loaded &&
+    (!chatgptSession || chatgptSession.needsReauth);
 
   // A provider switched off in Connections cannot be tested or saved.
   const usability = providerTypeUsability(provider, offProviders);
   const offProvider = usability.usable ? null : usability.provider;
 
   async function handleTest() {
-    if (missingKeyProvider || offProvider) return;
+    if (missingKeyProvider || chatgptBlocked || offProvider) return;
     const candidate = getCandidateConfig();
     if (!candidate) {
       setTestResult({ ok: false, error: "invalid_fields" });
@@ -165,7 +165,7 @@ export function SettingsForm({
   }
 
   function handleSave() {
-    if (missingKeyProvider || offProvider) return;
+    if (missingKeyProvider || chatgptBlocked || offProvider) return;
     const candidate = getCandidateConfig();
     if (!candidate) {
       setTestResult({ ok: false, error: "invalid_fields" });
@@ -217,7 +217,9 @@ export function SettingsForm({
             }}
           />
           {offProviders
-            .filter((id) => id === "router" || id === "anthropic")
+            .filter(
+              (id) => id === "router" || id === "anthropic" || id === "chatgpt",
+            )
             .map((id) => (
               <OffProviderNotice
                 key={id}
@@ -243,6 +245,15 @@ export function SettingsForm({
           setLocalModel={setLocalModel}
           anthropicModel={anthropicModel}
           setAnthropicModel={setAnthropicModel}
+          chatgptModel={chatgptModel}
+          setChatgptModel={setChatgptModel}
+          chatgptStatus={{
+            loaded: saved.loaded,
+            connected: Boolean(chatgptSession),
+            needsReauth: Boolean(chatgptSession?.needsReauth),
+            accountLabel: chatgptSession?.accountLabel ?? null,
+          }}
+          onOpenConnections={onOpenConnections}
           onUseLocalRouter={(url, model) => {
             setProvider("router");
             setRouterUrl(url);

@@ -17,6 +17,23 @@ export const KEY_VAULT_MIGRATIONS: readonly MigrationStep[] = [
     ciphertext BLOB,
     updated_at INTEGER NOT NULL
   )`,
+  `CREATE TABLE oauth_sessions (
+    provider TEXT PRIMARY KEY,
+    origin TEXT NOT NULL,
+    iv BLOB NOT NULL,
+    tag BLOB NOT NULL,
+    ciphertext BLOB NOT NULL,
+    expires_at INTEGER,
+    needs_reauth INTEGER NOT NULL DEFAULT 0,
+    account_label TEXT,
+    updated_at INTEGER NOT NULL
+  );
+  CREATE TABLE oauth_client_identities (
+    provider TEXT PRIMARY KEY,
+    host_id TEXT NOT NULL,
+    client_id TEXT,
+    updated_at INTEGER NOT NULL
+  )`,
 ];
 
 export function migrateKeyVault(db: DatabaseSync): void {

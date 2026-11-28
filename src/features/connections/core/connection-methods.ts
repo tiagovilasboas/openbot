@@ -4,7 +4,7 @@
  */
 
 /** The services Open Bot connects to. */
-export type ConnectionId = "router" | "anthropic" | "github";
+export type ConnectionId = "router" | "anthropic" | "chatgpt" | "github";
 
 /**
  * How a connection is made.
@@ -25,6 +25,8 @@ const METHODS: Readonly<Record<ConnectionId, ConnectionMethods>> = {
   router: { preferred: "oauth", alternative: "api-key" },
   // Anthropic allows API keys only for third-party apps; no Claude.ai sign-in.
   anthropic: { preferred: "api-key", alternative: null },
+  // OpenAI ChatGPT uses Sign in with ChatGPT (OAuth PKCE) only.
+  chatgpt: { preferred: "oauth", alternative: null },
   github: { preferred: "api-key", alternative: null },
 };
 

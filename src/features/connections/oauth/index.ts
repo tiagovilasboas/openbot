@@ -6,8 +6,16 @@ export {
   type FinishOAuthOutcome,
   type OAuthCallback,
 } from "./finish-oauth-connect.ts";
-export type { HttpClient } from "./openrouter-oauth.ts";
+export type {
+  BuiltAuthorize,
+  ExchangeCodeInput,
+  ExchangeResult,
+  HttpClient,
+  OAuthProviderSpec,
+  StartOAuthInput,
+} from "./oauth-provider.ts";
 export {
+  OAUTH_PROVIDERS,
   startOAuthConnect,
   type StartOAuthDeps,
   type StartOAuthResult,

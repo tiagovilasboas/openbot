@@ -47,6 +47,13 @@ export const settingsCopy = {
       "Preencha os campos obrigatórios do provedor e teste novamente.",
     keyMissing: "{provider} ainda não está conectada.",
     connectAction: "Conectar",
+    chatgptStatusConnected: "Conectado ao ChatGPT.",
+    chatgptStatusAccount: "Conectado como {account}.",
+    chatgptStatusReauth:
+      "Sua sessão do ChatGPT expirou. Reconecte em Conexões.",
+    chatgptStatusMissing:
+      "ChatGPT ainda não está conectado. Conecte em Conexões para usar.",
+    chatgptManageConnection: "Abrir Conexões",
     resetConfirm: "Restaurar tudo?",
     resetConfirmHint:
       "Remove o modelo e as chaves guardadas neste dispositivo.",
@@ -97,6 +104,13 @@ export const settingsCopy = {
     testInvalid: "Fill in the provider's required fields and test again.",
     keyMissing: "{provider} isn't connected yet.",
     connectAction: "Connect",
+    chatgptStatusConnected: "Connected to ChatGPT.",
+    chatgptStatusAccount: "Connected as {account}.",
+    chatgptStatusReauth:
+      "Your ChatGPT session expired. Reconnect in Connections.",
+    chatgptStatusMissing:
+      "ChatGPT isn't connected yet. Connect in Connections to use it.",
+    chatgptManageConnection: "Open Connections",
     resetConfirm: "Restore everything?",
     resetConfirmHint: "Removes the model and the keys stored on this device.",
     resetConfirmAction: "Yes, restore",
@@ -147,6 +161,13 @@ export const settingsCopy = {
       "Completa los campos obligatorios del proveedor y vuelve a probar.",
     keyMissing: "{provider} aún no está conectado.",
     connectAction: "Conectar",
+    chatgptStatusConnected: "Conectado a ChatGPT.",
+    chatgptStatusAccount: "Conectado como {account}.",
+    chatgptStatusReauth:
+      "Tu sesión de ChatGPT expiró. Vuelve a conectar en Conexiones.",
+    chatgptStatusMissing:
+      "ChatGPT aún no está conectado. Conecta en Conexiones para usarlo.",
+    chatgptManageConnection: "Abrir Conexiones",
     resetConfirm: "¿Restaurar todo?",
     resetConfirmHint:
       "Quita el modelo y las claves guardadas en este dispositivo.",

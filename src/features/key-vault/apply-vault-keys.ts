@@ -12,6 +12,11 @@ export type KeyLookup = (
   origin: string,
 ) => string | undefined;
 
+export type OAuthTokenLookup = (
+  provider: string,
+  origin: string,
+) => Promise<string | undefined>;
+
 export const noKeyLookup: KeyLookup = () => undefined;
 
 /**
@@ -23,7 +28,13 @@ export function withVaultKey(
   config: ClientModelConfig,
   lookup: KeyLookup,
 ): ClientModelConfig {
-  if (config.provider === "local" || config.apiKey) return config;
+  if (
+    config.provider === "local" ||
+    config.provider === "chatgpt" ||
+    config.apiKey
+  ) {
+    return config;
+  }
   const provider = keyProviderOf(config);
   const origin = keyOriginFor(config);
   if (!provider || !origin) return config;

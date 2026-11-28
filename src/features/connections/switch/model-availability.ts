@@ -4,7 +4,9 @@ import type { ConnectionId } from "../core/index.ts";
 export function connectionForProviderType(
   providerType: string | undefined,
 ): ConnectionId | null {
-  return providerType === "router" || providerType === "anthropic"
+  return providerType === "router" ||
+    providerType === "anthropic" ||
+    providerType === "chatgpt"
     ? providerType
     : null;
 }

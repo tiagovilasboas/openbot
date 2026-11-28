@@ -1,16 +1,26 @@
-import { fetchSavedKeys, type SavedKeys } from "./saved-keys-api.ts";
+import {
+  fetchVaultStatus,
+  type SavedKeys,
+  type SavedOAuthSessions,
+} from "./saved-keys-api.ts";
 
 // Browser-side view of what the server has saved. It holds no key values.
 
 export type SavedKeysState = {
   keys: SavedKeys;
+  oauthSessions: SavedOAuthSessions;
   /** The server has answered at least once. */
   loaded: boolean;
   /** The last attempt failed and nothing was ever loaded. */
   failed: boolean;
 };
 
-let state: SavedKeysState = { keys: {}, loaded: false, failed: false };
+let state: SavedKeysState = {
+  keys: {},
+  oauthSessions: {},
+  loaded: false,
+  failed: false,
+};
 let listeners: Array<() => void> = [];
 let inFlight: Promise<void> | null = null;
 
@@ -37,10 +47,18 @@ function publish(next: SavedKeysState): void {
  */
 export function refreshSavedKeys(): Promise<void> {
   if (state.failed) publish({ ...state, failed: false });
-  inFlight ??= fetchSavedKeys()
-    .then((keys) => {
-      if (keys) publish({ keys, loaded: true, failed: false });
-      else if (!state.loaded) publish({ ...state, failed: true });
+  inFlight ??= fetchVaultStatus()
+    .then((snapshot) => {
+      if (snapshot) {
+        publish({
+          keys: snapshot.keys,
+          oauthSessions: snapshot.oauthSessions,
+          loaded: true,
+          failed: false,
+        });
+      } else if (!state.loaded) {
+        publish({ ...state, failed: true });
+      }
     })
     .finally(() => {
       inFlight = null;

@@ -6,6 +6,7 @@ import {
   withVaultKeys,
   type KeyLookup,
 } from "./apply-vault-keys.ts";
+import { CHATGPT_ORIGIN, keyOriginFor } from "./key-origin.ts";
 
 // A vault that holds one OpenRouter key, for openrouter.ai only.
 const vault: KeyLookup = (provider, origin) =>
@@ -94,4 +95,12 @@ test("a request with no config stays without one", () => {
     messages: [{ role: "user", text: "hi" }],
   };
   assert.deepEqual(withVaultKeys(request, vault), request);
+});
+
+test("chatgpt origin always resolves to https://api.openai.com", () => {
+  assert.equal(keyOriginFor("chatgpt"), CHATGPT_ORIGIN);
+  assert.equal(
+    keyOriginFor({ provider: "chatgpt", baseUrl: "https://evil.example" }),
+    "https://api.openai.com",
+  );
 });

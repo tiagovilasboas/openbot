@@ -6,6 +6,7 @@ import { createMemoryPendingAuthStore } from "./memory-pending-auth-store.ts";
 const pendingAt = (createdAt: number): PendingAuth => ({
   id: "router",
   verifier: "v",
+  redirectUri: "http://localhost:3000/?connect=router&state=s1",
   createdAt,
 });
 

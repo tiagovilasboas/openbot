@@ -15,6 +15,7 @@ import {
   connectKey,
   type KeyCheckOutcome,
 } from "../api-key/manage-connection.ts";
+import { connectionMethods } from "../core/index.ts";
 import { ConnectWithProvider } from "./ConnectWithProvider.tsx";
 import { disconnectProvider } from "../switch/set-provider-enabled.ts";
 import {
@@ -110,6 +111,10 @@ export function ConnectionDetail({
     onBack();
   }
 
+  const methods = connectionMethods(entry.id);
+  const supportsApiKey =
+    methods.preferred === "api-key" || methods.alternative === "api-key";
+
   return (
     <div className="flex flex-col gap-3 md:gap-4">
       <button
@@ -145,45 +150,54 @@ export function ConnectionDetail({
         id={entry.id}
         name={entry.name}
         language={language}
+        needsReauth={providerPage?.needsReauth}
         onBegin={onBegin}
       />
 
-      <div className="flex flex-col gap-1">
-        <FormField
-          label={entry.id === "github" ? c.tokenLabel : c.keyLabel}
-          helper={isSaved && entry.id !== "github" ? c.keySaved : c.storedHere}
-        >
-          {(control) => (
-            <SecretInput
-              {...control}
-              value={key}
-              onChange={(value) => {
-                setKey(value);
-                setResult(null);
-              }}
-              placeholder={entry.placeholder}
-              showLabel={showSecretLabel}
-              hideLabel={hideSecretLabel}
-            />
-          )}
-        </FormField>
-        <a
-          href={entry.keyUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex min-h-10 w-fit items-center text-[13px] font-medium text-bot-accent underline-offset-2 hover:underline"
-        >
-          {fillCopy(c.getKey, { url: entry.keyUrlLabel })}
-        </a>
-      </div>
+      {supportsApiKey && (
+        <>
+          <div className="flex flex-col gap-1">
+            <FormField
+              label={entry.id === "github" ? c.tokenLabel : c.keyLabel}
+              helper={
+                isSaved && entry.id !== "github" ? c.keySaved : c.storedHere
+              }
+            >
+              {(control) => (
+                <SecretInput
+                  {...control}
+                  value={key}
+                  onChange={(value) => {
+                    setKey(value);
+                    setResult(null);
+                  }}
+                  placeholder={entry.placeholder ?? ""}
+                  showLabel={showSecretLabel}
+                  hideLabel={hideSecretLabel}
+                />
+              )}
+            </FormField>
+            {entry.keyUrl && entry.keyUrlLabel && (
+              <a
+                href={entry.keyUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex min-h-10 w-fit items-center text-[13px] font-medium text-bot-accent underline-offset-2 hover:underline"
+              >
+                {fillCopy(c.getKey, { url: entry.keyUrlLabel })}
+              </a>
+            )}
+          </div>
 
-      <ConnectionTest
-        label={isSaved ? c.testAndSave : c.testAndConnect}
-        loadingLabel={c.testing}
-        isTesting={isTesting}
-        result={result}
-        onTest={() => void handleConnect()}
-      />
+          <ConnectionTest
+            label={isSaved ? c.testAndSave : c.testAndConnect}
+            loadingLabel={c.testing}
+            isTesting={isTesting}
+            result={result}
+            onTest={() => void handleConnect()}
+          />
+        </>
+      )}
 
       {isSaved && (
         <button

@@ -1,23 +1,32 @@
 import type { ConnectionId } from "../core/index.ts";
 
 /** What a provider row says: AC-ST-1. Off wins over everything else. */
-export type ProviderState = "notConfigured" | "connected" | "inUse" | "off";
+export type ProviderState =
+  "notConfigured" | "connected" | "inUse" | "off" | "needsReauth";
 
 export function describeProviderState({
   isSaved,
   isInUse,
   isOff,
+  needsReauth = false,
 }: {
   isSaved: boolean;
   isInUse: boolean;
   isOff: boolean;
+  needsReauth?: boolean;
 }): ProviderState {
   if (isOff) return "off";
+  if (isSaved && needsReauth) return "needsReauth";
   if (isInUse) return "inUse";
   return isSaved ? "connected" : "notConfigured";
 }
 
-const KNOWN: readonly ConnectionId[] = ["router", "anthropic", "github"];
+const KNOWN: readonly ConnectionId[] = [
+  "router",
+  "anthropic",
+  "chatgpt",
+  "github",
+];
 
 /** The providers turned off, read from storage; anything unknown is dropped. */
 export function parseOffProviders(raw: string | null): ConnectionId[] {

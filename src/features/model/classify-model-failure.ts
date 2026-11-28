@@ -72,6 +72,12 @@ export function classifyModelFailure(
   if (code === "model_not_allowed") {
     return { kind: "model_unavailable", status: 400 };
   }
+  if (code === "reauth_required" || code === "missing_session") {
+    return { kind: "auth", status: 401 };
+  }
+  if (code === "vault_unavailable") {
+    return { kind: "server", status: 500 };
+  }
   if (code === "provider_unreachable" || code === "network_error") {
     return { kind: "unreachable" };
   }

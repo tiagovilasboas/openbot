@@ -3,6 +3,7 @@ import {
   noKeyLookup,
   withVaultKeys,
 } from "../../key-vault/apply-vault-keys.ts";
+import { noOAuthSessionLookup } from "../../key-vault/vault-key-lookup.ts";
 import { modelNotAllowedResponse } from "../../model/allowed-models.ts";
 import type { ModelRequest } from "../../model/model-adapter.ts";
 import { eventsToNdjson } from "../../model/ndjson-stream.ts";
@@ -11,6 +12,7 @@ import {
   noOffProviders,
   providerOffResponse,
 } from "../../model/provider-off-guard.ts";
+import { resolveOAuthAuth } from "../../model/resolve-oauth-auth.ts";
 import { selectAdapter } from "../../model/select-adapter.ts";
 import {
   handleChatStream,
@@ -111,7 +113,13 @@ async function startToolTurn(
   { resume }: ToolTurnFields,
   options: ToolTurnOptions,
 ): Promise<Response> {
-  const { env, db, fetchImpl, keyLookup = noKeyLookup } = options;
+  const {
+    env,
+    db,
+    fetchImpl,
+    keyLookup = noKeyLookup,
+    oauthLookup = noOAuthSessionLookup,
+  } = options;
   const parsed = parseChatRequest(payload);
   if (!parsed.ok) return fail("invalid_request", 400);
   const notAllowed = modelNotAllowedResponse(env, parsed.request.modelId);
@@ -121,8 +129,22 @@ async function startToolTurn(
     options.offProviders ?? noOffProviders,
   );
   if (off) return off;
+  const auth = await resolveOAuthAuth({
+    config: parsed.request.config,
+    fallbackConfig: parsed.request.fallbackConfig,
+    oauthLookup,
+  });
+  if (!auth.ok) {
+    return Response.json(
+      { error: auth.failure.error, provider: auth.failure.provider },
+      { status: auth.failure.status },
+    );
+  }
   const modelRequest = withVaultKeys(parsed.request, keyLookup);
-  if (!selectAdapter(env, modelRequest.config, fetchImpl)) {
+  const adapterOptions = auth.oauthTokens
+    ? { oauthTokens: auth.oauthTokens }
+    : {};
+  if (!selectAdapter(env, modelRequest.config, fetchImpl, adapterOptions)) {
     return fail("no_provider_configured", 503);
   }
 
@@ -162,14 +184,22 @@ async function startToolTurn(
     }
     recordGrants(db, botId, tools, resumed.request, resumed.turn, now());
   }
-  return streamToolTurn(request, modelRequest, release, options, {
-    db,
-    botId,
-    requestDigest: digest,
-    tools,
-    now,
-    resume: resumed,
-  });
+  return streamToolTurn(
+    request,
+    modelRequest,
+    release,
+    options,
+    {
+      db,
+      botId,
+      requestDigest: digest,
+      tools,
+      now,
+      resume: resumed,
+    },
+    auth.oauthTokens,
+    auth.skipFallback,
+  );
 }
 
 type TurnBase = Omit<ToolTurnRun, "step" | "notices" | "signal">;
@@ -181,6 +211,8 @@ async function streamToolTurn(
   release: () => void,
   options: ToolTurnOptions,
   base: TurnBase,
+  oauthTokens?: Readonly<Record<string, string>>,
+  skipFallback = false,
 ): Promise<Response> {
   const { env, fetchImpl } = options;
   const lookup = options.capabilityOf ?? catalogCapability;
@@ -200,6 +232,7 @@ async function streamToolTurn(
 
   const notices: ToolTurnEvent[] = [];
   const rule = externalDataRule(modelRequest.language);
+  const adapterOptions = oauthTokens ? { oauthTokens } : {};
   const step = createToolStep({
     request: {
       ...modelRequest,
@@ -207,10 +240,21 @@ async function streamToolTurn(
         ? `${modelRequest.systemPrompt}\n\n${rule}`
         : rule,
     },
-    primary: selectAdapter(env, modelRequest.config, fetchImpl)!,
-    fallback: modelRequest.fallbackConfig
-      ? selectAdapter(env, modelRequest.fallbackConfig, fetchImpl)
-      : null,
+    primary: selectAdapter(
+      env,
+      modelRequest.config,
+      fetchImpl,
+      adapterOptions,
+    )!,
+    fallback:
+      modelRequest.fallbackConfig && !skipFallback
+        ? selectAdapter(
+            env,
+            modelRequest.fallbackConfig,
+            fetchImpl,
+            adapterOptions,
+          )
+        : null,
     env,
     fetchImpl,
     signal,

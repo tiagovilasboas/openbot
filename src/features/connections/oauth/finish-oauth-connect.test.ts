@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type {
+  ConnectCredential,
   ConnectionId,
   CredentialStore,
   PendingAuth,
@@ -11,17 +12,26 @@ import {
   PENDING_TTL_MS,
   type FinishOAuthDeps,
 } from "./finish-oauth-connect.ts";
-import type { HttpClient } from "./openrouter-oauth.ts";
+import type { HttpClient } from "./oauth-provider.ts";
 
 const NOW = 1_700_000_000_000;
 const KEY = "sk-or-v1-OAUTH-SECRET-0123456789";
 const STATE = "state-1";
+const REDIRECT_URI = `http://localhost:3000/?connect=router&state=${STATE}`;
 
 type Call = { url: string; body: unknown };
 
 function setup(reply: () => Promise<Response>, createdAt = NOW) {
   const entries = new Map<string, PendingAuth>([
-    [STATE, { id: "router", verifier: "the-verifier", createdAt }],
+    [
+      STATE,
+      {
+        id: "router",
+        verifier: "the-verifier",
+        redirectUri: REDIRECT_URI,
+        createdAt,
+      },
+    ],
   ]);
   const pending: PendingAuthStore = {
     put: (state, value) => void entries.set(state, value),
@@ -36,7 +46,7 @@ function setup(reply: () => Promise<Response>, createdAt = NOW) {
     calls.push({ url, body: JSON.parse(String(init.body)) });
     return reply();
   };
-  const saved = new Map<ConnectionId, string>();
+  const saved = new Map<ConnectionId, ConnectCredential>();
   const credentials: CredentialStore = {
     save: async (id, credential) => void saved.set(id, credential),
     remove: async (id) => void saved.delete(id),
@@ -81,7 +91,7 @@ test("a valid callback exchanges the code and saves the key, never returning it"
       },
     },
   ]);
-  assert.equal(saved.get("router"), KEY);
+  assert.deepEqual(saved.get("router"), { kind: "api-key", secret: KEY });
   assert.ok(!JSON.stringify(outcome).includes(KEY));
 });
 

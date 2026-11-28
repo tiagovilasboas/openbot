@@ -1,7 +1,12 @@
 import { withVaultKeys } from "../key-vault/apply-vault-keys.ts";
-import { vaultKeyLookup } from "../key-vault/vault-key-lookup.ts";
+import {
+  resolveVaultOAuthSession,
+  vaultKeyLookup,
+  type OAuthSessionLookup,
+} from "../key-vault/vault-key-lookup.ts";
 import { executeWithFailover } from "./failover-runner.ts";
 import type { parseChatRequest } from "./parse-chat-request.ts";
+import { resolveOAuthAuth } from "./resolve-oauth-auth.ts";
 import { selectAdapter } from "./select-adapter.ts";
 import type { SendOutcome } from "./send-replay.ts";
 
@@ -11,22 +16,53 @@ export type ChatRequest = Extract<
 >["request"];
 
 /**
- * Runs one non-streaming chat request on the server: fills keys from the
- * vault, picks the adapters and fails over to the backup models. Shared by
- * `/api/chat` and the routines scheduler, which has no browser behind it.
+ * Runs one non-streaming chat request on the server: fills keys and OAuth
+ * tokens from the vault, picks the adapters and fails over to the backup
+ * models. Shared by `/api/chat` and the routines scheduler.
  */
 export async function answerChatRequest(
   request: ChatRequest,
+  options: { oauthLookup?: OAuthSessionLookup } = {},
 ): Promise<SendOutcome> {
+  const oauthLookup = options.oauthLookup ?? resolveVaultOAuthSession;
+  const auth = await resolveOAuthAuth({
+    config: request.config,
+    fallbackConfig: request.fallbackConfig,
+    oauthLookup,
+  });
+  if (!auth.ok) {
+    return {
+      status: auth.failure.status,
+      body: {
+        error: auth.failure.error,
+        provider: auth.failure.provider,
+      },
+    };
+  }
+
   const modelRequest = withVaultKeys(request, vaultKeyLookup);
-  const primaryAdapter = selectAdapter(process.env, modelRequest.config);
+  const adapterOptions = auth.oauthTokens
+    ? { oauthTokens: auth.oauthTokens }
+    : {};
+  const primaryAdapter = selectAdapter(
+    process.env,
+    modelRequest.config,
+    undefined,
+    adapterOptions,
+  );
   if (!primaryAdapter) {
     return { status: 503, body: { error: "no_provider_configured" } };
   }
 
-  const fallbackAdapter = modelRequest.fallbackConfig
-    ? selectAdapter(process.env, modelRequest.fallbackConfig)
-    : null;
+  const fallbackAdapter =
+    modelRequest.fallbackConfig && !auth.skipFallback
+      ? selectAdapter(
+          process.env,
+          modelRequest.fallbackConfig,
+          undefined,
+          adapterOptions,
+        )
+      : null;
 
   const result = await executeWithFailover({
     request: modelRequest,

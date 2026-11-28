@@ -50,10 +50,13 @@ export async function handleCallback(
   if (!isConnectionId(rawId)) return failure("unknown_connection", 404);
   const body = await readJsonObject(request);
   if (!body) return failure("invalid_body", 400);
+  const clientId =
+    stringField(body, "client_id") ?? stringField(body, "clientId");
   const outcome = await finishOAuthConnect(deps, rawId, {
     state: stringField(body, "state"),
     code: stringField(body, "code"),
     error: stringField(body, "error"),
+    ...(clientId ? { clientId } : {}),
   });
   return json(outcome, statusFor(outcome));
 }

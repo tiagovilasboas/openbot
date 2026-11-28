@@ -44,7 +44,9 @@ export function ConnectionRow({
             className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${
               state === "off"
                 ? "bg-surface-secondary text-subtle"
-                : "bg-success-soft text-success"
+                : state === "needsReauth"
+                  ? "bg-warning-soft text-warning"
+                  : "bg-success-soft text-success"
             }`}
           >
             {labels[state]}

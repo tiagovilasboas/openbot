@@ -3,6 +3,10 @@ import {
   withVaultKeys,
   type KeyLookup,
 } from "../key-vault/apply-vault-keys.ts";
+import {
+  noOAuthSessionLookup,
+  type OAuthSessionLookup,
+} from "../key-vault/vault-key-lookup.ts";
 import { clientKey } from "../server-guard/client-key.ts";
 import {
   sharedStreamSlots,
@@ -13,6 +17,7 @@ import { modelNotAllowedResponse } from "./allowed-models.ts";
 import type { FetchLike } from "./model-adapter.ts";
 import { eventsToNdjson } from "./ndjson-stream.ts";
 import { readIdempotencyKey } from "./idempotency-key.ts";
+import { resolveOAuthAuth } from "./resolve-oauth-auth.ts";
 import { fingerprintBody } from "./send-replay.ts";
 import { chatStreamReplay, type createStreamReplay } from "./stream-replay.ts";
 import { parseChatRequest } from "./parse-chat-request.ts";
@@ -36,6 +41,8 @@ export type StreamChatOptions = {
   slots?: StreamSlots;
   /** Where a config with no key finds its saved one; none by default. */
   keyLookup?: KeyLookup;
+  /** Where an OAuth provider resolves its access token; none by default. */
+  oauthLookup?: OAuthSessionLookup;
   /** The providers the user switched off; none by default. */
   offProviders?: OffProvidersLookup;
   /** Remembers finished streams per send id; defaults to the shared one. */
@@ -67,6 +74,7 @@ export async function handleChatStream(
     timeoutMs = STREAM_TIMEOUT_MS,
     slots = sharedStreamSlots(env),
     keyLookup = noKeyLookup,
+    oauthLookup = noOAuthSessionLookup,
     replay = chatStreamReplay,
     offProviders = noOffProviders,
   }: StreamChatOptions,
@@ -86,6 +94,18 @@ export async function handleChatStream(
   const off = providerOffResponse(parsed.request, offProviders);
   if (off) return off;
 
+  const auth = await resolveOAuthAuth({
+    config: parsed.request.config,
+    fallbackConfig: parsed.request.fallbackConfig,
+    oauthLookup,
+  });
+  if (!auth.ok) {
+    return Response.json(
+      { error: auth.failure.error, provider: auth.failure.provider },
+      { status: auth.failure.status },
+    );
+  }
+
   const start = () =>
     startStream(request, parsed.request, {
       env,
@@ -93,6 +113,8 @@ export async function handleChatStream(
       timeoutMs,
       slots,
       keyLookup,
+      oauthTokens: auth.oauthTokens,
+      skipFallback: auth.skipFallback,
     });
   if (!idempotency.key) return start();
 
@@ -115,22 +137,44 @@ type StartOptions = {
   timeoutMs: number;
   slots: StreamSlots;
   keyLookup: KeyLookup;
+  oauthTokens?: Readonly<Record<string, string>>;
+  skipFallback: boolean;
 };
 
 /** Picks the provider, takes a slot and starts the NDJSON response. */
 function startStream(
   request: Request,
   parsedRequest: ParsedRequest,
-  { env, fetchImpl, timeoutMs, slots, keyLookup }: StartOptions,
+  {
+    env,
+    fetchImpl,
+    timeoutMs,
+    slots,
+    keyLookup,
+    oauthTokens,
+    skipFallback,
+  }: StartOptions,
 ): Response {
   const modelRequest = withVaultKeys(parsedRequest, keyLookup);
-  const primary = selectAdapter(env, modelRequest.config, fetchImpl);
+  const adapterOptions = oauthTokens ? { oauthTokens } : {};
+  const primary = selectAdapter(
+    env,
+    modelRequest.config,
+    fetchImpl,
+    adapterOptions,
+  );
   if (!primary) {
     return Response.json({ error: "no_provider_configured" }, { status: 503 });
   }
-  const fallback = modelRequest.fallbackConfig
-    ? selectAdapter(env, modelRequest.fallbackConfig, fetchImpl)
-    : null;
+  const fallback =
+    modelRequest.fallbackConfig && !skipFallback
+      ? selectAdapter(
+          env,
+          modelRequest.fallbackConfig,
+          fetchImpl,
+          adapterOptions,
+        )
+      : null;
 
   // The slot is taken only after validation, and before any provider call.
   const release = slots.acquire(clientKey(request.headers, env));

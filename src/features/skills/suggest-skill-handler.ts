@@ -3,6 +3,10 @@ import {
   withVaultKey,
   type KeyLookup,
 } from "../key-vault/apply-vault-keys.ts";
+import {
+  noOAuthSessionLookup,
+  type OAuthSessionLookup,
+} from "../key-vault/vault-key-lookup.ts";
 import { isModelAllowed } from "../model/allowed-models.ts";
 import { executeWithFailover } from "../model/failover-runner.ts";
 import type { FetchLike } from "../model/model-adapter.ts";
@@ -11,6 +15,7 @@ import {
   providerOffResponse,
   type OffProvidersLookup,
 } from "../model/provider-off-guard.ts";
+import { resolveOAuthAuth } from "../model/resolve-oauth-auth.ts";
 import { selectAdapter } from "../model/select-adapter.ts";
 import { parseSuggestionReply } from "./parse-suggestion-reply.ts";
 import { parseSuggestionRequest } from "./parse-suggestion-request.ts";
@@ -23,6 +28,8 @@ export interface SuggestSkillOptions {
   fetchImpl?: FetchLike;
   /** Where a config with no key finds its saved one; none by default. */
   keyLookup?: KeyLookup;
+  /** Where an OAuth provider resolves its access token; none by default. */
+  oauthLookup?: OAuthSessionLookup;
   /** The providers the user switched off; none by default. */
   offProviders?: OffProvidersLookup;
 }
@@ -40,6 +47,7 @@ export async function handleSuggestSkill(
     env,
     fetchImpl,
     keyLookup = noKeyLookup,
+    oauthLookup = noOAuthSessionLookup,
     offProviders = noOffProviders,
   }: SuggestSkillOptions,
 ): Promise<Response> {
@@ -52,6 +60,16 @@ export async function handleSuggestSkill(
   const { language, messages, modelId } = parsed.request;
   const off = providerOffResponse(parsed.request, offProviders);
   if (off) return off;
+  const auth = await resolveOAuthAuth({
+    config: parsed.request.config,
+    oauthLookup,
+  });
+  if (!auth.ok) {
+    return Response.json(
+      { error: auth.failure.error, provider: auth.failure.provider },
+      { status: auth.failure.status },
+    );
+  }
   const config = parsed.request.config
     ? withVaultKey(parsed.request.config, keyLookup)
     : parsed.request.config;
@@ -59,7 +77,12 @@ export async function handleSuggestSkill(
   if (modelId && !isModelAllowed(env, modelId)) {
     return Response.json({ error: "model_not_allowed" }, { status: 400 });
   }
-  const primaryAdapter = selectAdapter(env, config, fetchImpl);
+  const primaryAdapter = selectAdapter(
+    env,
+    config,
+    fetchImpl,
+    auth.oauthTokens ? { oauthTokens: auth.oauthTokens } : {},
+  );
   if (!primaryAdapter) {
     return Response.json({ error: "no_provider_configured" }, { status: 503 });
   }

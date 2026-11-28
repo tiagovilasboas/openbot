@@ -23,8 +23,10 @@ export {
 } from "./connect-state.ts";
 export type {
   Clock,
+  ConnectCredential,
   CredentialStatus,
   CredentialStore,
+  OAuthClientIdentityStore,
   PendingAuth,
   PendingAuthStore,
 } from "./connection-ports.ts";

@@ -1,22 +1,24 @@
 import { getVaultContext } from "../../key-vault/vault-context.ts";
 import {
   createMemoryPendingAuthStore,
+  createVaultClientIdentityStore,
   createVaultCredentialStore,
 } from "../credentials/index.ts";
 import {
   PENDING_TTL_MS,
   type FinishOAuthDeps,
   type HttpClient,
+  type StartOAuthDeps,
 } from "../oauth/index.ts";
 
 /** Everything the connections handlers need, wired once per server process. */
-export type ConnectionsDeps = FinishOAuthDeps;
+export type ConnectionsDeps = FinishOAuthDeps & StartOAuthDeps;
 
 const EXCHANGE_TIMEOUT_MS = 15_000;
 const DEPS_KEY = Symbol.for("openbot.connectionsDeps");
 type Holder = { [DEPS_KEY]?: ConnectionsDeps };
 
-// The code exchange goes to a fixed OpenRouter URL; a redirect is refused.
+// The code exchange goes to a fixed provider URL; a redirect is refused.
 const timedFetch: HttpClient = (url, init) =>
   fetch(url, {
     ...init,
@@ -38,6 +40,7 @@ export function getConnectionsDeps(): ConnectionsDeps {
       pending: createMemoryPendingAuthStore(clock, PENDING_TTL_MS * 2),
       http: timedFetch,
       credentials: createVaultCredentialStore(getVaultContext),
+      clientIdentities: createVaultClientIdentityStore(getVaultContext),
     };
   }
   return holder[DEPS_KEY];

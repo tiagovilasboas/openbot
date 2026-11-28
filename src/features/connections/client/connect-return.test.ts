@@ -8,6 +8,15 @@ test("reads a successful return", () => {
     state: "s",
     code: "c",
   });
+  assert.deepEqual(
+    parseConnectReturn("?connect=chatgpt&state=s&code=c&client_id=oaiapp_123"),
+    {
+      id: "chatgpt",
+      state: "s",
+      code: "c",
+      clientId: "oaiapp_123",
+    },
+  );
 });
 
 test("reads a declined return without a code", () => {
@@ -25,7 +34,11 @@ test("ignores locations that are not a connect return", () => {
 
 test("strips only the connect params and keeps the rest", () => {
   assert.equal(
-    withoutConnectParams("/", "?connect=router&state=s&code=c&x=1", "#top"),
+    withoutConnectParams(
+      "/",
+      "?connect=router&state=s&code=c&client_id=oaiapp_1&x=1",
+      "#top",
+    ),
     "/?x=1#top",
   );
   assert.equal(

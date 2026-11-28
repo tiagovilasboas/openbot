@@ -3,6 +3,7 @@
 import {
   offProviderCopy,
   providerTypeUsability,
+  type ConnectionId,
 } from "@/features/connections/copy.ts";
 import type { Language } from "../language/language.ts";
 import type { chatCopy } from "@/features/chat/chat-copy.ts";
@@ -16,7 +17,7 @@ interface SettingsProviderSelectorProps {
   content: (typeof chatCopy)[Language];
   language: Language;
   /** Providers switched off in Connections: shown, but not selectable. */
-  offProviders: readonly ("router" | "anthropic" | "github")[];
+  offProviders: readonly ConnectionId[];
   onSelectProvider: (provider: ModelProviderType) => void;
 }
 
@@ -43,6 +44,11 @@ export function SettingsProviderSelector({
       id: "anthropic",
       name: content.providerAnthropic,
       hint: content.providerAnthropicHint,
+    },
+    {
+      id: "chatgpt",
+      name: content.providerChatGpt,
+      hint: content.providerChatGptHint,
     },
   ];
 

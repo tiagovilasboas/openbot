@@ -11,6 +11,7 @@ import {
 test("provider types and model ids map to a connection", () => {
   assert.equal(connectionForProviderType("router"), "router");
   assert.equal(connectionForProviderType("anthropic"), "anthropic");
+  assert.equal(connectionForProviderType("chatgpt"), "chatgpt");
   assert.equal(connectionForProviderType("local"), null);
   assert.equal(connectionForModelId("google/gemma-4-31b-it:free"), "router");
   assert.equal(connectionForModelId("claude-sonnet-5"), "anthropic");
